@@ -1,3 +1,5 @@
+import { createClient } from '@/lib/supabase/server';
+
 // Adopted from https://marmelab.com/react-admin/NextJs.html#adding-an-api
 export const dynamic = 'force-dynamic'; // defaults to auto
 export async function GET(request: Request) {
@@ -21,6 +23,12 @@ export async function DELETE(request: Request) {
 }
 
 async function handler(request: Request) {
+  const supabase = createClient();
+  // global middleware makes sure that this is a trustworthy user session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   // get part after /api/admin/ in string url
   const requestUrl = request.url.split('/api/admin')[1];
 
@@ -36,10 +44,14 @@ async function handler(request: Request) {
         request.headers.get('content-type') ?? 'application/json',
       // supabase authentication
       apiKey: process.env.SUPABASE_ANON_KEY ?? '',
+      Authorization: `Bearer ${session?.access_token}`,
     },
   };
 
-  if (request.body) {
+  if (
+    request.body &&
+    parseInt(request.headers.get('content-length') ?? '0') > 0
+  ) {
     const body = await request.json();
     options.body = JSON.stringify(body);
   }
