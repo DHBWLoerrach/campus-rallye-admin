@@ -24,3 +24,18 @@ export async function login(formData: FormData) {
   revalidatePath('/', 'layout'); // is this necessary?
   redirect('/'); // TODO: redirect to current page
 }
+
+export async function signInWithEmail(formData: FormData) {
+  const supabase = createClient();
+
+  const email = formData.get('email') as string;
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email as string,
+    options: { shouldCreateUser: false },
+  });
+
+  if (error) {
+    console.error(error);
+  }
+}
