@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { signOut } from '@/actions/auth';
+import RallyeCard from '@/components/RallyeCard';
 
 export default async function Home() {
   const supabase = createClient();
@@ -19,7 +20,11 @@ export default async function Home() {
           Abmelden
         </button>
       </form>
-      <pre>{JSON.stringify(rallyes, null, 2)}</pre>
+      <main className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 m-4">
+        {rallyes.map((rallye) => (
+          <RallyeCard key={rallye.id} rallye={rallye} />
+        ))}
+      </main>
     </>
   );
 }
