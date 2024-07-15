@@ -2,10 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-
 import { createClient } from '@/lib/supabase/server';
 
-export async function login(formData: FormData) {
+type FormState = { errors?: { message?: string } } | undefined;
+
+export async function login(
+  formState: FormState,
+  formData: FormData
+) {
   const supabase = createClient();
 
   // type-casting here for convenience
@@ -18,14 +22,17 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    // TODO: show error in form (e.g. wrong auth details)
+    return { errors: { message: 'Ungültige Zugangsdaten' } };
   }
 
   revalidatePath('/', 'layout'); // is this necessary?
   redirect('/'); // TODO: redirect to current page
 }
 
-export async function signInWithEmail(formData: FormData) {
+export async function signInWithEmail(
+  state: FormState,
+  formData: FormData
+) {
   const supabase = createClient();
 
   const email = formData.get('email') as string;
@@ -36,6 +43,6 @@ export async function signInWithEmail(formData: FormData) {
   });
 
   if (error) {
-    console.error(error);
+    return { errors: { message: 'Ungültige E-Mail-Adresse' } };
   }
 }
