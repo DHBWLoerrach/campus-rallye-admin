@@ -131,6 +131,11 @@ export default function RallyeCardForm({ rallye, onCancel }) {
               {formState.errors.message}
             </span>
           )}
+          {formState?.success && (
+            <span className="text-sm text-green-500 ml-2">
+              {formState.success.message}
+            </span>
+          )}
         </form>
       </CardContent>
     </Card>

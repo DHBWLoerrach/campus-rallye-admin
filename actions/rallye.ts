@@ -34,4 +34,5 @@ export default async function updateRallye(
   }
 
   revalidatePath('/');
+  return { success: { message: 'Rallye erfolgreich gespeichert' } };
 }
