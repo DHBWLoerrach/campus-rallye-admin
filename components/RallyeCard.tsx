@@ -6,7 +6,7 @@ import { useState } from 'react';
 // https://react.dev/blog/2024/04/25/react-19#new-hook-useactionstate
 import { useFormState, useFormStatus } from 'react-dom';
 import { de } from 'date-fns/locale';
-import { CircleX, Edit } from 'lucide-react';
+import { CircleX, Pencil } from 'lucide-react';
 import updateRallye from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,7 +60,7 @@ export default function RallyeCard({ rallye }) {
             {editMode ? (
               <CircleX className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <Edit className="h-4 w-4" aria-hidden="true" />
+              <Pencil className="h-4 w-4" aria-hidden="true" />
             )}
           </Button>
         </CardTitle>
