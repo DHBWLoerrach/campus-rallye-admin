@@ -1,133 +1,61 @@
-'use client';
-
-import { useState } from 'react';
-// TODO: in React 19, this will be just `useFormAction`
-// https://react.dev/reference/react/useActionState
-// https://react.dev/blog/2024/04/25/react-19#new-hook-useactionstate
-import { useFormState, useFormStatus } from 'react-dom';
-import { de } from 'date-fns/locale';
-import { CircleX, Pencil } from 'lucide-react';
-import updateRallye from '@/actions/rallye';
+import { format } from 'date-fns';
+import { Pencil } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { DateTimePicker } from '@/components/ui/datetime-picker';
-import { Label } from '@/components/ui/label';
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from '@/components/ui/radio-group';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
-function SaveButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
-      aria-disabled={pending}
-    >
-      {pending ? 'Wird gesendet…' : 'Speichern'}
-    </button>
-  );
-}
+export default function RallyeCard({ rallye, onEdit }) {
+  function getRallyeStatus(rallye) {
+    switch (rallye.status) {
+      case 'preparation':
+        return 'Vorbereitung';
+      case 'running':
+        return 'Gestartet';
+      case 'post_processing':
+        return 'Nachbereitung';
+      case 'ended':
+        return 'Beendet';
+      default:
+        return 'Unbekannt';
+    }
+  }
 
-export default function RallyeCard({ rallye }) {
-  const [formState, formAction] = useFormState(updateRallye, null);
-  const [editMode, toggleEditMode] = useState<boolean>(false);
-  const [active, setActive] = useState<boolean>(
-    rallye.is_active_rallye
-  );
-  const [status, setStatus] = useState<string>(rallye.status);
-  const [date24, setDate24] = useState<Date | undefined>(
-    new Date(rallye.end_time)
-  );
+  const formattedEndTime = rallye.end_time
+    ? format(new Date(rallye.end_time), "dd.MM.yyyy, HH:mm 'Uhr'")
+    : 'N/A';
+
   return (
-    <Card key={rallye.id}>
+    <Card className="w-full max-w-md shadow-md">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          {rallye.name}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-start gap-2">
+            <h2 className="text-xl font-bold">{rallye.name}</h2>
+            <Badge
+              variant={rallye.is_active_rallye ? 'success' : 'danger'}
+              className="text-sm font-medium"
+            >
+              {rallye.is_active_rallye ? 'Aktiv' : 'Inaktiv'}
+            </Badge>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            aria-label={editMode ? 'Abbrechen' : 'Bearbeiten'}
-            onClick={() => toggleEditMode(!editMode)}
+            aria-label="Bearbeiten"
+            onClick={onEdit}
           >
-            {editMode ? (
-              <CircleX className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-            )}
+            <Pencil className="h-4 w-4" aria-hidden="true" />
           </Button>
-        </CardTitle>
+        </div>
       </CardHeader>
-      <CardContent>
-        <form action={formAction}>
-          <input type="hidden" name="id" value={rallye.id} />
-          <input
-            type="hidden"
-            name="end_time"
-            value={date24?.toISOString()}
-          />
-          <div className="flex items-center space-x-2">
-            <Label htmlFor={`rallye-${rallye.id}-active`}>
-              Rallye aktiv
-            </Label>
-            <Switch
-              name="active"
-              checked={active}
-              onCheckedChange={setActive}
-            />
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-status`}>
-              Status der Rallye
-            </Label>
-            <RadioGroup
-              name="status"
-              value={status}
-              onValueChange={setStatus}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="preparation" id="r1" />
-                <Label htmlFor="r1">Vorbereitung</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="running" id="r2" />
-                <Label htmlFor="r2">Gestartet</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="post_processing" id="r3" />
-                <Label htmlFor="r3">Nachbereitung</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="ended" id="r4" />
-                <Label htmlFor="r4">Beendet</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-endtime`}>
-              Ende der Rallye
-            </Label>
-            <DateTimePicker
-              locale={de}
-              hourCycle={24}
-              value={date24}
-              onChange={setDate24}
-            />
-          </div>
-          {editMode && <SaveButton />}
-          {formState?.errors && (
-            <span className="text-sm text-red-500 ml-2">
-              {formState.errors.message}
-            </span>
-          )}
-        </form>
+      <CardContent className="grid gap-4">
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground">Status:</div>
+          <div className="font-medium">{getRallyeStatus(rallye)}</div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground">Endzeitpunkt:</div>
+          <div className="font-medium">{formattedEndTime}</div>
+        </div>
       </CardContent>
     </Card>
   );
