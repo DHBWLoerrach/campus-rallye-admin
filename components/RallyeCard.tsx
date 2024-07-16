@@ -6,7 +6,9 @@ import { useState } from 'react';
 // https://react.dev/blog/2024/04/25/react-19#new-hook-useactionstate
 import { useFormState, useFormStatus } from 'react-dom';
 import { de } from 'date-fns/locale';
+import { CircleX, Edit } from 'lucide-react';
 import updateRallye from '@/actions/rallye';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -36,6 +38,7 @@ function SaveButton() {
 
 export default function RallyeCard({ rallye }) {
   const [formState, formAction] = useFormState(updateRallye, null);
+  const [editMode, toggleEditMode] = useState<boolean>(false);
   const [active, setActive] = useState<boolean>(
     rallye.is_active_rallye
   );
@@ -46,7 +49,21 @@ export default function RallyeCard({ rallye }) {
   return (
     <Card key={rallye.id}>
       <CardHeader>
-        <CardTitle>{rallye.name}</CardTitle>
+        <CardTitle className="flex justify-between items-center">
+          {rallye.name}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={editMode ? 'Abbrechen' : 'Bearbeiten'}
+            onClick={() => toggleEditMode(!editMode)}
+          >
+            {editMode ? (
+              <CircleX className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Edit className="h-4 w-4" aria-hidden="true" />
+            )}
+          </Button>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form action={formAction}>
@@ -104,7 +121,7 @@ export default function RallyeCard({ rallye }) {
               onChange={setDate24}
             />
           </div>
-          <SaveButton />
+          {editMode && <SaveButton />}
           {formState?.errors && (
             <span className="text-sm text-red-500 ml-2">
               {formState.errors.message}
