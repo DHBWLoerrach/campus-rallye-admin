@@ -6,6 +6,7 @@ import RallyeForm from '@/components/RallyeForm';
 
 export default function Rallye({ rallye }) {
   const [editMode, setEditMode] = useState<boolean>(false);
+
   return editMode ? (
     <RallyeForm rallye={rallye} onCancel={() => setEditMode(false)} />
   ) : (

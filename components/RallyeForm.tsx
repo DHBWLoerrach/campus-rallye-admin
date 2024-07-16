@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   RadioGroup,
@@ -30,6 +31,7 @@ function SaveButton() {
       type="submit"
       className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
       aria-disabled={pending}
+      disabled={pending}
     >
       {pending ? 'Wird gesendet…' : 'Speichern'}
     </button>
@@ -38,6 +40,7 @@ function SaveButton() {
 
 export default function RallyeCardForm({ rallye, onCancel }) {
   const [formState, formAction] = useFormState(updateRallye, null);
+  const [name, setName] = useState<string>(rallye.name);
   const [active, setActive] = useState<boolean>(
     rallye.is_active_rallye
   );
@@ -45,11 +48,12 @@ export default function RallyeCardForm({ rallye, onCancel }) {
   const [date24, setDate24] = useState<Date | undefined>(
     new Date(rallye.end_time)
   );
+
   return (
     <Card className="w-full max-w-md shadow-md">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          {rallye.name}
+        <CardTitle className="flex justify-between items-center text-xl ">
+          Rallye bearbeiten
           <Button
             variant="ghost"
             size="icon"
@@ -68,7 +72,12 @@ export default function RallyeCardForm({ rallye, onCancel }) {
             name="end_time"
             value={date24?.toISOString()}
           />
-          <div className="flex items-center space-x-2">
+          <Input
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <div className="flex items-center space-x-2 mt-2">
             <Label htmlFor={`rallye-${rallye.id}-active`}>
               Rallye aktiv
             </Label>
