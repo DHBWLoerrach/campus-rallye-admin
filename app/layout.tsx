@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import Navigation from '@/components/Navigation';
 
 const fontSans = FontSans({
@@ -27,8 +28,15 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <Navigation />
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Navigation />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

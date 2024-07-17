@@ -9,6 +9,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import NavItems from '@/components/NavItems';
+import DarkModeToggle from '@/components/DarkModeToggle';
 
 const routes: Route[] = [
   {
@@ -62,6 +63,7 @@ export default async function Nav() {
             </Button>
           </form>
         )}
+        <DarkModeToggle />
       </div>
     </header>
   );
