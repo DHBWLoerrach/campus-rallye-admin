@@ -1,8 +1,14 @@
 import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 export default function RallyeCard({ rallye, onEdit }) {
   function getRallyeStatus(rallye) {
@@ -21,22 +27,24 @@ export default function RallyeCard({ rallye, onEdit }) {
   }
 
   const formattedEndTime = rallye.end_time
-    ? format(new Date(rallye.end_time), "dd.MM.yyyy, HH:mm 'Uhr'")
-    : 'N/A';
+    ? format(new Date(rallye.end_time), "EEE dd.MM.yy HH:mm 'Uhr'", {
+        locale: de,
+      })
+    : 'Endzeitpunkt fehlt';
 
   return (
     <Card className="w-full max-w-md shadow-md">
       <CardHeader>
+        <CardTitle className="text-xl">{rallye.name}</CardTitle>
         <div className="flex items-center justify-between">
-          <div className="flex items-center justify-start gap-2">
-            <h2 className="text-xl font-bold">{rallye.name}</h2>
-            <Badge
-              variant={rallye.is_active_rallye ? 'success' : 'danger'}
-              className="text-sm font-medium"
-            >
-              {rallye.is_active_rallye ? 'Aktiv' : 'Inaktiv'}
-            </Badge>
-          </div>
+          <Badge
+            variant={
+              rallye.is_active_rallye ? 'default' : 'secondary'
+            }
+            className="text-sm font-medium"
+          >
+            {rallye.is_active_rallye ? 'Aktiv' : 'Inaktiv'}
+          </Badge>
           <Button
             variant="ghost"
             size="icon"
@@ -53,7 +61,7 @@ export default function RallyeCard({ rallye, onEdit }) {
           <div className="font-medium">{getRallyeStatus(rallye)}</div>
         </div>
         <div className="flex items-center justify-between">
-          <div className="text-muted-foreground">Endzeitpunkt:</div>
+          <div className="text-muted-foreground">Ende:</div>
           <div className="font-medium">{formattedEndTime}</div>
         </div>
       </CardContent>
