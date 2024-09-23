@@ -5,7 +5,29 @@ import { createClient } from '@/lib/supabase/server';
 
 type FormState = { errors?: { message?: string } } | undefined;
 
-export default async function updateRallye(
+export async function createRallye(
+  state: FormState,
+  formData: FormData
+) {
+  const supabase = createClient();
+
+  const data = { name: formData.get('name') as string };
+
+  const { error } = await supabase.from('rallye').insert({
+    name: data.name,
+    is_active_rallye: false,
+    status: 'preparation',
+  });
+
+  if (error) {
+    return { errors: { message: 'Es ist ein Fehler aufgetreten' } };
+  }
+
+  revalidatePath('/');
+  return { success: { message: 'Rallye erfolgreich gespeichert' } };
+}
+
+export async function updateRallye(
   state: FormState,
   formData: FormData
 ) {

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { de } from 'date-fns/locale';
 import { CircleX } from 'lucide-react';
-import updateRallye from '@/actions/rallye';
+import { updateRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import {
   Card,
