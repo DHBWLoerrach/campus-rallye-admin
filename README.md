@@ -24,7 +24,13 @@ Hier werden die für dieses Projekt benötigten Schritte aufgelistet:
 - Den Datenbankinhalt als Datei `seed.sql` speichern unter `rallye-db/supabase/`
 - Datenbank aus der Schema-SQL-Datei erstellen mit `supabase db reset`
 
+Wenn alles geklappt hat, dann kann die lokale Supabase-Instanz mit dem Webinterface im Browser verwaltet werden: http://127.0.0.1:54323
+
 Die Supabase-Instanz kann folgendermaßen heruntergefahren werden: `supabase stop`
+
+## Admin-User in Supabase erstellen
+
+Im Webinterface der lokalen Supabase-Instanz (http://127.0.0.1:54323) muss unter `Authentication - Users` ein Admin-User erstellt werden (`Add user - Create new user`). Dieser wird für das Login in die Webanwendung `campus-rallye-admin` benötigt.
 
 ## Webanwendung `campus-rallye-admin` lokal installieren
 
@@ -34,6 +40,22 @@ Im Projektverzeichnis die Abhängigkeiten installieren:
 
 ```sh
 npm install
+```
+
+## Supabase in Webanwendung konfigurieren
+
+Zum Schluss muss noch die Konfiguration zu Supabase angepasst werden. Dazu ist zunächst die Datei `.env.local` 
+im Projektverzeichnis zu erstellen. Dort `.env.local` müssen zwei Einträge vorgenommen werden:
+```
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_ANON_KEY=<LOCAL_SUPABASE_ANON_KEY>
+```
+
+Dort muss nun der Anon Key eingefügt werden. Dieser kann im Terminal 
+abgefragt werden (dazu ins Verzeichnis der lokalen Supabase-Instanz wechseln):
+
+```sh
+supabase status
 ```
 
 ## Webanwendung starten 
