@@ -6,13 +6,20 @@
 import { useFormState, useFormStatus } from 'react-dom';
 import { login, signInWithEmail } from './actions';
 
-const LoginButton = ({ label }: { label: string }) => {
+const LoginButton = ({
+  label,
+  disabled = false,
+}: {
+  label: string;
+  disabled: boolean;
+}) => {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
       className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-      aria-disabled={pending}
+      aria-disabled={pending || disabled}
+      disabled={pending || disabled}
     >
       {pending ? 'Wird gesendet…' : label}
     </button>
@@ -26,6 +33,9 @@ function LoginWithEmailLink() {
       className="flex flex-col space-y-4 p-8 max-w-sm mx-auto border rounded-lg shadow-md"
       action={action}
     >
+      <p className="text-sm text-gray-500">
+        Anmeldelinks sind derzeit nicht möglich.
+      </p>
       <h1 className="text-2xl font-semibold">
         Campus Rallyes verwalten
       </h1>
@@ -42,7 +52,10 @@ function LoginWithEmailLink() {
       {state?.errors && (
         <p className="text-sm text-red-500">{state.errors.message}</p>
       )}
-      <LoginButton label="Anmeldelink per E-Mail senden" />
+      <LoginButton
+        label="Anmeldelink per E-Mail senden"
+        disabled={true}
+      />
     </form>
   );
 }
@@ -86,8 +99,8 @@ function LoginWithEmailPassword() {
 export default function LoginPage() {
   return (
     <>
-      <LoginWithEmailLink />
       <LoginWithEmailPassword />
+      <LoginWithEmailLink />
     </>
   );
 }
