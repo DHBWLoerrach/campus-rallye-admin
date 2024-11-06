@@ -1,7 +1,8 @@
 # Campus Rallye Admin Webanwendung
 
-Webanwendung zur Verwaltung der Daten von Campus Rallyes an der
-[DHBW Lörrach](https://www.dhbw-loerrach.de). 
+Webanwendung zur Verwaltung der Daten für die 
+[Campus Rallye App](https://github.com/DHBWLoerrach/CampusRallyeApp) 
+an der [DHBW Lörrach](https://www.dhbw-loerrach.de). 
 
 ## Vorbereitungen (Supabase)
 
