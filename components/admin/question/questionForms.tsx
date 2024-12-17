@@ -87,7 +87,7 @@ const MultipleChoiceInput = () => {
     saveQuestions(answers, record);
   }
   
-  return questionType === "multiple_choice" ? (
+  return questionType === "multiple_choice" && record.question ? (
     <>
       <div>
         {answers.map((answer, index) => (
