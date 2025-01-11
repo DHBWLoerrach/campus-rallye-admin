@@ -88,6 +88,10 @@ export async function saveQuestions(questions, parent) {
             }
         }
     }
+    // todo validierung
+    // question_type: "multiple_choice"
+    // 1. uestion === null && parent_id !== null && answer !== null && points === null && uri === null)
+    // 2. question !== null && parent_id === null && answer !== null && points !== null && uri === null
 
     // Fragen aktualisieren oder erstellen
     for (const item of questions) {
@@ -107,17 +111,7 @@ export async function saveQuestions(questions, parent) {
             } else {
                 console.log("fehler", item.id);
             }
-            // brauch ich des?
-            // else {
-            //     // create
-            //     console.log("create", item.id);
-            //     const { error } = await supabase
-            //         .from('question')
-            //         .insert({ ...item, parent_id: parent.id });
-            //     if (error) {
-            //         console.error('Error creating question:', error);
-            //     }
-            // }
+
         } else if (typeof item === 'string') {
             console.log(item, typeof item);
             console.log(parent.question_type, typeof parent.question_type);
@@ -134,17 +128,18 @@ export async function saveQuestions(questions, parent) {
             const { error } = await supabase
                 .from('question')
                 .insert({ 
-                    created_at: new Date().toISOString(),
+                    // created_at: new Date().toISOString(),
                     question_type: parent.question_type,
-                    enabled: parent.enabled, 
-                    category: parent.category,
+                    // enabled: parent.enabled, 
+                    // category: parent.category,
+                    question: null,
                     
                     answer: item,
-                    points: parent.points,
+                    points: null,
                     parent_id: parent.id,
-                    uri: parent.uri,
-                    video: parent.video,
-                    hint: parent.hint,
+                    uri: null,
+                    // video: parent.video,
+                    // hint: parent.hint,
                 });
             if (error) {
                 console.error('Error creating question from string:', error);
