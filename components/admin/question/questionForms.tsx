@@ -98,7 +98,7 @@ const MultipleChoiceInput = () => {
               type="text"
               value={answer.answer}
               onChange={(e) => handleAnswerChange(index, e.target.value)}
-              style={{ flex: 1, width: "100%", marginLeft: "8px" }}
+              style={{ background: "white", flex: 1, width: "100%", marginLeft: "8px" }}
               
             />
             <button style={{ marginLeft: "8px" }} type="button" onClick={() => removeAnswer(index)}>
