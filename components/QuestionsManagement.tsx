@@ -90,7 +90,7 @@ export default function QuestionManagement() {
                 <TableCell>5</TableCell>
                 <TableCell>
                   <Image
-                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-24%20at%2010.01.33.jpg-sRW53w6aUn8tIdf6gTuH20UtyTVAyW.jpeg"
+                    src=""
                     alt="Statue"
                     width={50}
                     height={50}
