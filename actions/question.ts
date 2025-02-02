@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 
-export async function getCategories(){
+export async function getCategories() {
     const supabase = createClient();
     let { data: categories, error: categoriesError } = await supabase
         .from('questions')
@@ -16,10 +16,44 @@ export async function getCategories(){
     if (!categories || categories.length === 0) {
         console.log('No questions found');
         return [];
-    } 
+    }
 
-    
+
     return [...new Set(categories.map(item => item.category))];
+}
+
+export async function getQuestionById(id: number) {
+    const supabase = createClient();
+    let { data: questions, error: questionError } = await supabase
+        .from('questions')
+        .select()
+        .eq('id', id);
+
+    if (questionError) {
+        console.error('Error fetching questions:', questionError);
+        return [];
+    }
+
+    if (!questions || questions.length === 0) {
+        console.log('No questions found');
+        return [];
+    }
+
+    for (let question of questions) {
+        let { data: answers, error: answerError } = await supabase
+            .from('answers')
+            .select()
+            .eq('question_id', question.id);
+
+        if (answerError) {
+            console.error(`Error fetching answers for question ${question.id}:`, answerError);
+            question.answers = [];
+        } else {
+            question.answers = answers;
+        }
+    }
+
+    return questions[0];
 }
 
 export async function getQuestions(filters: { question?: string, answer?: string, type?: string, category?: string }) {
@@ -36,9 +70,9 @@ export async function getQuestions(filters: { question?: string, answer?: string
     if (!questions || questions.length === 0) {
         console.log('No questions found');
         return [];
-    } 
+    }
     // else {
-        // console.log('Questions fetched:', questions);
+    // console.log('Questions fetched:', questions);
     // }
 
     // Fetch answers for each question
@@ -56,19 +90,19 @@ export async function getQuestions(filters: { question?: string, answer?: string
         }
     }
 
-    if(filters.question) {
+    if (filters.question) {
         questions = questions.filter(question => question.content.toLowerCase().includes(filters.question.toLowerCase()));
     }
 
-    if(filters.answer) {
+    if (filters.answer) {
         questions = questions.filter(question => question.answers.some(answer => answer.text.toLowerCase().includes(filters.answer.toLowerCase())));
     }
 
-    if(filters.type) {
+    if (filters.type) {
         questions = questions.filter(question => question.type === filters.type);
     }
 
-    if(filters.category) {
+    if (filters.category) {
         questions = questions.filter(question => question.category === filters.category);
     }
 
