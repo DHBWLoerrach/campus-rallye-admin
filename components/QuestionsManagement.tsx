@@ -6,6 +6,7 @@ import SearchFilters from "./questions/SearchFilters";
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import QuestionDialog from "./questions/QuestionDialog";
+import Link from "next/link";
 
 
 
@@ -61,13 +62,15 @@ export default function QuestionManagement() {
       <div className="space-y-4">
         <div className="flex flex-wrap gap-4 items-center justify-between">
           <SearchFilters onFilterChange={handleFilterChange} />
-          <Button className="bg-red-600 hover:bg-red-700 text-white">
-            <Plus className="w-4 h-4 mr-2" onClick={() => setIsDialogOpen(true)}/>
-            ERSTELLEN
-          </Button>
+          <Link href="/questions/new">
+            <Button className="bg-red-600 hover:bg-red-700 text-white">
+              <Plus className="w-4 h-4 mr-2"/>
+              ERSTELLEN
+            </Button>
+          </Link>
         </div>
         <QuestionsTable questions={questions} />
-        <QuestionDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} />
+        {/* <QuestionDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleSubmit} /> */}
       </div>
     </div>
 

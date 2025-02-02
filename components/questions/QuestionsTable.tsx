@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Check, ChevronDown, Plus, X } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
+import { Button } from '../ui/button';
 
 interface Answer {
   id: number;
@@ -104,6 +106,11 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                 </TableCell>
                 <TableCell>{question.category}</TableCell>
                 <TableCell>{question.hint}</TableCell>
+                <TableCell>
+                  <Link href={`/questions/${question.id}`}>
+                  <Button className="bg-red-600 text-white">Bearbeiten</Button>
+                </Link>
+                </TableCell>
               </TableRow>
               {expandedRows.includes(question.id) && question.answers.map((answer) => (
                 <TableRow key={answer.id} className="bg-muted/50">

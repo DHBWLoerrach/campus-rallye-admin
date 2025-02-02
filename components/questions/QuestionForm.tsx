@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Answer {
   id?: number;
@@ -11,20 +11,13 @@ interface Answer {
 }
 
 interface QuestionFormProps {
-  initialData?: {
-    content: string;
-    type: string;
-    enabled: boolean;
-    points?: number;
-    hint?: string;
-    category: string;
-    answers: Answer[];
-  };
+  initialData?: Partial<Record<string, any>>;
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  onDelete?: () => void;
 }
 
-const QuestionForm: React.FC<QuestionFormProps> = ({ initialData, onSubmit, onCancel }) => {
+const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit, onCancel, onDelete }) => {
   const [question, setQuestion] = useState(initialData?.content || '');
   const [type, setType] = useState(initialData?.type || 'text');
   const [enabled, setEnabled] = useState(initialData?.enabled || false);
@@ -53,20 +46,20 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData, onSubmit, onCa
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto">
-      <div className="grid gap-4">
-        <div className="grid gap-2">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <div className="space-y-2">
           <Label htmlFor="question">Question</Label>
           <Input
             id="question"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Enter your question"
-            className="border p-2"
+            className="border p-2 w-full"
             required
           />
         </div>
-        <div className="grid gap-2">
+        <div className="space-y-2">
           <Label htmlFor="type">Type</Label>
           <Select value={type} onValueChange={(value) => setType(value)}>
             <SelectTrigger>
@@ -74,12 +67,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData, onSubmit, onCa
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="text">Text</SelectItem>
-              <SelectItem value="multiple">Multiple Choice</SelectItem>
+              <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
               <SelectItem value="location">Location</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <div className="grid gap-2">
+        <div className="space-y-2">
           <Label htmlFor="enabled">Enabled</Label>
           <Input
             type="checkbox"
@@ -88,7 +81,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData, onSubmit, onCa
             onChange={(e) => setEnabled(e.target.checked)}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="space-y-2">
           <Label htmlFor="points">Points</Label>
           <Input
             type="number"
@@ -96,30 +89,30 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData, onSubmit, onCa
             value={points}
             onChange={(e) => setPoints(Number(e.target.value))}
             placeholder="Enter points"
-            className="border p-2"
+            className="border p-2 w-full"
           />
         </div>
-        <div className="grid gap-2">
+        <div className="space-y-2">
           <Label htmlFor="hint">Hint</Label>
           <Input
             id="hint"
             value={hint}
             onChange={(e) => setHint(e.target.value)}
             placeholder="Enter hint"
-            className="border p-2"
+            className="border p-2 w-full"
           />
         </div>
-        <div className="grid gap-2">
+        <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
           <Input
             id="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="Enter category"
-            className="border p-2"
+            className="border p-2 w-full"
           />
         </div>
-        <div className="grid gap-2">
+        <div className="space-y-2">
           <Label>Answers</Label>
           {answers.map((answer, index) => (
             <div key={index} className="flex gap-2 items-center">
@@ -128,7 +121,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData, onSubmit, onCa
                 value={answer.text}
                 onChange={(e) => handleAnswerChange(index, 'text', e.target.value)}
                 placeholder="Enter answer"
-                className="border p-2 flex-1"
+                className="border p-2 flex-2"
               />
               <Input
                 type="checkbox"
@@ -151,6 +144,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData, onSubmit, onCa
           <Button type="submit" className="bg-blue-600 text-white">
             Submit
           </Button>
+          {onDelete && (
+          <Button type="button" onClick={onDelete} className="bg-red-600 text-white">
+            Delete
+          </Button>
+        )}
         </div>
       </div>
     </form>
