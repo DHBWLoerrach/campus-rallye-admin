@@ -46,3 +46,7 @@ export async function signInWithEmail(
     return { errors: { message: 'Ungültige E-Mail-Adresse' } };
   }
 }
+
+export async function signInWithKeycloak() {
+  redirect('/auth/moodle');
+}
