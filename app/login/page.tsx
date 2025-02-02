@@ -26,6 +26,26 @@ const LoginButton = ({
   );
 };
 
+const MoodleLoginButton = ({
+  label,
+  disabled = false,
+}: {
+  label: string;
+  disabled: boolean;
+}) => {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+      aria-disabled={pending || disabled}
+      disabled={pending || disabled}
+    >
+      {pending ? 'Wird gesendet…' : label}
+    </button>
+  );
+};
+
 function LoginWithEmailLink() {
   const [state, action] = useFormState(signInWithEmail, null);
   return (
@@ -92,7 +112,7 @@ function LoginWithEmailPassword() {
       {state?.errors && (
         <p className="text-sm text-red-500">{state.errors.message}</p>
       )}
-      <LoginButton label="Anmelden" />
+      <LoginButton label="Anmelden" disabled={false}/>
     </form>
   );
 }
@@ -128,12 +148,7 @@ function MoodleLogin() {
       {state?.errors && (
         <p className="text-sm text-red-500">{state.errors.message}</p>
       )}
-      <a
-        href="/auth/moodle"
-        className="flex items-center justify-center p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-      >
-        Mit Moodle anmelden
-      </a>
+      <MoodleLoginButton label="Mit Moodle anmelden" disabled={false} />
     </form>
   );
 }
