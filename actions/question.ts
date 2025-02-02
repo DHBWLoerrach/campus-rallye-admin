@@ -1,9 +1,28 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
-export async function getQuestions() {
+export async function getCategories(){
+    const supabase = createClient();
+    let { data: categories, error: categoriesError } = await supabase
+        .from('questions')
+        .select("category")
+        .not('category', 'is', null);
+
+    if (categoriesError) {
+        throw new Error(`Error fetching categories: ${categoriesError.message}`);
+    }
+
+    if (!categories || categories.length === 0) {
+        console.log('No questions found');
+        return [];
+    } 
+
+    
+    return [...new Set(categories.map(item => item.category))];
+}
+
+export async function getQuestions(filters: { question?: string, answer?: string, type?: string, category?: string }) {
     const supabase = createClient();
     let { data: questions, error: questionError } = await supabase
         .from('questions')
@@ -17,9 +36,10 @@ export async function getQuestions() {
     if (!questions || questions.length === 0) {
         console.log('No questions found');
         return [];
-    } else {
-        console.log('Questions fetched:', questions);
-    }
+    } 
+    // else {
+        // console.log('Questions fetched:', questions);
+    // }
 
     // Fetch answers for each question
     for (let question of questions) {
@@ -36,11 +56,27 @@ export async function getQuestions() {
         }
     }
 
+    if(filters.question) {
+        questions = questions.filter(question => question.content.toLowerCase().includes(filters.question.toLowerCase()));
+    }
+
+    if(filters.answer) {
+        questions = questions.filter(question => question.answers.some(answer => answer.text.toLowerCase().includes(filters.answer.toLowerCase())));
+    }
+
+    if(filters.type) {
+        questions = questions.filter(question => question.type === filters.type);
+    }
+
+    if(filters.category) {
+        questions = questions.filter(question => question.category === filters.category);
+    }
+
     return questions;
 }
 
 
-export async function createQuestion(data: { content: string, type: string, enabled: boolean, points?: number, hint?: string, answers: { correct: boolean, text?: string }[] }) {
+export async function createQuestion(data: { content: string, type: string, enabled: boolean, points?: number, hint?: string, category: string, answers: { correct: boolean, text?: string }[] }) {
     try {
         const supabase = createClient();
         // Insert the question
@@ -75,7 +111,7 @@ export async function createQuestion(data: { content: string, type: string, enab
     }
 }
 
-export async function updateQuestion(id: number, data: { content: string, type: string, enabled: boolean, points?: number, hint?: string, answers: { id?: number, correct: boolean, text?: string }[] }) {
+export async function updateQuestion(id: number, data: { content: string, type: string, enabled: boolean, points?: number, hint?: string, category: string, answers: { id?: number, correct: boolean, text?: string }[] }) {
     try {
         const supabase = createClient();
         // Update the question
