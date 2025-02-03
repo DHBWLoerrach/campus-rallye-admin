@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { questionTypes } from './helpers';
 
 interface Answer {
   id?: number;
@@ -49,7 +50,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="question">Question</Label>
+          <Label htmlFor="question">Frage</Label>
           <Input
             id="question"
             value={question}
@@ -60,16 +61,18 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="type">Type</Label>
+          <Label htmlFor="type">Fragetyp</Label>
           <Select value={type} onValueChange={(value) => setType(value)}>
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Wählen Sie einen Fragetyp"/>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="text">Text</SelectItem>
-              <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
-              <SelectItem value="location">Location</SelectItem>
-            </SelectContent>
+          {questionTypes.map((type) => (
+            <SelectItem key={type.id} value={type.id}>
+              {type.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">

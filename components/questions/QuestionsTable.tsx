@@ -4,6 +4,8 @@ import { Check, ChevronDown, Plus, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from '../ui/button';
+import { questionTypes } from './helpers';
+
 
 interface Answer {
   id: number;
@@ -30,6 +32,11 @@ interface QuestionsTableProps {
 const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
+  const questionTypeLabels = questionTypes.reduce((acc, type) => {
+    acc[type.id] = type.name;
+    return acc;
+  }, {});
+  
   const toggleRow = (questionId: number) => {
     setExpandedRows(current =>
       current.includes(questionId)
@@ -90,7 +97,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                   />
                 </TableCell>
                 <TableCell className="max-w-md truncate">{question.content}</TableCell>
-                <TableCell>{question.type}</TableCell>
+                <TableCell>{questionTypeLabels[question.type]}</TableCell>
                 <TableCell>
                   {question.enabled && <Check className="h-4 w-4 text-green-500" />}
                 </TableCell>

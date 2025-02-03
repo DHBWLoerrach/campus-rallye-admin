@@ -10,7 +10,7 @@ import {
   required,
 } from "react-admin";
 import { useWatch } from "react-hook-form";
-import { questionTypes } from "./helpers";
+import { questionTypes } from "../../questions/helpers";
 
 // TODO: should we leave image url when type is changed?
 const ImageURLInput = () => {
