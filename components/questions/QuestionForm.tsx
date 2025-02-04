@@ -131,9 +131,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
                 onChange={(e) => handleAnswerChange(index, 'correct', e.target.checked)}
               /> */}
               <Checkbox
-                id="terms"
+                // id="terms"
                 checked={answer.correct}
-                onChange={(e) => handleAnswerChange(index, 'correct', e.target.checked)}
+                onCheckedChange={(checked) => handleAnswerChange(index, 'correct', checked)}
               />
               <Input
                 type="text"
