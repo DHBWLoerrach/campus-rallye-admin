@@ -20,7 +20,7 @@ const truncateLength = 50;
 
 const QuestionPanel = () => {
   const record = useRecordContext();
-  return record.question;
+  return record?.question;
 };
 
 const questionFilters = [

@@ -27,7 +27,9 @@ const LoginButton = ({
 };
 
 function LoginWithEmailLink() {
-  const [state, action] = useFormState(signInWithEmail, null);
+  const [state, action] = useFormState(signInWithEmail, {
+    errors: { message: '' },
+  });
   return (
     <form
       className="flex flex-col space-y-4 p-8 max-w-sm mx-auto border rounded-lg shadow-md"
@@ -61,7 +63,10 @@ function LoginWithEmailLink() {
 }
 
 function LoginWithEmailPassword() {
-  const [state, action] = useFormState(login, null);
+  const [state, action] = useFormState(
+    (state, payload) => login(state, payload),
+    { errors: { message: '' } }
+  );
 
   return (
     <form
@@ -92,7 +97,7 @@ function LoginWithEmailPassword() {
       {state?.errors && (
         <p className="text-sm text-red-500">{state.errors.message}</p>
       )}
-      <LoginButton label="Anmelden" />
+      <LoginButton label="Anmelden" disabled={false} />
     </form>
   );
 }

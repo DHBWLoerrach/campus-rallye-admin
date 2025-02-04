@@ -1,7 +1,5 @@
 import {
-  AutocompleteInput,
   BooleanInput,
-  Button,
   Create,
   Edit,
   ReferenceInput,
@@ -10,16 +8,19 @@ import {
   TextInput,
   required,
   useRecordContext,
-} from "react-admin";
-import { useWatch } from "react-hook-form";
-import { questionTypes } from "./helpers";
-import { useState, useEffect } from "react";
-import { getChildren, saveQuestions } from '@/actions/multipleChoiceAnswers';
+} from 'react-admin';
+import { useWatch } from 'react-hook-form';
+import { questionTypes } from './helpers';
+import { useState, useEffect } from 'react';
+import {
+  getChildren,
+  saveQuestions,
+} from '@/actions/multipleChoiceAnswers';
 
 // TODO: should we leave image url when type is changed?
 const ImageURLInput = () => {
-  const questionType = useWatch({ name: "question_type" });
-  return questionType === "picture" ? (
+  const questionType = useWatch({ name: 'question_type' });
+  return questionType === 'picture' ? (
     <TextInput source="uri" label="Bildquelle" />
   ) : null;
 };
@@ -28,20 +29,25 @@ const ImageURLInput = () => {
 // maybe prevent changing of type? --> delete and create new question
 
 const MultipleChoiceInput = () => {
-  const questionType = useWatch({ name: "question_type" });
-  const [answers, setAnswers] = useState<string[]>([""]);
+  const questionType = useWatch({ name: 'question_type' });
+  const [answers, setAnswers] = useState<string[]>(['']);
   const record = useRecordContext();
 
   const addAnswer = () => {
-    setAnswers([...answers, ""]);
+    setAnswers([...answers, '']);
   };
 
   const handleAnswerChange = (index: number, value: string) => {
     const newAnswers = [...answers];
-    if (typeof newAnswers[index] === 'object' && newAnswers[index] !== null) {
-        newAnswers[index] = { ...newAnswers[index], answer: value };
+    if (
+      typeof newAnswers[index] === 'object' &&
+      newAnswers[index] !== null
+    ) {
+      newAnswers[index] = Object.assign(newAnswers[index], {
+        answer: value,
+      });
     } else {
-        newAnswers[index] = value;
+      newAnswers[index] = value;
     }
     setAnswers(newAnswers);
   };
@@ -51,7 +57,7 @@ const MultipleChoiceInput = () => {
     setAnswers(newAnswers);
   };
 
-  // 
+  //
 
   // if (!record) {
   //   console.log("Record is null");
@@ -79,41 +85,63 @@ const MultipleChoiceInput = () => {
         }
       });
     } else {
-      console.log("Record is null");
+      console.log('Record is null');
     }
   }, [record]);
 
   const saveAnswers = () => {
     saveQuestions(answers, record);
-  }
-  
-  return questionType === "multiple_choice" && record.question ? (
+  };
+
+  return questionType === 'multiple_choice' && record?.question ? (
     <>
       <div>
         {answers.map((answer, index) => (
-          <div key={index} style={{ display: "flex", alignItems: "center"}}>
+          <div
+            key={index}
+            style={{ display: 'flex', alignItems: 'center' }}
+          >
             <label>{`Antwort ${index + 1}:`}</label>
             <input
               // label={`Antwort ${index + 1}`}
               type="text"
-              value={answer.answer}
-              onChange={(e) => handleAnswerChange(index, e.target.value)}
-              style={{ background: "white", flex: 1, width: "100%", marginLeft: "8px" }}
-              
+              value={answer}
+              onChange={(e) =>
+                handleAnswerChange(index, e.target.value)
+              }
+              style={{
+                background: 'white',
+                flex: 1,
+                width: '100%',
+                marginLeft: '8px',
+              }}
             />
-            <button style={{ marginLeft: "8px" }} type="button" onClick={() => removeAnswer(index)}>
+            <button
+              style={{ marginLeft: '8px' }}
+              type="button"
+              onClick={() => removeAnswer(index)}
+            >
               -
             </button>
           </div>
         ))}
-        <button style={{marginTop: "8px"}} type="button" onClick={addAnswer}>
+        <button
+          style={{ marginTop: '8px' }}
+          type="button"
+          onClick={addAnswer}
+        >
           + Weitere Antwort
         </button>
         <div></div>
-        <button style={{marginTop: "8px", marginBottom: "8px"}} type="button" onClick={saveAnswers} >
+        <button
+          style={{ marginTop: '8px', marginBottom: '8px' }}
+          type="button"
+          onClick={saveAnswers}
+        >
           Antworten Speichern
         </button>
-      </div></>
+      </div>
+    </>
   ) : null;
 };
 
@@ -140,7 +168,10 @@ const QuestionForm = () => (
     <MultipleChoiceInput />
     <ImageURLInput />
     <ReferenceInput source="category" reference="question_category">
-      <SelectInput label="Studienbereich (Kategorie)" validate={required()} />
+      <SelectInput
+        label="Studienbereich (Kategorie)"
+        validate={required()}
+      />
     </ReferenceInput>
   </SimpleForm>
 );

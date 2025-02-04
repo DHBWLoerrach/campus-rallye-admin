@@ -41,7 +41,9 @@ export default function RallyeDialog({
   buttonStyle: string;
 }) {
   const [name, setName] = useState('');
-  const [formState, formAction] = useFormState(createRallye, null);
+  const [formState, formAction] = useFormState(createRallye, {
+    errors: { message: '' },
+  });
   return (
     <Dialog>
       <DialogTrigger asChild>

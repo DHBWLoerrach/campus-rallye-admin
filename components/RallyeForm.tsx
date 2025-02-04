@@ -39,7 +39,9 @@ function SaveButton() {
 }
 
 export default function RallyeCardForm({ rallye, onCancel }) {
-  const [formState, formAction] = useFormState(updateRallye, null);
+  const [formState, formAction] = useFormState(updateRallye, {
+    errors: { message: '' },
+  });
   const [name, setName] = useState<string>(rallye.name);
   const [active, setActive] = useState<boolean>(
     rallye.is_active_rallye
