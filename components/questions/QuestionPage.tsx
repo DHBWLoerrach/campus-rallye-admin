@@ -56,7 +56,7 @@ const QuestionPage: React.FC = () => {
       }; 
     
     if (!initialData && id !== 'new') {
-        return <div>Loading...</div>; // Zeigen Sie einen Ladeindikator an, während die Daten abgerufen werden
+        return (<div>Loading...</div>)
       }
 
     return (
