@@ -79,7 +79,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
         </div>
         <div className="flex items-center space-x-4 space-y-2">
           <Label htmlFor="enabled">Aktiviert</Label>
-          <Switch id="enabled" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+          <Switch id="enabled" checked={enabled} onCheckedChange={(checked) => setEnabled(checked)} />
         </div>
         {/* <div className="space-y-2">
           <Label htmlFor="enabled">Enabled</Label>
