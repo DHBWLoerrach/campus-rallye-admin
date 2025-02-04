@@ -112,7 +112,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category">Kategorie</Label>
           <Input
             id="category"
             value={category}
@@ -139,28 +139,28 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
                 type="text"
                 value={answer.text}
                 onChange={(e) => handleAnswerChange(index, 'text', e.target.value)}
-                placeholder="Enter answer"
+                placeholder="Füge eine Antwort hinzu"
                 className="border p-2 flex-2"
               />
               <Button type="button" onClick={() => removeAnswer(index)} className="bg-red-600 text-white">
-                Remove
+                -
               </Button>
             </div>
           ))}
           <Button type="button" onClick={addAnswer} className="bg-green-600 text-white">
-            Add Answer
+            + Antwort
           </Button>
         </div>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            Abbrechen
           </Button>
           <Button type="submit" className="bg-blue-600 text-white">
-            Submit
+            Speichern
           </Button>
           {onDelete && (
             <Button type="button" onClick={onDelete} className="bg-red-600 text-white">
-              Delete
+              Löschen
             </Button>
           )}
         </div>
