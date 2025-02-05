@@ -56,7 +56,7 @@ export async function getQuestionById(id: number) {
     return questions[0];
 }
 
-export async function getQuestions(filters: { question?: string, answer?: string, type?: string, category?: string }) {
+export async function getQuestions(filters: { question?: string, answer?: string, type?: string, category?: string, enabled?: boolean }) {
     const supabase = createClient();
     let { data: questions, error: questionError } = await supabase
         .from('questions')
@@ -104,6 +104,10 @@ export async function getQuestions(filters: { question?: string, answer?: string
 
     if (filters.category) {
         questions = questions.filter(question => question.category === filters.category);
+    }
+
+    if (filters.enabled !== undefined) {
+        questions = questions.filter(question => question.enabled === filters.enabled);
     }
 
     return questions;
