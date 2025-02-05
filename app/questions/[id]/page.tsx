@@ -1,4 +1,4 @@
-import QuestionPage from '@/components/questions/QuestionPage';
+import QuestionPage from '@/components/questions/id/QuestionPage';
 import { NextPage } from 'next';
 import dynamic from 'next/dynamic';
 

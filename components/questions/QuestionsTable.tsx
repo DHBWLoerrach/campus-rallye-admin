@@ -36,7 +36,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
     acc[type.id] = type.name;
     return acc;
   }, {});
-  
+
   const toggleRow = (questionId: number) => {
     setExpandedRows(current =>
       current.includes(questionId)
@@ -46,32 +46,6 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   };
   return (
     <>
-      {/* <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-                <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frage</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typ</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Antworten</th>
-                </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-                {/* {questions.map((question) => ( */}
-      {/* <tr key={5}>
-                        <td className="px-6 py-4 whitespace-nowrap">Test</td>
-                        <td className="px-6 py-4 whitespace-nowrap">multiple_choice</td>
-                        <td className="px-6 py-4 whitespace-nowrap"> */}
-      {/* <ul>
-                                {question.answers.map((answer) => (
-                                    <li key={answer.id}>{answer.content}</li>
-                                ))}
-                            </ul> */}
-      {/* </td>
-                    </tr>
-
-            </tbody>
-        </table>  */}
-
-
       <div className="border rounded-md">
         <Table>
           <TableHeader>
@@ -86,7 +60,14 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
               <TableHead>Hinweis</TableHead>
             </TableRow>
           </TableHeader>
-          {questions.map((question) => (
+          {questions.length === 0 ? (
+            <TableRow>
+            <TableCell colSpan={8} className="text-center">
+              Keine Einträge
+            </TableCell>
+          </TableRow>
+          ) : (
+          questions.map((question) => (
             <React.Fragment key={question.id}>
               <TableRow>
                 <TableCell>
@@ -115,8 +96,8 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                 <TableCell>{question.hint}</TableCell>
                 <TableCell>
                   <Link href={`/questions/${question.id}`}>
-                  <Button className="bg-red-600 text-white">Bearbeiten</Button>
-                </Link>
+                    <Button className="bg-red-600 text-white">Bearbeiten</Button>
+                  </Link>
                 </TableCell>
               </TableRow>
               {expandedRows.includes(question.id) && question.answers.map((answer) => (
@@ -135,63 +116,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                 </TableRow>
               ))}
             </React.Fragment>
-          ))}
-          {/* <TableBody>
-              <TableRow>
-                <TableCell>
-                  <ChevronDown className="w-4 h-4" />
-                </TableCell>
-                <TableCell>Wie heissen die beiden Leiter des Studienzentrums ...</TableCell>
-                <TableCell>Hanser und Olaf</TableCell>
-                <TableCell>Multiple Choice</TableCell>
-                <TableCell>
-                  <Check className="w-4 h-4" />
-                </TableCell>
-                <TableCell>5</TableCell>
-                <TableCell></TableCell>
-                <TableCell>Allgemein</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell></TableCell>
-                <TableCell>Wo steht diese Statue?</TableCell>
-                <TableCell>Auditorium</TableCell>
-                <TableCell>Bild</TableCell>
-                <TableCell>
-                  <Check className="w-4 h-4" />
-                </TableCell>
-                <TableCell>5</TableCell>
-                <TableCell>
-                  <Image
-                    src=""
-                    alt="Statue"
-                    width={50}
-                    height={50}
-                    className="object-cover rounded"
-                  />
-                </TableCell>
-                <TableCell>Allgemein</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>
-                  <ChevronDown className="w-4 h-4" />
-                </TableCell>
-                <TableCell>Sucht einen schönen Ort auf dem Campusgelände und ...</TableCell>
-                <TableCell>Ja</TableCell>
-                <TableCell>Multiple Choice</TableCell>
-                <TableCell>
-                  <Check className="w-4 h-4" />
-                </TableCell>
-                <TableCell>8</TableCell>
-                <TableCell></TableCell>
-                <TableCell>Informatik</TableCell>
-                <TableCell>
-                  Sucht einen schönen Ort auf dem Campusgelände und macht ein Gruppenfoto. Mailt es uns an
-                  apps@dhbw-loerrach.de. Habt ihr das Foto an uns gemailt?
-                </TableCell>
-              </TableRow>
-            </TableBody> */}
+          )))}
         </Table>
       </div>
     </>

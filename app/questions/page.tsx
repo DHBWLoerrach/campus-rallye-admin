@@ -1,5 +1,5 @@
 import { NextPage } from 'next';
-import QuestionsManagement from '@/components/QuestionsManagement';
+import QuestionsManagement from '@/components/questions/QuestionsManagement';
 import dynamic from 'next/dynamic';
 
 const Questions: NextPage = () => {

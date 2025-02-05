@@ -6,11 +6,11 @@ import React, { useEffect, useState } from "react"
 import { getCategories } from "@/actions/question";
 
 interface SearchFiltersProps {
-  onFilterChange: (filters: { question?: string, answer?: string, type?: string, category?: string }) => void;
+  onFilterChange: (filters: { question?: string, answer?: string, type?: string, category?: string, ebabled?: boolean }) => void;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
-  const [filters, setFilters] = React.useState({ question: '', answer: '', type: '', category: '' });
+  const [filters, setFilters] = React.useState({ question: '', answer: '', type: '', category: '', enabled: undefined });
   const [categories, setCategories] = useState<string[]>([]);
 
   const handleChange = (field: string, value: string) => {
@@ -65,7 +65,10 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
           </SelectContent>
         </Select>
         <div className="flex items-center space-x-2">
-          <Checkbox id="active" />
+          <Checkbox 
+          id="active"
+          checked={filters.enabled === true}
+          onCheckedChange={(checked) => handleChange('enabled', checked ? true : undefined)} />
           <label htmlFor="active" className="text-sm">
             Nur aktive Fragen
           </label>
