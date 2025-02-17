@@ -4,7 +4,7 @@ import { Check, ChevronDown, Plus, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from '../ui/button';
-import { questionTypes } from './helpers';
+import { questionTypes } from '../../helpers/questionTypes';
 
 
 interface Answer {

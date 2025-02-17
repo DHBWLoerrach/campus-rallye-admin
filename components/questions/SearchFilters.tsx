@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { questionTypes } from './helpers';
+import { questionTypes } from '../../helpers/questionTypes';
 import React, { useEffect, useState } from "react"
 import { getCategories } from "@/actions/question";
 
