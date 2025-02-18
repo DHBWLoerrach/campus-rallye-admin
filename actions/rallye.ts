@@ -15,11 +15,14 @@ export async function createRallye(
 
   const { error } = await supabase.from('rallye').insert({
     name: data.name,
-    is_active_rallye: false,
-    status: 'preparation',
+    is_active: false,
+    status: 'preparing',
+    end_time: new Date(),
+    studiengang: 'Kein Studiengang',
   });
 
   if (error) {
+    console.log(error);
     return { errors: { message: 'Es ist ein Fehler aufgetreten' } };
   }
 
@@ -36,18 +39,20 @@ export async function updateRallye(
   const data = {
     id: formData.get('id') as string,
     name: formData.get('name') as string,
-    is_active_rallye: formData.get('active') === 'on', // checkbox value needs to be converted to boolean (might be 'on' or null)
+    is_active: formData.get('active') === 'on', // checkbox value needs to be converted to boolean (might be 'on' or null)
     status: formData.get('status') as string,
     end_time: new Date(formData.get('end_time') as string),
+    studiengang: formData.get('studiengang') as string,
   };
 
   const { error } = await supabase
     .from('rallye')
     .update({
       name: data.name,
-      is_active_rallye: data.is_active_rallye,
+      is_active: data.is_active_rallye,
       status: data.status,
       end_time: data.end_time,
+      studiengang: data.studiengang
     })
     .eq('id', data.id);
 
