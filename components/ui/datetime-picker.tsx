@@ -322,6 +322,7 @@ function Calendar({
           <ChevronRight className="h-4 w-4" />
         ),
         CaptionLabel: ({ displayMonth }) => {
+          if (!displayMonth) return null;
           return (
             <div className="inline-flex gap-2">
               <Select
