@@ -6,36 +6,47 @@ export async function assignQuestionsToRallye(rallyeId: number, questionIds: num
     const supabase = createClient()
     
     try {
-        // First remove existing assignments for this rallye
-        const { error: deleteError } = await supabase
+        // Get existing assignments
+        const { data: existingAssignments } = await supabase
             .from('join_rallye_questions')
-            .delete()
+            .select('question_id')
             .eq('rallye_id', rallyeId)
 
-        if (deleteError) {
-            console.error('Error deleting existing assignments:', deleteError)
-            return false
+        const existingQuestionIds = existingAssignments?.map(a => a.question_id) || []
+
+        // Determine which questions to add and which to remove
+        const questionsToAdd = questionIds.filter(id => !existingQuestionIds.includes(id))
+        const questionsToRemove = existingQuestionIds.filter(id => !questionIds.includes(id))
+
+        // Remove unselected questions
+        if (questionsToRemove.length > 0) {
+            const { error: deleteError } = await supabase
+                .from('join_rallye_questions')
+                .delete()
+                .eq('rallye_id', rallyeId)
+                .in('question_id', questionsToRemove)
+
+            if (deleteError) throw deleteError
         }
 
-        // Create new assignments
-        const assignments = questionIds.map(questionId => ({
-            rallye_id: rallyeId,
-            question_id: questionId
-        }))
+        // Add newly selected questions
+        if (questionsToAdd.length > 0) {
+            const newAssignments = questionsToAdd.map(questionId => ({
+                rallye_id: rallyeId,
+                question_id: questionId
+            }))
 
-        const { error: insertError } = await supabase
-            .from('join_rallye_questions')
-            .insert(assignments)
+            const { error: insertError } = await supabase
+                .from('join_rallye_questions')
+                .insert(newAssignments)
 
-        if (insertError) {
-            console.error('Error inserting new assignments:', insertError)
-            return false
+            if (insertError) throw insertError
         }
-
+        console.log(questionsToRemove, questionsToAdd)
         return true
     } catch (error) {
-        console.error('Error assigning questions to rallye:', error)
-        return false
+        console.error('Error in assignQuestionsToRallye:', error)
+        throw error
     }
 }
 

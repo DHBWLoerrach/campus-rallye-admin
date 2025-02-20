@@ -19,6 +19,7 @@ import { getQuestions } from '@/actions/question'
 import { getRallyes } from '@/actions/rallye'
 import { questionTypes } from '@/helpers/questionTypes'
 import { assignQuestionsToRallye, getRallyeQuestions } from '@/actions/assign_questions_to_rallye'
+import SearchFilters from '@/components/questions/SearchFilters'
 
 export default function RallyeQuestionsPage() {
     const [selectedQuestions, setSelectedQuestions] = useState<number[]>([])
@@ -64,6 +65,11 @@ export default function RallyeQuestionsPage() {
         setQuestions(questions)
     }
 
+    const handleFilterChange = async (filters: { question?: string, answer?: string, type?: string, category?: string, enabled?: boolean }) => {
+        const filteredQuestions = await getQuestions(filters)
+        setQuestions(filteredQuestions)
+    }
+
     const handleSubmit = async () => {
         if (!selectedRallye || selectedQuestions.length === 0) {
             // TODO: Show error message
@@ -107,50 +113,53 @@ export default function RallyeQuestionsPage() {
                         </Select>
                     </div>
                     {selectedRallye ? (
-                        <div className="border rounded-md">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-12">Auswahl</TableHead>
-                                        <TableHead>Frage</TableHead>
-                                        <TableHead>Typ</TableHead>
-                                        <TableHead className="w-20">Punkte</TableHead>
-                                        <TableHead>Kategorie</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {questions.length === 0 ? (
+                        <div className="space-y-4">
+                            <SearchFilters onFilterChange={handleFilterChange} />
+                            <div className="border rounded-md">
+                                <Table>
+                                    <TableHeader>
                                         <TableRow>
-                                            <TableCell colSpan={5} className="text-center">
-                                                Keine Fragen verfügbar
-                                            </TableCell>
+                                            <TableHead className="w-12">Auswahl</TableHead>
+                                            <TableHead>Frage</TableHead>
+                                            <TableHead>Typ</TableHead>
+                                            <TableHead className="w-20">Punkte</TableHead>
+                                            <TableHead>Kategorie</TableHead>
                                         </TableRow>
-                                    ) : (
-                                        questions.map((question) => (
-                                            <TableRow key={question.id}>
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={selectedQuestions.includes(question.id)}
-                                                        onCheckedChange={(checked) => {
-                                                            if (checked) {
-                                                                setSelectedQuestions([...selectedQuestions, question.id])
-                                                            } else {
-                                                                setSelectedQuestions(selectedQuestions.filter(id => id !== question.id))
-                                                            }
-                                                        }}
-                                                    />
+                                    </TableHeader>
+                                    <TableBody>
+                                        {questions.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center">
+                                                    Keine Fragen verfügbar
                                                 </TableCell>
-                                                <TableCell className="max-w-md truncate">
-                                                    {question.content}
-                                                </TableCell>
-                                                <TableCell>{questionTypeLabels[question.type]}</TableCell>
-                                                <TableCell>{question.points}</TableCell>
-                                                <TableCell>{question.category}</TableCell>
                                             </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
+                                        ) : (
+                                            questions.map((question) => (
+                                                <TableRow key={question.id}>
+                                                    <TableCell>
+                                                        <Checkbox
+                                                            checked={selectedQuestions.includes(question.id)}
+                                                            onCheckedChange={(checked) => {
+                                                                if (checked) {
+                                                                    setSelectedQuestions([...selectedQuestions, question.id])
+                                                                } else {
+                                                                    setSelectedQuestions(selectedQuestions.filter(id => id !== question.id))
+                                                                }
+                                                            }}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell className="max-w-md truncate">
+                                                        {question.content}
+                                                    </TableCell>
+                                                    <TableCell>{questionTypeLabels[question.type]}</TableCell>
+                                                    <TableCell>{question.points}</TableCell>
+                                                    <TableCell>{question.category}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </div>
                     ) : (
                     <div className="flex items-center space-x-2">
