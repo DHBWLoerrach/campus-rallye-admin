@@ -63,3 +63,20 @@ export async function updateRallye(
   revalidatePath('/');
   return { success: { message: 'Rallye erfolgreich gespeichert' } };
 }
+
+
+export async function getRallyes() {
+  const supabase = createClient()
+  
+  const { data, error } = await supabase
+    .from('rallye')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching rallyes:', error)
+    return []
+  }
+
+  return data || []
+}

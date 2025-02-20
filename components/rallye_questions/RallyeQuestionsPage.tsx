@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
     Select,
     SelectContent,
@@ -9,131 +9,168 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-
-interface Question {
-    id: string
-    text: string
-    isSelected: boolean
-}
-
-interface Rallye {
-    id: string
-    name: string
-}
+import { HelpCircleIcon } from 'lucide-react'
+import { Question } from "@/helpers/questions"
+import { getQuestions } from '@/actions/question'
+import { getRallyes } from '@/actions/rallye'
+import { questionTypes } from '@/helpers/questionTypes'
+import { assignQuestionsToRallye, getRallyeQuestions } from '@/actions/assign_questions_to_rallye'
 
 export default function RallyeQuestionsPage() {
-    const [selectedRallye, setSelectedRallye] = useState<string>('')
-    const [questions, setQuestions] = useState<Question[]>([
-        { id: '1', text: 'Question 1', isSelected: false },
-        { id: '2', text: 'Question 2', isSelected: false },
-    ])
+    const [selectedQuestions, setSelectedQuestions] = useState<number[]>([])
+    const [selectedRallye, setSelectedRallye] = useState<string>("")
+    const [rallyes, setRallyes] = useState<any[]>([])
+    const [questions, setQuestions] = useState<Question[]>([])
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // Mock-Daten für Rallyes
-    const rallyes: Rallye[] = [
-        { id: '1', name: 'Campus Tour' },
-        { id: '2', name: 'History Walk' },
-    ]
+    const questionTypeLabels = questionTypes.reduce((acc, type) => {
+        acc[type.id] = type.name;
+        return acc;
+    }, {});
 
-    const toggleAllQuestions = (checked: boolean) => {
-        setQuestions(questions.map(question => ({
-            ...question,
-            isSelected: checked
-        })))
+    useEffect(() => {
+        fetchRallyes()
+        fetchQuestions()
+    }, [])
+
+    useEffect(() => {
+        if (selectedRallye) {
+            loadExistingAssignments(parseInt(selectedRallye))
+        } else {
+            setSelectedQuestions([])
+        }
+    }, [selectedRallye])
+
+    const loadExistingAssignments = async (rallyeId: number) => {
+        try {
+            const existingQuestions = await getRallyeQuestions(rallyeId)
+            setSelectedQuestions(existingQuestions)
+        } catch (error) {
+            console.error('Error loading existing assignments:', error)
+        }
     }
 
-    const toggleQuestion = (questionId: string) => {
-        setQuestions(questions.map(question => 
-          question.id === questionId 
-            ? { ...question, isSelected: !question.isSelected }
-            : question
-        ))
-      }
-      
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault()
-        // Handle form submission - e.g. save selected questions to rallye
-        const selectedQuestions = questions.filter(q => q.isSelected)
-        console.log('Selected questions:', selectedQuestions)
+    const fetchRallyes = async () => {
+        const rallye = await getRallyes()
+        setRallyes(rallye)
+    }
+
+    const fetchQuestions = async () => {
+        const questions = await getQuestions({})
+        setQuestions(questions)
+    }
+
+    const handleSubmit = async () => {
+        if (!selectedRallye || selectedQuestions.length === 0) {
+            // TODO: Show error message
+            return
+        }
+        setIsSubmitting(true)
+        try {
+            await assignQuestionsToRallye(parseInt(selectedRallye), selectedQuestions)
+            // Show success message
+        } catch (error) {
+            // Show error message
+            console.error('Error saving questions:', error)
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
-        <div className="container mx-auto py-6">
+        <div className="container mx-auto p-4 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Rallye Questions Manager</CardTitle>
+                    <CardTitle>Fragen einer Rallye zuordnen</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="rallye">Wähle eine Rallye</Label>
-                                <Select
-                                    value={selectedRallye}
-                                    onValueChange={setSelectedRallye}
-                                >
-                                    <SelectTrigger id="rallye">
-                                        <SelectValue placeholder="Wähle eine Rallye aus" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {rallyes.map(rallye => (
-                                            <SelectItem key={rallye.id} value={rallye.id}>
-                                                {rallye.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="rallye">Rallye auswählen</Label>
+                        <Select
+                            value={selectedRallye}
+                            onValueChange={(value) => setSelectedRallye(value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Wählen Sie eine Rallye" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {rallyes.map((rallye) => (
+                                    <SelectItem key={rallye.id} value={rallye.id.toString()}>
+                                        {rallye.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                            {selectedRallye && (
-                                <>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between border-b pb-2">
-                                            <Label>Verfügbare Fragen</Label>
-                                            <div className="flex items-center space-x-2">
+                    <div className="border rounded-md">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-12">Auswahl</TableHead>
+                                    <TableHead>Frage</TableHead>
+                                    <TableHead>Typ</TableHead>
+                                    <TableHead className="w-20">Punkte</TableHead>
+                                    <TableHead>Kategorie</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {questions.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center">
+                                            Keine Fragen verfügbar
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    questions.map((question) => (
+                                        <TableRow key={question.id}>
+                                            <TableCell>
                                                 <Checkbox
-                                                    onCheckedChange={(checked: boolean) => toggleAllQuestions(checked)}
+                                                    checked={selectedQuestions.includes(question.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        if (checked) {
+                                                            setSelectedQuestions([...selectedQuestions, question.id])
+                                                        } else {
+                                                            setSelectedQuestions(selectedQuestions.filter(id => id !== question.id))
+                                                        }
+                                                    }}
                                                 />
-                                                <Label className="text-sm">Alle auswählen</Label>
-                                            </div>
-                                        </div>
+                                            </TableCell>
+                                            <TableCell className="max-w-md truncate">
+                                                {question.content}
+                                            </TableCell>
+                                            <TableCell>{questionTypeLabels[question.type]}</TableCell>
+                                            <TableCell>{question.points}</TableCell>
+                                            <TableCell>{question.category}</TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
 
-                                        <div className="space-y-2">
-                                            {questions.map(question => (
-                                                <div
-                                                    key={question.id}
-                                                    className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
-                                                >
-                                                    <Checkbox
-                                                        checked={question.isSelected}
-                                                        onCheckedChange={() => toggleQuestion(question.id)}
-                                                        id={`question-${question.id}`}
-                                                    />
-                                                    <Label
-                                                        htmlFor={`question-${question.id}`}
-                                                        className="flex-grow cursor-pointer"
-                                                    >
-                                                        {question.text}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-end space-x-2">
-                                        <Button type="button" variant="outline">
-                                            Abbrechen
-                                        </Button>
-                                        <Button type="submit">
-                                            Speichern
-                                        </Button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </form>
+                    <div className="flex justify-end space-x-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setSelectedRallye("")
+                                setSelectedQuestions([])
+                            }}
+                        >
+                            Zurücksetzen
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={!selectedRallye || selectedQuestions.length === 0 || isSubmitting}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            Speichern
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>
