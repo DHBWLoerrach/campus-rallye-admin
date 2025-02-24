@@ -33,15 +33,17 @@ const MoodleLoginButton = ({
   label: string;
   disabled: boolean;
 }) => {
-  const { pending } = useFormStatus();
+  const handleClick = () => {
+    window.location.href = 'https://auth.dhbw-loerrach.de/realms/dhbw/protocol/openid-connect/auth?client_id=campusrally&redirect_uri=http://localhost:3000/callback&response_type=code';
+  };
   return (
     <button
-      type="submit"
+      type="button"
       className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-      aria-disabled={pending || disabled}
-      disabled={pending || disabled}
+      disabled={disabled}
+      onClick={handleClick}
     >
-      {pending ? 'Wird gesendet…' : label}
+      {label}
     </button>
   );
 };
@@ -125,29 +127,6 @@ function MoodleLogin() {
       action={action}
     >
       <h1 className="text-2xl font-semibold">Moodle-Login</h1>
-      <label htmlFor="username" className="font-semibold">
-        Username:
-      </label>
-      <input
-        id="username"
-        name="username"
-        type="username"
-        required
-        className="p-2 border rounded"
-      />
-      <label htmlFor="password" className="font-semibold">
-        Passwort:
-      </label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        required
-        className="p-2 border rounded"
-      />
-      {state?.errors && (
-        <p className="text-sm text-red-500">{state.errors.message}</p>
-      )}
       <MoodleLoginButton label="Mit Moodle anmelden" disabled={false} />
     </form>
   );
