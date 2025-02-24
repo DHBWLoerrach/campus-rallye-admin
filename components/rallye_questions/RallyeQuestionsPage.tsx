@@ -20,8 +20,11 @@ import { getRallyes } from '@/actions/rallye'
 import { questionTypes } from '@/helpers/questionTypes'
 import { assignQuestionsToRallye, getRallyeQuestions } from '@/actions/assign_questions_to_rallye'
 import SearchFilters from '@/components/questions/SearchFilters'
+import { useRouter } from 'next/navigation';
+
 
 export default function RallyeQuestionsPage() {
+    const router = useRouter();
     const [selectedQuestions, setSelectedQuestions] = useState<number[]>([])
     const [selectedRallye, setSelectedRallye] = useState<string>("")
     const [rallyes, setRallyes] = useState<any[]>([])
@@ -84,6 +87,7 @@ export default function RallyeQuestionsPage() {
             console.error('Error saving questions:', error)
         } finally {
             setIsSubmitting(false)
+            router.push('/');
         }
     }
     // TODO fitler for questions
