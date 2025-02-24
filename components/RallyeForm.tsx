@@ -136,6 +136,12 @@ export default function RallyeCardForm({ rallye, onCancel }) {
               onChange={(e) => setStudiengang(e.target.value)}
             />
           </div>
+          <div className="flex items-center space-x-2 mt-2 justify-between">
+            <Label htmlFor={`rallye-${rallye.id}-password`}>
+              Passwort
+            </Label>
+            ***
+          </div>
           <SaveButton />
           {formState?.errors && (
             <span className="text-sm text-red-500 ml-2">

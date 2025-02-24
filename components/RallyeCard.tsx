@@ -68,6 +68,10 @@ export default function RallyeCard({ rallye, onEdit }) {
           <div className="text-muted-foreground">Studiengang:</div>
           <div className="font-medium">{rallye.studiengang}</div>
         </div>
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground">Passwort:</div>
+          <div className="font-medium">***</div>
+        </div>
       </CardContent>
     </Card>
   );
