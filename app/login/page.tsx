@@ -1,10 +1,12 @@
 'use client';
 
-// TODO: in React 19, this will be just `useFormAction`
-// https://react.dev/reference/react/useActionState
-// https://react.dev/blog/2024/04/25/react-19#new-hook-useactionstate
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
 import { useFormState, useFormStatus } from 'react-dom';
-import { login, signInWithEmail, signInWithKeycloak } from './actions';
+import { login, signInWithEmail, signInWithKeycloak, exchangeCodeForToken } from './actions';
+import { KEYCLOAK_CONFIG } from '@/lib/keycloak-config';
+import { FormState } from '@/lib/types';
 
 const LoginButton = ({
   label,
@@ -34,7 +36,12 @@ const MoodleLoginButton = ({
   disabled: boolean;
 }) => {
   const handleClick = () => {
-    window.location.href = 'https://auth.dhbw-loerrach.de/realms/dhbw/protocol/openid-connect/auth?client_id=campusrally&redirect_uri=http://localhost:3000/callback&response_type=code';
+    const params = new URLSearchParams({
+      client_id: KEYCLOAK_CONFIG.clientId,
+      redirect_uri: KEYCLOAK_CONFIG.redirectUri,
+      response_type: KEYCLOAK_CONFIG.responseType
+    });
+    window.location.href = `${KEYCLOAK_CONFIG.authUrl}?${params.toString()}`;
   };
   return (
     <button
@@ -49,7 +56,7 @@ const MoodleLoginButton = ({
 };
 
 function LoginWithEmailLink() {
-  const [state, action] = useFormState(signInWithEmail, null);
+  const [state, action] = useFormState<FormState, FormData>(signInWithEmail, null);
   return (
     <form
       className="flex flex-col space-y-4 p-8 max-w-sm mx-auto border rounded-lg shadow-md"
@@ -83,7 +90,7 @@ function LoginWithEmailLink() {
 }
 
 function LoginWithEmailPassword() {
-  const [state, action] = useFormState(login, null);
+  const [state, action] = useFormState<FormState, FormData>(login, null);
 
   return (
     <form
@@ -133,6 +140,30 @@ function MoodleLogin() {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    async function handleCallback() {
+      const code = searchParams.get('code');
+          console.log('Extracted the code:', code);
+      if (code) {
+        try {
+          const tokenData = await exchangeCodeForToken(code);
+          const decodedToken = jwtDecode(tokenData.access_token);
+          console.log('Decoded token:', decodedToken);
+          localStorage.setItem('keycloak_token', tokenData.access_token);
+          console.log('Token:', tokenData.access_token);
+          router.push('/admin');
+        } catch (error) {
+          console.error('Error exchanging code for token:', error);
+        }
+      }
+    }
+
+    handleCallback();
+  }, [searchParams, router]);
+
   return (
     <>
       <MoodleLogin />
