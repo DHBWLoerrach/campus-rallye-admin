@@ -42,7 +42,7 @@ export async function updateRallye(
     is_active: formData.get('active') === 'on', // checkbox value needs to be converted to boolean (might be 'on' or null)
     status: formData.get('status') as string,
     end_time: new Date(formData.get('end_time') as string),
-    studiengang: 'Kein Studiengang'//formData.get('studiengang') as string,
+    studiengang: formData.get('studiengang') as string,
   };
   const { error } = await supabase
     .from('rallye')
