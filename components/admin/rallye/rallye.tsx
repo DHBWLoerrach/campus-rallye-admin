@@ -14,7 +14,7 @@ export const RallyeList = () => (
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <TextField source="id" />
       <TextField source="name" />
-      <BooleanField source="is_active_rallye" label="Aktiv" />
+      <BooleanField source="is_active" label="Aktiv" />
       <SelectField source="status" label="Status" choices={rallyeStatus} />
       <DateField source="end_time" label="Endzeitpunkt" showTime />
       <EmailField source="mail_adress" label="E-Mail" />

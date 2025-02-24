@@ -13,7 +13,7 @@ import {
 export default function RallyeCard({ rallye, onEdit }) {
   function getRallyeStatus(rallye) {
     switch (rallye.status) {
-      case 'preparation':
+      case 'preparing':
         return 'Vorbereitung';
       case 'running':
         return 'Gestartet';
@@ -39,11 +39,11 @@ export default function RallyeCard({ rallye, onEdit }) {
         <div className="flex items-center justify-between">
           <Badge
             variant={
-              rallye.is_active_rallye ? 'default' : 'secondary'
+              rallye.is_active ? 'default' : 'secondary'
             }
             className="text-sm font-medium"
           >
-            {rallye.is_active_rallye ? 'Aktiv' : 'Inaktiv'}
+            {rallye.is_active ? 'Aktiv' : 'Inaktiv'}
           </Badge>
           <Button
             variant="ghost"

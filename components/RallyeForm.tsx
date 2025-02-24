@@ -42,7 +42,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
   const [formState, formAction] = useFormState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [active, setActive] = useState<boolean>(
-    rallye.is_active_rallye
+    rallye.is_active
   );
   const [status, setStatus] = useState<string>(rallye.status);
   const [date24, setDate24] = useState<Date | undefined>(
@@ -97,7 +97,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
               onValueChange={setStatus}
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="preparation" id="r1" />
+                <RadioGroupItem value="preparing" id="r1" />
                 <Label htmlFor="r1">Vorbereitung</Label>
               </div>
               <div className="flex items-center space-x-2">
