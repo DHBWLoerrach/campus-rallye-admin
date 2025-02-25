@@ -6,7 +6,7 @@ This involves building the docker image locally, pushing it to GitHub Container 
 
 - Settings ➔ Developer settings ➔ Personal access tokens ➔ Tokens (classic) ➔ Generate new token (classic)
   - PAT for dev: `push` with `write:packages` scope.
-  - PAT for server: `docker` with `read:packages` scope.
+  - PAT for server: `pull` with `read:packages` scope.
 
 ## Build and push image
 
@@ -18,5 +18,5 @@ This involves building the docker image locally, pushing it to GitHub Container 
 
 ## Deploy on server (WIP)
 
-- Set environment variable `GHCR_PAT` to contain server PAT
+- `docker login ghcr.io` with PAT `pull` as password
 - Execute deployment script

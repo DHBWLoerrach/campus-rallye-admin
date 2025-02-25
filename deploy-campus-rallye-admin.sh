@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Authenticate with GHCR
-echo $GHCR_PAT | docker login ghcr.io -u behrends --password-stdin
-
 # Pull the latest image
 docker pull ghcr.io/dhbwloerrach/campus-rallye-admin:latest
 
