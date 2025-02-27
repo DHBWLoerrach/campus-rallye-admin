@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Answer, Question, QuestionFormData } from '@/helpers/questions';
-import { add, set } from 'date-fns';
+import { getCategories } from '@/actions/question';
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -16,7 +16,7 @@ interface QuestionFormProps {
   onDelete?: () => void;
 }
 
-const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit, onCancel, onDelete }) => { 
+const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit, onCancel, onDelete }) => {
   const [formData, setFormData] = useState<QuestionFormData>({
     content: initialData?.content || '',
     type: initialData?.type || '',
@@ -27,11 +27,32 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     answers: initialData?.answers || [{ correct: false, text: '' }]
   });
 
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isNewCategory, setIsNewCategory] = useState(false);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      const fetchedCategories = await getCategories();
+      setCategories(fetchedCategories);
+    };
+    loadCategories();
+  }, []);
+
   const handleFormChange = (field: keyof QuestionFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleCategoryChange = (value: string) => {
+    if (value === 'new') {
+      setIsNewCategory(true);
+      setFormData(prev => ({ ...prev, category: '' }));
+    } else {
+      setIsNewCategory(false);
+      setFormData(prev => ({ ...prev, category: value }));
+    }
   };
 
   const handleAnswerChange = (index: number, field: string, value: any) => {
@@ -69,7 +90,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     if (!data.type) return false;
     // if (!data.category?.trim()) return false;
     // if (data.points < 0) return false;
-    
+
     // Mindestens eine gültige Antwort muss vorhanden sein
     const validAnswers = data.answers.filter(a => a.text.trim());
     if (validAnswers.length === 0) return false;
@@ -79,7 +100,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
+
     // Entferne leere Antworten
     const cleanedData = {
       ...formData,
@@ -155,13 +176,31 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
         </div>
         <div className="space-y-2">
           <Label htmlFor="category">Kategorie</Label>
-          <Input
-            id="category"
-            value={formData.category}
-            onChange={(e) => handleFormChange('category', e.target.value)}
-            placeholder="Geben Sie eine Kategorie ein"
-            className="border p-2 w-full"
-          />
+          <Select
+            value={isNewCategory ? 'new' : (formData.category || '')}
+            onValueChange={handleCategoryChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Wählen Sie eine Kategorie" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+              <SelectItem value="new">+ Neue Kategorie</SelectItem>
+            </SelectContent>
+          </Select>
+          {isNewCategory && (
+            <Input
+              type="text"
+              value={formData.category}
+              placeholder="Neue Kategorie eingeben"
+              className="mt-2"
+              onChange={(e) => handleFormChange('category', e.target.value)}
+            />
+          )}
         </div>
         <div className="space-y-2">
           <Label>Antworten*</Label>

@@ -56,7 +56,14 @@ export async function getQuestionById(id: number) {
     return questions[0];
 }
 
-export async function getQuestions(filters: { question?: string, answer?: string, type?: string, category?: string, enabled?: boolean }) {
+export async function getQuestions(
+    filters: { 
+        question?: string, 
+        answer?: string, 
+        type?: string, 
+        category?: string, 
+        enabled?: boolean 
+    }) {
     const supabase = createClient();
     let { data: questions, error: questionError } = await supabase
         .from('questions')
@@ -71,11 +78,7 @@ export async function getQuestions(filters: { question?: string, answer?: string
         console.log('No questions found');
         return [];
     }
-    // else {
-    // console.log('Questions fetched:', questions);
-    // }
 
-    // Fetch answers for each question
     for (let question of questions) {
         let { data: answers, error: answerError } = await supabase
             .from('answers')
@@ -114,13 +117,21 @@ export async function getQuestions(filters: { question?: string, answer?: string
 }
 
 
-export async function createQuestion(data: { content: string, type: string, enabled: boolean, points?: number, hint?: string, category: string, answers: { correct: boolean, text?: string }[] }) {
+export async function createQuestion(
+    data: { content: string, 
+        type: string, 
+        enabled: boolean, 
+        points?: number, 
+        hint?: string, 
+        category?: string, 
+        answers: { correct: boolean, text?: string }[] }
+    ) {
     try {
         const supabase = createClient();
         // Insert the question
         const { data: questionData, error: questionError } = await supabase
             .from('questions')
-            .insert([{ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint }])
+            .insert([{ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category }], { returning: 'minimal' })
             .select();
 
         if (questionError) {
@@ -149,13 +160,24 @@ export async function createQuestion(data: { content: string, type: string, enab
     }
 }
 
-export async function updateQuestion(id: number, data: { content: string, type: string, enabled: boolean, points?: number, hint?: string, category: string, answers: { id?: number, correct: boolean, text?: string }[] }) {
+export async function updateQuestion(
+    id: number, 
+    data: { 
+        content: string, 
+        type: string, 
+        enabled: boolean, 
+        points?: number, 
+        hint?: string, 
+        category?: string, 
+        answers: { id?: number, correct: boolean, text?: string }[] 
+    }
+    ) {
     try {
         const supabase = createClient();
         // Update the question
         const { error: questionError } = await supabase
             .from('questions')
-            .update({ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint })
+            .update({ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category })
             .eq('id', id);
 
         if (questionError) {
