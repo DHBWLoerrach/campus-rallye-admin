@@ -16,6 +16,14 @@ interface QuestionFormProps {
   onDelete?: () => void;
 }
 
+interface FormErrors {
+  content?: string;
+  type?: string;
+  category?: string;
+  points?: string;
+  answers?: string;
+}
+
 const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit, onCancel, onDelete }) => {
   const [formData, setFormData] = useState<QuestionFormData>({
     content: initialData?.content || '',
@@ -29,6 +37,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
 
   const [categories, setCategories] = useState<string[]>([]);
   const [isNewCategory, setIsNewCategory] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -86,16 +95,31 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
   };
 
   const validateForm = (data: QuestionFormData): boolean => {
-    if (!data.content.trim()) return false;
-    if (!data.type) return false;
-    // if (!data.category?.trim()) return false;
-    // if (data.points < 0) return false;
+    const newErrors: FormErrors = {};
 
-    // Mindestens eine gültige Antwort muss vorhanden sein
+    if (!data.content.trim()) {
+      newErrors.content = 'Bitte geben Sie eine Frage ein';
+    }
+
+    if (!data.type) {
+      newErrors.type = 'Bitte wählen Sie einen Fragetyp';
+    }
+
+    if (!data.category?.trim() && isNewCategory) {
+      newErrors.category = 'Bitte wählen Sie eine Kategorie oder geben Sie eine neue ein';
+    }
+
+    if (data.points < 0) {
+      newErrors.points = 'Punkte müssen größer oder gleich 0 sein';
+    }
+
     const validAnswers = data.answers.filter(a => a.text.trim());
-    if (validAnswers.length === 0) return false;
-
-    return true;
+    if (validAnswers.length === 0) {
+      newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
+    }
+    console.log(newErrors)
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -110,9 +134,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     // undefined setzen?
 
     if (!validateForm(cleanedData)) {
-      // Hier könnte eine Fehlermeldung angezeigt werden
-      // was falsch ist
-      console.error('Ungültige Formulardaten');
       return;
     }
     console.log(cleanedData);
@@ -130,14 +151,17 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
             value={formData.content}
             onChange={(e) => handleFormChange('content', e.target.value)}
             placeholder="Geben Sie die Frage ein"
-            className="border p-2 w-full"
-            required
+            className={`border p-2 w-full ${errors.content ? 'border-red-500' : ''}`}
           />
+          {errors.content && (
+            <span className="text-sm text-red-500">{errors.content}</span>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="type">Fragetyp*</Label>
           <Select value={formData.type} onValueChange={(value) => handleFormChange('type', value)}>
-            <SelectTrigger>
+            <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
               <SelectValue placeholder="Wählen Sie einen Fragetyp" />
             </SelectTrigger>
             <SelectContent>
@@ -148,11 +172,16 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
               ))}
             </SelectContent>
           </Select>
+          {errors.type && (
+            <span className="text-sm text-red-500">{errors.type}</span>
+          )}
         </div>
+
         <div className="flex items-center space-x-4 space-y-2">
           <Label htmlFor="enabled">Aktiviert*</Label>
           <Switch id="enabled" checked={formData.enabled} onCheckedChange={(checked) => handleFormChange('enabled', checked)} />
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="points">Punkte</Label>
           <Input
@@ -161,9 +190,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
             value={formData.points}
             onChange={(e) => handleFormChange('points', Number(e.target.value))}
             placeholder="Enter points"
-            className="border p-2 w-full"
+            className={`border p-2 w-full ${errors.points ? 'border-red-500' : ''}`}
           />
+          {errors.points && (
+            <span className="text-sm text-red-500">{errors.points}</span>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="hint">Hinweis</Label>
           <Input
@@ -174,13 +207,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
             className="border p-2 w-full"
           />
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="category">Kategorie</Label>
           <Select
             value={isNewCategory ? 'new' : (formData.category || '')}
             onValueChange={handleCategoryChange}
           >
-            <SelectTrigger>
+
+            <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
               <SelectValue placeholder="Wählen Sie eine Kategorie" />
             </SelectTrigger>
             <SelectContent>
@@ -201,7 +236,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
               onChange={(e) => handleFormChange('category', e.target.value)}
             />
           )}
+          {errors.category && (
+            <span className="text-sm text-red-500">{errors.category}</span>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label>Antworten*</Label>
           {formData.answers.map((answer, index) => (
@@ -215,7 +254,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
                 value={answer.text}
                 onChange={(e) => handleAnswerChange(index, 'text', e.target.value)}
                 placeholder="Füge eine Antwort hinzu"
-                className="border p-2 flex-2"
+                className={errors.answers ? 'border-red-500 border p-2 flex-2' : 'border p-2 flex-2'}
               />
               <Button type="button" onClick={() => removeAnswer(index)} className="bg-red-600 text-white">
                 -
@@ -225,7 +264,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
           <Button type="button" onClick={addAnswer} className="bg-green-600 text-white">
             + Antwort
           </Button>
+          {errors.answers && (
+            <span className="m-5 text-sm text-red-500">{errors.answers}</span>
+          )}
         </div>
+
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Abbrechen
