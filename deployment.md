@@ -16,7 +16,7 @@ This involves building the docker image locally, pushing it to GitHub Container 
 - Verify that the new package landed in https://github.com/orgs/DHBWLoerrach/packages/container/package/campus-rallye-admin
 - (Occasionally remove obsolete versions.)
 
-## Deploy on server (WIP)
+## Deploy on server
 
 - `docker login ghcr.io` with PAT `pull` as password
 - Execute deployment script
