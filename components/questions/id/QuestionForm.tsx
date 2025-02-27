@@ -58,6 +58,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     if (value === 'new') {
       setIsNewCategory(true);
       setFormData(prev => ({ ...prev, category: '' }));
+    } else if (value === 'none') { // neue Bedingung für neutralen Zustand
+      setIsNewCategory(false);
+      setFormData(prev => ({ ...prev, category: undefined }));
     } else {
       setIsNewCategory(false);
       setFormData(prev => ({ ...prev, category: value }));
@@ -219,6 +222,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
               <SelectValue placeholder="Wählen Sie eine Kategorie" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="none">Bitte auswählen</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}

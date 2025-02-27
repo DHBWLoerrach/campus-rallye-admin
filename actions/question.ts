@@ -172,12 +172,15 @@ export async function updateQuestion(
         answers: { id?: number, correct: boolean, text?: string }[] 
     }
     ) {
+        console.log(data)
     try {
         const supabase = createClient();
         // Update the question
         const { error: questionError } = await supabase
             .from('questions')
-            .update({ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category })
+            // category muss mit null gespeichert werden, um sicherzustellen, 
+            // dass die Kategorie gelöscht wird, wenn sie leer ist
+            .update({ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category || null })
             .eq('id', id);
 
         if (questionError) {
