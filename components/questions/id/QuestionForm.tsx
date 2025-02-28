@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { questionTypes } from '@/helpers/questionTypes';
 import { Answer, Question, QuestionFormData } from '@/helpers/questions';
 import { getCategories } from '@/actions/question';
+import Image from 'next/image';
+import QuestionImage from './QuestionImage';
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -32,6 +34,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     points: initialData?.points || 0,
     hint: initialData?.hint,
     category: initialData?.category,
+    bucket_path: initialData?.bucket_path,
     answers: initialData?.answers || [{ correct: false, text: '' }]
   });
 
@@ -243,6 +246,22 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
           {errors.category && (
             <span className="text-sm text-red-500">{errors.category}</span>
           )}
+        </div>
+
+
+        {/* <img src={"http://127.0.0.1:54321/storage/v1/object/public/question-media/test.jpg"} alt="Mein Bild" /> */}
+        {/* {formData.bucket_path ? (
+          
+        <div className="mt-4 relative w-full h-[200px]">
+          <img src={"http://127.0.0.1:54321/storage/v1/object/public/question-media/test.jpg"} alt={"nix gefunden"} width="150" />
+        </div>
+        ) : ( <div>nix</div>)} */}
+
+        <div className="space-y-2">
+          <QuestionImage
+            bucketPath={formData.bucket_path}
+            onImageChange={(newPath) => handleFormChange('bucket_path', newPath)}
+          />
         </div>
 
         <div className="space-y-2">

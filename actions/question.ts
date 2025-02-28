@@ -57,12 +57,12 @@ export async function getQuestionById(id: number) {
 }
 
 export async function getQuestions(
-    filters: { 
-        question?: string, 
-        answer?: string, 
-        type?: string, 
-        category?: string, 
-        enabled?: boolean 
+    filters: {
+        question?: string,
+        answer?: string,
+        type?: string,
+        category?: string,
+        enabled?: boolean
     }) {
     const supabase = createClient();
     let { data: questions, error: questionError } = await supabase
@@ -113,25 +113,37 @@ export async function getQuestions(
         questions = questions.filter(question => question.enabled === filters.enabled);
     }
 
+    const bucketName = "question-media";
+    const fileName = "test.jpg";
+
+    const { data } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName);
+
+    console.log("publicURL: ", data); // Die URL des Bildes
+
     return questions;
 }
 
 
 export async function createQuestion(
-    data: { content: string, 
-        type: string, 
-        enabled: boolean, 
-        points?: number, 
-        hint?: string, 
-        category?: string, 
-        answers: { correct: boolean, text?: string }[] }
-    ) {
+    data: {
+        content: string,
+        type: string,
+        enabled: boolean,
+        points?: number,
+        hint?: string,
+        category?: string,
+        bucket_path?: string,
+        answers: { correct: boolean, text?: string }[]
+    }
+) {
     try {
         const supabase = createClient();
         // Insert the question
         const { data: questionData, error: questionError } = await supabase
             .from('questions')
-            .insert([{ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category }], { returning: 'minimal' })
+            .insert([{ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category, bucket_path: data.bucket_path }], { returning: 'minimal' })
             .select();
 
         if (questionError) {
@@ -161,18 +173,19 @@ export async function createQuestion(
 }
 
 export async function updateQuestion(
-    id: number, 
-    data: { 
-        content: string, 
-        type: string, 
-        enabled: boolean, 
-        points?: number, 
-        hint?: string, 
-        category?: string, 
-        answers: { id?: number, correct: boolean, text?: string }[] 
+    id: number,
+    data: {
+        content: string,
+        type: string,
+        enabled: boolean,
+        points?: number,
+        hint?: string,
+        category?: string,
+        bucket_path?: string,
+        answers: { id?: number, correct: boolean, text?: string }[]
     }
-    ) {
-        console.log(data)
+) {
+    console.log(data)
     try {
         const supabase = createClient();
         // Update the question
@@ -180,7 +193,7 @@ export async function updateQuestion(
             .from('questions')
             // category muss mit null gespeichert werden, um sicherzustellen, 
             // dass die Kategorie gelöscht wird, wenn sie leer ist
-            .update({ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category || null })
+            .update({ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category || null, bucket_path: data.bucket_path || null })
             .eq('id', id);
 
         if (questionError) {

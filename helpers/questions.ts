@@ -13,6 +13,7 @@ export interface Answer {
     points?: number;
     hint?: string;
     category?: string;
+    bucket_path?: string;
     answers?: Answer[];
   }
   
