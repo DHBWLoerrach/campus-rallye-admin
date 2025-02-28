@@ -94,7 +94,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                         className="object-cover rounded"
                       />
                     ) : (
-                      <span className="text-gray-400">Kein Bild</span>
+                      <span className="text-gray-400 flex justify-center">-</span>
                     )}
                   </TableCell>
                   <TableCell>{question.category}</TableCell>
