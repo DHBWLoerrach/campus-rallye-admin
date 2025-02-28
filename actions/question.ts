@@ -113,14 +113,7 @@ export async function getQuestions(
         questions = questions.filter(question => question.enabled === filters.enabled);
     }
 
-    const bucketName = "question-media";
-    const fileName = "test.jpg";
-
-    const { data } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(fileName);
-
-    console.log("publicURL: ", data); // Die URL des Bildes
+    console.log(questions); // Die URL des Bildes
 
     return questions;
 }
