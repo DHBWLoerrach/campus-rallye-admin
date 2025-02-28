@@ -257,12 +257,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
         </div>
         ) : ( <div>nix</div>)} */}
 
-        <div className="space-y-2">
           <QuestionImage
             bucketPath={formData.bucket_path}
             onImageChange={(newPath) => handleFormChange('bucket_path', newPath)}
           />
-        </div>
+        
 
         <div className="space-y-2">
           <Label>Antworten*</Label>

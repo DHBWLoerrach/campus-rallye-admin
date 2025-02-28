@@ -57,11 +57,11 @@ const QuestionImage: React.FC<QuestionImageProps> = ({ bucketPath, onImageChange
       
       {bucketPath ? (
         <div className="relative">
-          <div className="mt-2 relative w-full h-[200px]">
+          <div className="mt-2 relative w-full h-[200px] flex items-center justify-center">
             <img
               src={`http://127.0.0.1:54321/storage/v1/object/public/question-media/${bucketPath}`}
               alt="Question image"
-              width={150}
+              width={200}
               className="object-contain rounded-md"
             />
           </div>
