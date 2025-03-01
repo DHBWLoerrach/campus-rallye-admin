@@ -28,7 +28,7 @@ const LoginButton = ({
   );
 };
 
-const MoodleLoginButton = ({
+const KeycloakLoginButton = ({
   label,
   disabled = false,
 }: {
@@ -126,15 +126,15 @@ function LoginWithEmailPassword() {
   );
 }
 
-function MoodleLogin() {
+function KeycloakLogin() {
   const [state, action] = useFormState(signInWithKeycloak, null);
   return (
     <form
       className="flex flex-col space-y-4 p-8 max-w-sm mx-auto my-20 border rounded-lg shadow-md"
       action={action}
     >
-      <h1 className="text-2xl font-semibold">Moodle-Login</h1>
-      <MoodleLoginButton label="Mit Moodle anmelden" disabled={false} />
+      <h1 className="text-2xl font-semibold">Keycloak-Login</h1>
+      <KeycloakLoginButton label="Mit Keycloak anmelden" disabled={false} />
     </form>
   );
 }
@@ -145,20 +145,21 @@ export default function LoginPage() {
 
   useEffect(() => {
     async function handleCallback() {
-      const code = searchParams.get('code');
-          console.log('Extracted the code:', code);
-      if (code) {
-        try {
-          const tokenData = await exchangeCodeForToken(code);
-          const decodedToken = jwtDecode(tokenData.access_token);
-          console.log('Decoded token:', decodedToken);
-          localStorage.setItem('keycloak_token', tokenData.access_token);
-          console.log('Token:', tokenData.access_token);
-          router.push('/admin');
-        } catch (error) {
-          console.error('Error exchanging code for token:', error);
-        }
-      }
+      // const code = searchParams.get('code');
+      //     console.log('Extracted the code:', code);
+      // if (code) {
+      //   try {
+      //     const tokenData = await exchangeCodeForToken(code);
+      //     const decodedToken = jwtDecode(tokenData.access_token);
+      //     console.log('Decoded token:', decodedToken);
+      //     localStorage.setItem('keycloak_token', tokenData.access_token);
+      //     localStorage.setItem('decoded_token', JSON.stringify(decodedToken));
+      //     console.log('Token:', tokenData.access_token);
+      //     router.push('/admin');
+      //   } catch (error) {
+      //     console.error('Error exchanging code for token:', error);
+      //   }
+      // }
     }
 
     handleCallback();
@@ -166,7 +167,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <MoodleLogin />
+      <KeycloakLogin />
       <LoginWithEmailPassword />
       <LoginWithEmailLink />
     </>

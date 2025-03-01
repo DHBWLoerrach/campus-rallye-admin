@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { KEYCLOAK_CONFIG } from '@/lib/keycloak-config';
 import { FormState } from '@/lib/types';
+import { customStorageAdapter } from '@/lib/utils';
 
 export async function login(
   formState: FormState,
@@ -49,13 +50,40 @@ export async function signInWithEmail(
   return null;
 }
 
+// export async function signInWithKeycloak() {
+//   const params = new URLSearchParams({
+//     client_id: KEYCLOAK_CONFIG.clientId,
+//     redirect_uri: KEYCLOAK_CONFIG.redirectUri,
+//     response_type: KEYCLOAK_CONFIG.responseType
+//   });
+//   redirect(`${KEYCLOAK_CONFIG.authUrl}?${params.toString()}`);
+// }
+
 export async function signInWithKeycloak() {
-  const params = new URLSearchParams({
-    client_id: KEYCLOAK_CONFIG.clientId,
-    redirect_uri: KEYCLOAK_CONFIG.redirectUri,
-    response_type: KEYCLOAK_CONFIG.responseType
+  console.log('### new signin Function ###');
+  const { data, error } = await handleSupabase();
+  console.log('finished signin Function with data: ', data, ' and error: ', error);
+
+  revalidatePath('/', 'layout'); // is this necessary?
+  redirect('/'); // TODO error handling
+}
+
+async function handleSupabase() {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'keycloak',
+    options: {
+      redirectTo: KEYCLOAK_CONFIG.redirectUri,
+      scopes: 'openid',
+      queryParams: {
+        client_id: KEYCLOAK_CONFIG.clientId,
+        redirect_uri: KEYCLOAK_CONFIG.redirectUri,
+        response_type: KEYCLOAK_CONFIG.responseType,
+      },
+    }
   });
-  redirect(`${KEYCLOAK_CONFIG.authUrl}?${params.toString()}`);
+
+  return { data, error };
 }
 
 export async function exchangeCodeForToken(code: string) {
