@@ -5,7 +5,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { KEYCLOAK_CONFIG } from '@/lib/keycloak-config';
 import { FormState } from '@/lib/types';
-import { customStorageAdapter } from '@/lib/utils';
+import { SupabaseClientOptions } from '@supabase/supabase-js';
+
 
 export async function login(
   formState: FormState,
@@ -63,13 +64,11 @@ export async function signInWithKeycloak() {
   console.log('### new signin Function ###');
   const { data, error } = await handleSupabase();
   console.log('finished signin Function with data: ', data, ' and error: ', error);
-
-  revalidatePath('/', 'layout'); // is this necessary?
-  redirect('/'); // TODO error handling
 }
 
 async function handleSupabase() {
-  const supabase = createClient();
+  const extraOptions = { auth: { flowType: 'pkce',} } as SupabaseClientOptions<any>;
+  const supabase = createClient(extraOptions);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'keycloak',
     options: {
