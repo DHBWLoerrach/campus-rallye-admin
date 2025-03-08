@@ -54,6 +54,9 @@ const QuestionImage: React.FC<QuestionImageProps> = ({ bucketPath, onImageChange
   return (
     <div className="space-y-4">
       <Label>Bild</Label>
+      <div className="text-sm text-gray-600">
+        (Bilder werden sofort hochgeladen)
+      </div>
       
       {bucketPath ? (
         <div className="relative">

@@ -21,6 +21,8 @@ import { questionTypes } from '@/helpers/questionTypes'
 import { assignQuestionsToRallye, getRallyeQuestions } from '@/actions/assign_questions_to_rallye'
 import SearchFilters from '@/components/questions/SearchFilters'
 import { useRouter } from 'next/navigation';
+import { updateVotingBatch, getVotingQuestions } from '@/actions/voting'
+
 
 
 export default function RallyeQuestionsPage() {
@@ -30,6 +32,11 @@ export default function RallyeQuestionsPage() {
     const [rallyes, setRallyes] = useState<any[]>([])
     const [questions, setQuestions] = useState<Question[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [votingQuestions, setVotingQuestions] = useState<number[]>([])
+    const [pendingVotingChanges, setPendingVotingChanges] = useState<{
+        add: number[];
+        remove: number[];
+    }>({ add: [], remove: [] });
 
     const questionTypeLabels = questionTypes.reduce((acc, type) => {
         acc[type.id] = type.name;
@@ -51,8 +58,12 @@ export default function RallyeQuestionsPage() {
 
     const loadExistingAssignments = async (rallyeId: number) => {
         try {
-            const existingQuestions = await getRallyeQuestions(rallyeId)
+            const [existingQuestions, existingVotes] = await Promise.all([
+                getRallyeQuestions(rallyeId),
+                getVotingQuestions(rallyeId)
+            ])
             setSelectedQuestions(existingQuestions)
+            setVotingQuestions(existingVotes)
         } catch (error) {
             console.error('Error loading existing assignments:', error)
         }
@@ -80,7 +91,16 @@ export default function RallyeQuestionsPage() {
         }
         setIsSubmitting(true)
         try {
-            await assignQuestionsToRallye(parseInt(selectedRallye), selectedQuestions)
+            await Promise.all([
+                assignQuestionsToRallye(parseInt(selectedRallye), selectedQuestions),
+                updateVotingBatch(
+                    parseInt(selectedRallye),
+                    pendingVotingChanges.add,
+                    pendingVotingChanges.remove
+                )
+            ]);
+            // Reset pending changes
+            setPendingVotingChanges({ add: [], remove: [] });
             // Show success message
         } catch (error) {
             // Show error message
@@ -128,6 +148,7 @@ export default function RallyeQuestionsPage() {
                                             <TableHead>Typ</TableHead>
                                             <TableHead className="w-20">Punkte</TableHead>
                                             <TableHead>Kategorie</TableHead>
+                                            <TableHead className="w-8">Abstimmung</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -158,6 +179,32 @@ export default function RallyeQuestionsPage() {
                                                     <TableCell>{questionTypeLabels[question.type]}</TableCell>
                                                     <TableCell>{question.points}</TableCell>
                                                     <TableCell>{question.category}</TableCell>
+                                                    <TableCell>
+                                                        <div className="justify-center flex">
+                                                            <Checkbox
+                                                                disabled={!['upload', 'knowledge'].includes(question.type)}
+                                                                checked={votingQuestions.includes(question.id)}
+                                                                onCheckedChange={(checked) => {
+                                                                    if (checked) {
+                                                                        setVotingQuestions([...votingQuestions, question.id]);
+                                                                        setPendingVotingChanges(prev => ({
+                                                                            add: [...prev.add, question.id],
+                                                                            remove: prev.remove.filter(id => id !== question.id)
+                                                                        }));
+                                                                    } else {
+                                                                        setVotingQuestions(votingQuestions.filter(id => id !== question.id));
+                                                                        setPendingVotingChanges(prev => ({
+                                                                            add: prev.add.filter(id => id !== question.id),
+                                                                            remove: [...prev.remove, question.id]
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                className={!['upload', 'knowledge'].includes(question.type)
+                                                                    ? "data-[state=checked]:bg-gray-200 data-[state=unchecked]:bg-gray-100 border-dashed border-gray-400"
+                                                                    : ""}
+                                                            />
+                                                        </div>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))
                                         )}
@@ -166,10 +213,10 @@ export default function RallyeQuestionsPage() {
                             </div>
                         </div>
                     ) : (
-                    <div className="flex items-center space-x-2">
-                        <HelpCircleIcon className="w-6 h-6 text-gray-500" />
-                        <span>Wählen Sie eine Rallye aus, um die Fragen anzuzeigen</span>
-                    </div>
+                        <div className="flex items-center space-x-2">
+                            <HelpCircleIcon className="w-6 h-6 text-gray-500" />
+                            <span>Wählen Sie eine Rallye aus, um die Fragen anzuzeigen</span>
+                        </div>
                     )
                     }
 
@@ -180,6 +227,8 @@ export default function RallyeQuestionsPage() {
                             onClick={() => {
                                 setSelectedRallye("")
                                 setSelectedQuestions([])
+                                setVotingQuestions([]);
+                                setPendingVotingChanges({ add: [], remove: [] });
                             }}
                         >
                             Zurücksetzen
