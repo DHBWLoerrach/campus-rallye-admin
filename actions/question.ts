@@ -4,17 +4,19 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function getCategories() {
     const supabase = createClient();
+
     let { data: categories, error: categoriesError } = await supabase
         .from('questions')
         .select("category")
         .not('category', 'is', null);
 
     if (categoriesError) {
-        throw new Error(`Error fetching categories: ${categoriesError.message}`);
+        console.error('Error fetching categories:', categoriesError);
+        // todo return error message
     }
 
     if (!categories || categories.length === 0) {
-        console.log('No questions found');
+        console.error('No questions found');
         return [];
     }
 
@@ -22,8 +24,11 @@ export async function getCategories() {
     return [...new Set(categories.map(item => item.category))];
 }
 
-export async function getQuestionById(id: number) {
+export async function getQuestionById(
+    id: number
+) {
     const supabase = createClient();
+
     let { data: questions, error: questionError } = await supabase
         .from('questions')
         .select()
@@ -31,11 +36,13 @@ export async function getQuestionById(id: number) {
 
     if (questionError) {
         console.error('Error fetching questions:', questionError);
+        // todo return error message
         return [];
     }
 
     if (!questions || questions.length === 0) {
         console.log('No questions found');
+        // todo return error message ?
         return [];
     }
 
@@ -47,6 +54,7 @@ export async function getQuestionById(id: number) {
 
         if (answerError) {
             console.error(`Error fetching answers for question ${question.id}:`, answerError);
+            // todo return error message
             question.answers = [];
         } else {
             question.answers = answers;
@@ -65,12 +73,14 @@ export async function getQuestions(
         enabled?: boolean
     }) {
     const supabase = createClient();
+
     let { data: questions, error: questionError } = await supabase
         .from('questions')
         .select();
 
     if (questionError) {
         console.error('Error fetching questions:', questionError);
+        // todo return error message
         return [];
     }
 
@@ -87,6 +97,7 @@ export async function getQuestions(
 
         if (answerError) {
             console.error(`Error fetching answers for question ${question.id}:`, answerError);
+            // todo return error message
             question.answers = [];
         } else {
             question.answers = answers;
@@ -113,8 +124,6 @@ export async function getQuestions(
         questions = questions.filter(question => question.enabled === filters.enabled);
     }
 
-    console.log(questions); // Die URL des Bildes
-
     return questions;
 }
 
@@ -133,20 +142,28 @@ export async function createQuestion(
 ) {
     try {
         const supabase = createClient();
-        // Insert the question
+
         const { data: questionData, error: questionError } = await supabase
             .from('questions')
-            .insert([{ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category, bucket_path: data.bucket_path }], { returning: 'minimal' })
+            .insert([{ 
+                content: data.content, 
+                type: data.type, 
+                enabled: data.enabled, 
+                points: data.points, 
+                hint: data.hint, 
+                category: data.category, 
+                bucket_path: data.bucket_path }],
+                 { returning: 'minimal' })
             .select();
 
         if (questionError) {
             console.error('Error adding question:', questionError);
+            // todo return error message
             return false;
         }
 
         const questionId = questionData[0].id;
 
-        // Insert the answers
         const answersData = data.answers.map(answer => ({ ...answer, question_id: questionId }));
         const { error: answersError } = await supabase
             .from('answers')
@@ -154,13 +171,16 @@ export async function createQuestion(
 
         if (answersError) {
             console.error('Error adding answers:', answersError);
+            // todo return error message
             return false;
         }
 
         console.log('Question and answers added successfully');
+        // todo return success message
         return true;
     } catch (err) {
         console.error('Error processing request:', err.message);
+        // todo return error message
         return false;
     }
 }
@@ -178,19 +198,26 @@ export async function updateQuestion(
         answers: { id?: number, correct: boolean, text?: string }[]
     }
 ) {
-    console.log(data)
     try {
         const supabase = createClient();
-        // Update the question
+
         const { error: questionError } = await supabase
             .from('questions')
             // category muss mit null gespeichert werden, um sicherzustellen, 
             // dass die Kategorie gelöscht wird, wenn sie leer ist
-            .update({ content: data.content, type: data.type, enabled: data.enabled, points: data.points, hint: data.hint, category: data.category || null, bucket_path: data.bucket_path || null })
+            .update({ 
+                content: data.content, 
+                type: data.type, 
+                enabled: data.enabled, 
+                points: data.points, 
+                hint: data.hint, 
+                category: data.category || null, 
+                bucket_path: data.bucket_path || null })
             .eq('id', id);
 
         if (questionError) {
             console.error('Error updating question:', questionError);
+            // todo return error message
             return false;
         }
 
@@ -202,6 +229,7 @@ export async function updateQuestion(
 
         if (fetchError) {
             console.error('Error fetching existing answers:', fetchError);
+            // todo return error message
             return false;
         }
 
@@ -218,6 +246,7 @@ export async function updateQuestion(
 
             if (deleteError) {
                 console.error('Error deleting answers:', deleteError);
+                // todo return error message
                 return false;
             }
         }
@@ -234,6 +263,7 @@ export async function updateQuestion(
 
                 if (answerError) {
                     console.error(`Error updating answer ${answer.id}:`, answerError);
+                    // todo return error message
                     return false;
                 }
             } else {
@@ -244,15 +274,18 @@ export async function updateQuestion(
 
                 if (answerError) {
                     console.error('Error adding new answer:', answerError);
+                    // todo return error message
                     return false;
                 }
             }
         }
 
         console.log('Question and answers updated successfully');
+        // todo return success message
         return true;
     } catch (err) {
         console.error('Error processing request:', err.message);
+        // todo return error message
         return false;
     }
 }
@@ -260,7 +293,7 @@ export async function updateQuestion(
 export async function deleteQuestion(id: number) {
     try {
         const supabase = createClient();
-        // Lösche die Antworten, die mit der Frage verknüpft sind
+        // delete answers first
         const { error: answersError } = await supabase
             .from('answers')
             .delete()
@@ -268,10 +301,11 @@ export async function deleteQuestion(id: number) {
 
         if (answersError) {
             console.error('Error deleting answers:', answersError);
+            // todo return error message
             return false;
         }
 
-        // Lösche die Frage
+        // delete question
         const { error: questionError } = await supabase
             .from('questions')
             .delete()
@@ -279,13 +313,16 @@ export async function deleteQuestion(id: number) {
 
         if (questionError) {
             console.error('Error deleting question:', questionError);
+            // todo return error message
             return false;
         }
 
         console.log('Question and answers deleted successfully');
+        // todo return success message
         return true;
     } catch (err) {
         console.error('Error processing request:', err.message);
+        // todo return error message
         return false;
     }
 }

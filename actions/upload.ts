@@ -22,6 +22,7 @@ export async function uploadImage(base64File: string, fileName: string): Promise
 
   if (error) {
     console.error('Supabase upload error:', error);
+    // todo return error message
     throw error;
   }
 
@@ -36,6 +37,7 @@ export async function deleteImage(bucketPath: string): Promise<void> {
     .remove([bucketPath]);
 
   if (error) {
+    // todo return error message
     throw error;
   }
 }

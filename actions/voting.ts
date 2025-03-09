@@ -17,7 +17,7 @@ export async function updateVotingBatch(
           .match({ rallye_id: rallyeId })
           .in('question_id', removeQuestions);
 
-      if (removeError) throw removeError;
+      if (removeError) throw removeError; // todo return error message
   }
 
   // Add new votes
@@ -31,7 +31,7 @@ export async function updateVotingBatch(
           .from('voting')
           .insert(votesToAdd);
 
-      if (addError) throw addError;
+      if (addError) throw addError; // todo return error message
   }
 }
 
@@ -44,5 +44,5 @@ export async function getVotingQuestions(rallyeId: number): Promise<number[]> {
     .eq('rallye_id', rallyeId)
   
   if (error) throw error
-  return data.map(item => item.question_id)
+  return data.map(item => item.question_id) // todo return error message
 }

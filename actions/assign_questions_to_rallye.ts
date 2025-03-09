@@ -2,11 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function assignQuestionsToRallye(rallyeId: number, questionIds: number[]) {
+export async function assignQuestionsToRallye(
+    rallyeId: number, 
+    questionIds: number[]
+) {
     const supabase = createClient()
     
     try {
-        // Get existing assignments
         const { data: existingAssignments } = await supabase
             .from('join_rallye_questions')
             .select('question_id')
@@ -14,11 +16,10 @@ export async function assignQuestionsToRallye(rallyeId: number, questionIds: num
 
         const existingQuestionIds = existingAssignments?.map(a => a.question_id) || []
 
-        // Determine which questions to add and which to remove
         const questionsToAdd = questionIds.filter(id => !existingQuestionIds.includes(id))
         const questionsToRemove = existingQuestionIds.filter(id => !questionIds.includes(id))
 
-        // Remove unselected questions
+        // Remove unselected 
         if (questionsToRemove.length > 0) {
             const { error: deleteError } = await supabase
                 .from('join_rallye_questions')
@@ -26,10 +27,10 @@ export async function assignQuestionsToRallye(rallyeId: number, questionIds: num
                 .eq('rallye_id', rallyeId)
                 .in('question_id', questionsToRemove)
 
-            if (deleteError) throw deleteError
+            if (deleteError) throw deleteError // todo return error message
         }
 
-        // Add newly selected questions
+        // Add new
         if (questionsToAdd.length > 0) {
             const newAssignments = questionsToAdd.map(questionId => ({
                 rallye_id: rallyeId,
@@ -40,13 +41,12 @@ export async function assignQuestionsToRallye(rallyeId: number, questionIds: num
                 .from('join_rallye_questions')
                 .insert(newAssignments)
 
-            if (insertError) throw insertError
+            if (insertError) throw insertError // todo return error message
         }
-        console.log(questionsToRemove, questionsToAdd)
         return true
     } catch (error) {
         console.error('Error in assignQuestionsToRallye:', error)
-        throw error
+        // todo return error message
     }
 }
 
@@ -60,6 +60,7 @@ export async function getRallyeQuestions(rallyeId: number) {
 
     if (error) {
         console.error('Error fetching rallye questions:', error)
+        // todo return error message
         return []
     }
 
