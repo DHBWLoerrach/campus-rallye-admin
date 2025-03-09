@@ -23,7 +23,7 @@ export async function DELETE(request: Request) {
 }
 
 async function handler(request: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   // global middleware makes sure that this is a trustworthy user session
   const {
     data: { session },

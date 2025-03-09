@@ -5,13 +5,12 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { KEYCLOAK_CONFIG } from '@/lib/keycloak-config';
 import { FormState } from '@/lib/types';
-import { customStorageAdapter } from '@/lib/utils';
 
 export async function login(
   formState: FormState,
   formData: FormData
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
@@ -34,7 +33,7 @@ export async function signInWithEmail(
   state: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const email = formData.get('email') as string;
 
@@ -69,7 +68,7 @@ export async function signInWithKeycloak() {
 }
 
 async function handleSupabase() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'keycloak',
     options: {

@@ -23,7 +23,7 @@ const routes: Route[] = [
 ];
 
 export default async function Nav() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

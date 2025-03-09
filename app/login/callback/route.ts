@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const token_hash = requestUrl.searchParams.get('token_hash');
   const origin = requestUrl.origin;
   if (token_hash) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({
       token_hash,
       type: 'email',

@@ -9,7 +9,7 @@ export async function createMultipleChoiceAnswers(
     state: FormState,
     formData: FormData
 ) {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const data = { name: formData.get('name') as string };
 
@@ -31,7 +31,7 @@ export async function updateMultipleChoiceAnswers(
     state: FormState,
     formData: FormData
 ) {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const data = {
         id: formData.get('id') as string,
@@ -61,7 +61,7 @@ export async function updateMultipleChoiceAnswers(
 
 export async function getChildren(id) {
     // console.log(id);
-    const supabase = createClient();
+    const supabase = await createClient();
     // console.log("test");
     const { data: questions } = await supabase
         .from('question')
@@ -72,7 +72,7 @@ export async function getChildren(id) {
 }
 
 export async function saveQuestions(questions, parent) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const current_questions = await getChildren(parent.id);
 
     for (const item of current_questions) {

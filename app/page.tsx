@@ -3,7 +3,7 @@ import Rallye from '@/components/Rallye';
 import RallyeDialog from '@/components/RallyeDialog';
 
 export default async function Home() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: rallyes } = await supabase.from('rallye').select();
 
   return (
