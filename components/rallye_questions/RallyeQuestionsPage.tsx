@@ -66,6 +66,7 @@ export default function RallyeQuestionsPage() {
             setVotingQuestions(existingVotes)
         } catch (error) {
             console.error('Error loading existing assignments:', error)
+            // todo return error message
         }
     }
 
@@ -79,7 +80,14 @@ export default function RallyeQuestionsPage() {
         setQuestions(questions)
     }
 
-    const handleFilterChange = async (filters: { question?: string, answer?: string, type?: string, category?: string, enabled?: boolean }) => {
+    const handleFilterChange = async (
+        filters: { 
+            question?: string, 
+            answer?: string, 
+            type?: string, 
+            category?: string, 
+            enabled?: boolean 
+        }) => {
         const filteredQuestions = await getQuestions(filters)
         setQuestions(filteredQuestions)
     }

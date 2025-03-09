@@ -28,29 +28,27 @@ const QuestionPage: React.FC = () => {
         console.log('Submitting data:', data);
         try {
             if (id !== 'new') {
-                // Update the question
                 await updateQuestion(Number(id), data);
             } else {
-                // Create a new question
                 console.log('Creating question:', data);
                 await createQuestion(data);
             }
-            router.push('/questions'); // Redirect to questions list page after submission
+            router.push('/questions');
         } catch (error) {
             console.error('Error submitting data:', error);
-            // todo fehlerbehandlung
+            // todo return error message
         }
 
     };
 
     const handleCancel = () => {
-        router.push('/questions'); // Redirect to questions list page on cancel
+        router.push('/questions');
     };
 
     const handleDelete = async () => {
         if (id && id !== 'new') {
             await deleteQuestion(Number(id));
-            router.push('/questions'); // Redirect to questions list page after deletion
+            router.push('/questions'); 
         }
     };
 

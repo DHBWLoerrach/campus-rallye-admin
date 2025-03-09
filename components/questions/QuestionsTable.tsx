@@ -5,26 +5,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from '../ui/button';
 import { questionTypes } from '../../helpers/questionTypes';
+import { Question } from '@/helpers/questions';
 
-
-interface Answer {
-  id: number;
-  correct: boolean;
-  text?: string;
-  question_id?: number;
-}
-
-interface Question {
-  id: number;
-  content: string;
-  type: string;
-  enabled: boolean;
-  points?: number;
-  hint?: string;
-  category: string;
-  bucket_path?: string;
-  answers: Answer[];
-}
 
 interface QuestionsTableProps {
   questions: Question[];

@@ -27,6 +27,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
         setCategories(data);
       } catch (error) {
         console.error('Failed to fetch categories:', error);
+        // todo return error message
       }
     };
 

@@ -61,7 +61,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     if (value === 'new') {
       setIsNewCategory(true);
       setFormData(prev => ({ ...prev, category: '' }));
-    } else if (value === 'none') { // neue Bedingung für neutralen Zustand
+    } else if (value === 'none') { 
+      // neue Bedingung für neutralen Zustand
       setIsNewCategory(false);
       setFormData(prev => ({ ...prev, category: undefined }));
     } else {
@@ -131,13 +132,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Entferne leere Antworten
+    // Remove empty answers
     const cleanedData = {
       ...formData,
       answers: formData.answers.filter(answer => answer.text.trim())
     };
-    // todo wenn irgendwo ein leerer String ist das Feld auf
-    // undefined setzen?
 
     if (!validateForm(cleanedData)) {
       return;
@@ -248,20 +247,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
           )}
         </div>
 
-
-        {/* <img src={"http://127.0.0.1:54321/storage/v1/object/public/question-media/test.jpg"} alt="Mein Bild" /> */}
-        {/* {formData.bucket_path ? (
-          
-        <div className="mt-4 relative w-full h-[200px]">
-          <img src={"http://127.0.0.1:54321/storage/v1/object/public/question-media/test.jpg"} alt={"nix gefunden"} width="150" />
-        </div>
-        ) : ( <div>nix</div>)} */}
-
-          <QuestionImage
-            bucketPath={formData.bucket_path}
-            onImageChange={(newPath) => handleFormChange('bucket_path', newPath)}
-          />
-        
+        <QuestionImage
+          bucketPath={formData.bucket_path}
+          onImageChange={(newPath) => handleFormChange('bucket_path', newPath)}
+        />
 
         <div className="space-y-2">
           <Label>Antworten*</Label>
