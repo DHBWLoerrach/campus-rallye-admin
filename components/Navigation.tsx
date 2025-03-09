@@ -20,10 +20,6 @@ const routes: Route[] = [
     href: '/questions',
     label: 'Fragen',
   },
-  {
-    href: '/admin',
-    label: 'Administration',
-  },
 ];
 
 export default async function Nav() {
