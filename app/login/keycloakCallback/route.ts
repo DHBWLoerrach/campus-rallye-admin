@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { SupabaseClientOptions } from '@supabase/supabase-js';
+import { customStorageAdapter } from '@/lib/utils';
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
     const next = searchParams.get('next') ?? '/'
   
     if (code) {
-      const extraOptions = { auth: { flowType: 'pkce',} } as SupabaseClientOptions<any>;
+      const extraOptions = { auth: { flowType: 'pkce', storage: customStorageAdapter} } as SupabaseClientOptions<any>;
         const supabase = createClient(extraOptions);
       const { error } = await supabase.auth.exchangeCodeForSession(code)
       if (!error) {

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { KEYCLOAK_CONFIG } from '@/lib/keycloak-config';
 import { FormState } from '@/lib/types';
 import { SupabaseClientOptions } from '@supabase/supabase-js';
+import { customStorageAdapter } from '@/lib/utils';
 
 
 export async function login(
@@ -67,7 +68,7 @@ export async function signInWithKeycloak() {
 }
 
 async function handleSupabase() {
-  const extraOptions = { auth: { flowType: 'pkce',} } as SupabaseClientOptions<any>;
+  const extraOptions = { auth: { flowType: 'pkce', storage: customStorageAdapter,} } as SupabaseClientOptions<any>;
   const supabase = createClient(extraOptions);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'keycloak',
