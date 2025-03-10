@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Check, ChevronDown, Plus, X } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import {
+  Table,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Check, ChevronDown, X } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '../ui/button';
 import { questionTypes } from '../../helpers/questionTypes';
 import { Question } from '@/helpers/questions';
-
 
 interface QuestionsTableProps {
   questions: Question[];
 }
 
-const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
+const QuestionsTable: React.FC<QuestionsTableProps> = ({
+  questions,
+}) => {
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   const questionTypeLabels = questionTypes.reduce((acc, type) => {
@@ -21,9 +27,9 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   }, {});
 
   const toggleRow = (questionId: number) => {
-    setExpandedRows(current =>
+    setExpandedRows((current) =>
       current.includes(questionId)
-        ? current.filter(id => id !== questionId)
+        ? current.filter((id) => id !== questionId)
         : [...current, questionId]
     );
   };
@@ -55,15 +61,24 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                 <TableRow>
                   <TableCell>
                     <ChevronDown
-                      className={`w-4 h-4 cursor-pointer transition-transform ${expandedRows.includes(question.id) ? 'rotate-180' : ''
-                        }`}
+                      className={`w-4 h-4 cursor-pointer transition-transform ${
+                        expandedRows.includes(question.id)
+                          ? 'rotate-180'
+                          : ''
+                      }`}
                       onClick={() => toggleRow(question.id)}
                     />
                   </TableCell>
-                  <TableCell className="max-w-md truncate">{question.content}</TableCell>
-                  <TableCell>{questionTypeLabels[question.type]}</TableCell>
+                  <TableCell className="max-w-md truncate">
+                    {question.content}
+                  </TableCell>
                   <TableCell>
-                    {question.enabled && <Check className="h-4 w-4 text-green-500" />}
+                    {questionTypeLabels[question.type]}
+                  </TableCell>
+                  <TableCell>
+                    {question.enabled && (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
                   </TableCell>
                   <TableCell>{question.points}</TableCell>
                   <TableCell>
@@ -76,34 +91,40 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                         className="object-cover rounded"
                       />
                     ) : (
-                      <span className="text-gray-400 flex justify-center">-</span>
+                      <span className="text-gray-400 flex justify-center">
+                        -
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>{question.category}</TableCell>
                   <TableCell>{question.hint}</TableCell>
                   <TableCell>
                     <Link href={`/questions/${question.id}`}>
-                      <Button className="bg-red-600 text-white">Bearbeiten</Button>
+                      <Button className="bg-red-600 text-white">
+                        Bearbeiten
+                      </Button>
                     </Link>
                   </TableCell>
                 </TableRow>
-                {expandedRows.includes(question.id) && question.answers.map((answer) => (
-                  <TableRow key={answer.id} className="bg-muted/50">
-                    <TableCell />
-                    <TableCell colSpan={6}>
-                      <div className="pl-6 flex items-center gap-2">
-                        {answer.correct ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <X className="h-4 w-4 text-red-500" />
-                        )}
-                        {answer.text}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {expandedRows.includes(question.id) &&
+                  question.answers?.map((answer) => (
+                    <TableRow key={answer.id} className="bg-muted/50">
+                      <TableCell />
+                      <TableCell colSpan={6}>
+                        <div className="pl-6 flex items-center gap-2">
+                          {answer.correct ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-red-500" />
+                          )}
+                          {answer.text}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </React.Fragment>
-            )))}
+            ))
+          )}
         </Table>
       </div>
     </>

@@ -4,9 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { questionTypes } from '@/helpers/questionTypes';
-import { Answer, Question, QuestionFormData } from '@/helpers/questions';
+import {
+  Answer,
+  Question,
+  QuestionFormData,
+} from '@/helpers/questions';
 import { getCategories } from '@/actions/question';
 import Image from 'next/image';
 import QuestionImage from './QuestionImage';
@@ -26,7 +36,12 @@ interface FormErrors {
   answers?: string;
 }
 
-const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit, onCancel, onDelete }) => {
+const QuestionForm: React.FC<QuestionFormProps> = ({
+  initialData = {},
+  onSubmit,
+  onCancel,
+  onDelete,
+}) => {
   const [formData, setFormData] = useState<QuestionFormData>({
     content: initialData?.content || '',
     type: initialData?.type || '',
@@ -35,7 +50,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     hint: initialData?.hint,
     category: initialData?.category,
     bucket_path: initialData?.bucket_path,
-    answers: initialData?.answers || [{ correct: false, text: '' }]
+    answers: initialData?.answers || [
+      { id: 0, correct: false, text: '' },
+    ],
   });
 
   const [categories, setCategories] = useState<string[]>([]);
@@ -50,54 +67,64 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     loadCategories();
   }, []);
 
-  const handleFormChange = (field: keyof QuestionFormData, value: any) => {
-    setFormData(prev => ({
+  const handleFormChange = (
+    field: keyof QuestionFormData,
+    value: any
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleCategoryChange = (value: string) => {
     if (value === 'new') {
       setIsNewCategory(true);
-      setFormData(prev => ({ ...prev, category: '' }));
-    } else if (value === 'none') { 
+      setFormData((prev) => ({ ...prev, category: '' }));
+    } else if (value === 'none') {
       // neue Bedingung für neutralen Zustand
       setIsNewCategory(false);
-      setFormData(prev => ({ ...prev, category: undefined }));
+      setFormData((prev) => ({ ...prev, category: undefined }));
     } else {
       setIsNewCategory(false);
-      setFormData(prev => ({ ...prev, category: value }));
+      setFormData((prev) => ({ ...prev, category: value }));
     }
   };
 
-  const handleAnswerChange = (index: number, field: string, value: any) => {
-    const newAnswers = [...formData.answers];
+  const handleAnswerChange = (
+    index: number,
+    field: string,
+    value: any
+  ) => {
+    const newAnswers = [...(formData.answers || [])];
     newAnswers[index] = { ...newAnswers[index], [field]: value };
     setFormData({
       ...formData,
-      answers: newAnswers
+      answers: newAnswers,
     });
   };
 
   const addAnswer = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      answers: [...prev.answers, { correct: false, text: '' }]
+      answers: [
+        ...(prev.answers || []),
+        { id: 0, correct: false, text: '' },
+      ],
     }));
   };
 
   const removeAnswer = (index: number) => {
-    if (formData.answers.length === 1) {
-      setFormData(prev => ({
+    if (formData.answers?.length === 1) {
+      setFormData((prev) => ({
         ...prev,
-        answers: [{ correct: false, text: '' }]
+        answers: [{ id: 0, correct: false, text: '' }],
       }));
       return;
     }
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      answers: prev.answers.filter((_, i) => i !== index)
+      answers: prev.answers?.filter((_, i) => i !== index),
     }));
   };
 
@@ -113,18 +140,20 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     }
 
     if (!data.category?.trim() && isNewCategory) {
-      newErrors.category = 'Bitte wählen Sie eine Kategorie oder geben Sie eine neue ein';
+      newErrors.category =
+        'Bitte wählen Sie eine Kategorie oder geben Sie eine neue ein';
     }
 
-    if (data.points < 0) {
+    if ((data.points ?? 0) < 0) {
       newErrors.points = 'Punkte müssen größer oder gleich 0 sein';
     }
 
-    const validAnswers = data.answers.filter(a => a.text.trim());
-    if (validAnswers.length === 0) {
-      newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
+    const validAnswers = data.answers?.filter((a) => a.text?.trim());
+    if (validAnswers?.length === 0) {
+      newErrors.answers =
+        'Mindestens eine Antwort muss eingegeben werden';
     }
-    console.log(newErrors)
+    console.log(newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -135,7 +164,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     // Remove empty answers
     const cleanedData = {
       ...formData,
-      answers: formData.answers.filter(answer => answer.text.trim())
+      answers: formData.answers?.filter((answer) =>
+        answer.text?.trim()
+      ),
     };
 
     if (!validateForm(cleanedData)) {
@@ -145,7 +176,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
     onSubmit(cleanedData);
   };
 
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
@@ -154,19 +184,30 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
           <Input
             id="question"
             value={formData.content}
-            onChange={(e) => handleFormChange('content', e.target.value)}
+            onChange={(e) =>
+              handleFormChange('content', e.target.value)
+            }
             placeholder="Geben Sie die Frage ein"
-            className={`border p-2 w-full ${errors.content ? 'border-red-500' : ''}`}
+            className={`border p-2 w-full ${
+              errors.content ? 'border-red-500' : ''
+            }`}
           />
           {errors.content && (
-            <span className="text-sm text-red-500">{errors.content}</span>
+            <span className="text-sm text-red-500">
+              {errors.content}
+            </span>
           )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="type">Fragetyp*</Label>
-          <Select value={formData.type} onValueChange={(value) => handleFormChange('type', value)}>
-            <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
+          <Select
+            value={formData.type}
+            onValueChange={(value) => handleFormChange('type', value)}
+          >
+            <SelectTrigger
+              className={errors.type ? 'border-red-500' : ''}
+            >
               <SelectValue placeholder="Wählen Sie einen Fragetyp" />
             </SelectTrigger>
             <SelectContent>
@@ -178,13 +219,21 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
             </SelectContent>
           </Select>
           {errors.type && (
-            <span className="text-sm text-red-500">{errors.type}</span>
+            <span className="text-sm text-red-500">
+              {errors.type}
+            </span>
           )}
         </div>
 
         <div className="flex items-center space-x-4 space-y-2">
           <Label htmlFor="enabled">Aktiviert*</Label>
-          <Switch id="enabled" checked={formData.enabled} onCheckedChange={(checked) => handleFormChange('enabled', checked)} />
+          <Switch
+            id="enabled"
+            checked={formData.enabled}
+            onCheckedChange={(checked) =>
+              handleFormChange('enabled', checked)
+            }
+          />
         </div>
 
         <div className="space-y-2">
@@ -193,12 +242,18 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
             type="number"
             id="points"
             value={formData.points}
-            onChange={(e) => handleFormChange('points', Number(e.target.value))}
+            onChange={(e) =>
+              handleFormChange('points', Number(e.target.value))
+            }
             placeholder="Enter points"
-            className={`border p-2 w-full ${errors.points ? 'border-red-500' : ''}`}
+            className={`border p-2 w-full ${
+              errors.points ? 'border-red-500' : ''
+            }`}
           />
           {errors.points && (
-            <span className="text-sm text-red-500">{errors.points}</span>
+            <span className="text-sm text-red-500">
+              {errors.points}
+            </span>
           )}
         </div>
 
@@ -216,11 +271,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
         <div className="space-y-2">
           <Label htmlFor="category">Kategorie</Label>
           <Select
-            value={isNewCategory ? 'new' : (formData.category || '')}
+            value={isNewCategory ? 'new' : formData.category || ''}
             onValueChange={handleCategoryChange}
           >
-
-            <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
+            <SelectTrigger
+              className={errors.category ? 'border-red-500' : ''}
+            >
               <SelectValue placeholder="Wählen Sie eine Kategorie" />
             </SelectTrigger>
             <SelectContent>
@@ -239,44 +295,68 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
               value={formData.category}
               placeholder="Neue Kategorie eingeben"
               className="mt-2"
-              onChange={(e) => handleFormChange('category', e.target.value)}
+              onChange={(e) =>
+                handleFormChange('category', e.target.value)
+              }
             />
           )}
           {errors.category && (
-            <span className="text-sm text-red-500">{errors.category}</span>
+            <span className="text-sm text-red-500">
+              {errors.category}
+            </span>
           )}
         </div>
 
         <QuestionImage
           bucketPath={formData.bucket_path}
-          onImageChange={(newPath) => handleFormChange('bucket_path', newPath)}
+          onImageChange={(newPath) =>
+            handleFormChange('bucket_path', newPath)
+          }
         />
 
         <div className="space-y-2">
           <Label>Antworten*</Label>
-          {formData.answers.map((answer, index) => (
+          {formData.answers?.map((answer, index) => (
             <div key={index} className="flex gap-2 items-center">
               <Checkbox
                 checked={answer.correct}
-                onCheckedChange={(checked) => handleAnswerChange(index, 'correct', checked)}
+                onCheckedChange={(checked) =>
+                  handleAnswerChange(index, 'correct', checked)
+                }
               />
               <Input
                 type="text"
                 value={answer.text}
-                onChange={(e) => handleAnswerChange(index, 'text', e.target.value)}
+                onChange={(e) =>
+                  handleAnswerChange(index, 'text', e.target.value)
+                }
                 placeholder="Füge eine Antwort hinzu"
-                className={errors.answers ? 'border-red-500 border p-2 flex-2' : 'border p-2 flex-2'}
+                className={
+                  errors.answers
+                    ? 'border-red-500 border p-2 flex-2'
+                    : 'border p-2 flex-2'
+                }
               />
-              <Button type="button" onClick={() => removeAnswer(index)} className="bg-red-600 text-white">
+              <Button
+                type="button"
+                onClick={() => removeAnswer(index)}
+                className="bg-red-600 text-white"
+              >
                 -
               </Button>
             </div>
           ))}
-          <Button type="button" onClick={addAnswer} className="bg-green-600 text-white">
+          <Button
+            type="button"
+            onClick={addAnswer}
+            className="bg-green-600 text-white"
+          >
             + Antwort
           </Button>
           {errors.answers && (
-            <span className="m-5 text-sm text-red-500">{errors.answers}</span>
+            <span className="m-5 text-sm text-red-500">
+              {errors.answers}
+            </span>
           )}
         </div>
 
@@ -288,7 +368,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ initialData = {}, onSubmit,
             Speichern
           </Button>
           {onDelete && (
-            <Button type="button" onClick={onDelete} className="bg-red-600 text-white">
+            <Button
+              type="button"
+              onClick={onDelete}
+              className="bg-red-600 text-white"
+            >
               Löschen
             </Button>
           )}
