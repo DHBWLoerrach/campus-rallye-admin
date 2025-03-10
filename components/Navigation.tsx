@@ -17,8 +17,8 @@ const routes: Route[] = [
     label: 'Rallyes',
   },
   {
-    href: '/admin',
-    label: 'Administration',
+    href: '/questions',
+    label: 'Fragen',
   },
 ];
 

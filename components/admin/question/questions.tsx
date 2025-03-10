@@ -13,7 +13,7 @@ import {
   TextInput,
   useRecordContext,
 } from 'react-admin';
-import { questionTypes } from './helpers';
+import { questionTypes } from '../../../helpers/questionTypes';
 import TruncatedField from '@/components/admin/TruncatedField';
 
 const truncateLength = 50;

@@ -13,7 +13,7 @@ import {
 export default function RallyeCard({ rallye, onEdit }) {
   function getRallyeStatus(rallye) {
     switch (rallye.status) {
-      case 'preparation':
+      case 'preparing':
         return 'Vorbereitung';
       case 'running':
         return 'Gestartet';
@@ -39,11 +39,11 @@ export default function RallyeCard({ rallye, onEdit }) {
         <div className="flex items-center justify-between">
           <Badge
             variant={
-              rallye.is_active_rallye ? 'default' : 'secondary'
+              rallye.is_active ? 'default' : 'secondary'
             }
             className="text-sm font-medium"
           >
-            {rallye.is_active_rallye ? 'Aktiv' : 'Inaktiv'}
+            {rallye.is_active ? 'Aktiv' : 'Inaktiv'}
           </Badge>
           <Button
             variant="ghost"
@@ -63,6 +63,14 @@ export default function RallyeCard({ rallye, onEdit }) {
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground">Ende:</div>
           <div className="font-medium">{formattedEndTime}</div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground">Studiengang:</div>
+          <div className="font-medium">{rallye.studiengang}</div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground">Passwort:</div>
+          <div className="font-medium">***</div>
         </div>
       </CardContent>
     </Card>

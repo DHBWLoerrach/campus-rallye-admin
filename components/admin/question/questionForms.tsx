@@ -16,6 +16,8 @@ import {
   getChildren,
   saveQuestions,
 } from '@/actions/multipleChoiceAnswers';
+import { useWatch } from "react-hook-form";
+import { questionTypes } from "../../../helpers/questionTypes";
 
 // TODO: should we leave image url when type is changed?
 const ImageURLInput = () => {

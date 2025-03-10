@@ -44,12 +44,13 @@ export default function RallyeCardForm({ rallye, onCancel }) {
   });
   const [name, setName] = useState<string>(rallye.name);
   const [active, setActive] = useState<boolean>(
-    rallye.is_active_rallye
+    rallye.is_active
   );
   const [status, setStatus] = useState<string>(rallye.status);
   const [date24, setDate24] = useState<Date | undefined>(
     new Date(rallye.end_time)
   );
+  const [studiengang, setStudiengang] = useState<string>(rallye.studiengang);
 
   return (
     <Card className="w-full max-w-md shadow-md">
@@ -99,7 +100,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
               onValueChange={setStatus}
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="preparation" id="r1" />
+                <RadioGroupItem value="preparing" id="r1" />
                 <Label htmlFor="r1">Vorbereitung</Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -126,6 +127,22 @@ export default function RallyeCardForm({ rallye, onCancel }) {
               value={date24}
               onChange={setDate24}
             />
+          </div>
+          <div className="flex items-center space-x-2 mt-2">
+            <Label htmlFor={`rallye-${rallye.id}-studiengang`}>
+              Studiengang
+            </Label>
+            <Input
+              name="studiengang"
+              value={studiengang}
+              onChange={(e) => setStudiengang(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center space-x-2 mt-2 justify-between">
+            <Label htmlFor={`rallye-${rallye.id}-password`}>
+              Passwort
+            </Label>
+            ***
           </div>
           <SaveButton />
           {formState?.errors && (
