@@ -10,15 +10,20 @@ interface QuestionImageProps {
   onImageChange: (newPath: string | undefined) => void;
 }
 
-const QuestionImage: React.FC<QuestionImageProps> = ({ bucketPath, onImageChange }) => {
+const QuestionImage: React.FC<QuestionImageProps> = ({
+  bucketPath,
+  onImageChange,
+}) => {
   const [uploading, setUploading] = useState(false);
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     try {
       setUploading(true);
       const file = event.target.files?.[0];
       if (!file) return;
-  
+
       // Convert file to base64
       const reader = new FileReader();
       reader.onload = async () => {
@@ -57,7 +62,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({ bucketPath, onImageChange
       <div className="text-sm text-gray-600">
         (Bilder werden sofort hochgeladen)
       </div>
-      
+
       {bucketPath ? (
         <div className="relative">
           <div className="mt-2 relative w-full h-[200px] flex items-center justify-center">
