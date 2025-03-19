@@ -1,3 +1,6 @@
+import React, { useEffect, useState } from 'react';
+import { getCategories } from '@/actions/question';
+import { questionTypes } from '../../helpers/questionTypes';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -7,9 +10,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { questionTypes } from '../../helpers/questionTypes';
-import React, { useEffect, useState } from 'react';
-import { getCategories } from '@/actions/question';
 
 interface SearchFiltersProps {
   onFilterChange: (filters: {
@@ -22,7 +22,7 @@ interface SearchFiltersProps {
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
-  const [filters, setFilters] = React.useState({
+  const [filters, setFilters] = useState({
     question: '',
     answer: '',
     type: '',
@@ -31,7 +31,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
   });
   const [categories, setCategories] = useState<string[]>([]);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | boolean) => {
     const newFilters = { ...filters, [field]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
@@ -69,7 +69,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
             <SelectValue placeholder="Typ" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="null">Alle</SelectItem>
+            <SelectItem value="all">Alle</SelectItem>
             {questionTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
@@ -82,7 +82,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
             <SelectValue placeholder="Kategorie" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="null">Alle</SelectItem>
+            <SelectItem value="all">Alle</SelectItem>
             {categories.map((category) => (
               <SelectItem value={category}>{category}</SelectItem>
             ))}
@@ -93,7 +93,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
             id="active"
             checked={filters.enabled === true}
             onCheckedChange={(checked) =>
-              handleChange('enabled', checked ? 'true' : 'false')
+              handleChange('enabled', checked ? true : false)
             }
           />
           <label htmlFor="active" className="text-sm">

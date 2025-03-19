@@ -71,6 +71,7 @@ export async function getQuestions(filters: {
   category?: string;
   enabled?: boolean;
 }) {
+  console.log('getQuestions', filters);
   const supabase = createClient();
 
   let { data: questions, error: questionError } = await supabase
@@ -120,17 +121,17 @@ export async function getQuestions(filters: {
     );
   }
 
-  if (filters.type) {
+  if (filters.type && filters.type !== 'all') {
     questions = questions.filter((question) => question.type === filters.type);
   }
 
-  if (filters.category) {
+  if (filters.category && filters.category !== 'all') {
     questions = questions.filter(
       (question) => question.category === filters.category
     );
   }
 
-  if (filters.enabled !== undefined) {
+  if (filters.enabled && filters.category !== 'false') {
     questions = questions.filter(
       (question) => question.enabled === filters.enabled
     );
