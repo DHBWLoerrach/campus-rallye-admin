@@ -3,12 +3,7 @@ import { de } from 'date-fns/locale';
 import { Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function RallyeCard({ rallye, onEdit }) {
   function getRallyeStatus(rallye) {
@@ -38,9 +33,7 @@ export default function RallyeCard({ rallye, onEdit }) {
         <CardTitle className="text-xl">{rallye.name}</CardTitle>
         <div className="flex items-center justify-between">
           <Badge
-            variant={
-              rallye.is_active ? 'default' : 'secondary'
-            }
+            variant={rallye.is_active ? 'default' : 'secondary'}
             className="text-sm font-medium"
           >
             {rallye.is_active ? 'Aktiv' : 'Inaktiv'}

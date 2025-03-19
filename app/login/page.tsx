@@ -38,9 +38,7 @@ function LoginWithEmailLink() {
       <p className="text-sm text-gray-500">
         Anmeldelinks sind derzeit nicht möglich.
       </p>
-      <h1 className="text-2xl font-semibold">
-        Campus Rallyes verwalten
-      </h1>
+      <h1 className="text-2xl font-semibold">Campus Rallyes verwalten</h1>
       <label htmlFor="email" className="font-semibold">
         E-Mail:
       </label>
@@ -54,10 +52,7 @@ function LoginWithEmailLink() {
       {state?.errors && (
         <p className="text-sm text-red-500">{state.errors.message}</p>
       )}
-      <LoginButton
-        label="Anmeldelink per E-Mail senden"
-        disabled={true}
-      />
+      <LoginButton label="Anmeldelink per E-Mail senden" disabled={true} />
     </form>
   );
 }

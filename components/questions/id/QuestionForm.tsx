@@ -12,11 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { questionTypes } from '@/helpers/questionTypes';
-import {
-  Answer,
-  Question,
-  QuestionFormData,
-} from '@/helpers/questions';
+import { Answer, Question, QuestionFormData } from '@/helpers/questions';
 import { getCategories } from '@/actions/question';
 import Image from 'next/image';
 import QuestionImage from './QuestionImage';
@@ -50,9 +46,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     hint: initialData?.hint,
     category: initialData?.category,
     bucket_path: initialData?.bucket_path,
-    answers: initialData?.answers || [
-      { id: 0, correct: false, text: '' },
-    ],
+    answers: initialData?.answers || [{ id: 0, correct: false, text: '' }],
   });
 
   const [categories, setCategories] = useState<string[]>([]);
@@ -67,10 +61,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     loadCategories();
   }, []);
 
-  const handleFormChange = (
-    field: keyof QuestionFormData,
-    value: any
-  ) => {
+  const handleFormChange = (field: keyof QuestionFormData, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -91,11 +82,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     }
   };
 
-  const handleAnswerChange = (
-    index: number,
-    field: string,
-    value: any
-  ) => {
+  const handleAnswerChange = (index: number, field: string, value: any) => {
     const newAnswers = [...(formData.answers || [])];
     newAnswers[index] = { ...newAnswers[index], [field]: value };
     setFormData({
@@ -107,10 +94,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const addAnswer = () => {
     setFormData((prev) => ({
       ...prev,
-      answers: [
-        ...(prev.answers || []),
-        { id: 0, correct: false, text: '' },
-      ],
+      answers: [...(prev.answers || []), { id: 0, correct: false, text: '' }],
     }));
   };
 
@@ -150,8 +134,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
     const validAnswers = data.answers?.filter((a) => a.text?.trim());
     if (validAnswers?.length === 0) {
-      newErrors.answers =
-        'Mindestens eine Antwort muss eingegeben werden';
+      newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
     }
     console.log(newErrors);
     setErrors(newErrors);
@@ -164,9 +147,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     // Remove empty answers
     const cleanedData = {
       ...formData,
-      answers: formData.answers?.filter((answer) =>
-        answer.text?.trim()
-      ),
+      answers: formData.answers?.filter((answer) => answer.text?.trim()),
     };
 
     if (!validateForm(cleanedData)) {
@@ -184,18 +165,14 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           <Input
             id="question"
             value={formData.content}
-            onChange={(e) =>
-              handleFormChange('content', e.target.value)
-            }
+            onChange={(e) => handleFormChange('content', e.target.value)}
             placeholder="Geben Sie die Frage ein"
             className={`border p-2 w-full ${
               errors.content ? 'border-red-500' : ''
             }`}
           />
           {errors.content && (
-            <span className="text-sm text-red-500">
-              {errors.content}
-            </span>
+            <span className="text-sm text-red-500">{errors.content}</span>
           )}
         </div>
 
@@ -205,9 +182,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             value={formData.type}
             onValueChange={(value) => handleFormChange('type', value)}
           >
-            <SelectTrigger
-              className={errors.type ? 'border-red-500' : ''}
-            >
+            <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
               <SelectValue placeholder="Wählen Sie einen Fragetyp" />
             </SelectTrigger>
             <SelectContent>
@@ -219,9 +194,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             </SelectContent>
           </Select>
           {errors.type && (
-            <span className="text-sm text-red-500">
-              {errors.type}
-            </span>
+            <span className="text-sm text-red-500">{errors.type}</span>
           )}
         </div>
 
@@ -230,9 +203,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           <Switch
             id="enabled"
             checked={formData.enabled}
-            onCheckedChange={(checked) =>
-              handleFormChange('enabled', checked)
-            }
+            onCheckedChange={(checked) => handleFormChange('enabled', checked)}
           />
         </div>
 
@@ -242,18 +213,14 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             type="number"
             id="points"
             value={formData.points}
-            onChange={(e) =>
-              handleFormChange('points', Number(e.target.value))
-            }
+            onChange={(e) => handleFormChange('points', Number(e.target.value))}
             placeholder="Enter points"
             className={`border p-2 w-full ${
               errors.points ? 'border-red-500' : ''
             }`}
           />
           {errors.points && (
-            <span className="text-sm text-red-500">
-              {errors.points}
-            </span>
+            <span className="text-sm text-red-500">{errors.points}</span>
           )}
         </div>
 
@@ -274,9 +241,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             value={isNewCategory ? 'new' : formData.category || ''}
             onValueChange={handleCategoryChange}
           >
-            <SelectTrigger
-              className={errors.category ? 'border-red-500' : ''}
-            >
+            <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
               <SelectValue placeholder="Wählen Sie eine Kategorie" />
             </SelectTrigger>
             <SelectContent>
@@ -295,23 +260,17 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               value={formData.category}
               placeholder="Neue Kategorie eingeben"
               className="mt-2"
-              onChange={(e) =>
-                handleFormChange('category', e.target.value)
-              }
+              onChange={(e) => handleFormChange('category', e.target.value)}
             />
           )}
           {errors.category && (
-            <span className="text-sm text-red-500">
-              {errors.category}
-            </span>
+            <span className="text-sm text-red-500">{errors.category}</span>
           )}
         </div>
 
         <QuestionImage
           bucketPath={formData.bucket_path}
-          onImageChange={(newPath) =>
-            handleFormChange('bucket_path', newPath)
-          }
+          onImageChange={(newPath) => handleFormChange('bucket_path', newPath)}
         />
 
         <div className="space-y-2">
@@ -354,9 +313,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             + Antwort
           </Button>
           {errors.answers && (
-            <span className="m-5 text-sm text-red-500">
-              {errors.answers}
-            </span>
+            <span className="m-5 text-sm text-red-500">{errors.answers}</span>
           )}
         </div>
 

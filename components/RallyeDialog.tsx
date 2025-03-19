@@ -35,11 +35,7 @@ function SaveButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export default function RallyeDialog({
-  buttonStyle,
-}: {
-  buttonStyle: string;
-}) {
+export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
   const [name, setName] = useState('');
   const [formState, formAction] = useFormState(createRallye, {
     errors: { message: '' },

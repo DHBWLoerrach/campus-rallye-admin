@@ -3,11 +3,11 @@ import { NextPage } from 'next';
 import dynamic from 'next/dynamic';
 
 const Question: NextPage = () => {
-    return (
+  return (
     <main className="m-4">
-        <QuestionPage/>
+      <QuestionPage />
     </main>
-    )
+  );
 };
 
 export default Question;

@@ -2,13 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server';
 
-export async function uploadImage(base64File: string, fileName: string): Promise<string> {
+export async function uploadImage(
+  base64File: string,
+  fileName: string
+): Promise<string> {
   const supabase = createClient();
-  
+
   // Convert base64 to buffer
   const base64Data = base64File.split(',')[1];
   const buffer = Buffer.from(base64Data, 'base64');
-  
+
   // Generate unique filename
   const fileExt = fileName.split('.').pop();
   const uniqueFileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -17,7 +20,7 @@ export async function uploadImage(base64File: string, fileName: string): Promise
   const { data, error } = await supabase.storage
     .from('question-media')
     .upload(uniqueFileName, buffer, {
-      contentType: 'image/*'
+      contentType: 'image/*',
     });
 
   if (error) {
@@ -31,7 +34,7 @@ export async function uploadImage(base64File: string, fileName: string): Promise
 
 export async function deleteImage(bucketPath: string): Promise<void> {
   const supabase = createClient();
-  
+
   const { error } = await supabase.storage
     .from('question-media')
     .remove([bucketPath]);

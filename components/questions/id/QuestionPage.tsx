@@ -13,9 +13,7 @@ import { Question, QuestionFormData } from '@/helpers/questions';
 const QuestionPage: React.FC = () => {
   const { id } = useParams();
   const router = useRouter();
-  const [initialData, setInitialData] = useState<Question | null>(
-    null
-  );
+  const [initialData, setInitialData] = useState<Question | null>(null);
 
   useEffect(() => {
     if (id === 'new') {

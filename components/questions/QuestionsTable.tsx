@@ -16,9 +16,7 @@ interface QuestionsTableProps {
   questions: Question[];
 }
 
-const QuestionsTable: React.FC<QuestionsTableProps> = ({
-  questions,
-}) => {
+const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   const questionTypeLabels = questionTypes.reduce((acc, type) => {
@@ -62,9 +60,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                   <TableCell>
                     <ChevronDown
                       className={`w-4 h-4 cursor-pointer transition-transform ${
-                        expandedRows.includes(question.id)
-                          ? 'rotate-180'
-                          : ''
+                        expandedRows.includes(question.id) ? 'rotate-180' : ''
                       }`}
                       onClick={() => toggleRow(question.id)}
                     />
@@ -72,9 +68,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                   <TableCell className="max-w-md truncate">
                     {question.content}
                   </TableCell>
-                  <TableCell>
-                    {questionTypeLabels[question.type]}
-                  </TableCell>
+                  <TableCell>{questionTypeLabels[question.type]}</TableCell>
                   <TableCell>
                     {question.enabled && (
                       <Check className="h-4 w-4 text-green-500" />

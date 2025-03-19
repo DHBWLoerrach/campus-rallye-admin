@@ -21,9 +21,7 @@ interface SearchFiltersProps {
   }) => void;
 }
 
-const SearchFilters: React.FC<SearchFiltersProps> = ({
-  onFilterChange,
-}) => {
+const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
   const [filters, setFilters] = React.useState({
     question: '',
     answer: '',
@@ -66,9 +64,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           className="max-w-[200px]"
           onChange={(e) => handleChange('answer', e.target.value)}
         />
-        <Select
-          onValueChange={(value) => handleChange('type', value)}
-        >
+        <Select onValueChange={(value) => handleChange('type', value)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Typ" />
           </SelectTrigger>
@@ -81,9 +77,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             ))}
           </SelectContent>
         </Select>
-        <Select
-          onValueChange={(value) => handleChange('category', value)}
-        >
+        <Select onValueChange={(value) => handleChange('category', value)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Kategorie" />
           </SelectTrigger>

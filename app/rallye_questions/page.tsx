@@ -4,11 +4,11 @@ import dynamic from 'next/dynamic';
 import RallyeQuestionsPage from '@/components/rallye_questions/RallyeQuestionsPage';
 
 const RallyeQuestions: NextPage = () => {
-    return (
+  return (
     <main className="m-4">
-        <RallyeQuestionsPage/>
+      <RallyeQuestionsPage />
     </main>
-    )
+  );
 };
 
 export default RallyeQuestions;

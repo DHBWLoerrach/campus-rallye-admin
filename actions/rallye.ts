@@ -5,10 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 
 type FormState = { errors?: { message?: string } } | undefined;
 
-export async function createRallye(
-  state: FormState,
-  formData: FormData
-) {
+export async function createRallye(state: FormState, formData: FormData) {
   const supabase = createClient();
 
   const data = { name: formData.get('name') as string };
@@ -30,10 +27,7 @@ export async function createRallye(
   return { success: { message: 'Rallye erfolgreich gespeichert' } };
 }
 
-export async function updateRallye(
-  state: FormState,
-  formData: FormData
-) {
+export async function updateRallye(state: FormState, formData: FormData) {
   const supabase = createClient();
 
   const data = {
@@ -51,7 +45,7 @@ export async function updateRallye(
       is_active: data.is_active,
       status: data.status,
       end_time: data.end_time,
-      studiengang: data.studiengang
+      studiengang: data.studiengang,
     })
     .eq('id', data.id);
 
@@ -63,19 +57,18 @@ export async function updateRallye(
   return { success: { message: 'Rallye erfolgreich gespeichert' } };
 }
 
-
 export async function getRallyes() {
-  const supabase = createClient()
-  
+  const supabase = createClient();
+
   const { data, error } = await supabase
     .from('rallye')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching rallyes:', error)
-    return []
+    console.error('Error fetching rallyes:', error);
+    return [];
   }
 
-  return data || []
+  return data || [];
 }

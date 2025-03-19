@@ -108,26 +108,20 @@ export async function getQuestions(filters: {
 
   if (filters.question) {
     questions = questions.filter((question) =>
-      question.content
-        .toLowerCase()
-        .includes(filters.question?.toLowerCase())
+      question.content.toLowerCase().includes(filters.question?.toLowerCase())
     );
   }
 
   if (filters.answer) {
     questions = questions.filter((question) =>
       question.answers.some((answer) =>
-        answer.text
-          .toLowerCase()
-          .includes(filters.answer?.toLowerCase())
+        answer.text.toLowerCase().includes(filters.answer?.toLowerCase())
       )
     );
   }
 
   if (filters.type) {
-    questions = questions.filter(
-      (question) => question.type === filters.type
-    );
+    questions = questions.filter((question) => question.type === filters.type);
   }
 
   if (filters.category) {
@@ -158,21 +152,20 @@ export async function createQuestion(data: {
   try {
     const supabase = createClient();
 
-    const { data: questionData, error: questionError } =
-      await supabase
-        .from('questions')
-        .insert([
-          {
-            content: data.content,
-            type: data.type,
-            enabled: data.enabled,
-            points: data.points,
-            hint: data.hint,
-            category: data.category,
-            bucket_path: data.bucket_path,
-          },
-        ])
-        .select();
+    const { data: questionData, error: questionError } = await supabase
+      .from('questions')
+      .insert([
+        {
+          content: data.content,
+          type: data.type,
+          enabled: data.enabled,
+          points: data.points,
+          hint: data.hint,
+          category: data.category,
+          bucket_path: data.bucket_path,
+        },
+      ])
+      .select();
 
     if (questionError) {
       console.error('Error adding question:', questionError);
@@ -244,11 +237,10 @@ export async function updateQuestion(
     }
 
     // Fetch existing answers
-    const { data: existingAnswers, error: fetchError } =
-      await supabase
-        .from('answers')
-        .select('id')
-        .eq('question_id', id);
+    const { data: existingAnswers, error: fetchError } = await supabase
+      .from('answers')
+      .select('id')
+      .eq('question_id', id);
 
     if (fetchError) {
       console.error('Error fetching existing answers:', fetchError);
@@ -256,9 +248,7 @@ export async function updateQuestion(
       return false;
     }
 
-    const existingAnswerIds = existingAnswers.map(
-      (answer) => answer.id
-    );
+    const existingAnswerIds = existingAnswers.map((answer) => answer.id);
     const newAnswerIds = data.answers
       .map((answer) => answer.id)
       .filter((id) => id !== undefined);
@@ -291,22 +281,17 @@ export async function updateQuestion(
           .eq('question_id', id);
 
         if (answerError) {
-          console.error(
-            `Error updating answer ${answer.id}:`,
-            answerError
-          );
+          console.error(`Error updating answer ${answer.id}:`, answerError);
           // todo return error message
           return false;
         }
       } else {
         // Insert new answer
-        const { error: answerError } = await supabase
-          .from('answers')
-          .insert({
-            correct: answer.correct,
-            text: answer.text,
-            question_id: id,
-          });
+        const { error: answerError } = await supabase.from('answers').insert({
+          correct: answer.correct,
+          text: answer.text,
+          question_id: id,
+        });
 
         if (answerError) {
           console.error('Error adding new answer:', answerError);

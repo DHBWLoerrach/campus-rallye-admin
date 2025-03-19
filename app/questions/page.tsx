@@ -4,10 +4,10 @@ import dynamic from 'next/dynamic';
 
 const Questions: NextPage = () => {
   return (
-    <main className='m-4'>
+    <main className="m-4">
       <QuestionsManagement />
     </main>
-  )
+  );
 };
 
 export default Questions;

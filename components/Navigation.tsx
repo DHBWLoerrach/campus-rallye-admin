@@ -3,11 +3,7 @@ import { signOut } from '@/actions/auth';
 import { LogOut, Menu } from 'lucide-react';
 import { Route } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NavItems from '@/components/NavItems';
 import DarkModeToggle from '@/components/DarkModeToggle';
 
@@ -37,15 +33,9 @@ export default async function Nav() {
       </nav>
       <Sheet>
         <SheetTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="shrink-0 sm:hidden"
-          >
+          <Button variant="outline" size="icon" className="shrink-0 sm:hidden">
             <Menu className="h-5 w-5" />
-            <span className="sr-only">
-              Navigationsmenü ein-/ausblenden
-            </span>
+            <span className="sr-only">Navigationsmenü ein-/ausblenden</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left">

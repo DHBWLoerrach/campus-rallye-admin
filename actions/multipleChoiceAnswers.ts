@@ -103,9 +103,7 @@ export async function saveQuestions(questions, parent) {
   // Fragen aktualisieren oder erstellen
   for (const item of questions) {
     if (typeof item === 'object' && item !== null) {
-      if (
-        current_questions.some((question) => question.id === item.id)
-      ) {
+      if (current_questions.some((question) => question.id === item.id)) {
         // update
         console.log('update', item.id);
         const { error } = await supabase
@@ -127,10 +125,7 @@ export async function saveQuestions(questions, parent) {
       console.log(parent.points, typeof parent.points);
       console.log(parent.id, typeof parent.id);
       console.log(parent.category, typeof parent.category);
-      console.log(
-        new Date().toISOString(),
-        typeof new Date().toISOString()
-      );
+      console.log(new Date().toISOString(), typeof new Date().toISOString());
       console.log(parent.uri, typeof parent.uri);
       console.log(parent.video, typeof parent.video);
       console.log(parent.hint, typeof parent.hint);

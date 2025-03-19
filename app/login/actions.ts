@@ -6,10 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 
 type FormState = { errors?: { message?: string } } | undefined;
 
-export async function login(
-  formState: FormState,
-  formData: FormData
-) {
+export async function login(formState: FormState, formData: FormData) {
   const supabase = createClient();
 
   // type-casting here for convenience
@@ -29,10 +26,7 @@ export async function login(
   redirect('/'); // TODO: redirect to current page
 }
 
-export async function signInWithEmail(
-  state: FormState,
-  formData: FormData
-) {
+export async function signInWithEmail(state: FormState, formData: FormData) {
   const supabase = createClient();
 
   const email = formData.get('email') as string;

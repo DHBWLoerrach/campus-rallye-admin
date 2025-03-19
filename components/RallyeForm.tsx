@@ -9,19 +9,11 @@ import { de } from 'date-fns/locale';
 import { CircleX } from 'lucide-react';
 import { updateRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from '@/components/ui/radio-group';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 
 function SaveButton() {
@@ -43,9 +35,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
     errors: { message: '' },
   });
   const [name, setName] = useState<string>(rallye.name);
-  const [active, setActive] = useState<boolean>(
-    rallye.is_active
-  );
+  const [active, setActive] = useState<boolean>(rallye.is_active);
   const [status, setStatus] = useState<string>(rallye.status);
   const [date24, setDate24] = useState<Date | undefined>(
     new Date(rallye.end_time)
@@ -70,20 +60,14 @@ export default function RallyeCardForm({ rallye, onCancel }) {
       <CardContent>
         <form action={formAction}>
           <input type="hidden" name="id" value={rallye.id} />
-          <input
-            type="hidden"
-            name="end_time"
-            value={date24?.toISOString()}
-          />
+          <input type="hidden" name="end_time" value={date24?.toISOString()} />
           <Input
             name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-active`}>
-              Rallye aktiv
-            </Label>
+            <Label htmlFor={`rallye-${rallye.id}-active`}>Rallye aktiv</Label>
             <Switch
               name="active"
               checked={active}
@@ -94,11 +78,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
             <Label htmlFor={`rallye-${rallye.id}-status`}>
               Status der Rallye
             </Label>
-            <RadioGroup
-              name="status"
-              value={status}
-              onValueChange={setStatus}
-            >
+            <RadioGroup name="status" value={status} onValueChange={setStatus}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="preparing" id="r1" />
                 <Label htmlFor="r1">Vorbereitung</Label>
@@ -139,9 +119,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
             />
           </div>
           <div className="flex items-center space-x-2 mt-2 justify-between">
-            <Label htmlFor={`rallye-${rallye.id}-password`}>
-              Passwort
-            </Label>
+            <Label htmlFor={`rallye-${rallye.id}-password`}>Passwort</Label>
             ***
           </div>
           <SaveButton />
