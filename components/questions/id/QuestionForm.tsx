@@ -370,7 +370,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           {onDelete && (
             <Button
               type="button"
-              onClick={onDelete}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Sind Sie sicher, dass Sie diese Frage löschen möchten?'
+                  )
+                ) {
+                  onDelete();
+                }
+              }}
               className="bg-red-600 text-white"
             >
               Löschen
