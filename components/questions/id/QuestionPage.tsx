@@ -1,14 +1,14 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import QuestionForm from '@/components/questions/id/QuestionForm';
+import { useParams, useRouter } from 'next/navigation';
 import {
   getQuestionById,
   createQuestion,
   updateQuestion,
   deleteQuestion,
 } from '@/actions/question';
-import { useParams, useRouter } from 'next/navigation';
 import { Question, QuestionFormData } from '@/helpers/questions';
+import QuestionForm from '@/components/questions/id/QuestionForm';
 
 const QuestionPage: React.FC = () => {
   const { id } = useParams();
@@ -29,7 +29,6 @@ const QuestionPage: React.FC = () => {
   }, [id]);
 
   const handleSubmit = async (data: QuestionFormData) => {
-    console.log('Submitting data:', data);
     try {
       if (id !== 'new') {
         await updateQuestion(Number(id), {
@@ -37,7 +36,6 @@ const QuestionPage: React.FC = () => {
           answers: data.answers || [],
         });
       } else {
-        console.log('Creating question:', data);
         await createQuestion({
           ...data,
           answers: data.answers || [],
