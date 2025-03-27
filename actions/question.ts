@@ -180,6 +180,14 @@ export async function createQuestion(data: {
       ...answer,
       question_id: questionId,
     }));
+
+    // remove id-attribute from answers (id is auto-incremented in supabase)
+    answersData.forEach((answer: any) => {
+      if ('id' in answer) {
+        delete answer.id;
+      }
+    });
+
     const { error: answersError } = await supabase
       .from('answers')
       .insert(answersData);
