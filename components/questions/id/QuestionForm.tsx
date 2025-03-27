@@ -274,7 +274,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         />
 
         <div className="space-y-2">
-          <Label>Antworten*</Label>
+          <Label>
+            {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
+          </Label>
           {formData.answers?.map((answer, index) => (
             <div key={index} className="flex gap-2 items-center">
               <Checkbox
@@ -296,23 +298,27 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     : 'border p-2 flex-2'
                 }
               />
-              <Button
-                type="button"
-                onClick={() => removeAnswer(index)}
-                className="bg-red-600 text-white"
-              >
-                <Minus className="h-4 w-4" aria-hidden="true" />
-              </Button>
+              {formData.type === 'multiple_choice' && (
+                <Button
+                  type="button"
+                  onClick={() => removeAnswer(index)}
+                  className="bg-red-600 text-white"
+                >
+                  <Minus className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              )}
             </div>
           ))}
-          <Button
-            type="button"
-            onClick={addAnswer}
-            className="bg-green-600 text-white"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Antwort
-          </Button>
+          {formData.type === 'multiple_choice' && (
+            <Button
+              type="button"
+              onClick={addAnswer}
+              className="bg-green-600 text-white"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Antwort
+            </Button>
+          )}
           {errors.answers && (
             <span className="m-5 text-sm text-red-500">{errors.answers}</span>
           )}
