@@ -181,6 +181,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           <Select
             value={formData.type}
             onValueChange={(value) => handleFormChange('type', value)}
+            disabled={initialData?.id !== undefined}
           >
             <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
               <SelectValue placeholder="Wählen Sie einen Fragetyp" />
