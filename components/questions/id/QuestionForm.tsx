@@ -12,9 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { questionTypes } from '@/helpers/questionTypes';
-import { Answer, Question, QuestionFormData } from '@/helpers/questions';
+import { Question, QuestionFormData } from '@/helpers/questions';
 import { getCategories } from '@/actions/question';
-import Image from 'next/image';
 import QuestionImage from './QuestionImage';
 
 interface QuestionFormProps {
