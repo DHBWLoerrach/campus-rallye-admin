@@ -271,57 +271,60 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             }
           />
         )}
-        <div className="space-y-2">
-          <Label>
-            {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
-          </Label>
-          {formData.answers?.map((answer, index) => (
-            <div key={index} className="flex gap-2 items-center">
-              <Checkbox
-                checked={answer.correct}
-                onCheckedChange={(checked) =>
-                  handleAnswerChange(index, 'correct', checked)
-                }
-              />
-              <Input
-                type="text"
-                value={answer.text}
-                onChange={(e) =>
-                  handleAnswerChange(index, 'text', e.target.value)
-                }
-                placeholder="Füge eine Antwort hinzu"
-                className={
-                  errors.answers
-                    ? 'border-red-500 border p-2 flex-2'
-                    : 'border p-2 flex-2'
-                }
-              />
-              {formData.type === 'multiple_choice' && (
-                <Button
-                  type="button"
-                  onClick={() => removeAnswer(index)}
-                  className="bg-red-600 text-white"
-                >
-                  <Minus className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              )}
-            </div>
-          ))}
-          {formData.type === 'multiple_choice' && (
-            <Button
-              type="button"
-              onClick={addAnswer}
-              className="bg-green-600 text-white"
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Antwort
-            </Button>
-          )}
-          {errors.answers && (
-            <span className="m-5 text-sm text-red-500">{errors.answers}</span>
-          )}
-        </div>
-        )
+
+        {formData.type !== 'upload' && (
+          <div className="space-y-2">
+            <Label>
+              {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
+            </Label>
+            {formData.answers?.map((answer, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <Checkbox
+                  checked={answer.correct}
+                  onCheckedChange={(checked) =>
+                    handleAnswerChange(index, 'correct', checked)
+                  }
+                />
+                <Input
+                  type="text"
+                  value={answer.text}
+                  onChange={(e) =>
+                    handleAnswerChange(index, 'text', e.target.value)
+                  }
+                  placeholder="Füge eine Antwort hinzu"
+                  className={
+                    errors.answers
+                      ? 'border-red-500 border p-2 flex-2'
+                      : 'border p-2 flex-2'
+                  }
+                />
+                {formData.type === 'multiple_choice' && (
+                  <Button
+                    type="button"
+                    onClick={() => removeAnswer(index)}
+                    className="bg-red-600 text-white"
+                  >
+                    <Minus className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            {formData.type === 'multiple_choice' && (
+              <Button
+                type="button"
+                onClick={addAnswer}
+                className="bg-green-600 text-white"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Antwort
+              </Button>
+            )}
+            {errors.answers && (
+              <span className="m-5 text-sm text-red-500">{errors.answers}</span>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Abbrechen
