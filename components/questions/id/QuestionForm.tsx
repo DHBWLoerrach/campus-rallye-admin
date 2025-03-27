@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Plus, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -300,7 +301,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 onClick={() => removeAnswer(index)}
                 className="bg-red-600 text-white"
               >
-                -
+                <Minus className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
           ))}
@@ -309,7 +310,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             onClick={addAnswer}
             className="bg-green-600 text-white"
           >
-            + Antwort
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Antwort
           </Button>
           {errors.answers && (
             <span className="m-5 text-sm text-red-500">{errors.answers}</span>
