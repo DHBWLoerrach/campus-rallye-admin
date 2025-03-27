@@ -175,7 +175,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             <span className="text-sm text-red-500">{errors.content}</span>
           )}
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="type">Fragetyp*</Label>
           <Select
@@ -198,7 +197,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             <span className="text-sm text-red-500">{errors.type}</span>
           )}
         </div>
-
         <div className="flex items-center space-x-4 space-y-2">
           <Label htmlFor="enabled">Aktiviert*</Label>
           <Switch
@@ -207,7 +205,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             onCheckedChange={(checked) => handleFormChange('enabled', checked)}
           />
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="points">Punkte</Label>
           <Input
@@ -224,7 +221,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             <span className="text-sm text-red-500">{errors.points}</span>
           )}
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="hint">Hinweis</Label>
           <Input
@@ -235,7 +231,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             className="border p-2 w-full"
           />
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="category">Kategorie</Label>
           <Select
@@ -268,12 +263,14 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             <span className="text-sm text-red-500">{errors.category}</span>
           )}
         </div>
-
-        <QuestionImage
-          bucketPath={formData.bucket_path}
-          onImageChange={(newPath) => handleFormChange('bucket_path', newPath)}
-        />
-
+        {formData.type === 'picture' && (
+          <QuestionImage
+            bucketPath={formData.bucket_path}
+            onImageChange={(newPath) =>
+              handleFormChange('bucket_path', newPath)
+            }
+          />
+        )}
         <div className="space-y-2">
           <Label>
             {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
@@ -324,7 +321,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             <span className="m-5 text-sm text-red-500">{errors.answers}</span>
           )}
         </div>
-
+        )
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Abbrechen
