@@ -279,12 +279,14 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             </Label>
             {formData.answers?.map((answer, index) => (
               <div key={index} className="flex gap-2 items-center">
-                <Checkbox
-                  checked={answer.correct}
-                  onCheckedChange={(checked) =>
-                    handleAnswerChange(index, 'correct', checked)
-                  }
-                />
+                {formData.type === 'multiple_choice' && (
+                  <Checkbox
+                    checked={answer.correct}
+                    onCheckedChange={(checked) =>
+                      handleAnswerChange(index, 'correct', checked)
+                    }
+                  />
+                )}
                 <Input
                   type="text"
                   value={answer.text}
