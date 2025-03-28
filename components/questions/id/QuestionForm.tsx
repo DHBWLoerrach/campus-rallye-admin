@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -12,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
 import { getCategories } from '@/actions/question';
@@ -85,10 +85,46 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const handleAnswerChange = (index: number, field: string, value: any) => {
     const newAnswers = [...(formData.answers || [])];
     newAnswers[index] = { ...newAnswers[index], [field]: value };
+
+    // Wenn eine Antwort als korrekt markiert wird, setze alle anderen auf inkorrekt
+    if (
+      formData.type === 'multiple_choice' &&
+      field === 'correct' &&
+      value === true
+    ) {
+      newAnswers.forEach((answer, i) => {
+        if (i !== index) {
+          answer.correct = false;
+        }
+      });
+    }
+
     setFormData({
       ...formData,
       answers: newAnswers,
     });
+  };
+
+  // Helper-Funktion, um den Index der korrekten Antwort zu finden
+  const getCorrectAnswerIndex = () => {
+    return formData.answers?.findIndex((answer) => answer.correct) ?? -1;
+  };
+
+  // Helper-Funktion, um die korrekte Antwort via Index zu setzen
+  const handleCorrectAnswerSelect = (selectedIndexStr: string) => {
+    const selectedIndex = parseInt(selectedIndexStr, 10);
+    if (isNaN(selectedIndex)) return;
+
+    const newAnswers =
+      formData.answers?.map((answer, index) => ({
+        ...answer,
+        correct: index === selectedIndex,
+      })) || [];
+
+    setFormData((prev) => ({
+      ...prev,
+      answers: newAnswers,
+    }));
   };
 
   const addAnswer = () => {
@@ -277,40 +313,63 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             <Label>
               {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
             </Label>
-            {formData.answers?.map((answer, index) => (
-              <div key={index} className="flex gap-2 items-center">
-                {formData.type === 'multiple_choice' && (
-                  <Checkbox
-                    checked={answer.correct}
-                    onCheckedChange={(checked) =>
-                      handleAnswerChange(index, 'correct', checked)
+            {formData.type === 'multiple_choice' ? (
+              <RadioGroup
+                value={getCorrectAnswerIndex().toString()}
+                onValueChange={handleCorrectAnswerSelect}
+                className="space-y-2"
+              >
+                {formData.answers?.map((answer, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <RadioGroupItem
+                      value={index.toString()}
+                      id={`answer-${index}`}
+                    />
+                    <Label htmlFor={`answer-${index}`} className="flex-1">
+                      <Input
+                        type="text"
+                        value={answer.text}
+                        onChange={(e) =>
+                          handleAnswerChange(index, 'text', e.target.value)
+                        }
+                        placeholder="Füge eine Antwort hinzu"
+                        className={
+                          errors.answers
+                            ? 'border-red-500 border p-2 w-full'
+                            : 'border p-2 w-full'
+                        }
+                      />
+                    </Label>
+                    <Button
+                      type="button"
+                      onClick={() => removeAnswer(index)}
+                      className="bg-red-600 text-white"
+                    >
+                      <Minus className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                ))}
+              </RadioGroup>
+            ) : (
+              formData.answers?.map((answer, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Input
+                    type="text"
+                    value={answer.text}
+                    onChange={(e) =>
+                      handleAnswerChange(index, 'text', e.target.value)
+                    }
+                    placeholder="Füge eine Antwort hinzu"
+                    className={
+                      errors.answers
+                        ? 'border-red-500 border p-2 flex-1'
+                        : 'border p-2 flex-1'
                     }
                   />
-                )}
-                <Input
-                  type="text"
-                  value={answer.text}
-                  onChange={(e) =>
-                    handleAnswerChange(index, 'text', e.target.value)
-                  }
-                  placeholder="Füge eine Antwort hinzu"
-                  className={
-                    errors.answers
-                      ? 'border-red-500 border p-2 flex-2'
-                      : 'border p-2 flex-2'
-                  }
-                />
-                {formData.type === 'multiple_choice' && (
-                  <Button
-                    type="button"
-                    onClick={() => removeAnswer(index)}
-                    className="bg-red-600 text-white"
-                  >
-                    <Minus className="h-4 w-4" aria-hidden="true" />
-                  </Button>
-                )}
-              </div>
-            ))}
+                </div>
+              ))
+            )}
+
             {formData.type === 'multiple_choice' && (
               <Button
                 type="button"
