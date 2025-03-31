@@ -11,6 +11,6 @@ docker rm campus-rallye-admin || true
 docker run -d \
   --name campus-rallye-admin \
   -v /srv/docker/campusrallye/env:/app/.env.local:ro \
-  -p 3001:3000 \
+  -p 127.0.0.1:3001:3000 \
   ghcr.io/dhbwloerrach/campus-rallye-admin:latest
 
