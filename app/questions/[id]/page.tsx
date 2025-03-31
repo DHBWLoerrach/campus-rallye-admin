@@ -1,6 +1,5 @@
 import QuestionPage from '@/components/questions/id/QuestionPage';
 import { NextPage } from 'next';
-import dynamic from 'next/dynamic';
 
 const Question: NextPage = () => {
   return (
