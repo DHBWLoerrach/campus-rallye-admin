@@ -8,6 +8,10 @@ export default async function Home() {
   const supabase = createClient();
   const { data: rallyes } = await supabase.from('rallye').select();
 
+  console.log("Incoming Request Headers:", req.headers);
+  console.log("OIDC Username:", req.headers['oidc_claim_preferred_username']);
+  console.log("OIDC Email:", req.headers['oidc_claim_email']);
+
   return (
     <main className="flex flex-col m-4">
       <div className="flex justify-end gap-4 mb-4">
