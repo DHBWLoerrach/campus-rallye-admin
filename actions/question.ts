@@ -1,9 +1,8 @@
 'use server';
-
-import { createClient } from '@/lib/supabase/server';
+import createClient from '@/lib/supabase';
 
 export async function getCategories() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   let { data: categories, error: categoriesError } = await supabase
     .from('questions')
@@ -24,7 +23,7 @@ export async function getCategories() {
 }
 
 export async function getQuestionById(id: number) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   let { data: questions, error: questionError } = await supabase
     .from('questions')
@@ -72,7 +71,7 @@ export async function getQuestions(filters: {
   enabled?: boolean;
 }) {
   console.log('getQuestions', filters);
-  const supabase = createClient();
+  const supabase = await createClient();
 
   let { data: questions, error: questionError } = await supabase
     .from('questions')
@@ -151,7 +150,7 @@ export async function createQuestion(data: {
   answers: { correct: boolean; text?: string }[];
 }) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { data: questionData, error: questionError } = await supabase
       .from('questions')
@@ -222,7 +221,7 @@ export async function updateQuestion(
   }
 ) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { error: questionError } = await supabase
       .from('questions')
@@ -322,7 +321,7 @@ export async function updateQuestion(
 
 export async function deleteQuestion(id: number) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     // delete answers first
     const { error: answersError } = await supabase
       .from('answers')

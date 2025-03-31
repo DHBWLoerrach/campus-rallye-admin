@@ -1,12 +1,11 @@
 'use server';
-
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import createClient from '@/lib/supabase';
 
 type FormState = { errors?: { message?: string } } | undefined;
 
 export async function createRallye(state: FormState, formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const data = { name: formData.get('name') as string };
 
@@ -28,7 +27,7 @@ export async function createRallye(state: FormState, formData: FormData) {
 }
 
 export async function updateRallye(state: FormState, formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const data = {
     id: formData.get('id') as string,
@@ -58,7 +57,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
 }
 
 export async function getRallyes() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('rallye')

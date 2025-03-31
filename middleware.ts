@@ -1,8 +1,21 @@
-import { type NextRequest } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+export function middleware(req: NextRequest) {
+  const email = req.headers.get('oidc_claim_email');
+  const roles = req.headers.get('oidc_claim_roles')?.split(',');
+
+  const isDev = process.env.NODE_ENV === 'development';
+
+  if (!email && !isDev) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
+  // Only allow access to the staff pages if the user has the 'staff' role
+  if (!roles?.includes('staff') && !isDev) {
+    return new NextResponse('Forbidden', { status: 403 });
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {

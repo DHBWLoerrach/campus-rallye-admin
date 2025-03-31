@@ -1,5 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
-import { signOut } from '@/actions/auth';
+import Link from 'next/link';
 import { LogOut, Menu } from 'lucide-react';
 import { Route } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -19,13 +18,6 @@ const routes: Route[] = [
 ];
 
 export default async function Nav() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null; // no navigation for unauthenticated users
-
   return (
     <header className="sticky top-0 flex justify-between items-center h-16 border-b bg-background px-6">
       <nav className="hidden flex-col sm:flex sm:flex-row sm:items-center gap-2 text-sm font-medium">
@@ -45,14 +37,12 @@ export default async function Nav() {
         </SheetContent>
       </Sheet>
       <div className="flex flex-1 flex-row  justify-end gap-2">
-        {user && (
-          <form action={signOut}>
-            <Button variant="outline">
-              <span className="hidden sm:block">Abmelden</span>
-              <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
-            </Button>
-          </form>
-        )}
+        <Link href="/logout">
+          <Button variant="outline">
+            <span className="hidden sm:block">Abmelden</span>
+            <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
+          </Button>
+        </Link>
         <DarkModeToggle />
       </div>
     </header>

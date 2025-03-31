@@ -1,9 +1,7 @@
-// import { createClient } from '@/lib/supabase/server';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { uploadImage, deleteImage } from '@/actions/upload';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 
 interface QuestionImageProps {
   bucketPath?: string;

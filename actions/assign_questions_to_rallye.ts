@@ -1,12 +1,12 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import createClient from '@/lib/supabase';
 
 export async function assignQuestionsToRallye(
   rallyeId: number,
   questionIds: number[]
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     const { data: existingAssignments } = await supabase
@@ -56,7 +56,7 @@ export async function assignQuestionsToRallye(
 }
 
 export async function getRallyeQuestions(rallyeId: number) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('join_rallye_questions')

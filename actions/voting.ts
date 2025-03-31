@@ -1,13 +1,12 @@
 'use server';
-
-import { createClient } from '@/lib/supabase/server';
+import createClient from '@/lib/supabase';
 
 export async function updateVotingBatch(
   rallyeId: number,
   addQuestions: number[],
   removeQuestions: number[]
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Remove votes
   if (removeQuestions.length > 0) {
@@ -36,7 +35,7 @@ export async function updateVotingBatch(
 }
 
 export async function getVotingQuestions(rallyeId: number): Promise<number[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('voting')
