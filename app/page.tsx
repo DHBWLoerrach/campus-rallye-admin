@@ -4,13 +4,19 @@ import RallyeDialog from '@/components/RallyeDialog';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
+import { headers } from 'next/headers';
+
 export default async function Home() {
   const supabase = createClient();
   const { data: rallyes } = await supabase.from('rallye').select();
 
-  console.log("Incoming Request Headers:", req.headers);
-  console.log("OIDC Username:", req.headers['oidc_claim_preferred_username']);
-  console.log("OIDC Email:", req.headers['oidc_claim_email']);
+  const headerList = headers();
+  console.log('All Headers:', Object.fromEntries(headerList.entries()));
+  const username = headerList.get('oidc_claim_preferred_username');
+  const email = headerList.get('oidc_claim_email');
+
+  console.log('OIDC Username:', username);
+  console.log('OIDC Email:', email);
 
   return (
     <main className="flex flex-col m-4">
