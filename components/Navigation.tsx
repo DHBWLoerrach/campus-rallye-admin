@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { LogOut, Menu } from 'lucide-react';
 import { Route } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -37,12 +36,12 @@ export default async function Nav() {
         </SheetContent>
       </Sheet>
       <div className="flex flex-1 flex-row justify-end gap-2">
-        <Link href="https://apps.szi.dhbw-loerrach.de/logout">
+        <a href="https://apps.szi.dhbw-loerrach.de/logout">
           <Button variant="outline">
             <span className="hidden sm:block">Abmelden</span>
             <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
           </Button>
-        </Link>
+        </a>
         <DarkModeToggle />
       </div>
     </header>
