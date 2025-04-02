@@ -84,7 +84,9 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
             {categories.map((category) => (
-              <SelectItem value={category}>{category}</SelectItem>
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
