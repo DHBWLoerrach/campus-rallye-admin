@@ -1,9 +1,8 @@
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
 import { Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import FormattedEndTime from '@/components/FormattedEndTime';
 
 export default function RallyeCard({ rallye, onEdit }) {
   function getRallyeStatus(rallye) {
@@ -20,12 +19,6 @@ export default function RallyeCard({ rallye, onEdit }) {
         return 'Unbekannt';
     }
   }
-
-  const formattedEndTime = rallye.end_time
-    ? format(new Date(rallye.end_time), "EEE dd.MM.yy HH:mm 'Uhr'", {
-        locale: de,
-      })
-    : 'Endzeitpunkt fehlt';
 
   return (
     <Card className="w-full max-w-md shadow-md">
@@ -55,7 +48,9 @@ export default function RallyeCard({ rallye, onEdit }) {
         </div>
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground">Ende:</div>
-          <div className="font-medium">{formattedEndTime}</div>
+          <div className="font-medium">
+            <FormattedEndTime value={rallye.end_time} />
+          </div>
         </div>
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground">Studiengang:</div>
