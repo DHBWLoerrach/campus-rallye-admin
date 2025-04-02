@@ -1,10 +1,12 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
+import { requireProfile } from '@/lib/require-profile';
 
 type FormState = { errors?: { message?: string } } | undefined;
 
 export async function createRallye(state: FormState, formData: FormData) {
+  await requireProfile();
   const supabase = await createClient();
 
   const data = { name: formData.get('name') as string };

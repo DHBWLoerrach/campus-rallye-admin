@@ -1,10 +1,12 @@
 'use server';
 import createClient from '@/lib/supabase';
+import { requireProfile } from '@/lib/require-profile';
 
 export async function uploadImage(
   base64File: string,
   fileName: string
 ): Promise<string> {
+  await requireProfile();
   const supabase = await createClient();
 
   // Convert base64 to buffer

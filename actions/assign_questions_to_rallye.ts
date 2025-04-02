@@ -1,12 +1,13 @@
 'use server';
-
 import createClient from '@/lib/supabase';
+import { requireProfile } from '@/lib/require-profile';
 
 export async function assignQuestionsToRallye(
   rallyeId: number,
   questionIds: number[]
 ) {
   const supabase = await createClient();
+  await requireProfile();
 
   try {
     const { data: existingAssignments } = await supabase

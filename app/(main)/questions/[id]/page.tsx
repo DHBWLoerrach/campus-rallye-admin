@@ -1,5 +1,5 @@
-import QuestionPage from '@/components/questions/id/QuestionPage';
 import { NextPage } from 'next';
+import QuestionPage from '@/components/questions/id/QuestionPage';
 
 const Question: NextPage = () => {
   return (

@@ -36,7 +36,7 @@ export default async function Nav() {
           </nav>
         </SheetContent>
       </Sheet>
-      <div className="flex flex-1 flex-row  justify-end gap-2">
+      <div className="flex flex-1 flex-row justify-end gap-2">
         <Link href="https://apps.szi.dhbw-loerrach.de/logout">
           <Button variant="outline">
             <span className="hidden sm:block">Abmelden</span>

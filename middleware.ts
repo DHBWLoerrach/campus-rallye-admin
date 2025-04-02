@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(req: NextRequest) {
-  const email = req.headers.get('oidc_claim_email');
-  const roles = req.headers.get('oidc_claim_roles')?.split(',');
-
+  const sub = req.headers.get('oidc_claim_sub');
+  const roles = req.headers.get('oidc_claim_roles')?.split(',') ?? [];
+  const isStaff = roles.includes('staff');
   const isDev = process.env.NODE_ENV === 'development';
 
-  if (!email && !isDev) {
-    return new NextResponse('Unauthorized', { status: 401 });
+  // If user does not belong to'staff' redirect to 'access-denied' page
+  if (!isStaff && !isDev) {
+    return NextResponse.redirect(new URL('/access-denied', req.url));
   }
 
-  // Only allow access to the staff pages if the user has the 'staff' role
-  if (!roles?.includes('staff') && !isDev) {
-    return new NextResponse('Forbidden', { status: 403 });
+  if (!sub && !isDev) {
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   return NextResponse.next();
@@ -28,6 +28,6 @@ export const config = {
      * Feel free to modify this pattern to include more paths.
      */
     '/',
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|access-denied|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

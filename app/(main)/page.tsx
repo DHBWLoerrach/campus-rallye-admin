@@ -1,7 +1,7 @@
+import Link from 'next/link';
 import createClient from '@/lib/supabase';
 import Rallye from '@/components/Rallye';
 import RallyeDialog from '@/components/RallyeDialog';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default async function Home() {

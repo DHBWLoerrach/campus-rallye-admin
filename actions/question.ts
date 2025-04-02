@@ -1,7 +1,9 @@
 'use server';
 import createClient from '@/lib/supabase';
+import { requireProfile } from '@/lib/require-profile';
 
 export async function getCategories() {
+  await requireProfile();
   const supabase = await createClient();
 
   let { data: categories, error: categoriesError } = await supabase

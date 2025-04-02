@@ -1,5 +1,5 @@
 import { createClient as supabaseClient } from '@supabase/supabase-js';
-import getSupabaseJwt from './user-context';
+import { getSupabaseJwt } from './user-context';
 
 export default async function createClient() {
   const jwt = await getSupabaseJwt();

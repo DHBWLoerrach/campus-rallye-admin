@@ -1,11 +1,13 @@
 'use server';
 import createClient from '@/lib/supabase';
+import { requireProfile } from '@/lib/require-profile';
 
 export async function updateVotingBatch(
   rallyeId: number,
   addQuestions: number[],
   removeQuestions: number[]
 ) {
+  await requireProfile();
   const supabase = await createClient();
 
   // Remove votes

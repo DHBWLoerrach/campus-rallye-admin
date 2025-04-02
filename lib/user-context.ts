@@ -1,21 +1,32 @@
 import { headers } from 'next/headers';
 import { SignJWT } from 'jose';
 
+const DEV_SUB = '00000000-0000-0000-0000-000000000000';
+
+export type UserContext = {
+  sub: string;
+  roles: string[];
+};
+
+export function getUserContext(): UserContext {
+  const h = headers();
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const sub = h.get('oidc_claim_sub') ?? (isDev ? DEV_SUB : null);
+  const roles = h.get('x-oidc_claim_roles')?.split(',') ?? [];
+
+  if (!sub) throw new Error('Missing user sub (oidc_claim_sub)');
+
+  return { sub, roles };
+}
+
+// cached JWT pro Request
 let cachedJwt: string | null = null;
 let cachedSub: string | null = null;
 
-export default async function getSupabaseJwt(): Promise<string> {
-  const h = headers();
+export async function getSupabaseJwt(): Promise<string> {
+  const { sub } = getUserContext();
 
-  const isDev = process.env.NODE_ENV === 'development';
-
-  const sub = h.get('oidc_claim_sub') ?? (isDev ? 'dev-sub' : null);
-  const email =
-    h.get('oidc_claim_email') ?? (isDev ? 'admin@example.com' : null);
-
-  if (!sub || !email) throw new Error('Missing user headers');
-
-  // Caching: only generate a new JWT if the sub has changed
   if (cachedJwt && cachedSub === sub) {
     return cachedJwt;
   }
@@ -24,7 +35,6 @@ export default async function getSupabaseJwt(): Promise<string> {
 
   const jwt = await new SignJWT({
     sub,
-    email,
     role: 'authenticated',
     aud: 'authenticated',
     iss: 'campusrallye-admin',
