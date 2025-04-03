@@ -10,6 +10,7 @@ docker rm campus-rallye-admin || true
 # Run the new container
 docker run -d \
   --name campus-rallye-admin \
+  -v /srv/docker/campusrallye/local-users.db:/app/data/local-users.db \
   -v /srv/docker/campusrallye/env:/app/.env.local:ro \
   -p 127.0.0.1:3001:3000 \
   ghcr.io/dhbwloerrach/campus-rallye-admin:latest

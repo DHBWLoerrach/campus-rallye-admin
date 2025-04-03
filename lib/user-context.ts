@@ -2,9 +2,11 @@ import { headers } from 'next/headers';
 import { SignJWT } from 'jose';
 
 const DEV_SUB = '00000000-0000-0000-0000-000000000000';
+const DEV_EMAIL = 'test@example.com';
 
 export type UserContext = {
   sub: string;
+  email: string | null;
   roles: string[];
 };
 
@@ -13,11 +15,12 @@ export function getUserContext(): UserContext {
   const isDev = process.env.NODE_ENV === 'development';
 
   const sub = h.get('oidc_claim_sub') ?? (isDev ? DEV_SUB : null);
+  const email = h.get('oidc_claim_email') ?? (isDev ? DEV_EMAIL : null);
   const roles = h.get('x-oidc_claim_roles')?.split(',') ?? [];
 
   if (!sub) throw new Error('Missing user sub (oidc_claim_sub)');
 
-  return { sub, roles };
+  return { sub, email, roles };
 }
 
 // cached JWT pro Request
