@@ -1,6 +1,7 @@
-import { db } from './sqlite';
+import { getDb } from './sqlite';
 
 export function insertLocalUser(sub: string, email: string | null) {
+  const db = getDb();
   const exists = db
     .prepare('SELECT 1 FROM local_users WHERE user_id = ?')
     .get(sub);
