@@ -7,7 +7,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await requireProfile();
+  await requireProfile(true);
   return (
     <ThemeProvider
       attribute="class"
