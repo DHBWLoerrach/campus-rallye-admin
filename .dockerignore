@@ -1,0 +1,33 @@
+# Node.js
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Next.js build output
+.next
+out
+
+# System / Editor
+.DS_Store
+*.swp
+*.swo
+.vscode
+.idea
+
+# Optional
+.env
+.env.local
+.env.*.local
+
+# If using TypeScript
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+
+# Build artifacts
+dist
+coverage
