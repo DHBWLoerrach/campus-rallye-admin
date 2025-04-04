@@ -2,12 +2,13 @@ import createClient from './supabase';
 import { getUserContext } from './user-context';
 import { insertLocalUser } from './db/insert-local-user';
 
-let cachedProfile: any = null;
+const cachedProfiles = new Map<string, any>();
 
 export async function requireProfile(createProfile = false) {
-  if (cachedProfile) return cachedProfile;
-
   const { sub, email } = getUserContext();
+
+  if (cachedProfiles.has(sub)) return cachedProfiles.get(sub);
+
   const supabase = await createClient();
 
   const { data: profile, error } = await supabase
@@ -17,7 +18,7 @@ export async function requireProfile(createProfile = false) {
     .maybeSingle(); // maybeSingle() returns at most one row and null if none found
 
   if (profile) {
-    cachedProfile = profile;
+    cachedProfiles.set(sub, profile);
     return profile;
   }
 
@@ -38,8 +39,7 @@ export async function requireProfile(createProfile = false) {
     }
 
     await insertLocalUser(sub, email);
-
-    cachedProfile = newProfile;
+    cachedProfiles.set(sub, newProfile);
     return newProfile;
   }
 }
