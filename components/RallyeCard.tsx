@@ -12,7 +12,7 @@ export default function RallyeCard({ rallye, onEdit }) {
       case 'running':
         return 'Gestartet';
       case 'post_processing':
-        return 'Nachbereitung';
+        return 'Abstimmung';
       case 'ended':
         return 'Beendet';
       default:

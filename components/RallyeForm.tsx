@@ -89,7 +89,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="post_processing" id="r3" />
-                <Label htmlFor="r3">Nachbereitung</Label>
+                <Label htmlFor="r3">Abstimmung</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="ended" id="r4" />
