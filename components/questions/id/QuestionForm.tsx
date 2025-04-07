@@ -46,7 +46,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     hint: initialData?.hint,
     category: initialData?.category,
     bucket_path: initialData?.bucket_path,
-    answers: initialData?.answers || [{ id: 0, correct: false, text: '' }],
+    answers: initialData?.answers || [{ id: 0, correct: true, text: '' }],
   });
 
   const [categories, setCategories] = useState<string[]>([]);
