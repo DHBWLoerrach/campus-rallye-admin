@@ -72,7 +72,6 @@ export async function getQuestions(filters: {
   category?: string;
   enabled?: boolean;
 }) {
-  console.log('getQuestions', filters);
   const supabase = await createClient();
 
   let { data: questions, error: questionError } = await supabase
