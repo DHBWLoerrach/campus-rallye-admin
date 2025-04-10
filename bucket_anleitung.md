@@ -1,8 +1,9 @@
 Bucket konfigurieren:
-    - Die unten stehende SQL Befehle in Supabase in den SQL Editor ausführen
-    - Anschließend zum Storage navigieren
-    - Hier sollte der Bucket namens `question-media` zusehen sein
-    - diesen bearbeiten und auf `public` setzen, da der Code sonst nicht darauf zugreifen kann
+    
+- Die unten stehende SQL Befehle in Supabase in den SQL Editor ausführen
+- Anschließend zum Storage navigieren
+- Hier sollte der Bucket namens `question-media` zusehen sein
+- diesen bearbeiten und auf `public` setzen, da der Code sonst nicht darauf zugreifen kann
 
 ```sql
 -- Erstelle den Bucket
