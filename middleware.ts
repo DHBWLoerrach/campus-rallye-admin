@@ -19,13 +19,13 @@ export function middleware(req: NextRequest) {
   const isStaff = roles.includes('staff');
   const isDev = process.env.NODE_ENV === 'development';
 
+  if (!sub && !isDev) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
   // If user does not belong to'staff' redirect to 'access-denied' page
   if (!isStaff && !isDev) {
     return NextResponse.redirect(new URL('/access-denied', req.url));
-  }
-
-  if (!sub && !isDev) {
-    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   return NextResponse.next();
