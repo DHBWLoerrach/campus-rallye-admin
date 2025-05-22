@@ -20,7 +20,9 @@ export function middleware(req: NextRequest) {
   const isDev = process.env.NODE_ENV === 'development';
 
   if (!sub && !isDev) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    const redirectTo = req.nextUrl.pathname;
+    const loginUrl = new URL(`/oauth2/start?rd=${redirectTo}`, req.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   // If user does not belong to'staff' redirect to 'access-denied' page
