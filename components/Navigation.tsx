@@ -7,7 +7,7 @@ import DarkModeToggle from '@/components/DarkModeToggle';
 
 const routes: Route[] = [
   {
-    href: '/',
+    href: '/rallyes',
     label: 'Rallyes',
   },
   {
@@ -17,6 +17,7 @@ const routes: Route[] = [
 ];
 
 export default async function Nav() {
+  const isDev = process.env.NODE_ENV === 'development';
   return (
     <header className="sticky top-0 flex justify-between items-center h-16 border-b bg-background px-6">
       <nav className="hidden flex-col sm:flex sm:flex-row sm:items-center gap-2 text-sm font-medium">
@@ -36,7 +37,7 @@ export default async function Nav() {
         </SheetContent>
       </Sheet>
       <div className="flex flex-1 flex-row justify-end gap-2">
-        <a href="/oauth2/sign_out">
+        <a href={isDev ? '/' : '/oauth2/sign_out'}>
           <Button variant="outline">
             <span className="hidden sm:block">Abmelden</span>
             <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
