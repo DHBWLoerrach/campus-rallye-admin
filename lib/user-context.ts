@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { SignJWT } from 'jose';
+import { jwtDecode } from 'jwt-decode';
 
 const DEV_SUB = '00000000-0000-0000-0000-000000000000';
 const DEV_EMAIL = 'test@example.com';
@@ -14,11 +15,26 @@ export function getUserContext(): UserContext {
   const h = headers();
   const isDev = process.env.NODE_ENV === 'development';
 
-  const sub = h.get('oidc_claim_sub') ?? (isDev ? DEV_SUB : null);
-  const email = h.get('oidc_claim_email') ?? (isDev ? DEV_EMAIL : null);
-  const roles = h.get('x-oidc_claim_roles')?.split(',') ?? [];
+  const token = h.get('x-forwarded-access-token') ?? '';
+  let sub: string | null = null;
+  let email: string | null = null;
+  let roles: string[] = [];
 
-  if (!sub) throw new Error('Missing user sub (oidc_claim_sub)');
+  if (token) {
+    try {
+      const data = jwtDecode(token);
+      sub = (data as any).sub;
+      email = (data as any).email ?? null;
+      roles = (data as any).roles ?? [];
+    } catch {
+      console.warn('Invalid token');
+    }
+  }
+
+  sub ??= isDev ? DEV_SUB : null;
+  email ??= isDev ? DEV_EMAIL : null;
+
+  if (!sub) throw new Error('Missing user sub');
 
   return { sub, email, roles };
 }

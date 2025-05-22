@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { jwtDecode } from 'jwt-decode';
 
 export function middleware(req: NextRequest) {
-  const sub = req.headers.get('oidc_claim_sub');
-  const roles = req.headers.get('oidc_claim_roles')?.split(',') ?? [];
+  const token = req.headers.get('x-forwarded-access-token') ?? '';
+  let sub: string | null = null;
+  let roles: string[] = [];
+
+  if (token) {
+    try {
+      const data = jwtDecode(token);
+      sub = (data as any).sub;
+      roles = (data as any).roles ?? [];
+    } catch {
+      console.warn('Invalid token');
+    }
+  }
+
   const isStaff = roles.includes('staff');
   const isDev = process.env.NODE_ENV === 'development';
 
