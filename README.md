@@ -33,6 +33,8 @@ Die Supabase-Instanz kann folgendermaßen heruntergefahren werden: `supabase sto
 
 Die Authentifizierung der Nutzer erfolgt über KeyCloak. Dazu muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu https://github.com/DHBWLoerrach/keycloak-test-server
 
+Achtung: Benutzer müssen Mitarbeiter der DHBW Lörrach sein, d.h. die KeyCloak-User müssen in der Rolle `staff` sein, um Zugriff auf die Webanwendung zu erhalten.
+
 ## Webanwendung `campus-rallye-admin` lokal installieren
 
 Projekt klonen.
