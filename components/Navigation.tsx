@@ -37,7 +37,11 @@ export default async function Nav() {
         </SheetContent>
       </Sheet>
       <div className="flex flex-1 flex-row justify-end gap-2">
-        <a href={isDev ? '/' : '/oauth2/sign_out'}>
+        <a
+          href={`/oauth2/sign_out${
+            isDev ? '?rd=http%3A%2F%2Flocalhost%3A3000' : ''
+          }`}
+        >
           <Button variant="outline">
             <span className="hidden sm:block">Abmelden</span>
             <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
