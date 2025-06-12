@@ -29,6 +29,10 @@ Wenn alles geklappt hat, dann kann die lokale Supabase-Instanz mit dem Webinterf
 
 Die Supabase-Instanz kann folgendermaßen heruntergefahren werden: `supabase stop`
 
+## KeyCloak für Authentifizierung
+
+Die Authentifizierung der Nutzer erfolgt über KeyCloak. Dazu muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu https://github.com/DHBWLoerrach/keycloak-test-server
+
 ## Webanwendung `campus-rallye-admin` lokal installieren
 
 Projekt klonen.
