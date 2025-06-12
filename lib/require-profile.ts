@@ -5,20 +5,20 @@ import { insertLocalUser } from './db/insert-local-user';
 const cachedProfiles = new Map<string, any>();
 
 export async function requireProfile(createProfile = false) {
-  const { sub, email } = getUserContext();
+  const { uuid, email } = getUserContext();
 
-  if (cachedProfiles.has(sub)) return cachedProfiles.get(sub);
+  if (cachedProfiles.has(uuid)) return cachedProfiles.get(uuid);
 
   const supabase = await createClient();
 
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('user_id', sub)
+    .eq('user_id', uuid)
     .maybeSingle(); // maybeSingle() returns at most one row and null if none found
 
   if (profile) {
-    cachedProfiles.set(sub, profile);
+    cachedProfiles.set(uuid, profile);
     return profile;
   }
 
@@ -30,7 +30,7 @@ export async function requireProfile(createProfile = false) {
     // Kein Profil vorhanden – Profil automatisch anlegen
     const { data: newProfile, error: insertError } = await supabase
       .from('profiles')
-      .insert({ user_id: sub })
+      .insert({ user_id: uuid })
       .select()
       .single();
 
@@ -38,8 +38,8 @@ export async function requireProfile(createProfile = false) {
       throw new Error('Profil konnte nicht automatisch erstellt werden');
     }
 
-    await insertLocalUser(sub, email);
-    cachedProfiles.set(sub, newProfile);
+    await insertLocalUser(uuid, email);
+    cachedProfiles.set(uuid, newProfile);
     return newProfile;
   }
 }

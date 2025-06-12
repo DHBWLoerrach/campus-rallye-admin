@@ -2,28 +2,24 @@ import { headers } from 'next/headers';
 import { SignJWT } from 'jose';
 import { jwtDecode } from 'jwt-decode';
 
-const DEV_SUB = '00000000-0000-0000-0000-000000000000';
-const DEV_EMAIL = 'test@example.com';
-
 export type UserContext = {
-  sub: string;
+  uuid: string;
   email: string | null;
   roles: string[];
 };
 
 export function getUserContext(): UserContext {
   const h = headers();
-  const isDev = process.env.NODE_ENV === 'development';
 
   const token = h.get('x-forwarded-access-token') ?? '';
-  let sub: string | null = null;
+  let uuid: string | null = null;
   let email: string | null = null;
   let roles: string[] = [];
 
   if (token) {
     try {
       const data = jwtDecode(token);
-      sub = (data as any).sub;
+      uuid = (data as any).uuid || (data as any).sub;
       email = (data as any).email ?? null;
       roles = (data as any).roles ?? [];
     } catch {
@@ -31,29 +27,26 @@ export function getUserContext(): UserContext {
     }
   }
 
-  sub ??= isDev ? DEV_SUB : null;
-  email ??= isDev ? DEV_EMAIL : null;
+  if (!uuid) throw new Error('Missing user sub');
 
-  if (!sub) throw new Error('Missing user sub');
-
-  return { sub, email, roles };
+  return { uuid, email, roles };
 }
 
 // cached JWT pro Request
 let cachedJwt: string | null = null;
-let cachedSub: string | null = null;
+let cachedUuid: string | null = null;
 
 export async function getSupabaseJwt(): Promise<string> {
-  const { sub } = getUserContext();
+  const { uuid } = getUserContext();
 
-  if (cachedJwt && cachedSub === sub) {
+  if (cachedJwt && cachedUuid === uuid) {
     return cachedJwt;
   }
 
   const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
 
   const jwt = await new SignJWT({
-    sub,
+    uuid,
     role: 'authenticated',
     aud: 'authenticated',
     iss: 'campusrallye-admin',
@@ -63,7 +56,7 @@ export async function getSupabaseJwt(): Promise<string> {
     .sign(secret);
 
   cachedJwt = jwt;
-  cachedSub = sub;
+  cachedUuid = uuid;
 
   return jwt;
 }
