@@ -29,10 +29,6 @@ Wenn alles geklappt hat, dann kann die lokale Supabase-Instanz mit dem Webinterf
 
 Die Supabase-Instanz kann folgendermaßen heruntergefahren werden: `supabase stop`
 
-## Admin-User in Supabase erstellen
-
-Im Webinterface der lokalen Supabase-Instanz (http://127.0.0.1:54323) muss unter `Authentication - Users` ein Admin-User erstellt werden (`Add user - Create new user`). Dieser wird für das Login in die Webanwendung `campus-rallye-admin` benötigt.
-
 ## Webanwendung `campus-rallye-admin` lokal installieren
 
 Projekt klonen.
