@@ -35,7 +35,6 @@ export async function requireProfile(createProfile = false) {
       .single();
 
     if (insertError || !newProfile) {
-      console.error('Fehler beim Erstellen des Profils:', insertError);
       throw new Error('Profil konnte nicht automatisch erstellt werden');
     }
 
