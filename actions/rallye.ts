@@ -17,6 +17,7 @@ export async function createRallye(state: FormState, formData: FormData) {
     status: 'preparing',
     end_time: new Date(),
     studiengang: 'Kein Studiengang',
+    password: '',
   });
 
   if (error) {
@@ -38,6 +39,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
     status: formData.get('status') as string,
     end_time: new Date(formData.get('end_time') as string),
     studiengang: formData.get('studiengang') as string,
+    password: formData.get('password') as string,
   };
   const { error } = await supabase
     .from('rallye')
@@ -47,6 +49,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
       status: data.status,
       end_time: data.end_time,
       studiengang: data.studiengang,
+      password: data.password,
     })
     .eq('id', data.id);
 

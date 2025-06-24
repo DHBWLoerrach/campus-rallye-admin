@@ -41,6 +41,7 @@ export default function RallyeCardForm({ rallye, onCancel }) {
     new Date(rallye.end_time)
   );
   const [studiengang, setStudiengang] = useState<string>(rallye.studiengang);
+  const [password, setPassword] = useState<string>(rallye.password);
 
   return (
     <Card className="w-full max-w-md shadow-md">
@@ -120,7 +121,12 @@ export default function RallyeCardForm({ rallye, onCancel }) {
           </div>
           <div className="flex items-center space-x-2 mt-2 justify-between">
             <Label htmlFor={`rallye-${rallye.id}-password`}>Passwort</Label>
-            ***
+            <Input
+              name="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
           <SaveButton />
           {formState?.errors && (
