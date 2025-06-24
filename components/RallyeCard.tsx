@@ -3,22 +3,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import FormattedEndTime from '@/components/FormattedEndTime';
+import { Rallye, getRallyeStatusLabel, isRallyeActive } from '@/lib/types';
 
-export default function RallyeCard({ rallye, onEdit }) {
-  function getRallyeStatus(rallye) {
-    switch (rallye.status) {
-      case 'preparing':
-        return 'Vorbereitung';
-      case 'running':
-        return 'Gestartet';
-      case 'post_processing':
-        return 'Abstimmung';
-      case 'ended':
-        return 'Beendet';
-      default:
-        return 'Unbekannt';
-    }
-  }
+interface RallyeCardProps {
+  rallye: Rallye;
+  onEdit: () => void;
+}
+
+export default function RallyeCard({ rallye, onEdit }: RallyeCardProps) {
+  const statusLabel = getRallyeStatusLabel(rallye.status);
+  const isActive = isRallyeActive(rallye.status);
 
   return (
     <Card className="w-full max-w-md shadow-md">
@@ -26,10 +20,10 @@ export default function RallyeCard({ rallye, onEdit }) {
         <CardTitle className="text-xl">{rallye.name}</CardTitle>
         <div className="flex items-center justify-between">
           <Badge
-            variant={rallye.is_active ? 'default' : 'secondary'}
+            variant={isActive ? 'default' : 'secondary'}
             className="text-sm font-medium"
           >
-            {rallye.is_active ? 'Aktiv' : 'Inaktiv'}
+            {statusLabel}
           </Badge>
           <Button
             variant="ghost"
@@ -42,10 +36,6 @@ export default function RallyeCard({ rallye, onEdit }) {
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="flex items-center justify-between">
-          <div className="text-muted-foreground">Status:</div>
-          <div className="font-medium">{getRallyeStatus(rallye)}</div>
-        </div>
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground">Ende:</div>
           <div className="font-medium">

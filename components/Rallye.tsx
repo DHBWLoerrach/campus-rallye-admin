@@ -3,8 +3,13 @@
 import { useState } from 'react';
 import RallyeCard from '@/components/RallyeCard';
 import RallyeForm from '@/components/RallyeForm';
+import type { Rallye } from '@/lib/types';
 
-export default function Rallye({ rallye }) {
+interface RallyeProps {
+  rallye: Rallye;
+}
+
+export default function Rallye({ rallye }: RallyeProps) {
   const [editMode, setEditMode] = useState<boolean>(false);
 
   return editMode ? (

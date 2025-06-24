@@ -23,7 +23,13 @@ import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Switch } from '@/components/ui/switch';
+import type { Rallye, RallyeStatus } from '@/lib/types';
+import { getRallyeStatusLabel } from '@/lib/types';
+
+interface RallyeFormProps {
+  rallye: Rallye;
+  onCancel: () => void;
+}
 
 function SaveButton() {
   const { pending } = useFormStatus();
@@ -39,13 +45,12 @@ function SaveButton() {
   );
 }
 
-export default function RallyeCardForm({ rallye, onCancel }) {
+export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   const [formState, formAction] = useFormState(updateRallye, {
     errors: { message: '' },
   });
   const [name, setName] = useState<string>(rallye.name);
-  const [active, setActive] = useState<boolean>(rallye.is_active);
-  const [status, setStatus] = useState<string>(rallye.status);
+  const [status, setStatus] = useState<RallyeStatus>(rallye.status);
   const [date24, setDate24] = useState<Date | undefined>(
     new Date(rallye.end_time)
   );
@@ -54,10 +59,13 @@ export default function RallyeCardForm({ rallye, onCancel }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  // Alle Status-Übergänge sind erlaubt
+  const allStatuses: RallyeStatus[] = ['preparing', 'running', 'post_processing', 'ended', 'inactive'];
+
   async function handleDelete() {
     setIsDeleting(true);
     try {
-      const result = await deleteRallye(rallye.id);
+      const result = await deleteRallye(rallye.id.toString());
       if (result.errors) {
         console.error(result.errors.message);
       } else {
@@ -96,35 +104,24 @@ export default function RallyeCardForm({ rallye, onCancel }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-active`}>Rallye aktiv</Label>
-            <Switch
-              name="active"
-              checked={active}
-              onCheckedChange={setActive}
-            />
-          </div>
+          
           <div className="flex items-center space-x-2 mt-2">
             <Label htmlFor={`rallye-${rallye.id}-status`}>
               Status der Rallye
             </Label>
-            <RadioGroup name="status" value={status} onValueChange={setStatus}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="preparing" id="r1" />
-                <Label htmlFor="r1">Vorbereitung</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="running" id="r2" />
-                <Label htmlFor="r2">Gestartet</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="post_processing" id="r3" />
-                <Label htmlFor="r3">Abstimmung</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="ended" id="r4" />
-                <Label htmlFor="r4">Beendet</Label>
-              </div>
+            <RadioGroup 
+              name="status" 
+              value={status} 
+              onValueChange={(value) => setStatus(value as RallyeStatus)}
+            >
+              {allStatuses.map(statusOption => (
+                <div key={statusOption} className="flex items-center space-x-2">
+                  <RadioGroupItem value={statusOption} id={`status-${statusOption}`} />
+                  <Label htmlFor={`status-${statusOption}`}>
+                    {getRallyeStatusLabel(statusOption)}
+                  </Label>
+                </div>
+              ))}
             </RadioGroup>
           </div>
           <div className="flex items-center space-x-2 mt-2">
