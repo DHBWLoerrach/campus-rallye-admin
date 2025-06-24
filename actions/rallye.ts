@@ -14,7 +14,7 @@ export async function createRallye(state: FormState, formData: FormData) {
 
   const { error } = await supabase.from('rallye').insert({
     name: data.name,
-    status: 'preparing' as RallyeStatus,
+    status: 'inactive' as RallyeStatus,
     end_time: new Date(),
     studiengang: 'Kein Studiengang',
     password: '',
