@@ -6,10 +6,19 @@ import { useState } from 'react';
 // https://react.dev/blog/2024/04/25/react-19#new-hook-useactionstate
 import { useFormState, useFormStatus } from 'react-dom';
 import { de } from 'date-fns/locale';
-import { CircleX } from 'lucide-react';
-import { updateRallye } from '@/actions/rallye';
+import { CircleX, Trash2 } from 'lucide-react';
+import { updateRallye, deleteRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +30,7 @@ function SaveButton() {
   return (
     <button
       type="submit"
-      className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4"
+      className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
       aria-disabled={pending}
       disabled={pending}
     >
@@ -42,6 +51,26 @@ export default function RallyeCardForm({ rallye, onCancel }) {
   );
   const [studiengang, setStudiengang] = useState<string>(rallye.studiengang);
   const [password, setPassword] = useState<string>(rallye.password);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    try {
+      const result = await deleteRallye(rallye.id);
+      if (result.errors) {
+        console.error(result.errors.message);
+      } else {
+        // Nach erfolgreichem Löschen zurück zur Übersicht
+        onCancel();
+      }
+    } catch (error) {
+      console.error('Fehler beim Löschen:', error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  }
 
   return (
     <Card className="w-full max-w-md shadow-md">
@@ -128,7 +157,48 @@ export default function RallyeCardForm({ rallye, onCancel }) {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <SaveButton />
+
+          {/* Button-Bereich mit Speichern und Löschen */}
+          <div className="flex justify-between items-center mt-4">
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <DialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Löschen
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Rallye löschen</DialogTitle>
+                  <DialogDescription>
+                    Sind Sie sicher, dass Sie die Rallye "{name}" löschen
+                    möchten? Diese Aktion kann nicht rückgängig gemacht werden.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteDialog(false)}
+                  >
+                    Abbrechen
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Wird gelöscht...' : 'Löschen'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <SaveButton />
+          </div>
           {formState?.errors && (
             <span className="text-sm text-red-500 ml-2">
               {formState.errors.message}

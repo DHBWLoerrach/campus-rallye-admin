@@ -30,6 +30,7 @@ export async function createRallye(state: FormState, formData: FormData) {
 }
 
 export async function updateRallye(state: FormState, formData: FormData) {
+  await requireProfile();
   const supabase = await createClient();
 
   const data = {
@@ -75,4 +76,19 @@ export async function getRallyes() {
   }
 
   return data || [];
+}
+
+export async function deleteRallye(rallyeId: string) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from('rallye').delete().eq('id', rallyeId);
+
+  if (error) {
+    console.error('Error deleting rallye:', error);
+    return { errors: { message: 'Fehler beim Löschen der Rallye' } };
+  }
+
+  revalidatePath('/');
+  return { success: { message: 'Rallye erfolgreich gelöscht' } };
 }
