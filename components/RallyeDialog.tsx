@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { createRallye } from '@/actions/rallye';
@@ -37,11 +37,21 @@ function SaveButton({ disabled }: { disabled: boolean }) {
 
 export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
   const [name, setName] = useState('');
+  const [open, setOpen] = useState(false);
   const [formState, formAction] = useFormState(createRallye, {
     errors: { message: '' },
   });
+
+  // Modal schließen und Form zurücksetzen, wenn erfolgreich gespeichert wurde
+  useEffect(() => {
+    if (formState?.success) {
+      setOpen(false);
+      setName('');
+    }
+  }, [formState?.success]);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className={buttonStyle}>Rallye erstellen</Button>
       </DialogTrigger>
