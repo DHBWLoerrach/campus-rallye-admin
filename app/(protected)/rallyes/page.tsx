@@ -6,8 +6,16 @@ import { Button } from '@/components/ui/button';
 
 export default async function Home() {
   const supabase = await createClient();
-  const { data: rallyes } = await supabase.from('rallye').select();
-
+  const { data: rallyes, error } = await supabase
+    .from('rallye')
+    .select()
+    .order('name');
+  // supabase can't sort ignoring case, so we do it manually
+  if (rallyes) {
+    rallyes.sort((a, b) =>
+      a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+    );
+  }
   return (
     <main className="flex flex-col m-4">
       <div className="flex justify-end gap-4 mb-4">
