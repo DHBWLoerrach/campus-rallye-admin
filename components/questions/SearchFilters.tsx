@@ -19,9 +19,10 @@ interface SearchFiltersProps {
     category?: string;
     enabled?: boolean;
   }) => void;
+  categories?: string[];
 }
 
-const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
+const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange, categories: categoriesProp }) => {
   const [filters, setFilters] = useState({
     question: '',
     answer: '',
@@ -29,7 +30,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
     category: '',
     enabled: undefined,
   });
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(categoriesProp || []);
 
   const handleChange = (field: string, value: string | boolean) => {
     const newFilters = { ...filters, [field]: value };
@@ -38,6 +39,11 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
   };
 
   useEffect(() => {
+    // Use provided categories if available; otherwise fetch
+    if (categoriesProp && categoriesProp.length > 0) {
+      setCategories(categoriesProp);
+      return;
+    }
     const fetchCategories = async () => {
       try {
         let data: Array<string> = [];
@@ -50,7 +56,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
     };
 
     fetchCategories();
-  }, []);
+  }, [categoriesProp]);
   return (
     <>
       <div className="flex flex-wrap gap-4 flex-1">

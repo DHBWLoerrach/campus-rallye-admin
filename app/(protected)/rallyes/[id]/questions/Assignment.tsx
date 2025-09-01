@@ -26,13 +26,30 @@ import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
 interface Props {
   rallyeId: number;
   rallyeName?: string;
+  initialQuestions?: Question[];
+  initialSelectedQuestions?: number[];
+  initialVotingQuestions?: number[];
+  initialCategories?: string[];
 }
 
-export default function Assignment({ rallyeId, rallyeName }: Props) {
-  const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
-  const [questions, setQuestions] = useState<Question[]>([]);
+export default function Assignment({
+  rallyeId,
+  rallyeName,
+  initialQuestions,
+  initialSelectedQuestions,
+  initialVotingQuestions,
+  initialCategories,
+}: Props) {
+  const [selectedQuestions, setSelectedQuestions] = useState<number[]>(
+    initialSelectedQuestions || []
+  );
+  const [questions, setQuestions] = useState<Question[]>(
+    initialQuestions || []
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [votingQuestions, setVotingQuestions] = useState<number[]>([]);
+  const [votingQuestions, setVotingQuestions] = useState<number[]>(
+    initialVotingQuestions || []
+  );
   const [pendingVotingChanges, setPendingVotingChanges] = useState<{
     add: number[];
     remove: number[];
@@ -44,8 +61,14 @@ export default function Assignment({ rallyeId, rallyeName }: Props) {
   }, {} as Record<string, string>);
 
   useEffect(() => {
-    loadExistingAssignments(rallyeId);
-    fetchQuestions();
+    // If no initial data provided (edge case), fetch on mount
+    if (!initialSelectedQuestions || !initialVotingQuestions) {
+      loadExistingAssignments(rallyeId);
+    }
+    if (!initialQuestions) {
+      fetchQuestions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rallyeId]);
 
   const loadExistingAssignments = async (rallyeId: number) => {
@@ -124,7 +147,10 @@ export default function Assignment({ rallyeId, rallyeName }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
-            <SearchFilters onFilterChange={handleFilterChange} />
+            <SearchFilters
+              onFilterChange={handleFilterChange}
+              categories={initialCategories}
+            />
             <div className="border rounded-md">
               <Table>
                 <TableHeader>
