@@ -7,14 +7,19 @@ import type { Rallye } from '@/lib/types';
 
 interface RallyeProps {
   rallye: Rallye;
+  questionCount?: number;
 }
 
-export default function Rallye({ rallye }: RallyeProps) {
+export default function Rallye({ rallye, questionCount }: RallyeProps) {
   const [editMode, setEditMode] = useState<boolean>(false);
 
   return editMode ? (
     <RallyeForm rallye={rallye} onCancel={() => setEditMode(false)} />
   ) : (
-    <RallyeCard rallye={rallye} onEdit={() => setEditMode(true)} />
+    <RallyeCard
+      rallye={rallye}
+      questionCount={questionCount}
+      onEdit={() => setEditMode(true)}
+    />
   );
 }

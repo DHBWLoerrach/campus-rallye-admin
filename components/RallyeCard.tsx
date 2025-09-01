@@ -12,15 +12,27 @@ import { getRallyeQuestions } from '@/actions/assign_questions_to_rallye';
 interface RallyeCardProps {
   rallye: Rallye;
   onEdit: () => void;
+  questionCount?: number;
 }
 
-export default function RallyeCard({ rallye, onEdit }: RallyeCardProps) {
+export default function RallyeCard({ rallye, onEdit, questionCount: questionCountProp }: RallyeCardProps) {
   const statusLabel = getRallyeStatusLabel(rallye.status);
   const isActive = isRallyeActive(rallye.status);
   const router = useRouter();
-  const [questionCount, setQuestionCount] = useState<number | null>(null);
+  const [questionCount, setQuestionCount] = useState<number | undefined>(
+    questionCountProp
+  );
 
+  // Keep local state in sync with server-provided prop
   useEffect(() => {
+    if (questionCountProp !== undefined) {
+      setQuestionCount(questionCountProp);
+    }
+  }, [questionCountProp]);
+
+  // Fallback: only fetch on client if no count was provided from server
+  useEffect(() => {
+    if (questionCountProp !== undefined) return;
     let isMounted = true;
     (async () => {
       try {
@@ -34,7 +46,7 @@ export default function RallyeCard({ rallye, onEdit }: RallyeCardProps) {
     return () => {
       isMounted = false;
     };
-  }, [rallye.id]);
+  }, [questionCountProp, rallye.id]);
 
   return (
     <Card
@@ -78,7 +90,7 @@ export default function RallyeCard({ rallye, onEdit }: RallyeCardProps) {
         </div>
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="text-muted-foreground">
-            {questionCount === null
+            {questionCount === undefined
               ? 'Fragen: …'
               : questionCount === 0
               ? 'Keine Fragen'
