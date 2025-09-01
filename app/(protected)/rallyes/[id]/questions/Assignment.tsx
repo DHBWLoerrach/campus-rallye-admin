@@ -147,11 +147,13 @@ export default function Assignment({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
-            <SearchFilters
-              onFilterChange={handleFilterChange}
-              categories={initialCategories}
-            />
-            <div className="border rounded-md">
+            <div className="sticky top-0 z-10 bg-card">
+              <SearchFilters
+                onFilterChange={handleFilterChange}
+                categories={initialCategories}
+              />
+            </div>
+            <div className="border rounded-md h-[60vh] overflow-y-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
