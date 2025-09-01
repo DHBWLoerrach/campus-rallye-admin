@@ -1,4 +1,4 @@
-import RallyeQuestionsPage from '@/components/rallye_questions/RallyeQuestionsPage';
+import Assignment from './Assignment';
 import { notFound } from 'next/navigation';
 import createClient from '@/lib/supabase';
 
@@ -23,7 +23,7 @@ export default async function Page({ params }: PageProps) {
   }
   return (
     <main className="m-4">
-      <RallyeQuestionsPage rallyeId={rallyeId} rallyeName={data.name as string} />
+      <Assignment rallyeId={rallyeId} rallyeName={data.name as string} />
     </main>
   );
 }
