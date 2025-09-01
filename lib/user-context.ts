@@ -18,10 +18,11 @@ export function getUserContext(): UserContext {
 
   if (token) {
     try {
-      const data = jwtDecode(token);
-      uuid = (data as any).uuid || (data as any).sub;
-      email = (data as any).email ?? null;
-      roles = (data as any).roles ?? [];
+      const data = jwtDecode(token) as any;
+      // Normalized extraction to support dev/prod differences
+      uuid = data.UUID || data.uuid || data.sub;
+      email = data.email ?? data.preferred_username ?? null;
+      roles = data?.realm_access?.roles ?? data?.roles ?? [];
     } catch {
       console.warn('Invalid token');
     }
