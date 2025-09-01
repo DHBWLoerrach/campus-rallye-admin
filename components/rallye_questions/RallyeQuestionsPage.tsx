@@ -1,13 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -19,11 +12,8 @@ import {
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { HelpCircleIcon } from 'lucide-react';
 import { Question } from '@/helpers/questions';
 import { getQuestions } from '@/actions/question';
-import { getRallyes } from '@/actions/rallye';
 import { questionTypes } from '@/helpers/questionTypes';
 import {
   assignQuestionsToRallye,
@@ -33,11 +23,14 @@ import SearchFilters from '@/components/questions/SearchFilters';
 import { useRouter } from 'next/navigation';
 import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
 
-export default function RallyeQuestionsPage() {
+interface Props {
+  rallyeId: number;
+  rallyeName?: string;
+}
+
+export default function RallyeQuestionsPage({ rallyeId, rallyeName }: Props) {
   const router = useRouter();
   const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
-  const [selectedRallye, setSelectedRallye] = useState<string>('');
-  const [rallyes, setRallyes] = useState<any[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [votingQuestions, setVotingQuestions] = useState<number[]>([]);
@@ -52,17 +45,9 @@ export default function RallyeQuestionsPage() {
   }, {});
 
   useEffect(() => {
-    fetchRallyes();
+    loadExistingAssignments(rallyeId);
     fetchQuestions();
-  }, []);
-
-  useEffect(() => {
-    if (selectedRallye) {
-      loadExistingAssignments(parseInt(selectedRallye));
-    } else {
-      setSelectedQuestions([]);
-    }
-  }, [selectedRallye]);
+  }, [rallyeId]);
 
   const loadExistingAssignments = async (rallyeId: number) => {
     try {
@@ -76,11 +61,6 @@ export default function RallyeQuestionsPage() {
       console.error('Error loading existing assignments:', error);
       // todo return error message
     }
-  };
-
-  const fetchRallyes = async () => {
-    const rallye = await getRallyes();
-    setRallyes(rallye);
   };
 
   const fetchQuestions = async () => {
@@ -100,19 +80,15 @@ export default function RallyeQuestionsPage() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedRallye || selectedQuestions.length === 0) {
+    if (selectedQuestions.length === 0) {
       // TODO: Show error message
       return;
     }
     setIsSubmitting(true);
     try {
       await Promise.all([
-        assignQuestionsToRallye(parseInt(selectedRallye), selectedQuestions),
-        updateVotingBatch(
-          parseInt(selectedRallye),
-          pendingVotingChanges.add,
-          pendingVotingChanges.remove
-        ),
+        assignQuestionsToRallye(rallyeId, selectedQuestions),
+        updateVotingBatch(rallyeId, pendingVotingChanges.add, pendingVotingChanges.remove),
       ]);
       // Reset pending changes
       setPendingVotingChanges({ add: [], remove: [] });
@@ -130,28 +106,18 @@ export default function RallyeQuestionsPage() {
     <div className="container mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Fragen einer Rallye zuordnen</CardTitle>
+          <CardTitle>
+            {rallyeName
+              ? `Fragen der Rallye "${rallyeName}" zuordnen`
+              : 'Fragen einer Rallye zuordnen'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="rallye">Rallye auswählen</Label>
-            <Select
-              value={selectedRallye}
-              onValueChange={(value) => setSelectedRallye(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Wählen Sie eine Rallye" />
-              </SelectTrigger>
-              <SelectContent>
-                {rallyes.map((rallye) => (
-                  <SelectItem key={rallye.id} value={rallye.id.toString()}>
-                    {rallye.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {selectedRallye ? (
+          {
+            /* Assignment table */
+          }
+          {
+            (
             <div className="space-y-4">
               <SearchFilters onFilterChange={handleFilterChange} />
               <div className="border rounded-md">
@@ -255,20 +221,14 @@ export default function RallyeQuestionsPage() {
                 </Table>
               </div>
             </div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <HelpCircleIcon className="w-6 h-6 text-gray-500" />
-              <span>Wählen Sie eine Rallye aus, um die Fragen anzuzeigen</span>
-            </div>
           )}
 
           <div className="flex justify-end space-x-4">
             <Button
               variant="outline"
               onClick={() => {
-                setSelectedRallye('');
-                setSelectedQuestions([]);
-                setVotingQuestions([]);
+                // reload assignments for current rallye
+                loadExistingAssignments(rallyeId);
                 setPendingVotingChanges({ add: [], remove: [] });
               }}
             >
@@ -277,7 +237,6 @@ export default function RallyeQuestionsPage() {
             <Button
               onClick={handleSubmit}
               disabled={
-                !selectedRallye ||
                 selectedQuestions.length === 0 ||
                 isSubmitting
               }
