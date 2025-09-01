@@ -23,7 +23,7 @@ export default async function Page({ params }: PageProps) {
   }
 
   // Preload initial data server-side to avoid extra client POSTs
-  const [assignedRes, votingRes, categoriesRes, questionsRes] = await Promise.all([
+  const [assignedRes, votingRes, questionsRes] = await Promise.all([
     supabase
       .from('join_rallye_questions')
       .select('question_id')
@@ -32,23 +32,17 @@ export default async function Page({ params }: PageProps) {
       .from('voting')
       .select('question_id')
       .eq('rallye_id', rallyeId),
-    supabase
-      .from('questions')
-      .select('category')
-      .not('category', 'is', null),
     // Fetch questions with nested answers in one roundtrip
     supabase
       .from('questions')
-      .select(
-        'id, content, type, enabled, points, hint, category, bucket_path, answers(id, correct, text)'
-      ),
+      .select('id, content, type, enabled, points, category'),
   ]);
 
   const initialSelectedQuestions = (assignedRes.data || []).map((r: any) => r.question_id as number);
   const initialVotingQuestions = (votingRes.data || []).map((r: any) => r.question_id as number);
   const categoriesSet = new Set<string>();
-  (categoriesRes.data || []).forEach((c: any) => {
-    if (c.category) categoriesSet.add(c.category as string);
+  (questionsRes.data || []).forEach((q: any) => {
+    if (q.category) categoriesSet.add(q.category as string);
   });
   const initialCategories = Array.from(categoriesSet);
   const initialQuestions = (questionsRes.data || []) as any[];
