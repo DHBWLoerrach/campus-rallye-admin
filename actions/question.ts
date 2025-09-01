@@ -27,42 +27,20 @@ export async function getCategories() {
 export async function getQuestionById(id: number) {
   const supabase = await createClient();
 
-  let { data: questions, error: questionError } = await supabase
+  const { data, error } = await supabase
     .from('questions')
-    .select()
-    .eq('id', id);
+    .select(
+      'id, content, type, enabled, points, hint, category, bucket_path, answers(id, correct, text)'
+    )
+    .eq('id', id)
+    .maybeSingle();
 
-  if (questionError) {
-    console.error('Error fetching questions:', questionError);
-    // todo return error message
-    return [];
+  if (error || !data) {
+    console.error('Error fetching question by id:', error);
+    return null as any;
   }
 
-  if (!questions || questions.length === 0) {
-    console.log('No questions found');
-    // todo return error message ?
-    return [];
-  }
-
-  for (let question of questions) {
-    let { data: answers, error: answerError } = await supabase
-      .from('answers')
-      .select()
-      .eq('question_id', question.id);
-
-    if (answerError) {
-      console.error(
-        `Error fetching answers for question ${question.id}:`,
-        answerError
-      );
-      // todo return error message
-      question.answers = [];
-    } else {
-      question.answers = answers;
-    }
-  }
-
-  return questions[0];
+  return data as any;
 }
 
 export async function getQuestions(filters: {
@@ -74,70 +52,60 @@ export async function getQuestions(filters: {
 }) {
   const supabase = await createClient();
 
-  let { data: questions, error: questionError } = await supabase
+  // Build base query with nested answers to avoid N+1
+  let query = supabase
     .from('questions')
-    .select();
-
-  if (questionError) {
-    console.error('Error fetching questions:', questionError);
-    // todo return error message
-    return [];
-  }
-
-  if (!questions || questions.length === 0) {
-    console.log('No questions found');
-    return [];
-  }
-
-  for (let question of questions) {
-    let { data: answers, error: answerError } = await supabase
-      .from('answers')
-      .select()
-      .eq('question_id', question.id);
-
-    if (answerError) {
-      console.error(
-        `Error fetching answers for question ${question.id}:`,
-        answerError
-      );
-      // todo return error message
-      question.answers = [];
-    } else {
-      question.answers = answers;
-    }
-  }
-
-  if (filters.question) {
-    questions = questions.filter((question) =>
-      question.content.toLowerCase().includes(filters.question?.toLowerCase())
+    .select(
+      'id, content, type, enabled, points, hint, category, bucket_path, answers(id, correct, text)'
     );
-  }
 
-  if (filters.answer) {
-    questions = questions.filter((question) =>
-      question.answers.some((answer) =>
-        answer.text.toLowerCase().includes(filters.answer?.toLowerCase())
-      )
-    );
+  if (filters.question && filters.question.trim().length > 0) {
+    query = query.ilike('content', `%${filters.question.trim()}%`);
   }
 
   if (filters.type && filters.type !== 'all') {
-    questions = questions.filter((question) => question.type === filters.type);
+    query = query.eq('type', filters.type);
   }
 
   if (filters.category && filters.category !== 'all') {
-    questions = questions.filter(
-      (question) => question.category === filters.category
-    );
+    query = query.eq('category', filters.category);
   }
 
-  if (filters.enabled && filters.category !== 'false') {
-    questions = questions.filter(
-      (question) => question.enabled === filters.enabled
-    );
+  if (typeof filters.enabled === 'boolean') {
+    query = query.eq('enabled', filters.enabled);
   }
 
-  return questions;
+  // If filtering by answer text, narrow by question IDs that match
+  if (filters.answer && filters.answer.trim().length > 0) {
+    const { data: answerRows, error: answerErr } = await supabase
+      .from('answers')
+      .select('question_id')
+      .ilike('text', `%${filters.answer.trim()}%`);
+
+    if (answerErr) {
+      console.error('Error filtering by answer text:', answerErr);
+      return [];
+    }
+
+    const ids = Array.from(
+      new Set((answerRows || []).map((r: any) => r.question_id as number))
+    );
+
+    if (ids.length === 0) {
+      return [];
+    }
+
+    query = query.in('id', ids);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching questions:', error);
+    return [];
+  }
+
+  return (data || []) as any[];
 }
 
 export async function createQuestion(data: {

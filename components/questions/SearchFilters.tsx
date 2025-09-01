@@ -32,7 +32,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange, categorie
   });
   const [categories, setCategories] = useState<string[]>(categoriesProp || []);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (field: string, value: string | boolean | undefined) => {
     const newFilters = { ...filters, [field]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
@@ -101,7 +101,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange, categorie
             id="active"
             checked={filters.enabled === true}
             onCheckedChange={(checked) =>
-              handleChange('enabled', checked ? true : false)
+              handleChange('enabled', checked ? true : (undefined as any))
             }
           />
           <label htmlFor="active" className="text-sm">
