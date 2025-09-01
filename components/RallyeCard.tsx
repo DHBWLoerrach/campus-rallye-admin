@@ -1,10 +1,13 @@
-import { Pencil } from 'lucide-react';
+import { ChevronRight, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import FormattedEndTime from '@/components/FormattedEndTime';
 import { Rallye, getRallyeStatusLabel, isRallyeActive } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { getRallyeQuestions } from '@/actions/assign_questions_to_rallye';
 
 interface RallyeCardProps {
   rallye: Rallye;
@@ -15,6 +18,23 @@ export default function RallyeCard({ rallye, onEdit }: RallyeCardProps) {
   const statusLabel = getRallyeStatusLabel(rallye.status);
   const isActive = isRallyeActive(rallye.status);
   const router = useRouter();
+  const [questionCount, setQuestionCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const ids = await getRallyeQuestions(rallye.id);
+        if (isMounted) setQuestionCount(ids.length);
+      } catch (e) {
+        if (isMounted) setQuestionCount(0);
+        console.error('Failed to load question count for rallye', rallye.id, e);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [rallye.id]);
 
   return (
     <Card
@@ -55,6 +75,24 @@ export default function RallyeCard({ rallye, onEdit }: RallyeCardProps) {
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground">Studiengang:</div>
           <div className="font-medium">{rallye.studiengang}</div>
+        </div>
+        <div className="flex items-center justify-between pt-2 border-t">
+          <div className="text-muted-foreground">
+            {questionCount === null
+              ? 'Fragen: …'
+              : questionCount === 0
+              ? 'Keine Fragen'
+              : `${questionCount} ${questionCount === 1 ? 'Frage' : 'Fragen'}`}
+          </div>
+          <Link
+            href={`/rallyes/${rallye.id}/questions`}
+            className="text-sm font-medium flex items-center gap-1 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Fragen zuordnen"
+          >
+            Fragen zuordnen…
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </CardContent>
     </Card>
