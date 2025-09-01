@@ -20,7 +20,7 @@ import {
   getRallyeQuestions,
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
 
 interface Props {
@@ -29,7 +29,6 @@ interface Props {
 }
 
 export default function Assignment({ rallyeId, rallyeName }: Props) {
-  const router = useRouter();
   const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,7 +101,7 @@ export default function Assignment({ rallyeId, rallyeName }: Props) {
       console.error('Error saving questions:', error);
     } finally {
       setIsSubmitting(false);
-      router.push('/rallyes');
+      await loadExistingAssignments(rallyeId);
     }
   };
 
@@ -110,6 +109,13 @@ export default function Assignment({ rallyeId, rallyeName }: Props) {
     <div className="container mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
+          <div className="mb-2">
+            <Link href="/rallyes">
+              <Button variant="ghost" size="sm" type="button">
+                ← Zurück zu Rallyes
+              </Button>
+            </Link>
+          </div>
           <CardTitle>
             {rallyeName
               ? `Fragen der Rallye "${rallyeName}" zuordnen`
@@ -245,4 +251,3 @@ export default function Assignment({ rallyeId, rallyeName }: Props) {
     </div>
   );
 }
-
