@@ -122,7 +122,7 @@ export default function RallyeQuestionsPage() {
       console.error('Error saving questions:', error);
     } finally {
       setIsSubmitting(false);
-      router.push('/');
+      router.push('/rallyes');
     }
   };
   // TODO fitler for questions
