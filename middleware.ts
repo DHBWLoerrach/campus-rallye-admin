@@ -41,5 +41,10 @@ export function middleware(req: NextRequest) {
 
 // 💡 Apply this middleware only to protected paths
 export const config = {
-  matcher: ['/questions/:path*', '/rallyes/:path*', '/api/:path*'],
+  matcher: [
+    '/questions/:path*',
+    '/rallyes/:path*',
+    '/rallye_questions/:path*',
+    '/api/:path*',
+  ],
 };
