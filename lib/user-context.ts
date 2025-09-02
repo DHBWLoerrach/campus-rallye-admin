@@ -18,7 +18,7 @@ export function getUserContext(): UserContext {
 
   if (token) {
     try {
-      const data = jwtDecode(token) as any;
+      const data = jwtDecode<any>(token);
       // Normalized extraction to support dev/prod differences
       uuid = data.UUID || data.uuid || data.sub;
       email = data.email ?? data.preferred_username ?? null;
@@ -33,46 +33,30 @@ export function getUserContext(): UserContext {
   return { uuid, email, roles };
 }
 
-// cached JWT pro Request
-let cachedJwt: string | null = null;
-let cachedUuid: string | null = null;
+// TTL-aware cache for the signed supabase JWT
+let cache: { jwt: string; uuid: string; exp: number } | null = null;
 
 export async function getSupabaseJwt(): Promise<string> {
   const { uuid } = getUserContext();
+  const now = Math.floor(Date.now() / 1000);
 
-  // Helper: check if a JWT is still valid for at least the given seconds
-  const isJwtValidFor = (token: string, minValidSeconds: number) => {
-    try {
-      const payload = jwtDecode<{ exp?: number }>(token);
-      const exp = payload?.exp;
-      if (!exp) return false;
-      const now = Math.floor(Date.now() / 1000);
-      return exp - now > minValidSeconds;
-    } catch {
-      return false;
-    }
-  };
-
-  // Reuse cached JWT only if it belongs to the same user and isn't expiring soon
-  if (cachedJwt && cachedUuid === uuid && isJwtValidFor(cachedJwt, 30)) {
-    return cachedJwt;
+  // 30s Leeway to prevent sending close to expiration
+  if (cache && cache.uuid === uuid && cache.exp - now > 30) {
+    return cache.jwt;
   }
 
-  const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
+  const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET!);
+  const exp = now + 55 * 60;
 
-  const jwt = await new SignJWT({
-    uuid,
-    role: 'authenticated',
-    aud: 'authenticated',
-    iss: 'campusrallye-admin',
-  })
+  const jwt = await new SignJWT({ role: 'authenticated', uuid })
     .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('1h')
+    .setSubject(uuid)
+    .setIssuer('supabase')
+    .setAudience('authenticated')
+    .setIssuedAt(now)
+    .setExpirationTime(exp)
     .sign(secret);
 
-  cachedJwt = jwt;
-  cachedUuid = uuid;
-
+  cache = { jwt, uuid, exp };
   return jwt;
 }
