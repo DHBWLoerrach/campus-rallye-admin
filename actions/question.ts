@@ -1,8 +1,9 @@
 'use server';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
+import type { Question } from '@/helpers/questions';
 
-export async function getCategories() {
+export async function getCategories(): Promise<string[]> {
   await requireProfile();
   const supabase = await createClient();
 
@@ -21,16 +22,16 @@ export async function getCategories() {
     return [];
   }
 
-  return [...new Set(categories.map((item) => item.category))];
+  return [...new Set(categories.map((item) => item.category as string))];
 }
 
-export async function getQuestionById(id: number) {
+export async function getQuestionById(id: number): Promise<Question | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('questions')
     .select(
-      'id, content, type, enabled, points, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
     )
     .eq('id', id)
     .maybeSingle();
@@ -40,7 +41,7 @@ export async function getQuestionById(id: number) {
     return null as any;
   }
 
-  return data as any;
+  return data as Question;
 }
 
 export async function getQuestions(filters: {
@@ -48,15 +49,14 @@ export async function getQuestions(filters: {
   answer?: string;
   type?: string;
   category?: string;
-  enabled?: boolean;
-}) {
+}): Promise<Question[]> {
   const supabase = await createClient();
 
   // Build base query with nested answers to avoid N+1
   let query = supabase
     .from('questions')
     .select(
-      'id, content, type, enabled, points, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
     );
 
   if (filters.question && filters.question.trim().length > 0) {
@@ -69,10 +69,6 @@ export async function getQuestions(filters: {
 
   if (filters.category && filters.category !== 'all') {
     query = query.eq('category', filters.category);
-  }
-
-  if (typeof filters.enabled === 'boolean') {
-    query = query.eq('enabled', filters.enabled);
   }
 
   // If filtering by answer text, narrow by question IDs that match
@@ -102,16 +98,15 @@ export async function getQuestions(filters: {
 
   if (error) {
     console.error('Error fetching questions:', error);
-    return [];
+    return [] as Question[];
   }
 
-  return (data || []) as any[];
+  return (data || []) as Question[];
 }
 
 export async function createQuestion(data: {
   content: string;
   type: string;
-  enabled: boolean;
   points?: number;
   hint?: string;
   category?: string;
@@ -127,7 +122,6 @@ export async function createQuestion(data: {
         {
           content: data.content,
           type: data.type,
-          enabled: data.enabled,
           points: data.points,
           hint: data.hint,
           category: data.category,
@@ -181,7 +175,6 @@ export async function updateQuestion(
   data: {
     content: string;
     type: string;
-    enabled: boolean;
     points?: number;
     hint?: string;
     category?: string;
@@ -199,7 +192,6 @@ export async function updateQuestion(
       .update({
         content: data.content,
         type: data.type,
-        enabled: data.enabled,
         points: data.points,
         hint: data.hint,
         category: data.category || null,

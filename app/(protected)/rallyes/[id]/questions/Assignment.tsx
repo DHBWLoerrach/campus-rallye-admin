@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -95,10 +95,14 @@ export default function Assignment({
     answer?: string;
     type?: string;
     category?: string;
-    enabled?: boolean;
+    assigned?: boolean;
   }) => {
     const filteredQuestions = await getQuestions(filters);
-    setQuestions(filteredQuestions);
+    const finalQuestions =
+      filters.assigned === true
+        ? filteredQuestions.filter((q) => selectedQuestions.includes(q.id))
+        : filteredQuestions;
+    setQuestions(finalQuestions);
   };
 
   const handleSubmit = async () => {
@@ -206,9 +210,7 @@ export default function Assignment({
                           <div className="justify-center flex">
                             <Checkbox
                               disabled={
-                                !['upload', 'knowledge'].includes(
-                                  question.type
-                                )
+                                !['upload', 'knowledge'].includes(question.type)
                               }
                               checked={votingQuestions.includes(question.id)}
                               onCheckedChange={(checked) => {
@@ -238,9 +240,7 @@ export default function Assignment({
                                 }
                               }}
                               className={
-                                !['upload', 'knowledge'].includes(
-                                  question.type
-                                )
+                                !['upload', 'knowledge'].includes(question.type)
                                   ? 'data-[state=checked]:bg-gray-200 data-[state=unchecked]:bg-gray-100 border-dashed border-gray-400'
                                   : ''
                               }

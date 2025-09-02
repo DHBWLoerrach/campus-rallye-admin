@@ -28,18 +28,17 @@ export default async function Page({ params }: PageProps) {
       .from('join_rallye_questions')
       .select('question_id')
       .eq('rallye_id', rallyeId),
-    supabase
-      .from('voting')
-      .select('question_id')
-      .eq('rallye_id', rallyeId),
+    supabase.from('voting').select('question_id').eq('rallye_id', rallyeId),
     // Fetch questions with nested answers in one roundtrip
-    supabase
-      .from('questions')
-      .select('id, content, type, enabled, points, category'),
+    supabase.from('questions').select('id, content, type, points, category'),
   ]);
 
-  const initialSelectedQuestions = (assignedRes.data || []).map((r: any) => r.question_id as number);
-  const initialVotingQuestions = (votingRes.data || []).map((r: any) => r.question_id as number);
+  const initialSelectedQuestions = (assignedRes.data || []).map(
+    (r: any) => r.question_id as number
+  );
+  const initialVotingQuestions = (votingRes.data || []).map(
+    (r: any) => r.question_id as number
+  );
   const categoriesSet = new Set<string>();
   (questionsRes.data || []).forEach((q: any) => {
     if (q.category) categoriesSet.add(q.category as string);

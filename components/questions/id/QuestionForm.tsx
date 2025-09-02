@@ -3,7 +3,6 @@ import { Plus, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -41,7 +40,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const [formData, setFormData] = useState<QuestionFormData>({
     content: initialData?.content || '',
     type: initialData?.type || '',
-    enabled: initialData?.enabled || false,
     points: initialData?.points || 0,
     hint: initialData?.hint,
     category: initialData?.category,
@@ -232,14 +230,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           {errors.type && (
             <span className="text-sm text-red-500">{errors.type}</span>
           )}
-        </div>
-        <div className="flex items-center space-x-4 space-y-2">
-          <Label htmlFor="enabled">Aktiviert*</Label>
-          <Switch
-            id="enabled"
-            checked={formData.enabled}
-            onCheckedChange={(checked) => handleFormChange('enabled', checked)}
-          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="points">Punkte</Label>

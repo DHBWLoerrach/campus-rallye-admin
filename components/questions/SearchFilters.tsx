@@ -17,18 +17,23 @@ interface SearchFiltersProps {
     answer?: string;
     type?: string;
     category?: string;
-    enabled?: boolean;
+    assigned?: boolean;
   }) => void;
   categories?: string[];
+  showAssignedToggle?: boolean;
 }
 
-const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange, categories: categoriesProp }) => {
+const SearchFilters: React.FC<SearchFiltersProps> = ({
+  onFilterChange,
+  categories: categoriesProp,
+  showAssignedToggle = true,
+}) => {
   const [filters, setFilters] = useState({
     question: '',
     answer: '',
     type: '',
     category: '',
-    enabled: undefined,
+    assigned: undefined,
   });
   const [categories, setCategories] = useState<string[]>(categoriesProp || []);
 
@@ -96,18 +101,20 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange, categorie
             ))}
           </SelectContent>
         </Select>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="active"
-            checked={filters.enabled === true}
-            onCheckedChange={(checked) =>
-              handleChange('enabled', checked ? true : (undefined as any))
-            }
-          />
-          <label htmlFor="active" className="text-sm">
-            Nur aktive Fragen
-          </label>
-        </div>
+        {showAssignedToggle && (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="active"
+              checked={filters.assigned === true}
+              onCheckedChange={(checked) =>
+                handleChange('assigned', checked ? true : (undefined as any))
+              }
+            />
+            <label htmlFor="active" className="text-sm">
+              Nur ausgewählte Fragen
+            </label>
+          </div>
+        )}
       </div>
     </>
   );
