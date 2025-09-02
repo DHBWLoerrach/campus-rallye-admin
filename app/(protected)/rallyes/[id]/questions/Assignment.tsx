@@ -22,6 +22,14 @@ import {
 import SearchFilters from '@/components/questions/SearchFilters';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
 
 interface Props {
@@ -127,12 +135,6 @@ export default function Assignment({
   };
 
   const handleSubmit = async () => {
-    if (selectedQuestions.length === 0) {
-      const proceed = window.confirm(
-        'Es sind keine Fragen ausgewählt. Trotzdem speichern?'
-      );
-      if (!proceed) return;
-    }
     setIsSubmitting(true);
     try {
       await Promise.all([
@@ -169,6 +171,10 @@ export default function Assignment({
     pendingVotingChanges.add.length > 0 ||
     pendingVotingChanges.remove.length > 0;
 
+  // Navigation confirm dialog state
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Card>
@@ -176,17 +182,12 @@ export default function Assignment({
           <div className="mb-2">
             <Link
               href="/rallyes"
-              onClick={async (e) => {
+              onClick={(e) => {
                 if (isSubmitting) return; // ignore while saving
                 if (!hasUnsavedChanges) return; // allow default navigation
                 e.preventDefault();
-                const shouldSave = window.confirm(
-                  'Es gibt ungespeicherte Änderungen. Jetzt speichern?'
-                );
-                if (shouldSave) {
-                  await handleSubmit();
-                }
-                router.push('/rallyes');
+                setPendingHref('/rallyes');
+                setShowLeaveConfirm(true);
               }}
             >
               <Button
@@ -332,6 +333,47 @@ export default function Assignment({
           </div>
         </CardContent>
       </Card>
+      {/* Unsaved changes confirmation dialog */}
+      <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ungespeicherte Änderungen</DialogTitle>
+            <DialogDescription>
+              Es gibt ungespeicherte Änderungen. Möchten Sie speichern, verwerfen
+              oder abbrechen?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                // Verwerfen
+                setShowLeaveConfirm(false);
+                router.push(pendingHref || '/rallyes');
+              }}
+            >
+              Verwerfen
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowLeaveConfirm(false)}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isSubmitting}
+              onClick={async () => {
+                await handleSubmit();
+                setShowLeaveConfirm(false);
+                router.push(pendingHref || '/rallyes');
+              }}
+            >
+              Speichern
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
