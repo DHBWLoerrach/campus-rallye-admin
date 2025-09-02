@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -205,6 +211,9 @@ export default function Assignment({
               ? `Fragen der Rallye "${rallyeName}" zuordnen`
               : 'Fragen einer Rallye zuordnen'}
           </CardTitle>
+          <CardDescription>
+            Aktuell zugeordnet: {selectedQuestions.length}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
@@ -339,15 +348,15 @@ export default function Assignment({
           <DialogHeader>
             <DialogTitle>Ungespeicherte Änderungen</DialogTitle>
             <DialogDescription>
-              Es gibt ungespeicherte Änderungen. Möchten Sie speichern, verwerfen
-              oder abbrechen?
+              Es gibt ungespeicherte Änderungen. Möchten Sie speichern,
+              verwerfen oder abbrechen?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="secondary"
               onClick={() => {
-                // Verwerfen
+                // discard changes and navigate
                 setShowLeaveConfirm(false);
                 router.push(pendingHref || '/rallyes');
               }}
