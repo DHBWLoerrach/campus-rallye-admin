@@ -40,7 +40,21 @@ let cachedUuid: string | null = null;
 export async function getSupabaseJwt(): Promise<string> {
   const { uuid } = getUserContext();
 
-  if (cachedJwt && cachedUuid === uuid) {
+  // Helper: check if a JWT is still valid for at least the given seconds
+  const isJwtValidFor = (token: string, minValidSeconds: number) => {
+    try {
+      const payload = jwtDecode<{ exp?: number }>(token);
+      const exp = payload?.exp;
+      if (!exp) return false;
+      const now = Math.floor(Date.now() / 1000);
+      return exp - now > minValidSeconds;
+    } catch {
+      return false;
+    }
+  };
+
+  // Reuse cached JWT only if it belongs to the same user and isn't expiring soon
+  if (cachedJwt && cachedUuid === uuid && isJwtValidFor(cachedJwt, 30)) {
     return cachedJwt;
   }
 
@@ -53,6 +67,7 @@ export async function getSupabaseJwt(): Promise<string> {
     iss: 'campusrallye-admin',
   })
     .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
     .setExpirationTime('1h')
     .sign(secret);
 
