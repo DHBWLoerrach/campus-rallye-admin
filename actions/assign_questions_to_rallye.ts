@@ -1,6 +1,7 @@
 'use server';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
+import { revalidatePath } from 'next/cache';
 
 export async function assignQuestionsToRallye(
   rallyeId: number,
@@ -49,6 +50,10 @@ export async function assignQuestionsToRallye(
 
       if (insertError) throw insertError; // todo return error message
     }
+
+    // Invalidate cached pages that depend on these assignments
+    revalidatePath('/rallyes');
+    revalidatePath(`/rallyes/${rallyeId}/questions`);
     return true;
   } catch (error) {
     console.error('Error in assignQuestionsToRallye:', error);

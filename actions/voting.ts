@@ -1,6 +1,7 @@
 'use server';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
+import { revalidatePath } from 'next/cache';
 
 export async function updateVotingBatch(
   rallyeId: number,
@@ -34,6 +35,9 @@ export async function updateVotingBatch(
 
     if (addError) throw addError; // todo return error message
   }
+
+  // Revalidate assignment page to reflect updated voting flags
+  revalidatePath(`/rallyes/${rallyeId}/questions`);
 }
 
 export async function getVotingQuestions(rallyeId: number): Promise<number[]> {

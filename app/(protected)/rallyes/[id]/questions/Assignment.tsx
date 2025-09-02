@@ -21,6 +21,7 @@ import {
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
 
 interface Props {
@@ -40,6 +41,7 @@ export default function Assignment({
   initialVotingQuestions,
   initialCategories,
 }: Props) {
+  const router = useRouter();
   const [selectedQuestions, setSelectedQuestions] = useState<number[]>(
     initialSelectedQuestions || []
   );
@@ -54,6 +56,14 @@ export default function Assignment({
     add: number[];
     remove: number[];
   }>({ add: [], remove: [] });
+
+  // Track last saved state to detect unsaved changes
+  const [savedSelectedQuestions, setSavedSelectedQuestions] = useState<
+    number[]
+  >(initialSelectedQuestions || []);
+  const [savedVotingQuestions, setSavedVotingQuestions] = useState<number[]>(
+    initialVotingQuestions || []
+  );
 
   const questionTypeLabels = questionTypes.reduce((acc, type) => {
     acc[type.id] = type.name;
@@ -71,6 +81,14 @@ export default function Assignment({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rallyeId]);
 
+  // Keep saved baselines in sync when props change (SSR preloaded data)
+  useEffect(() => {
+    setSavedSelectedQuestions(initialSelectedQuestions || []);
+  }, [initialSelectedQuestions]);
+  useEffect(() => {
+    setSavedVotingQuestions(initialVotingQuestions || []);
+  }, [initialVotingQuestions]);
+
   const loadExistingAssignments = async (rallyeId: number) => {
     try {
       const [existingQuestions, existingVotes] = await Promise.all([
@@ -79,6 +97,9 @@ export default function Assignment({
       ]);
       setSelectedQuestions(existingQuestions);
       setVotingQuestions(existingVotes);
+      // Update saved baselines to what exists in DB now
+      setSavedSelectedQuestions(existingQuestions);
+      setSavedVotingQuestions(existingVotes);
     } catch (error) {
       console.error('Error loading existing assignments:', error);
       // todo return error message
@@ -107,8 +128,10 @@ export default function Assignment({
 
   const handleSubmit = async () => {
     if (selectedQuestions.length === 0) {
-      // TODO: Show error message
-      return;
+      const proceed = window.confirm(
+        'Es sind keine Fragen ausgewählt. Trotzdem speichern?'
+      );
+      if (!proceed) return;
     }
     setIsSubmitting(true);
     try {
@@ -122,6 +145,7 @@ export default function Assignment({
       ]);
       // Reset pending changes
       setPendingVotingChanges({ add: [], remove: [] });
+      // Baselines will be refreshed by loadExistingAssignments below
       // Show success message
     } catch (error) {
       // Show error message
@@ -132,13 +156,45 @@ export default function Assignment({
     }
   };
 
+  const arraysEqualAsSets = (a: number[], b: number[]) => {
+    if (a.length !== b.length) return false;
+    const setA = new Set(a);
+    for (const x of b) if (!setA.has(x)) return false;
+    return true;
+  };
+
+  const hasUnsavedChanges =
+    !arraysEqualAsSets(selectedQuestions, savedSelectedQuestions) ||
+    !arraysEqualAsSets(votingQuestions, savedVotingQuestions) ||
+    pendingVotingChanges.add.length > 0 ||
+    pendingVotingChanges.remove.length > 0;
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
           <div className="mb-2">
-            <Link href="/rallyes">
-              <Button variant="ghost" size="sm" type="button">
+            <Link
+              href="/rallyes"
+              onClick={async (e) => {
+                if (isSubmitting) return; // ignore while saving
+                if (!hasUnsavedChanges) return; // allow default navigation
+                e.preventDefault();
+                const shouldSave = window.confirm(
+                  'Es gibt ungespeicherte Änderungen. Jetzt speichern?'
+                );
+                if (shouldSave) {
+                  await handleSubmit();
+                }
+                router.push('/rallyes');
+              }}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                disabled={isSubmitting}
+              >
                 ← Zurück zu Rallyes
               </Button>
             </Link>
@@ -268,7 +324,7 @@ export default function Assignment({
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={selectedQuestions.length === 0 || isSubmitting}
+              disabled={isSubmitting}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Speichern
