@@ -131,7 +131,10 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
             </RadioGroup>
           </div>
           <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-endtime`}>
+            <Label
+              htmlFor={`rallye-${rallye.id}-endtime`}
+              className="w-32 shrink-0"
+            >
               Ende der Rallye
             </Label>
             <DateTimePicker
@@ -139,25 +142,36 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
               hourCycle={24}
               value={date24}
               onChange={setDate24}
+              className="flex-1 min-w-0 max-w-sm"
             />
           </div>
           <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-studiengang`}>
+            <Label
+              htmlFor={`rallye-${rallye.id}-studiengang`}
+              className="w-32 shrink-0"
+            >
               Studiengang
             </Label>
             <Input
               name="studiengang"
               value={studiengang}
               onChange={(e) => setStudiengang(e.target.value)}
+              className="flex-1 min-w-0 max-w-sm"
             />
           </div>
-          <div className="flex items-center space-x-2 mt-2 justify-between">
-            <Label htmlFor={`rallye-${rallye.id}-password`}>Passwort</Label>
+          <div className="flex items-center space-x-2 mt-2">
+            <Label
+              htmlFor={`rallye-${rallye.id}-password`}
+              className="w-32 shrink-0"
+            >
+              Passwort
+            </Label>
             <Input
               name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="flex-1 min-w-0 max-w-sm"
             />
           </div>
 
