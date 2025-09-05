@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { createRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ function SaveButton({ disabled }: { disabled: boolean }) {
 export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
   const [name, setName] = useState('');
   const [open, setOpen] = useState(false);
-  const [formState, formAction] = useFormState(createRallye, {
+  const [formState, formAction] = useActionState(createRallye, {
     errors: { message: '' },
   });
 

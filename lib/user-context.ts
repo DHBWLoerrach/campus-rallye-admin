@@ -8,8 +8,8 @@ export type UserContext = {
   roles: string[];
 };
 
-export function getUserContext(): UserContext {
-  const h = headers();
+export async function getUserContext(): Promise<UserContext> {
+  const h = await headers();
 
   const token = h.get('x-forwarded-access-token') ?? '';
   let uuid: string | null = null;
@@ -37,7 +37,7 @@ export function getUserContext(): UserContext {
 let cache: { jwt: string; uuid: string; exp: number } | null = null;
 
 export async function getSupabaseJwt(): Promise<string> {
-  const { uuid } = getUserContext();
+  const { uuid } = await getUserContext();
   const now = Math.floor(Date.now() / 1000);
 
   // 30s Leeway to prevent sending close to expiration
