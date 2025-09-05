@@ -1,13 +1,17 @@
 **siehe auch GitHub Project und LogSeq**
 
-Aufgaben Studienarbeit:
+## Aufgaben Studienarbeit:
 
+- Foto-Upload in Rallye-Ansicht ermöglichen
 - Farbpalette mit dhbw red (in shadcn?)
 - Studiengänge richtig unterstützen (Kategorie?)
+- Neue Fragen direkt in der Rallye-Ansicht erstellen und zuordnen
+- Teams zurücksetzen
+- Auswertungen/Abstimmungen sehen
 
 ## Sammlung
 
-Brauchen wir den Fragenkatalog noch? Sollen wir dort Zuordnung zu Rallye ermöglichen?
+Brauchen wir den Fragenkatalog noch? Sollen wir dort Zuordnung zu Rallye ermöglichen? Code sollte ähnliche Komponenten wiederverwenden
 
 Test in Produktion: Redirect von / nach /rallyes wenn authentifiziert?
 
