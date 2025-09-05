@@ -1,8 +1,8 @@
 import { headers } from 'next/headers';
-import { SignJWT } from 'jose';
+import { SignJWT, type JWTPayload } from 'jose';
 import { jwtDecode } from 'jwt-decode';
 
-export type UserContext = {
+type UserContext = {
   uuid: string;
   email: string | null;
   roles: string[];
@@ -10,42 +10,45 @@ export type UserContext = {
 
 export async function getUserContext(): Promise<UserContext> {
   const h = await headers();
+  const token = h.get('x-forwarded-access-token');
+  if (!token) throw new Error('Missing access token header');
 
-  const token = h.get('x-forwarded-access-token') ?? '';
-  let uuid: string | null = null;
-  let email: string | null = null;
-  let roles: string[] = [];
+  try {
+    const data = jwtDecode<JWTPayload & Record<string, any>>(token);
 
-  if (token) {
-    try {
-      const data = jwtDecode<any>(token);
-      // Normalized extraction to support dev/prod differences
-      uuid = data.UUID || data.uuid || data.sub;
-      email = data.email ?? data.preferred_username ?? null;
-      roles = data?.realm_access?.roles ?? data?.roles ?? [];
-    } catch {
-      console.warn('Invalid token');
-    }
+    const uuid = (data as any).UUID ?? (data as any).uuid ?? data.sub ?? null;
+    if (!uuid) throw new Error('Missing user sub/uuid in token');
+
+    const email =
+      (data as any).email ?? (data as any).preferred_username ?? null;
+
+    const roles =
+      (data as any).realm_access?.roles ??
+      (data as any).roles ??
+      Object.values((data as any).resource_access ?? {}).flatMap(
+        (r: any) => r?.roles ?? []
+      );
+
+    return { uuid, email, roles: Array.isArray(roles) ? roles : [] };
+  } catch (err) {
+    console.warn('Failed to parse user token', err);
+    throw new Error('Invalid access token');
   }
-
-  if (!uuid) throw new Error('Missing user sub');
-
-  return { uuid, email, roles };
 }
 
-// TTL-aware cache for the signed supabase JWT
+// TTL-aware cache per runtime instance for the signed supabase JWT
 let cache: { jwt: string; uuid: string; exp: number } | null = null;
 
 export async function getSupabaseJwt(): Promise<string> {
   const { uuid } = await getUserContext();
   const now = Math.floor(Date.now() / 1000);
 
-  // 30s Leeway to prevent sending close to expiration
-  if (cache && cache.uuid === uuid && cache.exp - now > 30) {
-    return cache.jwt;
-  }
+  if (cache && cache.uuid === uuid && cache.exp - now > 30) return cache.jwt;
 
-  const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET!);
+  const secretStr = process.env.SUPABASE_JWT_SECRET;
+  if (!secretStr) throw new Error('Missing SUPABASE_JWT_SECRET');
+  const secret = new TextEncoder().encode(secretStr);
+
   const exp = now + 55 * 60;
 
   const jwt = await new SignJWT({ role: 'authenticated', uuid })
