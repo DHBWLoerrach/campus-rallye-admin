@@ -5,7 +5,7 @@ import { insertLocalUser } from './db/insert-local-user';
 const cachedProfiles = new Map<string, any>();
 
 export async function requireProfile(createProfile = false) {
-  const { uuid, email } = getUserContext();
+  const { uuid, email } = await getUserContext();
 
   if (cachedProfiles.has(uuid)) return cachedProfiles.get(uuid);
 

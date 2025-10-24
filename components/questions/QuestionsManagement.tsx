@@ -5,20 +5,20 @@ import { Plus } from 'lucide-react';
 import { getQuestions } from '@/actions/question';
 import { Button } from '@/components/ui/button';
 import QuestionsTable from './QuestionsTable';
+import type { Question } from '@/helpers/questions';
 import SearchFilters from './SearchFilters';
 
 export default function QuestionManagement() {
-  const [questions, setQuestions] = useState<any[]>();
+  const [questions, setQuestions] = useState<Question[]>();
 
   const handleFilterChange = async (filters: {
     question?: string;
     answer?: string;
     type?: string;
     category?: string;
-    enabled?: boolean;
+    assigned?: boolean;
   }) => {
-    let fetchedQuestions: Array<any> = [];
-    fetchedQuestions = await getQuestions(filters);
+    let fetchedQuestions: Question[] = await getQuestions(filters);
     setQuestions(fetchedQuestions);
   };
 
@@ -37,7 +37,10 @@ export default function QuestionManagement() {
     <div className="p-4 max-w-[1400px] mx-auto">
       <div className="space-y-4">
         <div className="flex flex-wrap gap-4 items-center justify-between">
-          <SearchFilters onFilterChange={handleFilterChange} />
+          <SearchFilters
+            onFilterChange={handleFilterChange}
+            showAssignedToggle={false}
+          />
           <Link href="/questions/new">
             <Button className="bg-red-600 hover:bg-red-700 text-white">
               <Plus className="w-4 h-4 mr-2" />

@@ -12,7 +12,7 @@ const routes: Route[] = [
   },
   {
     href: '/questions',
-    label: 'Fragen',
+    label: 'Fragenkatalog',
   },
 ];
 

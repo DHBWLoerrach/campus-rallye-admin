@@ -9,10 +9,10 @@ export function middleware(req: NextRequest) {
 
   if (token) {
     try {
-      const data = jwtDecode(token);
-      // in prod, keycloak sends a uuid claim whereas in dev, we take the sub field
-      uuid = (data as any).UUID || (data as any).sub;
-      roles = (data as any).realm_access.roles ?? [];
+      const data = jwtDecode(token) as any;
+      // Normalized extraction to support dev/prod differences
+      uuid = data.UUID || data.uuid || data.sub;
+      roles = data?.realm_access?.roles ?? data?.roles ?? [];
     } catch {
       console.warn('Invalid token');
     }

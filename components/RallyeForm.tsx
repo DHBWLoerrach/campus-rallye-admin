@@ -1,10 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-// TODO: in React 19, this will be just `useFormAction`
-// https://react.dev/reference/react/useActionState
-// https://react.dev/blog/2024/04/25/react-19#new-hook-useactionstate
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { de } from 'date-fns/locale';
 import { CircleX, Trash2 } from 'lucide-react';
 import { updateRallye, deleteRallye } from '@/actions/rallye';
@@ -46,7 +43,7 @@ function SaveButton() {
 }
 
 export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
-  const [formState, formAction] = useFormState(updateRallye, {
+  const [formState, formAction] = useActionState(updateRallye, {
     errors: { message: '' },
   });
   const [name, setName] = useState<string>(rallye.name);
@@ -60,7 +57,13 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Alle Status-Übergänge sind erlaubt
-  const allStatuses: RallyeStatus[] = ['preparing', 'running', 'post_processing', 'ended', 'inactive'];
+  const allStatuses: RallyeStatus[] = [
+    'preparing',
+    'running',
+    'post_processing',
+    'ended',
+    'inactive',
+  ];
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -104,19 +107,22 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          
+
           <div className="flex items-center space-x-2 mt-2">
             <Label htmlFor={`rallye-${rallye.id}-status`}>
               Status der Rallye
             </Label>
-            <RadioGroup 
-              name="status" 
-              value={status} 
+            <RadioGroup
+              name="status"
+              value={status}
               onValueChange={(value) => setStatus(value as RallyeStatus)}
             >
-              {allStatuses.map(statusOption => (
+              {allStatuses.map((statusOption) => (
                 <div key={statusOption} className="flex items-center space-x-2">
-                  <RadioGroupItem value={statusOption} id={`status-${statusOption}`} />
+                  <RadioGroupItem
+                    value={statusOption}
+                    id={`status-${statusOption}`}
+                  />
                   <Label htmlFor={`status-${statusOption}`}>
                     {getRallyeStatusLabel(statusOption)}
                   </Label>
@@ -125,7 +131,10 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
             </RadioGroup>
           </div>
           <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-endtime`}>
+            <Label
+              htmlFor={`rallye-${rallye.id}-endtime`}
+              className="w-32 shrink-0"
+            >
               Ende der Rallye
             </Label>
             <DateTimePicker
@@ -133,25 +142,36 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
               hourCycle={24}
               value={date24}
               onChange={setDate24}
+              className="flex-1 min-w-0 max-w-sm"
             />
           </div>
           <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-studiengang`}>
+            <Label
+              htmlFor={`rallye-${rallye.id}-studiengang`}
+              className="w-32 shrink-0"
+            >
               Studiengang
             </Label>
             <Input
               name="studiengang"
               value={studiengang}
               onChange={(e) => setStudiengang(e.target.value)}
+              className="flex-1 min-w-0 max-w-sm"
             />
           </div>
-          <div className="flex items-center space-x-2 mt-2 justify-between">
-            <Label htmlFor={`rallye-${rallye.id}-password`}>Passwort</Label>
+          <div className="flex items-center space-x-2 mt-2">
+            <Label
+              htmlFor={`rallye-${rallye.id}-password`}
+              className="w-32 shrink-0"
+            >
+              Passwort
+            </Label>
             <Input
               name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="flex-1 min-w-0 max-w-sm"
             />
           </div>
 

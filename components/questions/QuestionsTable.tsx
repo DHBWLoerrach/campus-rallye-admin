@@ -41,11 +41,11 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
               <TableHead className="w-8"></TableHead>
               <TableHead>Frage</TableHead>
               <TableHead>Typ</TableHead>
-              <TableHead className="w-20">Aktiv</TableHead>
               <TableHead className="w-20">Punkte</TableHead>
               <TableHead>Bild</TableHead>
               <TableHead>Kategorie</TableHead>
               <TableHead>Hinweis</TableHead>
+              <TableHead>Aktionen</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -71,11 +71,6 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                       {question.content}
                     </TableCell>
                     <TableCell>{questionTypeLabels[question.type]}</TableCell>
-                    <TableCell>
-                      {question.enabled && (
-                        <Check className="h-4 w-4 text-green-500" />
-                      )}
-                    </TableCell>
                     <TableCell>{question.points}</TableCell>
                     <TableCell>
                       {question.bucket_path ? (

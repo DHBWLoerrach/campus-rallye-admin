@@ -65,22 +65,9 @@ export async function saveQuestions(questions, parent) {
         console.log('fehler', item.id);
       }
     } else if (typeof item === 'string') {
-      console.log(item, typeof item);
-      console.log(parent.question_type, typeof parent.question_type);
-      console.log(parent.enabled, typeof parent.enabled);
-      console.log(parent.points, typeof parent.points);
-      console.log(parent.id, typeof parent.id);
-      console.log(parent.category, typeof parent.category);
-      console.log(new Date().toISOString(), typeof new Date().toISOString());
-      console.log(parent.uri, typeof parent.uri);
-      console.log(parent.video, typeof parent.video);
-      console.log(parent.hint, typeof parent.hint);
-
-      console.log('create from string', item);
       const { error } = await supabase.from('question').insert({
         // created_at: new Date().toISOString(),
         question_type: parent.question_type,
-        // enabled: parent.enabled,
         // category: parent.category,
         question: null,
 

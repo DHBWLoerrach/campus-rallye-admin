@@ -17,27 +17,38 @@ interface SearchFiltersProps {
     answer?: string;
     type?: string;
     category?: string;
-    enabled?: boolean;
+    assigned?: boolean;
   }) => void;
+  categories?: string[];
+  showAssignedToggle?: boolean;
 }
 
-const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
+const SearchFilters: React.FC<SearchFiltersProps> = ({
+  onFilterChange,
+  categories: categoriesProp,
+  showAssignedToggle = true,
+}) => {
   const [filters, setFilters] = useState({
     question: '',
     answer: '',
     type: '',
     category: '',
-    enabled: undefined,
+    assigned: undefined,
   });
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(categoriesProp || []);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (field: string, value: string | boolean | undefined) => {
     const newFilters = { ...filters, [field]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
   useEffect(() => {
+    // Use provided categories if available; otherwise fetch
+    if (categoriesProp && categoriesProp.length > 0) {
+      setCategories(categoriesProp);
+      return;
+    }
     const fetchCategories = async () => {
       try {
         let data: Array<string> = [];
@@ -50,7 +61,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
     };
 
     fetchCategories();
-  }, []);
+  }, [categoriesProp]);
   return (
     <>
       <div className="flex flex-wrap gap-4 flex-1">
@@ -90,18 +101,20 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
             ))}
           </SelectContent>
         </Select>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="active"
-            checked={filters.enabled === true}
-            onCheckedChange={(checked) =>
-              handleChange('enabled', checked ? true : false)
-            }
-          />
-          <label htmlFor="active" className="text-sm">
-            Nur aktive Fragen
-          </label>
-        </div>
+        {showAssignedToggle && (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="active"
+              checked={filters.assigned === true}
+              onCheckedChange={(checked) =>
+                handleChange('assigned', checked ? true : (undefined as any))
+              }
+            />
+            <label htmlFor="active" className="text-sm">
+              Nur ausgewählte Fragen
+            </label>
+          </div>
+        )}
       </div>
     </>
   );

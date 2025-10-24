@@ -19,4 +19,6 @@ This involves building the docker image locally, pushing it to GitHub Container 
 ## Deploy on server
 
 - `docker login ghcr.io` with PAT `pull` as password
-- Execute deployment script
+- `docker pull ghcr.io/dhbwloerrach/campus-rallye-admin:latest`
+- `cd /etc/docker-compose/campusrallye`
+- `docker compose down && docker compose up -d`
