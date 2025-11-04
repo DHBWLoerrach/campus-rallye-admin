@@ -35,15 +35,20 @@ npm install
 ## Supabase in Webanwendung konfigurieren
 
 Zum Schluss muss noch die Konfiguration zu Supabase angepasst werden. Dazu ist zunächst die Datei `.env.local`
-im Projektverzeichnis zu erstellen. Dort `.env.local` müssen zwei Einträge vorgenommen werden:
+im Projektverzeichnis zu erstellen. Dort `.env.local` müssen drei Einträge vorgenommen werden:
 
 ```
-SUPABASE_URL=http://SERVER:54321
-SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_JWT_SECRET=
 ```
+
+Die Werte dazu sind folgendermaßen zu finden.
+
 Im Webinterface von Supabase oben auf _Connect_ klicken und für `SUPABASE_URL` den Wert im Reiter _App Frameworks_ verwenden.
 
-Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden.
+Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden. 
+Der Wert für `SUPABASE_JWT_SECRET` via _JWY Keys_ gefunden werden.
 
 ## Lokale SQLite-DB für Nutzerdaten
 
