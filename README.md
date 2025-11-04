@@ -4,30 +4,17 @@ Webanwendung zur Verwaltung der Daten für die
 [Campus Rallye App](https://github.com/DHBWLoerrach/CampusRallyeApp)
 an der [DHBW Lörrach](https://www.dhbw-loerrach.de).
 
-## Vorbereitungen (Supabase)
+## Node.js installieren
 
-Die Daten werden in Supabase gespeichert. Zur Weiterentwicklung und
-Test der Webanwendung sollte diese mit einer lokalen Supabase-Instanz
-auf dem eigenen Rechner verknüpft werden. Die Einrichtung einer lokalen
-Supabase-Instanz wird in der
-[Supabase-Dokumentation](https://supabase.com/docs/guides/local-development/cli/getting-started) beschrieben.
+Siehe https://nodejs.org
 
-Hier werden die für dieses Projekt benötigten Schritte aufgelistet:
+## Supabase-Datenbank erstellen
 
-- Supabase CLI installieren, siehe [Supabase-Dokumentation](https://supabase.com/docs/guides/local-development/cli/getting-started)
-- [Docker](https://www.docker.com) installieren (Docker Desktop)
-- Verzeichnis für die lokale Supabase-Instanz erstellen, z.B. `projects/rallye-db`
-- Im Terminal in das eben erstellte Verzeichnis wechseln (`cd rallye-db`)
-- Dort diesen Befehl ausführen: `supabase init`
-- Supabase starten mit `supabase start` (Docker-Images werden heruntergeladen)
-- Aktuelles Datenbankschema und Datenbankinhalt vom Projektverantwortlichen anfragen
-- Das Datenbankschema als SQL-Datei speichern unter `rallye-db/supabase/migrations/`
-- Den Datenbankinhalt als Datei `seed.sql` speichern unter `rallye-db/supabase/`
-- Datenbank aus der Schema-SQL-Datei erstellen mit `supabase db reset`
-
-Wenn alles geklappt hat, dann kann die lokale Supabase-Instanz mit dem Webinterface im Browser verwaltet werden: http://127.0.0.1:54323
-
-Die Supabase-Instanz kann folgendermaßen heruntergefahren werden: `supabase stop`
+- Bei https://supabase.com kostenlos anmelden
+- In Supabase ein neues Projekt erstellen (z.B. `CampusRallye`)
+- Im Supabase-Projekt zum _SQL Editor_ wechseln (via linker Seitenleist)
+- Das SQL-Schema aus dem zugehörigen Backend-Projekt kopieren (siehe Datei [`supabase/schema.sql`](supabase/schema.sql))
+- SQL-Schema im SQL-Editor einfügen und ausführen
 
 ## KeyCloak für Authentifizierung
 
@@ -37,7 +24,7 @@ Achtung: Benutzer müssen Mitarbeiter der DHBW Lörrach sein, d.h. die KeyCloak-
 
 ## Webanwendung `campus-rallye-admin` lokal installieren
 
-Projekt klonen.
+Dieses Projekt klonen.
 
 Im Projektverzeichnis die Abhängigkeiten installieren:
 
@@ -51,20 +38,30 @@ Zum Schluss muss noch die Konfiguration zu Supabase angepasst werden. Dazu ist z
 im Projektverzeichnis zu erstellen. Dort `.env.local` müssen zwei Einträge vorgenommen werden:
 
 ```
-SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_ANON_KEY=<LOCAL_SUPABASE_ANON_KEY>
+SUPABASE_URL=http://SERVER:54321
+SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
 ```
+Im Webinterface von Supabase oben auf _Connect_ klicken und für `SUPABASE_URL` den Wert im Reiter _App Frameworks_ verwenden.
 
-Dort muss nun der Anon Key eingefügt werden. Dieser kann im Terminal
-abgefragt werden (dazu ins Verzeichnis der lokalen Supabase-Instanz wechseln):
-
-```sh
-supabase status
-```
+Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden.
 
 ## Lokale SQLite-DB für Nutzerdaten
 
-TODO
+SQLite installieren: https://sqlite.org
+
+Folgendes zusätzlich zur Supabase-Config (s.o.) in `.env.local` eintragen:
+
+```
+SQLITE_DB_PATH=local-users.db
+```
+
+Dann das CLI von SQLite starten mit (ggf. mit `sqlite3.exe` o.ä. unter Windows):
+
+```
+sqlite3 local-users.db
+```
+
+In der SQLite-Shell folgenden SQL-Befehl ausführen:
 
 ```
 CREATE TABLE IF NOT EXISTS local_users (
@@ -74,6 +71,8 @@ CREATE TABLE IF NOT EXISTS local_users (
 );
 ```
 
+SQLite-Shell mit `.exit` verlassen.
+
 ## Webanwendung starten
 
 Im Projektverzeichnis ausführen:
@@ -81,3 +80,5 @@ Im Projektverzeichnis ausführen:
 ```sh
 npm run dev
 ```
+
+Campus Rallye Admin Webapp im Browser öffnen: http://localhost:3000. Mit einem in KeyCloak erstellten User anmelden.
