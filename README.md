@@ -4,27 +4,27 @@ Webanwendung zur Verwaltung der Daten für die
 [Campus Rallye App](https://github.com/DHBWLoerrach/CampusRallyeApp)
 an der [DHBW Lörrach](https://www.dhbw-loerrach.de).
 
-## Node.js installieren
-
-Siehe https://nodejs.org
-
 ## Supabase-Datenbank erstellen
 
 - Bei https://supabase.com kostenlos anmelden
 - In Supabase ein neues Projekt erstellen (z.B. `CampusRallye`)
-- Im Supabase-Projekt zum _SQL Editor_ wechseln (via linker Seitenleist)
-- Das SQL-Schema aus dem zugehörigen Backend-Projekt kopieren (siehe Datei [`supabase/schema.sql`](supabase/schema.sql))
-- SQL-Schema im SQL-Editor einfügen und ausführen
+- Im Supabase-Projekt zum _SQL Editor_ wechseln (via linker Seitenleiste)
+- Das SQL-Schema aus der Datei [`supabase/schema.sql`](supabase/schema.sql)) in die Zwischenablage kopieren
+- Das eben kopierte SQL-Schema im SQL-Editor einfügen und ausführen (grüner `Run`-Button).
 
 ## KeyCloak für Authentifizierung
 
-Die Authentifizierung der Nutzer erfolgt über KeyCloak. Dazu muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu https://github.com/DHBWLoerrach/keycloak-test-server
+Die Authentifizierung der Nutzer in dieser Webanwendung erfolgt über KeyCloak. Dazu muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu das Repository und die zugehörige Anleitung im Readme: https://github.com/DHBWLoerrach/keycloak-test-server
 
-Achtung: Benutzer müssen Mitarbeiter der DHBW Lörrach sein, d.h. die KeyCloak-User müssen in der Rolle `staff` sein, um Zugriff auf die Webanwendung zu erhalten.
+**Achtung:** Benutzer dieser Webanwendung müssen Mitarbeiter der DHBW Lörrach sein, d.h. die KeyCloak-User müssen in der Rolle `staff` sein, um Zugriff auf die Webanwendung zu erhalten.
+
+## Node.js installieren
+
+Wenn noch nicht vorhanden, dann muss Node.js installiert werden (siehe https://nodejs.org)
 
 ## Webanwendung `campus-rallye-admin` lokal installieren
 
-Dieses Projekt klonen.
+Dieses Projekt klonen und im Terminal in das Projektverzeichnis wechseln.
 
 Im Projektverzeichnis die Abhängigkeiten installieren:
 
@@ -35,7 +35,7 @@ npm install
 ## Supabase in Webanwendung konfigurieren
 
 Zum Schluss muss noch die Konfiguration zu Supabase angepasst werden. Dazu ist zunächst die Datei `.env.local`
-im Projektverzeichnis zu erstellen. Dort `.env.local` müssen drei Einträge vorgenommen werden:
+im Projektverzeichnis zu erstellen. In `.env.local` müssen drei Einträge vorgenommen werden:
 
 ```
 SUPABASE_URL=
@@ -45,14 +45,14 @@ SUPABASE_JWT_SECRET=
 
 Die Werte dazu sind folgendermaßen zu finden.
 
-Im Webinterface von Supabase oben auf _Connect_ klicken und für `SUPABASE_URL` den Wert im Reiter _App Frameworks_ verwenden.
+Im Webinterface von Supabase oben auf _Connect_ klicken und für `SUPABASE_URL` den passenden Wert im Reiter _App Frameworks_ verwenden.
 
 Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden. 
-Der Wert für `SUPABASE_JWT_SECRET` via _JWY Keys_ gefunden werden.
+Der Wert für `SUPABASE_JWT_SECRET` kann via _JWY Keys_ gefunden werden.
 
 ## Lokale SQLite-DB für Nutzerdaten
 
-SQLite installieren: https://sqlite.org
+Jeder Nutzer dieser Webanwendung wird zusätzlich lokal in einer SQLite-DB gespeichert. Dafür SQLite installieren: https://sqlite.org
 
 Folgendes zusätzlich zur Supabase-Config (s.o.) in `.env.local` eintragen:
 
@@ -60,7 +60,7 @@ Folgendes zusätzlich zur Supabase-Config (s.o.) in `.env.local` eintragen:
 SQLITE_DB_PATH=local-users.db
 ```
 
-Dann das CLI von SQLite starten mit (ggf. mit `sqlite3.exe` o.ä. unter Windows):
+Dann das CLI von SQLite im Terminal starten mit (ggf. mit `sqlite3.exe` o.ä. unter Windows):
 
 ```
 sqlite3 local-users.db
