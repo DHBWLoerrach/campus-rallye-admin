@@ -12,6 +12,12 @@ an der [DHBW Lörrach](https://www.dhbw-loerrach.de).
 - Das SQL-Schema aus der Datei [`supabase/schema.sql`](supabase/schema.sql)) in die Zwischenablage kopieren
 - Das eben kopierte SQL-Schema im SQL-Editor einfügen und ausführen (grüner `Run`-Button).
 
+Supabase-Owner können einen SQL-Dump des Schemas (Tabellen, Funktionen, usw.) ohne Daten wie folgt mit dem Supabase-CLI erstellen:
+
+```
+supabase db dump --db-url "postgresql://postgres:<password>@<serverurl>/postgres" -f schema.sql --schema public
+```
+
 ## KeyCloak für Authentifizierung
 
 Die Authentifizierung der Nutzer in dieser Webanwendung erfolgt über KeyCloak. Dazu muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu das Repository und die zugehörige Anleitung im Readme: https://github.com/DHBWLoerrach/keycloak-test-server
