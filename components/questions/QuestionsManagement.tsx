@@ -42,7 +42,7 @@ export default function QuestionManagement() {
             showAssignedToggle={false}
           />
           <Link href="/questions/new">
-            <Button className="bg-red-600 hover:bg-red-700 text-white">
+            <Button className="bg-dhbw">
               <Plus className="w-4 h-4 mr-2" />
               ERSTELLEN
             </Button>

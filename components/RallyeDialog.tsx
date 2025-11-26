@@ -19,19 +19,29 @@ import { Label } from '@/components/ui/label';
 function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button
+    <Button
       type="submit"
-      className={clsx(
-        'bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4',
-        {
-          'bg-gray-300': disabled,
-        }
-      )}
+      variant="dhbwStyle"
+      size="default"
+      className="mt-4"
       aria-disabled={pending || disabled}
       disabled={pending || disabled}
     >
       {pending ? 'Wird gesendet…' : 'Speichern'}
-    </button>
+    </Button>
+    /*<button
+-      type="submit"
+-      className={clsx(
+-        'bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4',
+-        {
+-          'bg-gray-300': disabled,
+-        }
+-      )}
+-      aria-disabled={pending || disabled}
+-      disabled={pending || disabled}
+-    >
+-      {pending ? 'Wird gesendet…' : 'Speichern'}
+-    </button>*/
   );
 }
 
@@ -53,7 +63,7 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={buttonStyle}>Rallye erstellen</Button>
+        <Button variant="dhbwStyle" className={buttonStyle}>Rallye erstellen</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
