@@ -152,3 +152,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+:root {
+  --dhbw-500: #E2001A; /* DHBW-Hauptfarbe */
+  --dhbw-600: #bf000f; /* dunklere Hover-Variante */
+  /*--destructive: #E2001A;*/
+}
+
+/* zwingende Hilfsklassen, falls Tailwind‑Utility fehlt/überschrieben wird */
+.bg-dhbw {
+  background-color: var(--dhbw-500) !important;
+  color: #ffffff !important;
+}
+.bg-dhbw:hover {
+  background-color: var(--dhbw-600) !important;
+}
+.border-dhbw {
+  border-color: var(--dhbw-500) !important;
+}
+.text-dhbw {
+  color: var(--dhbw-500) !important;
+}

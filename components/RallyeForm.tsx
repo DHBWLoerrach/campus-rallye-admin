@@ -31,14 +31,15 @@ interface RallyeFormProps {
 function SaveButton() {
   const { pending } = useFormStatus();
   return (
-    <button
+    <Button
       type="submit"
-      className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+      variant="dhbwStyle"
+      size="default"
       aria-disabled={pending}
       disabled={pending}
     >
       {pending ? 'Wird gesendet…' : 'Speichern'}
-    </button>
+    </Button>
   );
 }
 

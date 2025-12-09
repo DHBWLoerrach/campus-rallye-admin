@@ -91,7 +91,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     <TableCell>{question.hint}</TableCell>
                     <TableCell>
                       <Link href={`/questions/${question.id}`}>
-                        <Button className="bg-red-600 text-white">
+                        <Button className="bg-dhbw">
                           Bearbeiten
                         </Button>
                       </Link>

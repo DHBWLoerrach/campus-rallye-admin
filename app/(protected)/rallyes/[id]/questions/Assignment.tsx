@@ -335,7 +335,7 @@ export default function Assignment({
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              variant="dhbwStyle"
             >
               Speichern
             </Button>

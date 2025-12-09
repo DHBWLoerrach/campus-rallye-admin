@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -380,11 +380,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           <Button type="button" variant="outline" onClick={onCancel}>
             Abbrechen
           </Button>
-          <Button type="submit" className="bg-blue-600 text-white">
+          <Button type="submit" /*className="bg-blue-600 text-white"*/ variant="dhbwStyle">
             Speichern
           </Button>
           {onDelete && (
             <Button
+              variant="outline"
               type="button"
               onClick={() => {
                 if (
@@ -395,8 +396,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   onDelete();
                 }
               }}
-              className="bg-red-600 text-white"
+              className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
             >
+              <Trash2 className="h-4 w-4 mr-2" />
               Löschen
             </Button>
           )}
