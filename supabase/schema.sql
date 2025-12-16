@@ -1,8 +1,16 @@
+--
+-- PostgreSQL database dump
+--
 
+\restrict OoOi2L3GhW2Q5zIBT9XBf5P3KocUnz59tCWtkuHU13t0oVha4xa53dqZkJ2CQDW
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 17.7 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -11,14 +19,25 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
 
-CREATE SCHEMA IF NOT EXISTS "public";
+CREATE SCHEMA public;
 
 
-ALTER SCHEMA "public" OWNER TO "pg_database_owner";
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
 
 
-CREATE TYPE "public"."question_type" AS ENUM (
+--
+-- Name: question_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.question_type AS ENUM (
     'multiple_choice',
     'knowledge',
     'picture',
@@ -27,10 +46,11 @@ CREATE TYPE "public"."question_type" AS ENUM (
 );
 
 
-ALTER TYPE "public"."question_type" OWNER TO "postgres";
+--
+-- Name: rallye_status; Type: TYPE; Schema: public; Owner: -
+--
 
-
-CREATE TYPE "public"."rallye_status" AS ENUM (
+CREATE TYPE public.rallye_status AS ENUM (
     'preparing',
     'running',
     'post_processing',
@@ -39,22 +59,24 @@ CREATE TYPE "public"."rallye_status" AS ENUM (
 );
 
 
-ALTER TYPE "public"."rallye_status" OWNER TO "postgres";
+--
+-- Name: JOIN_question_answer(bigint); Type: FUNCTION; Schema: public; Owner: -
+--
 
-
-CREATE OR REPLACE FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) RETURNS "record"
-    LANGUAGE "sql"
+CREATE FUNCTION public."JOIN_question_answer"(rallye_id bigint) RETURNS record
+    LANGUAGE sql
     AS $$SELECT *
 FROM answers A, join_rallye_questions RQ
 WHERE RQ.rallye_id = rallye_id
 AND RQ.question_id = A.question_id$$;
 
 
-ALTER FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) OWNER TO "postgres";
+--
+-- Name: get_question_count(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
 
-
-CREATE OR REPLACE FUNCTION "public"."get_question_count"("team_id_param" integer, "rallye_id_param" integer) RETURNS TABLE("answeredquestions" bigint, "totalquestions" bigint)
-    LANGUAGE "sql" SECURITY DEFINER
+CREATE FUNCTION public.get_question_count(team_id_param integer, rallye_id_param integer) RETURNS TABLE(answeredquestions bigint, totalquestions bigint)
+    LANGUAGE sql SECURITY DEFINER
     AS $$
   SELECT
     (SELECT COUNT(*) FROM team_questions WHERE team_id = team_id_param),
@@ -62,11 +84,12 @@ CREATE OR REPLACE FUNCTION "public"."get_question_count"("team_id_param" integer
 $$;
 
 
-ALTER FUNCTION "public"."get_question_count"("team_id_param" integer, "rallye_id_param" integer) OWNER TO "postgres";
+--
+-- Name: get_voting_content(bigint, bigint); Type: FUNCTION; Schema: public; Owner: -
+--
 
-
-CREATE OR REPLACE FUNCTION "public"."get_voting_content"("rallye_id_param" bigint, "own_team_id_param" bigint) RETURNS TABLE("tq_id" bigint, "tq_team_id" bigint, "tq_question_id" bigint, "tq_points" bigint, "rt_id" bigint, "rt_rallye_id" bigint, "rt_team_name" "text", "tq_team_answer" "text", "question_content" "text", "question_type" "public"."question_type")
-    LANGUAGE "plpgsql"
+CREATE FUNCTION public.get_voting_content(rallye_id_param bigint, own_team_id_param bigint) RETURNS TABLE(tq_id bigint, tq_team_id bigint, tq_question_id bigint, tq_points bigint, rt_id bigint, rt_rallye_id bigint, rt_team_name text, tq_team_answer text, question_content text, question_type public.question_type)
+    LANGUAGE plpgsql
     AS $$
 BEGIN
   RETURN QUERY
@@ -87,29 +110,31 @@ END;
 $$;
 
 
-ALTER FUNCTION "public"."get_voting_content"("rallye_id_param" bigint, "own_team_id_param" bigint) OWNER TO "postgres";
-
 SET default_tablespace = '';
 
-SET default_table_access_method = "heap";
+SET default_table_access_method = heap;
 
+--
+-- Name: team_questions; Type: TABLE; Schema: public; Owner: -
+--
 
-CREATE TABLE IF NOT EXISTS "public"."team_questions" (
-    "id" bigint NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "question_id" bigint NOT NULL,
-    "team_id" bigint NOT NULL,
-    "correct" boolean NOT NULL,
-    "points" bigint NOT NULL,
-    "team_answer" "text"
+CREATE TABLE public.team_questions (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    question_id bigint NOT NULL,
+    team_id bigint NOT NULL,
+    correct boolean NOT NULL,
+    points bigint NOT NULL,
+    team_answer text
 );
 
 
-ALTER TABLE "public"."team_questions" OWNER TO "postgres";
+--
+-- Name: increment_team_question_points(integer); Type: FUNCTION; Schema: public; Owner: -
+--
 
-
-CREATE OR REPLACE FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) RETURNS "public"."team_questions"
-    LANGUAGE "plpgsql" SECURITY DEFINER
+CREATE FUNCTION public.increment_team_question_points(target_answer_id integer) RETURNS public.team_questions
+    LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 DECLARE
   updated_row team_questions%ROWTYPE;
@@ -124,23 +149,25 @@ END;
 $$;
 
 
-ALTER FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) OWNER TO "postgres";
+--
+-- Name: answers; Type: TABLE; Schema: public; Owner: -
+--
 
-
-CREATE TABLE IF NOT EXISTS "public"."answers" (
-    "id" bigint NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "text" "text",
-    "correct" boolean DEFAULT true NOT NULL,
-    "question_id" bigint
+CREATE TABLE public.answers (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    text text,
+    correct boolean DEFAULT true NOT NULL,
+    question_id bigint
 );
 
 
-ALTER TABLE "public"."answers" OWNER TO "postgres";
+--
+-- Name: answers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
-
-ALTER TABLE "public"."answers" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."answers_id_seq"
+ALTER TABLE public.answers ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.answers_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -149,44 +176,24 @@ ALTER TABLE "public"."answers" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDE
 );
 
 
+--
+-- Name: department; Type: TABLE; Schema: public; Owner: -
+--
 
-CREATE TABLE IF NOT EXISTS "public"."join_rallye_questions" (
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "rallye_id" bigint NOT NULL,
-    "question_id" bigint NOT NULL
+CREATE TABLE public.department (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    organization_id bigint NOT NULL
 );
 
 
-ALTER TABLE "public"."join_rallye_questions" OWNER TO "postgres";
+--
+-- Name: department_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
-
-CREATE TABLE IF NOT EXISTS "public"."profiles" (
-    "user_id" "uuid" NOT NULL,
-    "admin" boolean DEFAULT false,
-    "created_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."profiles" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."questions" (
-    "id" bigint NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "content" "text" NOT NULL,
-    "type" "public"."question_type" NOT NULL,
-    "points" bigint,
-    "hint" "text",
-    "category" "text",
-    "bucket_path" "text"
-);
-
-
-ALTER TABLE "public"."questions" OWNER TO "postgres";
-
-
-ALTER TABLE "public"."questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."questions_id_seq"
+ALTER TABLE public.department ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.department_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -195,24 +202,24 @@ ALTER TABLE "public"."questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS I
 );
 
 
+--
+-- Name: join_department_rallye; Type: TABLE; Schema: public; Owner: -
+--
 
-CREATE TABLE IF NOT EXISTS "public"."rallye" (
-    "id" bigint NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "studiengang" "text" NOT NULL,
-    "status" "public"."rallye_status" DEFAULT 'preparing'::"public"."rallye_status" NOT NULL,
-    "name" "text" NOT NULL,
-    "end_time" timestamp with time zone NOT NULL,
-    "password" "text",
-    "tour_mode" boolean DEFAULT false NOT NULL
+CREATE TABLE public.join_department_rallye (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    department_id bigint NOT NULL,
+    rallye_id bigint NOT NULL
 );
 
 
-ALTER TABLE "public"."rallye" OWNER TO "postgres";
+--
+-- Name: join_department_rallye_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
-
-ALTER TABLE "public"."rallye" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."rallye_id_seq"
+ALTER TABLE public.join_department_rallye ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.join_department_rallye_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -221,21 +228,35 @@ ALTER TABLE "public"."rallye" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDEN
 );
 
 
+--
+-- Name: join_rallye_questions; Type: TABLE; Schema: public; Owner: -
+--
 
-CREATE TABLE IF NOT EXISTS "public"."rallye_team" (
-    "id" bigint NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "name" "text" NOT NULL,
-    "rallye_id" bigint,
-    "time_played" timestamp with time zone
+CREATE TABLE public.join_rallye_questions (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    rallye_id bigint NOT NULL,
+    question_id bigint NOT NULL
 );
 
 
-ALTER TABLE "public"."rallye_team" OWNER TO "postgres";
+--
+-- Name: organization; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organization (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    default_rallye_id bigint
+);
 
 
-ALTER TABLE "public"."rallye_team" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."rallye_team_id_seq"
+--
+-- Name: organization_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.organization ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.organization_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -244,9 +265,39 @@ ALTER TABLE "public"."rallye_team" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS
 );
 
 
+--
+-- Name: profiles; Type: TABLE; Schema: public; Owner: -
+--
 
-ALTER TABLE "public"."team_questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."team_questions_id_seq"
+CREATE TABLE public.profiles (
+    user_id uuid NOT NULL,
+    admin boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: questions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.questions (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    content text NOT NULL,
+    type public.question_type NOT NULL,
+    points bigint,
+    hint text,
+    category text,
+    bucket_path text
+);
+
+
+--
+-- Name: questions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.questions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.questions_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -255,326 +306,774 @@ ALTER TABLE "public"."team_questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT
 );
 
 
+--
+-- Name: rallye; Type: TABLE; Schema: public; Owner: -
+--
 
-CREATE TABLE IF NOT EXISTS "public"."voting" (
-    "rallye_id" bigint NOT NULL,
-    "question_id" bigint NOT NULL
+CREATE TABLE public.rallye (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    studiengang text NOT NULL,
+    status public.rallye_status DEFAULT 'preparing'::public.rallye_status NOT NULL,
+    name text NOT NULL,
+    end_time timestamp with time zone NOT NULL,
+    password text,
+    tour_mode boolean DEFAULT false NOT NULL
 );
 
 
-ALTER TABLE "public"."voting" OWNER TO "postgres";
+--
+-- Name: rallye_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
+ALTER TABLE public.rallye ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.rallye_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
-ALTER TABLE ONLY "public"."join_rallye_questions"
-    ADD CONSTRAINT "JOIN_rallye_questions_pkey" PRIMARY KEY ("rallye_id", "question_id");
 
+--
+-- Name: rallye_team; Type: TABLE; Schema: public; Owner: -
+--
 
+CREATE TABLE public.rallye_team (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    rallye_id bigint,
+    time_played timestamp with time zone
+);
 
-ALTER TABLE ONLY "public"."answers"
-    ADD CONSTRAINT "answers_pkey" PRIMARY KEY ("id");
 
+--
+-- Name: rallye_team_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
+ALTER TABLE public.rallye_team ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.rallye_team_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
-ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("user_id");
 
+--
+-- Name: team_questions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
 
+ALTER TABLE public.team_questions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.team_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
-ALTER TABLE ONLY "public"."questions"
-    ADD CONSTRAINT "questions_pkey" PRIMARY KEY ("id");
 
+--
+-- Name: voting; Type: TABLE; Schema: public; Owner: -
+--
 
+CREATE TABLE public.voting (
+    rallye_id bigint NOT NULL,
+    question_id bigint NOT NULL
+);
 
-ALTER TABLE ONLY "public"."rallye_team"
-    ADD CONSTRAINT "rallyeTeam_pkey" PRIMARY KEY ("id");
 
+--
+-- Name: join_rallye_questions JOIN_rallye_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.join_rallye_questions
+    ADD CONSTRAINT "JOIN_rallye_questions_pkey" PRIMARY KEY (rallye_id, question_id);
 
-ALTER TABLE ONLY "public"."rallye"
-    ADD CONSTRAINT "rallye_pkey" PRIMARY KEY ("id");
 
+--
+-- Name: answers answers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.answers
+    ADD CONSTRAINT answers_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "public"."team_questions"
-    ADD CONSTRAINT "teamQuestions_pkey" PRIMARY KEY ("id");
 
+--
+-- Name: department department_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.department
+    ADD CONSTRAINT department_name_key UNIQUE (name);
 
-ALTER TABLE ONLY "public"."voting"
-    ADD CONSTRAINT "voting_pkey" PRIMARY KEY ("rallye_id", "question_id");
 
+--
+-- Name: department department_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.department
+    ADD CONSTRAINT department_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "public"."join_rallye_questions"
-    ADD CONSTRAINT "JOIN_rallye_questions_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
 
+--
+-- Name: join_department_rallye join_department_rallye_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.join_department_rallye
+    ADD CONSTRAINT join_department_rallye_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "public"."join_rallye_questions"
-    ADD CONSTRAINT "JOIN_rallye_questions_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallye"("id") ON DELETE CASCADE;
 
+--
+-- Name: organization organization_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.organization
+    ADD CONSTRAINT organization_name_key UNIQUE (name);
 
-ALTER TABLE ONLY "public"."answers"
-    ADD CONSTRAINT "answers_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
 
+--
+-- Name: organization organization_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.organization
+    ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "public"."rallye_team"
-    ADD CONSTRAINT "rallyeTeam_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallye"("id") ON DELETE CASCADE;
 
+--
+-- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_pkey PRIMARY KEY (user_id);
 
-ALTER TABLE ONLY "public"."team_questions"
-    ADD CONSTRAINT "teamQuestions_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id");
 
+--
+-- Name: questions questions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.questions
+    ADD CONSTRAINT questions_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "public"."team_questions"
-    ADD CONSTRAINT "teamQuestions_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "public"."rallye_team"("id") ON DELETE CASCADE;
 
+--
+-- Name: rallye_team rallyeTeam_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.rallye_team
+    ADD CONSTRAINT "rallyeTeam_pkey" PRIMARY KEY (id);
 
-ALTER TABLE ONLY "public"."voting"
-    ADD CONSTRAINT "voting_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id");
 
+--
+-- Name: rallye rallye_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.rallye
+    ADD CONSTRAINT rallye_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY "public"."voting"
-    ADD CONSTRAINT "voting_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallye"("id");
 
+--
+-- Name: team_questions teamQuestions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.team_questions
+    ADD CONSTRAINT "teamQuestions_pkey" PRIMARY KEY (id);
 
-CREATE POLICY "Enable insert access for all users" ON "public"."rallye_team" FOR INSERT WITH CHECK (true);
 
+--
+-- Name: voting voting_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.voting
+    ADD CONSTRAINT voting_pkey PRIMARY KEY (rallye_id, question_id);
 
-CREATE POLICY "Enable read access for all users" ON "public"."answers" FOR SELECT USING (true);
 
+--
+-- Name: join_rallye_questions JOIN_rallye_questions_question_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.join_rallye_questions
+    ADD CONSTRAINT "JOIN_rallye_questions_question_id_fkey" FOREIGN KEY (question_id) REFERENCES public.questions(id) ON DELETE CASCADE;
 
-CREATE POLICY "Enable read access for all users" ON "public"."questions" FOR SELECT USING (true);
 
+--
+-- Name: join_rallye_questions JOIN_rallye_questions_rallye_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.join_rallye_questions
+    ADD CONSTRAINT "JOIN_rallye_questions_rallye_id_fkey" FOREIGN KEY (rallye_id) REFERENCES public.rallye(id) ON DELETE CASCADE;
 
-CREATE POLICY "Enable update access for all users" ON "public"."rallye_team" FOR UPDATE USING (true);
 
+--
+-- Name: answers answers_question_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.answers
+    ADD CONSTRAINT answers_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(id) ON DELETE CASCADE;
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."answers" TO "authenticated" USING (true) WITH CHECK (true);
 
+--
+-- Name: department department_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.department
+    ADD CONSTRAINT department_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organization(id);
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."join_rallye_questions" TO "authenticated" USING (true) WITH CHECK (true);
 
+--
+-- Name: join_department_rallye join_department_rallye_department_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.join_department_rallye
+    ADD CONSTRAINT join_department_rallye_department_id_fkey FOREIGN KEY (department_id) REFERENCES public.department(id);
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."profiles" TO "authenticated" USING (true) WITH CHECK (true);
 
+--
+-- Name: join_department_rallye join_department_rallye_rallye_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.join_department_rallye
+    ADD CONSTRAINT join_department_rallye_rallye_id_fkey FOREIGN KEY (rallye_id) REFERENCES public.rallye(id);
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."questions" TO "authenticated" USING (true) WITH CHECK (true);
 
+--
+-- Name: organization organization_default_rallye_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.organization
+    ADD CONSTRAINT organization_default_rallye_id_fkey FOREIGN KEY (default_rallye_id) REFERENCES public.rallye(id);
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."rallye" TO "authenticated" USING (true) WITH CHECK (true);
 
+--
+-- Name: rallye_team rallyeTeam_rallye_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.rallye_team
+    ADD CONSTRAINT "rallyeTeam_rallye_id_fkey" FOREIGN KEY (rallye_id) REFERENCES public.rallye(id) ON DELETE CASCADE;
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."voting" TO "authenticated" USING (true) WITH CHECK (true);
 
+--
+-- Name: team_questions teamQuestions_question_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.team_questions
+    ADD CONSTRAINT "teamQuestions_question_id_fkey" FOREIGN KEY (question_id) REFERENCES public.questions(id);
 
-CREATE POLICY "Enabled read access for all users" ON "public"."join_rallye_questions" FOR SELECT USING (true);
 
+--
+-- Name: team_questions teamQuestions_team_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.team_questions
+    ADD CONSTRAINT "teamQuestions_team_id_fkey" FOREIGN KEY (team_id) REFERENCES public.rallye_team(id) ON DELETE CASCADE;
 
-CREATE POLICY "Enabled read access for all users" ON "public"."rallye" FOR SELECT USING (true);
 
+--
+-- Name: voting voting_question_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.voting
+    ADD CONSTRAINT voting_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(id);
 
-CREATE POLICY "Enabled read access for all users" ON "public"."rallye_team" FOR SELECT USING (true);
 
+--
+-- Name: voting voting_rallye_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
 
+ALTER TABLE ONLY public.voting
+    ADD CONSTRAINT voting_rallye_id_fkey FOREIGN KEY (rallye_id) REFERENCES public.rallye(id);
 
-CREATE POLICY "Enabled read access for all users" ON "public"."team_questions" FOR SELECT USING (true);
 
+--
+-- Name: rallye_team Enable insert access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable insert access for all users" ON public.rallye_team FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Enabled read access for all users" ON "public"."voting" FOR SELECT USING (true);
 
+--
+-- Name: answers Enable read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable read access for all users" ON public.answers FOR SELECT USING (true);
 
-CREATE POLICY "Enabled write access for all users" ON "public"."rallye_team" FOR INSERT TO "authenticated" WITH CHECK (true);
 
+--
+-- Name: department Enable read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable read access for all users" ON public.department FOR SELECT USING (true);
 
-CREATE POLICY "Enabled write access for all users" ON "public"."team_questions" FOR INSERT WITH CHECK (true);
 
+--
+-- Name: join_department_rallye Enable read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable read access for all users" ON public.join_department_rallye FOR SELECT USING (true);
 
-ALTER TABLE "public"."answers" ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: organization Enable read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
-ALTER TABLE "public"."join_rallye_questions" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable read access for all users" ON public.organization FOR SELECT USING (true);
 
 
-ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
+--
+-- Name: questions Enable read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable read access for all users" ON public.questions FOR SELECT USING (true);
 
-ALTER TABLE "public"."questions" ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: rallye_team Enable update access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
-ALTER TABLE "public"."rallye" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable update access for all users" ON public.rallye_team FOR UPDATE USING (true);
 
 
-ALTER TABLE "public"."rallye_team" ENABLE ROW LEVEL SECURITY;
+--
+-- Name: answers Enable write for authenticated users only; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable write for authenticated users only" ON public.answers TO authenticated USING (true) WITH CHECK (true);
 
-ALTER TABLE "public"."team_questions" ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: join_rallye_questions Enable write for authenticated users only; Type: POLICY; Schema: public; Owner: -
+--
 
-ALTER TABLE "public"."voting" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable write for authenticated users only" ON public.join_rallye_questions TO authenticated USING (true) WITH CHECK (true);
 
 
-REVOKE USAGE ON SCHEMA "public" FROM PUBLIC;
-GRANT USAGE ON SCHEMA "public" TO "postgres";
-GRANT USAGE ON SCHEMA "public" TO "anon";
-GRANT USAGE ON SCHEMA "public" TO "authenticated";
-GRANT USAGE ON SCHEMA "public" TO "service_role";
+--
+-- Name: profiles Enable write for authenticated users only; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable write for authenticated users only" ON public.profiles TO authenticated USING (true) WITH CHECK (true);
 
 
-GRANT ALL ON FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) TO "anon";
-GRANT ALL ON FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) TO "service_role";
+--
+-- Name: questions Enable write for authenticated users only; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable write for authenticated users only" ON public.questions TO authenticated USING (true) WITH CHECK (true);
 
 
-GRANT ALL ON FUNCTION "public"."get_question_count"("team_id_param" integer, "rallye_id_param" integer) TO "anon";
-GRANT ALL ON FUNCTION "public"."get_question_count"("team_id_param" integer, "rallye_id_param" integer) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."get_question_count"("team_id_param" integer, "rallye_id_param" integer) TO "service_role";
+--
+-- Name: rallye Enable write for authenticated users only; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable write for authenticated users only" ON public.rallye TO authenticated USING (true) WITH CHECK (true);
 
 
-GRANT ALL ON FUNCTION "public"."get_voting_content"("rallye_id_param" bigint, "own_team_id_param" bigint) TO "anon";
-GRANT ALL ON FUNCTION "public"."get_voting_content"("rallye_id_param" bigint, "own_team_id_param" bigint) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."get_voting_content"("rallye_id_param" bigint, "own_team_id_param" bigint) TO "service_role";
+--
+-- Name: voting Enable write for authenticated users only; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enable write for authenticated users only" ON public.voting TO authenticated USING (true) WITH CHECK (true);
 
 
-GRANT ALL ON TABLE "public"."team_questions" TO "anon";
-GRANT ALL ON TABLE "public"."team_questions" TO "authenticated";
-GRANT ALL ON TABLE "public"."team_questions" TO "service_role";
+--
+-- Name: join_rallye_questions Enabled read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enabled read access for all users" ON public.join_rallye_questions FOR SELECT USING (true);
 
 
-GRANT ALL ON FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) TO "anon";
-GRANT ALL ON FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) TO "service_role";
+--
+-- Name: rallye Enabled read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enabled read access for all users" ON public.rallye FOR SELECT USING (true);
 
 
-GRANT ALL ON TABLE "public"."answers" TO "anon";
-GRANT ALL ON TABLE "public"."answers" TO "authenticated";
-GRANT ALL ON TABLE "public"."answers" TO "service_role";
+--
+-- Name: rallye_team Enabled read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enabled read access for all users" ON public.rallye_team FOR SELECT USING (true);
 
 
-GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "service_role";
+--
+-- Name: team_questions Enabled read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enabled read access for all users" ON public.team_questions FOR SELECT USING (true);
 
 
-GRANT ALL ON TABLE "public"."join_rallye_questions" TO "anon";
-GRANT ALL ON TABLE "public"."join_rallye_questions" TO "authenticated";
-GRANT ALL ON TABLE "public"."join_rallye_questions" TO "service_role";
+--
+-- Name: voting Enabled read access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enabled read access for all users" ON public.voting FOR SELECT USING (true);
 
 
-GRANT ALL ON TABLE "public"."profiles" TO "anon";
-GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
-GRANT ALL ON TABLE "public"."profiles" TO "service_role";
+--
+-- Name: rallye_team Enabled write access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enabled write access for all users" ON public.rallye_team FOR INSERT TO authenticated WITH CHECK (true);
 
 
-GRANT ALL ON TABLE "public"."questions" TO "anon";
-GRANT ALL ON TABLE "public"."questions" TO "authenticated";
-GRANT ALL ON TABLE "public"."questions" TO "service_role";
+--
+-- Name: team_questions Enabled write access for all users; Type: POLICY; Schema: public; Owner: -
+--
 
+CREATE POLICY "Enabled write access for all users" ON public.team_questions FOR INSERT WITH CHECK (true);
 
 
-GRANT ALL ON SEQUENCE "public"."questions_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."questions_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."questions_id_seq" TO "service_role";
+--
+-- Name: answers; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
+ALTER TABLE public.answers ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: department; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
-GRANT ALL ON TABLE "public"."rallye" TO "anon";
-GRANT ALL ON TABLE "public"."rallye" TO "authenticated";
-GRANT ALL ON TABLE "public"."rallye" TO "service_role";
+ALTER TABLE public.department ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: join_department_rallye; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
+ALTER TABLE public.join_department_rallye ENABLE ROW LEVEL SECURITY;
 
-GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "service_role";
+--
+-- Name: join_rallye_questions; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
+ALTER TABLE public.join_rallye_questions ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: organization; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
-GRANT ALL ON TABLE "public"."rallye_team" TO "anon";
-GRANT ALL ON TABLE "public"."rallye_team" TO "authenticated";
-GRANT ALL ON TABLE "public"."rallye_team" TO "service_role";
+ALTER TABLE public.organization ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-GRANT ALL ON SEQUENCE "public"."rallye_team_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."rallye_team_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."rallye_team_id_seq" TO "service_role";
+--
+-- Name: questions; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
+ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: rallye; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
-GRANT ALL ON SEQUENCE "public"."team_questions_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."team_questions_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."team_questions_id_seq" TO "service_role";
+ALTER TABLE public.rallye ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: rallye_team; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
+ALTER TABLE public.rallye_team ENABLE ROW LEVEL SECURITY;
 
-GRANT ALL ON TABLE "public"."voting" TO "anon";
-GRANT ALL ON TABLE "public"."voting" TO "authenticated";
-GRANT ALL ON TABLE "public"."voting" TO "service_role";
+--
+-- Name: team_questions; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
+ALTER TABLE public.team_questions ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: voting; Type: ROW SECURITY; Schema: public; Owner: -
+--
 
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES  TO "postgres";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES  TO "anon";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES  TO "authenticated";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES  TO "service_role";
+ALTER TABLE public.voting ENABLE ROW LEVEL SECURITY;
 
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: -
+--
 
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO postgres;
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT USAGE ON SCHEMA public TO service_role;
 
 
+--
+-- Name: FUNCTION "JOIN_question_answer"(rallye_id bigint); Type: ACL; Schema: public; Owner: -
+--
 
+GRANT ALL ON FUNCTION public."JOIN_question_answer"(rallye_id bigint) TO anon;
+GRANT ALL ON FUNCTION public."JOIN_question_answer"(rallye_id bigint) TO authenticated;
+GRANT ALL ON FUNCTION public."JOIN_question_answer"(rallye_id bigint) TO service_role;
 
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS  TO "postgres";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS  TO "anon";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS  TO "authenticated";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS  TO "service_role";
 
+--
+-- Name: FUNCTION get_question_count(team_id_param integer, rallye_id_param integer); Type: ACL; Schema: public; Owner: -
+--
 
+GRANT ALL ON FUNCTION public.get_question_count(team_id_param integer, rallye_id_param integer) TO anon;
+GRANT ALL ON FUNCTION public.get_question_count(team_id_param integer, rallye_id_param integer) TO authenticated;
+GRANT ALL ON FUNCTION public.get_question_count(team_id_param integer, rallye_id_param integer) TO service_role;
 
 
+--
+-- Name: FUNCTION get_voting_content(rallye_id_param bigint, own_team_id_param bigint); Type: ACL; Schema: public; Owner: -
+--
 
+GRANT ALL ON FUNCTION public.get_voting_content(rallye_id_param bigint, own_team_id_param bigint) TO anon;
+GRANT ALL ON FUNCTION public.get_voting_content(rallye_id_param bigint, own_team_id_param bigint) TO authenticated;
+GRANT ALL ON FUNCTION public.get_voting_content(rallye_id_param bigint, own_team_id_param bigint) TO service_role;
 
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES  TO "postgres";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES  TO "anon";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES  TO "authenticated";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES  TO "service_role";
 
+--
+-- Name: TABLE team_questions; Type: ACL; Schema: public; Owner: -
+--
 
+GRANT ALL ON TABLE public.team_questions TO anon;
+GRANT ALL ON TABLE public.team_questions TO authenticated;
+GRANT ALL ON TABLE public.team_questions TO service_role;
 
 
+--
+-- Name: FUNCTION increment_team_question_points(target_answer_id integer); Type: ACL; Schema: public; Owner: -
+--
 
+GRANT ALL ON FUNCTION public.increment_team_question_points(target_answer_id integer) TO anon;
+GRANT ALL ON FUNCTION public.increment_team_question_points(target_answer_id integer) TO authenticated;
+GRANT ALL ON FUNCTION public.increment_team_question_points(target_answer_id integer) TO service_role;
 
-RESET ALL;
+
+--
+-- Name: TABLE answers; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.answers TO anon;
+GRANT ALL ON TABLE public.answers TO authenticated;
+GRANT ALL ON TABLE public.answers TO service_role;
+
+
+--
+-- Name: SEQUENCE answers_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.answers_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.answers_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.answers_id_seq TO service_role;
+
+
+--
+-- Name: TABLE department; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.department TO anon;
+GRANT ALL ON TABLE public.department TO authenticated;
+GRANT ALL ON TABLE public.department TO service_role;
+
+
+--
+-- Name: SEQUENCE department_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.department_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.department_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.department_id_seq TO service_role;
+
+
+--
+-- Name: TABLE join_department_rallye; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.join_department_rallye TO anon;
+GRANT ALL ON TABLE public.join_department_rallye TO authenticated;
+GRANT ALL ON TABLE public.join_department_rallye TO service_role;
+
+
+--
+-- Name: SEQUENCE join_department_rallye_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.join_department_rallye_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.join_department_rallye_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.join_department_rallye_id_seq TO service_role;
+
+
+--
+-- Name: TABLE join_rallye_questions; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.join_rallye_questions TO anon;
+GRANT ALL ON TABLE public.join_rallye_questions TO authenticated;
+GRANT ALL ON TABLE public.join_rallye_questions TO service_role;
+
+
+--
+-- Name: TABLE organization; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.organization TO anon;
+GRANT ALL ON TABLE public.organization TO authenticated;
+GRANT ALL ON TABLE public.organization TO service_role;
+
+
+--
+-- Name: SEQUENCE organization_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.organization_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.organization_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.organization_id_seq TO service_role;
+
+
+--
+-- Name: TABLE profiles; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.profiles TO anon;
+GRANT ALL ON TABLE public.profiles TO authenticated;
+GRANT ALL ON TABLE public.profiles TO service_role;
+
+
+--
+-- Name: TABLE questions; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.questions TO anon;
+GRANT ALL ON TABLE public.questions TO authenticated;
+GRANT ALL ON TABLE public.questions TO service_role;
+
+
+--
+-- Name: SEQUENCE questions_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.questions_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.questions_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.questions_id_seq TO service_role;
+
+
+--
+-- Name: TABLE rallye; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.rallye TO anon;
+GRANT ALL ON TABLE public.rallye TO authenticated;
+GRANT ALL ON TABLE public.rallye TO service_role;
+
+
+--
+-- Name: SEQUENCE rallye_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.rallye_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.rallye_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.rallye_id_seq TO service_role;
+
+
+--
+-- Name: TABLE rallye_team; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.rallye_team TO anon;
+GRANT ALL ON TABLE public.rallye_team TO authenticated;
+GRANT ALL ON TABLE public.rallye_team TO service_role;
+
+
+--
+-- Name: SEQUENCE rallye_team_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.rallye_team_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.rallye_team_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.rallye_team_id_seq TO service_role;
+
+
+--
+-- Name: SEQUENCE team_questions_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.team_questions_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.team_questions_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.team_questions_id_seq TO service_role;
+
+
+--
+-- Name: TABLE voting; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.voting TO anon;
+GRANT ALL ON TABLE public.voting TO authenticated;
+GRANT ALL ON TABLE public.voting TO service_role;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: -
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: -
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: -
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO service_role;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: -
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO service_role;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: -
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO service_role;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: -
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON TABLES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON TABLES TO service_role;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict OoOi2L3GhW2Q5zIBT9XBf5P3KocUnz59tCWtkuHU13t0oVha4xa53dqZkJ2CQDW
+
