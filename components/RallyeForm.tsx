@@ -57,6 +57,10 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  const currentYear = new Date().getFullYear();
+  const calendarStartMonth = new Date(currentYear, 0, 1);
+  const calendarEndMonth = new Date(currentYear + 5, 11, 31);
+
   // Alle Status-Übergänge sind erlaubt
   const allStatuses: RallyeStatus[] = [
     'preparing',
@@ -143,6 +147,8 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
               hourCycle={24}
               value={date24}
               onChange={setDate24}
+              startMonth={calendarStartMonth}
+              endMonth={calendarEndMonth}
               className="flex-1 min-w-0 max-w-sm"
             />
           </div>

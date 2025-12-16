@@ -19,6 +19,8 @@ export interface DateTimePickerProps {
   onChange?: (value: Date | undefined) => void;
   hourCycle?: 12 | 24;
   locale?: React.ComponentProps<typeof Calendar>['locale'];
+  startMonth?: Date;
+  endMonth?: Date;
   className?: string;
 }
 
@@ -56,6 +58,8 @@ export function DateTimePicker({
   onChange,
   hourCycle = 24,
   locale,
+  startMonth,
+  endMonth,
   className,
 }: DateTimePickerProps) {
   const [open, setOpen] = React.useState(false);
@@ -133,6 +137,8 @@ export function DateTimePicker({
             selected={datePart}
             captionLayout="dropdown"
             hideNavigation
+            startMonth={startMonth}
+            endMonth={endMonth}
             onSelect={(d) => handleDateSelect(d)}
             locale={locale as any}
           />
