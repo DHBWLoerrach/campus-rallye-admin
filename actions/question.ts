@@ -94,6 +94,8 @@ export async function getQuestions(filters: {
     query = query.in('id', ids);
   }
 
+  query = query.order('created_at', { ascending: false });
+
   const { data, error } = await query;
 
   if (error) {
