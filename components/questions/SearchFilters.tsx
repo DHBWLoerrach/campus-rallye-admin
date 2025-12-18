@@ -107,7 +107,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               id="active"
               checked={filters.assigned === true}
               onCheckedChange={(checked) =>
-                handleChange('assigned', checked ? true : (undefined as any))
+                handleChange('assigned', checked === true ? true : undefined)
               }
             />
             <label htmlFor="active" className="text-sm">

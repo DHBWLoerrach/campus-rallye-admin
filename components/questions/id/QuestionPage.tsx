@@ -11,7 +11,7 @@ import { Question, QuestionFormData } from '@/helpers/questions';
 import QuestionForm from '@/components/questions/id/QuestionForm';
 
 const QuestionPage: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [initialData, setInitialData] = useState<Question | null>(null);
 

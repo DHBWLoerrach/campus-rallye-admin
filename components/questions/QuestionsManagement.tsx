@@ -18,7 +18,7 @@ export default function QuestionManagement() {
     category?: string;
     assigned?: boolean;
   }) => {
-    let fetchedQuestions: Question[] = await getQuestions(filters);
+    const fetchedQuestions: Question[] = await getQuestions(filters);
     setQuestions(fetchedQuestions);
   };
 
@@ -41,12 +41,12 @@ export default function QuestionManagement() {
             onFilterChange={handleFilterChange}
             showAssignedToggle={false}
           />
-          <Link href="/questions/new">
-            <Button className="bg-dhbw">
+          <Button asChild className="bg-dhbw">
+            <Link href="/questions/new">
               <Plus className="w-4 h-4 mr-2" />
               ERSTELLEN
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
         <QuestionsTable questions={questions} />
       </div>

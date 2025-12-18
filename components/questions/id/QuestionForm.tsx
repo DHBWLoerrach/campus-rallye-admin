@@ -59,7 +59,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     loadCategories();
   }, []);
 
-  const handleFormChange = (field: keyof QuestionFormData, value: any) => {
+  const handleFormChange = <K extends keyof QuestionFormData>(
+    field: K,
+    value: QuestionFormData[K]
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -80,26 +83,33 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     }
   };
 
-  const handleAnswerChange = (index: number, field: string, value: any) => {
-    const newAnswers = [...(formData.answers || [])];
-    newAnswers[index] = { ...newAnswers[index], [field]: value };
+  const handleAnswerChange = (
+    index: number,
+    field: 'text' | 'correct',
+    value: string | boolean
+  ) => {
+    setFormData((prev) => {
+      const answers = [...(prev.answers || [])];
+      const current = answers[index] ?? { id: 0, correct: false, text: '' };
 
-    // Wenn eine Antwort als korrekt markiert wird, setze alle anderen auf inkorrekt
-    if (
-      formData.type === 'multiple_choice' &&
-      field === 'correct' &&
-      value === true
-    ) {
-      newAnswers.forEach((answer, i) => {
-        if (i !== index) {
-          answer.correct = false;
+      if (field === 'text') {
+        if (typeof value !== 'string') return prev;
+        answers[index] = { ...current, text: value };
+      } else {
+        if (typeof value !== 'boolean') return prev;
+        answers[index] = { ...current, correct: value };
+      }
+
+      // Wenn eine Antwort als korrekt markiert wird, setze alle anderen auf inkorrekt
+      if (prev.type === 'multiple_choice' && field === 'correct' && value) {
+        for (let i = 0; i < answers.length; i++) {
+          if (i !== index && answers[i]?.correct) {
+            answers[i] = { ...answers[i], correct: false };
+          }
         }
-      });
-    }
+      }
 
-    setFormData({
-      ...formData,
-      answers: newAnswers,
+      return { ...prev, answers };
     });
   };
 
