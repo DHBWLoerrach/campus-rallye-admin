@@ -199,7 +199,7 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
                 <DialogHeader>
                   <DialogTitle>Rallye löschen</DialogTitle>
                   <DialogDescription>
-                    Sind Sie sicher, dass Sie die Rallye "{name}" löschen
+                    Sind Sie sicher, dass Sie die Rallye „{name}“ löschen
                     möchten? Diese Aktion kann nicht rückgängig gemacht werden.
                   </DialogDescription>
                 </DialogHeader>
