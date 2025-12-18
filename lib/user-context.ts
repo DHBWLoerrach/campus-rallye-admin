@@ -8,28 +8,60 @@ type UserContext = {
   roles: string[];
 };
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === 'string');
+}
+
+function getStringClaim(
+  claims: Record<string, unknown>,
+  key: string
+): string | undefined {
+  const value = claims[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function getRolesFromRealmAccess(value: unknown): string[] | null {
+  if (!value || typeof value !== 'object') return null;
+  const roles = (value as { roles?: unknown }).roles;
+  return isStringArray(roles) ? roles : null;
+}
+
+function getRolesFromResourceAccess(value: unknown): string[] {
+  if (!value || typeof value !== 'object') return [];
+  return Object.values(value as Record<string, unknown>).flatMap((resource) => {
+    if (!resource || typeof resource !== 'object') return [];
+    const roles = (resource as { roles?: unknown }).roles;
+    return isStringArray(roles) ? roles : [];
+  });
+}
+
 export async function getUserContext(): Promise<UserContext> {
   const h = await headers();
   const token = h.get('x-forwarded-access-token');
   if (!token) throw new Error('Missing access token header');
 
   try {
-    const data = jwtDecode<JWTPayload & Record<string, any>>(token);
+    const data = jwtDecode<JWTPayload & Record<string, unknown>>(token);
+    const claims = data as JWTPayload & Record<string, unknown>;
 
-    const uuid = (data as any).UUID ?? (data as any).uuid ?? data.sub ?? null;
+    const uuid =
+      getStringClaim(claims, 'UUID') ??
+      getStringClaim(claims, 'uuid') ??
+      claims.sub ??
+      null;
     if (!uuid) throw new Error('Missing user sub/uuid in token');
 
     const email =
-      (data as any).email ?? (data as any).preferred_username ?? null;
+      getStringClaim(claims, 'email') ??
+      getStringClaim(claims, 'preferred_username') ??
+      null;
 
-    const roles =
-      (data as any).realm_access?.roles ??
-      (data as any).roles ??
-      Object.values((data as any).resource_access ?? {}).flatMap(
-        (r: any) => r?.roles ?? []
-      );
+    const realmRoles = getRolesFromRealmAccess(claims['realm_access']);
+    const directRoles = isStringArray(claims['roles']) ? claims['roles'] : null;
+    const resourceRoles = getRolesFromResourceAccess(claims['resource_access']);
+    const roles = realmRoles ?? directRoles ?? resourceRoles;
 
-    return { uuid, email, roles: Array.isArray(roles) ? roles : [] };
+    return { uuid, email, roles };
   } catch (err) {
     console.warn('Failed to parse user token', err);
     throw new Error('Invalid access token');

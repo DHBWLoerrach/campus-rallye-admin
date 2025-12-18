@@ -12,7 +12,12 @@ export function middleware(req: NextRequest) {
       const data = jwtDecode(token) as any;
       // Normalized extraction to support dev/prod differences
       uuid = data.UUID || data.uuid || data.sub;
-      roles = data?.realm_access?.roles ?? data?.roles ?? [];
+      const resourceRoles = Object.values(data?.resource_access ?? {}).flatMap(
+        (r: any) => r?.roles ?? []
+      );
+      const extracted =
+        data?.realm_access?.roles ?? data?.roles ?? resourceRoles ?? [];
+      roles = Array.isArray(extracted) ? extracted : [];
     } catch {
       console.warn('Invalid token');
     }
@@ -25,8 +30,9 @@ export function middleware(req: NextRequest) {
     const authUrl = isDev
       ? 'http://localhost:4181/oauth2/start'
       : '/oauth2/start';
-    const redirectTo = req.nextUrl.pathname;
-    const loginUrl = new URL(`${authUrl}?rd=${redirectTo}`, req.url);
+    const redirectTo = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+    const loginUrl = new URL(authUrl, req.url);
+    loginUrl.searchParams.set('rd', redirectTo);
     return NextResponse.redirect(loginUrl);
   }
 
