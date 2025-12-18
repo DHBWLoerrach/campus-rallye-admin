@@ -3,7 +3,7 @@
 import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { de } from 'date-fns/locale';
-import { CircleX, Trash2 } from 'lucide-react';
+import { CircleX, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { updateRallye, deleteRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +54,7 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   );
   const [studiengang, setStudiengang] = useState<string>(rallye.studiengang);
   const [password, setPassword] = useState<string>(rallye.password);
+  const [showPassword, setShowPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -173,13 +174,28 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
             >
               Passwort
             </Label>
-            <Input
-              name="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="flex-1 min-w-0 max-w-sm"
-            />
+            <div className="flex flex-1 min-w-0 max-w-sm items-center gap-2">
+              <Input
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="flex-1 min-w-0"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="h-4 w-4" aria-hidden="true" />
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Button-Bereich mit Speichern und Löschen */}
