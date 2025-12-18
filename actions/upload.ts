@@ -9,21 +9,24 @@ export async function uploadImage(
   await requireProfile();
   const supabase = await createClient();
 
-  // Convert base64 to buffer
-  const base64Data = base64File.split(',')[1];
+  const [meta, base64Data] = base64File.split(',');
+  if (!base64Data) {
+    throw new Error('Invalid base64 file data');
+  }
   const buffer = Buffer.from(base64Data, 'base64');
 
   // Generate unique filename
-  const fileExt = fileName.split('.').pop();
+  const contentType = meta?.match(/^data:(.+);base64$/)?.[1] ?? 'image/*';
+  const fileExt = fileName.includes('.') ? fileName.split('.').pop() : undefined;
   const uniqueFileName = `${Math.random()
     .toString(36)
-    .substring(2)}.${fileExt}`;
+    .substring(2)}.${fileExt || 'bin'}`;
 
   // Upload file to Supabase storage
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('question-media')
     .upload(uniqueFileName, buffer, {
-      contentType: 'image/*',
+      contentType,
     });
 
   if (error) {
@@ -36,6 +39,7 @@ export async function uploadImage(
 }
 
 export async function deleteImage(bucketPath: string): Promise<void> {
+  await requireProfile();
   const supabase = await createClient();
 
   const { error } = await supabase.storage

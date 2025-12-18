@@ -38,7 +38,7 @@ export async function getQuestionById(id: number): Promise<Question | null> {
 
   if (error || !data) {
     console.error('Error fetching question by id:', error);
-    return null as any;
+    return null;
   }
 
   return data as Question;
