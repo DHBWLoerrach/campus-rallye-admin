@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { questionTypes } from '../../helpers/questionTypes';
 import { Question } from '@/helpers/questions';
+import { getQuestionMediaPublicUrl } from '@/lib/supabase-public';
 
 interface QuestionsTableProps {
   questions: Question[];
@@ -20,10 +21,13 @@ interface QuestionsTableProps {
 const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
-  const questionTypeLabels = questionTypes.reduce((acc, type) => {
+  const questionTypeLabels = questionTypes.reduce<Record<string, string>>(
+    (acc, type) => {
     acc[type.id] = type.name;
     return acc;
-  }, {});
+    },
+    {}
+  );
 
   const toggleRow = (questionId: number) => {
     setExpandedRows((current) =>
@@ -75,7 +79,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     <TableCell>
                       {question.bucket_path ? (
                         <img
-                          src={`http://127.0.0.1:54321/storage/v1/object/public/question-media/${question.bucket_path}`}
+                          src={getQuestionMediaPublicUrl(question.bucket_path)}
                           alt="Frage Bild"
                           width={50}
                           height={50}
@@ -90,11 +94,11 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     <TableCell>{question.category}</TableCell>
                     <TableCell>{question.hint}</TableCell>
                     <TableCell>
-                      <Link href={`/questions/${question.id}`}>
-                        <Button className="bg-dhbw">
+                      <Button asChild className="bg-dhbw">
+                        <Link href={`/questions/${question.id}`}>
                           Bearbeiten
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                   {expandedRows.includes(question.id) &&

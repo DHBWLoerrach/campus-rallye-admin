@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { uploadImage, deleteImage } from '@/actions/upload';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { getQuestionMediaPublicUrl } from '@/lib/supabase-public';
 
 interface QuestionImageProps {
   bucketPath?: string;
@@ -18,9 +19,9 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     try {
-      setUploading(true);
       const file = event.target.files?.[0];
       if (!file) return;
+      setUploading(true);
 
       // Convert file to base64
       const reader = new FileReader();
@@ -28,7 +29,6 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
         try {
           const base64String = reader.result as string;
           const fileName = await uploadImage(base64String, file.name);
-          console.log('fileName', fileName);
           onImageChange(fileName);
         } catch (error) {
           console.error('Error uploading image:', error);
@@ -65,7 +65,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
         <div className="relative">
           <div className="mt-2 relative w-full h-[200px] flex items-center justify-center">
             <img
-              src={`http://127.0.0.1:54321/storage/v1/object/public/question-media/${bucketPath}`}
+              src={getQuestionMediaPublicUrl(bucketPath)}
               alt="Question image"
               width={200}
               className="object-contain rounded-md"

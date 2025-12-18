@@ -44,14 +44,17 @@ Zum Schluss muss noch die Konfiguration zu Supabase angepasst werden. Dazu ist z
 im Projektverzeichnis zu erstellen. In `.env.local` müssen drei Einträge vorgenommen werden:
 
 ```
-SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_URL=
 SUPABASE_ANON_KEY=
 SUPABASE_JWT_SECRET=
 ```
 
+Optional kann zusätzlich `SUPABASE_URL` gesetzt werden (server-seitiger Override). Wenn es nicht gesetzt ist, wird server-seitig `NEXT_PUBLIC_SUPABASE_URL` verwendet.
+
 Die Werte dazu sind folgendermaßen zu finden.
 
-Im Webinterface von Supabase oben auf _Connect_ klicken und für `SUPABASE_URL` den passenden Wert im Reiter _App Frameworks_ verwenden.
+Im Webinterface von Supabase oben auf _Connect_ klicken und für `NEXT_PUBLIC_SUPABASE_URL` den passenden Wert im Reiter _App Frameworks_ verwenden.
+Wenn `SUPABASE_URL` gesetzt wird, sollte es in der Regel denselben Wert haben.
 
 Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden. 
 Der Wert für `SUPABASE_JWT_SECRET` kann via _JWY Keys_ gefunden werden.
