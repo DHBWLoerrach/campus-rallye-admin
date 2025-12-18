@@ -4,7 +4,7 @@ import RallyeDialog from '@/components/RallyeDialog';
 
 export default async function Home() {
   const supabase = await createClient();
-  const { data: rallyes, error } = await supabase
+  const { data: rallyes } = await supabase
     .from('rallye')
     .select()
     .order('name');
