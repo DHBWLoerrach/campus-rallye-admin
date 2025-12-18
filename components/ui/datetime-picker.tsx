@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { format } from 'date-fns';
+import { format, type Locale } from 'date-fns';
 import { Calendar as CalendarIcon, Clock, ChevronDownIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ export interface DateTimePickerProps {
   value?: Date;
   onChange?: (value: Date | undefined) => void;
   hourCycle?: 12 | 24;
-  locale?: React.ComponentProps<typeof Calendar>['locale'];
+  locale?: Locale;
   startMonth?: Date;
   endMonth?: Date;
   className?: string;
@@ -77,9 +77,7 @@ export function DateTimePicker({
     const fmt =
       hourCycle === 24 ? 'd. MMMM yyyy HH:mm' : 'd. MMMM yyyy hh:mm a';
     try {
-      return `${format(combine(datePart, timeStr)!, fmt, {
-        locale: locale as any,
-      })}`;
+      return `${format(combine(datePart, timeStr)!, fmt, { locale })}`;
     } catch {
       // Fallback if format/locale fails for any reason
       return `${datePart.toLocaleDateString()} ${timeStr}`;
@@ -89,12 +87,6 @@ export function DateTimePicker({
   function handleDateSelect(date: Date | undefined) {
     setDatePart(date);
     if (onChange) onChange(combine(date, timeStr));
-  }
-
-  function handleTimeChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const next = e.target.value;
-    setTimeStr(next);
-    if (onChange) onChange(combine(datePart, next));
   }
 
   // split time into parts for segmented inputs
@@ -140,7 +132,7 @@ export function DateTimePicker({
             startMonth={startMonth}
             endMonth={endMonth}
             onSelect={(d) => handleDateSelect(d)}
-            locale={locale as any}
+            locale={locale}
           />
         </div>
         <div className="border-t p-3 flex items-center justify-center gap-2">
