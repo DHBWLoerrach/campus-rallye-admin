@@ -2,44 +2,57 @@ import createClient from './supabase';
 import { getUserContext } from './user-context';
 import { insertLocalUser } from './db/insert-local-user';
 
-const cachedProfiles = new Map<string, any>();
+type Profile = {
+  user_id: string;
+  admin?: boolean | null;
+  created_at?: string | null;
+};
 
-export async function requireProfile(createProfile = false) {
+const cachedProfiles = new Map<string, Profile>();
+
+export async function requireProfile(createProfile = false): Promise<Profile> {
   const { uuid, email } = await getUserContext();
 
-  if (cachedProfiles.has(uuid)) return cachedProfiles.get(uuid);
+  const cached = cachedProfiles.get(uuid);
+  if (cached) return cached;
 
   const supabase = await createClient();
 
-  const { data: profile, error } = await supabase
+  const { data: profileData, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('user_id', uuid)
     .maybeSingle(); // maybeSingle() returns at most one row and null if none found
 
+  if (error) {
+    console.error('Error fetching profile:', error);
+    throw new Error('Profil konnte nicht geladen werden');
+  }
+
+  const profile = profileData as Profile | null;
   if (profile) {
     cachedProfiles.set(uuid, profile);
     return profile;
   }
 
-  if (error) {
+  if (!createProfile) {
     throw new Error('Profil nicht vorhanden – Zugriff verweigert');
   }
 
-  if (!profile && createProfile) {
-    // Kein Profil vorhanden – Profil automatisch anlegen
-    const { data: newProfile, error: insertError } = await supabase
-      .from('profiles')
-      .insert({ user_id: uuid })
-      .select()
-      .single();
+  // Kein Profil vorhanden – Profil automatisch anlegen
+  const { data: newProfileData, error: insertError } = await supabase
+    .from('profiles')
+    .insert({ user_id: uuid })
+    .select()
+    .single();
 
-    if (insertError || !newProfile) {
-      throw new Error('Profil konnte nicht automatisch erstellt werden');
-    }
-
-    await insertLocalUser(uuid, email);
-    cachedProfiles.set(uuid, newProfile);
-    return newProfile;
+  if (insertError || !newProfileData) {
+    console.error('Error creating profile:', insertError);
+    throw new Error('Profil konnte nicht automatisch erstellt werden');
   }
+
+  const newProfile = newProfileData as Profile;
+  insertLocalUser(uuid, email);
+  cachedProfiles.set(uuid, newProfile);
+  return newProfile;
 }
