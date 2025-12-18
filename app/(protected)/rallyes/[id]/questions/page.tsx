@@ -1,10 +1,14 @@
 import Assignment from './Assignment';
 import { notFound } from 'next/navigation';
 import createClient from '@/lib/supabase';
+import type { Question } from '@/helpers/questions';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
+type RallyeRow = { id: number; name: string };
+type QuestionIdRow = { question_id: number };
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
@@ -22,6 +26,7 @@ export default async function Page(props: PageProps) {
   if (error || !data) {
     notFound();
   }
+  const rallye = data as RallyeRow;
 
   // Preload initial data server-side to avoid extra client POSTs
   const [assignedRes, votingRes, questionsRes] = await Promise.all([
@@ -34,25 +39,25 @@ export default async function Page(props: PageProps) {
     supabase.from('questions').select('id, content, type, points, category'),
   ]);
 
-  const initialSelectedQuestions = (assignedRes.data || []).map(
-    (r: any) => r.question_id as number
-  );
-  const initialVotingQuestions = (votingRes.data || []).map(
-    (r: any) => r.question_id as number
+  const initialSelectedQuestions = (
+    (assignedRes.data ?? []) as QuestionIdRow[]
+  ).map((r) => r.question_id);
+  const initialVotingQuestions = ((votingRes.data ?? []) as QuestionIdRow[]).map(
+    (r) => r.question_id
   );
   const categoriesSet = new Set<string>();
-  (questionsRes.data || []).forEach((q: any) => {
-    if (q.category) categoriesSet.add(q.category as string);
+  const questions = (questionsRes.data ?? []) as Question[];
+  questions.forEach((q) => {
+    if (q.category) categoriesSet.add(q.category);
   });
   const initialCategories = Array.from(categoriesSet);
-  const initialQuestions = (questionsRes.data || []) as any[];
 
   return (
     <main className="m-4">
       <Assignment
         rallyeId={rallyeId}
-        rallyeName={data.name as string}
-        initialQuestions={initialQuestions as any}
+        rallyeName={rallye.name}
+        initialQuestions={questions}
         initialSelectedQuestions={initialSelectedQuestions}
         initialVotingQuestions={initialVotingQuestions}
         initialCategories={initialCategories}

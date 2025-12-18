@@ -26,7 +26,6 @@ import {
   getRallyeQuestions,
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -186,25 +185,23 @@ export default function Assignment({
       <Card>
         <CardHeader>
           <div className="mb-2">
-            <Link
-              href="/rallyes"
-              onClick={(e) => {
-                if (isSubmitting) return; // ignore while saving
-                if (!hasUnsavedChanges) return; // allow default navigation
-                e.preventDefault();
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                if (isSubmitting) return;
+                if (!hasUnsavedChanges) {
+                  router.push('/rallyes');
+                  return;
+                }
                 setPendingHref('/rallyes');
                 setShowLeaveConfirm(true);
               }}
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                disabled={isSubmitting}
-              >
-                ← Zurück zu Rallyes
-              </Button>
-            </Link>
+              ← Zurück zu Rallyes
+            </Button>
           </div>
           <CardTitle>
             {rallyeName
@@ -249,18 +246,14 @@ export default function Assignment({
                           <Checkbox
                             checked={selectedQuestions.includes(question.id)}
                             onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedQuestions([
-                                  ...selectedQuestions,
-                                  question.id,
-                                ]);
-                              } else {
-                                setSelectedQuestions(
-                                  selectedQuestions.filter(
-                                    (id) => id !== question.id
-                                  )
-                                );
-                              }
+                              const isChecked = checked === true;
+                              setSelectedQuestions((prev) =>
+                                isChecked
+                                  ? prev.includes(question.id)
+                                    ? prev
+                                    : [...prev, question.id]
+                                  : prev.filter((id) => id !== question.id)
+                              );
                             }}
                           />
                         </TableCell>
@@ -280,30 +273,29 @@ export default function Assignment({
                               }
                               checked={votingQuestions.includes(question.id)}
                               onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setVotingQuestions([
-                                    ...votingQuestions,
-                                    question.id,
-                                  ]);
-                                  setPendingVotingChanges((prev) => ({
-                                    add: [...prev.add, question.id],
-                                    remove: prev.remove.filter(
-                                      (id) => id !== question.id
-                                    ),
-                                  }));
-                                } else {
-                                  setVotingQuestions(
-                                    votingQuestions.filter(
-                                      (id) => id !== question.id
-                                    )
-                                  );
-                                  setPendingVotingChanges((prev) => ({
-                                    add: prev.add.filter(
-                                      (id) => id !== question.id
-                                    ),
-                                    remove: [...prev.remove, question.id],
-                                  }));
-                                }
+                                const isChecked = checked === true;
+                                setVotingQuestions((prev) =>
+                                  isChecked
+                                    ? prev.includes(question.id)
+                                      ? prev
+                                      : [...prev, question.id]
+                                    : prev.filter((id) => id !== question.id)
+                                );
+                                setPendingVotingChanges((prev) => {
+                                  const add = new Set(prev.add);
+                                  const remove = new Set(prev.remove);
+                                  if (isChecked) {
+                                    add.add(question.id);
+                                    remove.delete(question.id);
+                                  } else {
+                                    add.delete(question.id);
+                                    remove.add(question.id);
+                                  }
+                                  return {
+                                    add: Array.from(add),
+                                    remove: Array.from(remove),
+                                  };
+                                });
                               }}
                               className={
                                 !['upload', 'knowledge'].includes(question.type)
