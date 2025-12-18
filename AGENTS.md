@@ -22,6 +22,27 @@ npm run start      # run the built app
 
 Deployment via Docker is documented in `deployment.md`.
 
+## Working on features
+
+Work in small, meaningful, atomic steps. Each step must address exactly one concern (no mixed commits, no “incidental” refactors/formatting without purpose).
+
+For each step:
+
+1. List the files changed.
+2. Propose a clear, compact commit message (imperative mood, precisely describing the change).
+3. Provide a brief summary: what/why.
+4. Tests: Evaluate whether unit/component/e2e tests are needed.
+   - If behavior changes / bugfix: implement tests in the same step (ideally write the test first, then the fix).
+   - If it’s a pure refactor: no new tests required, but all existing tests must pass.
+   - If test setup is needed: do a separate setup-only step first, then a following step for tests + code.
+5. After each step, run `npm run lint` and `npm test`. Report briefly:
+   - Status: PASS/FAIL for each command
+   - If FAIL: only the relevant error output and your concrete fix proposal
+
+Hard rule: If `npm run lint` or `npm test` FAIL, do not commit and do not proceed to the next step until they pass.
+
+IMPORTANT: Stop after each step and wait for my “OK” before committing or moving on to the next step. Make any assumptions/uncertainties explicit and ask me to clarify when needed.
+
 ## Configuration, Secrets, and Data
 
 - Copy `env.example` → `.env.local` and set `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_JWT_SECRET`, and `SQLITE_DB_PATH` (default: `.data/local-users.db`). Optionally set `SUPABASE_URL` as a server-side override.
