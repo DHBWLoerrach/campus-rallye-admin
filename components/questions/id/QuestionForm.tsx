@@ -261,7 +261,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           <Label htmlFor="hint">Hinweis</Label>
           <Input
             id="hint"
-            value={formData.hint}
+            value={formData.hint ?? ''}
             onChange={(e) => handleFormChange('hint', e.target.value)}
             placeholder="Geben Sie einen Hinweis ein"
             className="border p-2 w-full"
@@ -289,7 +289,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           {isNewCategory && (
             <Input
               type="text"
-              value={formData.category}
+              value={formData.category ?? ''}
               placeholder="Neue Kategorie eingeben"
               className="mt-2"
               onChange={(e) => handleFormChange('category', e.target.value)}
@@ -328,7 +328,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     <Label htmlFor={`answer-${index}`} className="flex-1">
                       <Input
                         type="text"
-                        value={answer.text}
+                        value={answer.text ?? ''}
                         onChange={(e) =>
                           handleAnswerChange(index, 'text', e.target.value)
                         }
@@ -355,7 +355,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 <div key={index} className="flex gap-2 items-center">
                   <Input
                     type="text"
-                    value={answer.text}
+                    value={answer.text ?? ''}
                     onChange={(e) =>
                       handleAnswerChange(index, 'text', e.target.value)
                     }
