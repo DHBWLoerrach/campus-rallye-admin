@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import { uploadImage, deleteImage } from '@/actions/upload';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -64,10 +65,11 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
       {bucketPath ? (
         <div className="relative">
           <div className="mt-2 relative w-full h-[200px] flex items-center justify-center">
-            <img
+            <Image
               src={getQuestionMediaPublicUrl(bucketPath)}
               alt="Question image"
-              width={200}
+              fill
+              sizes="(max-width: 768px) 100vw, 200px"
               className="object-contain rounded-md"
             />
           </div>

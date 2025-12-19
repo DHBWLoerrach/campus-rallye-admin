@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import {
   Table,
   TableBody,
@@ -78,11 +79,12 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     <TableCell>{question.points}</TableCell>
                     <TableCell>
                       {question.bucket_path ? (
-                        <img
+                        <Image
                           src={getQuestionMediaPublicUrl(question.bucket_path)}
                           alt="Frage Bild"
                           width={50}
                           height={50}
+                          sizes="50px"
                           className="object-cover rounded"
                         />
                       ) : (
