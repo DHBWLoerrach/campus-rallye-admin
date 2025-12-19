@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   // exctract access token (set by Traefik / oauth2-proxy)
   const token = req.headers.get('x-forwarded-access-token') ?? '';
   let uuid: string | null = null;
