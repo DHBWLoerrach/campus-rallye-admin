@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
 
+type TokenPayload = {
+  UUID?: string;
+  uuid?: string;
+  sub?: string;
+  roles?: string[];
+  realm_access?: { roles?: string[] };
+  resource_access?: Record<string, { roles?: string[] }>;
+};
+
 export function proxy(req: NextRequest) {
   // exctract access token (set by Traefik / oauth2-proxy)
   const token = req.headers.get('x-forwarded-access-token') ?? '';
@@ -9,11 +18,11 @@ export function proxy(req: NextRequest) {
 
   if (token) {
     try {
-      const data = jwtDecode(token) as any;
+      const data = jwtDecode<TokenPayload>(token);
       // Normalized extraction to support dev/prod differences
-      uuid = data.UUID || data.uuid || data.sub;
-      const resourceRoles = Object.values(data?.resource_access ?? {}).flatMap(
-        (r: any) => r?.roles ?? []
+      uuid = data.UUID ?? data.uuid ?? data.sub ?? null;
+      const resourceRoles = Object.values(data.resource_access ?? {}).flatMap(
+        (resource) => resource.roles ?? []
       );
       const extracted =
         data?.realm_access?.roles ?? data?.roles ?? resourceRoles ?? [];
