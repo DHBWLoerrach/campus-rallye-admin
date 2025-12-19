@@ -10,7 +10,7 @@ This involves building the docker image locally, pushing it to GitHub Container 
 
 ## Build and push image
 
-- `docker build . --platform linux/amd64 -t ghcr.io/dhbwloerrach/campus-rallye-admin:latest`
+- `docker build --build-arg NEXT_PUBLIC_SUPABASE_URL=<SUPABASE_PROD_URL> . --platform linux/amd64 -t ghcr.io/dhbwloerrach/campus-rallye-admin:latest`
 - `docker login ghcr.io` with PAT `push` as password
 - `docker push ghcr.io/dhbwloerrach/campus-rallye-admin:latest`
 - Verify that the new package landed in https://github.com/orgs/DHBWLoerrach/packages/container/package/campus-rallye-admin

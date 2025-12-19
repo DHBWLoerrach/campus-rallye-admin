@@ -17,6 +17,8 @@ RUN \
 FROM base AS builder
 WORKDIR /app
 ENV NODE_ENV=production
+ARG NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
