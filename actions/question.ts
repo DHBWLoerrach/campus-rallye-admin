@@ -7,7 +7,7 @@ export async function getCategories(): Promise<string[]> {
   await requireProfile();
   const supabase = await createClient();
 
-  let { data: categories, error: categoriesError } = await supabase
+  const { data: categories, error: categoriesError } = await supabase
     .from('questions')
     .select('category')
     .not('category', 'is', null);
@@ -84,7 +84,11 @@ export async function getQuestions(filters: {
     }
 
     const ids = Array.from(
-      new Set((answerRows || []).map((r: any) => r.question_id as number))
+      new Set(
+        (answerRows || [])
+          .map((row) => row.question_id)
+          .filter((id): id is number => typeof id === 'number')
+      )
     );
 
     if (ids.length === 0) {
@@ -140,13 +144,19 @@ export async function createQuestion(data: {
 
     const questionId = questionData[0].id;
 
-    const answersData = data.answers.map((answer) => ({
+    type AnswerInsert = {
+      correct: boolean;
+      text?: string;
+      question_id: number;
+      id?: number;
+    };
+    const answersData: AnswerInsert[] = data.answers.map((answer) => ({
       ...answer,
       question_id: questionId,
     }));
 
     // remove id-attribute from answers (id is auto-incremented in supabase)
-    answersData.forEach((answer: any) => {
+    answersData.forEach((answer) => {
       if ('id' in answer) {
         delete answer.id;
       }
@@ -242,7 +252,7 @@ export async function updateQuestion(
     }
 
     // Update or insert answers
-    for (let answer of data.answers) {
+    for (const answer of data.answers) {
       if (answer.id) {
         // Update existing answer
         const { error: answerError } = await supabase

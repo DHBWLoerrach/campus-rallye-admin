@@ -36,6 +36,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     assigned: undefined,
   });
   const [categories, setCategories] = useState<string[]>(categoriesProp || []);
+  const resolvedCategories =
+    categoriesProp && categoriesProp.length > 0 ? categoriesProp : categories;
 
   const handleChange = (field: string, value: string | boolean | undefined) => {
     const newFilters = { ...filters, [field]: value };
@@ -46,7 +48,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   useEffect(() => {
     // Use provided categories if available; otherwise fetch
     if (categoriesProp && categoriesProp.length > 0) {
-      setCategories(categoriesProp);
       return;
     }
     const fetchCategories = async () => {
@@ -94,7 +95,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
-            {categories.map((category) => (
+            {resolvedCategories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
               </SelectItem>

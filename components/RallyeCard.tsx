@@ -19,16 +19,11 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
   const statusLabel = getRallyeStatusLabel(rallye.status);
   const isActive = isRallyeActive(rallye.status);
   const router = useRouter();
-  const [questionCount, setQuestionCount] = useState<number | undefined>(
-    questionCountProp
-  );
-
-  // Keep local state in sync with server-provided prop
-  useEffect(() => {
-    if (questionCountProp !== undefined) {
-      setQuestionCount(questionCountProp);
-    }
-  }, [questionCountProp]);
+  const [fetchedQuestionCount, setFetchedQuestionCount] = useState<
+    number | undefined
+  >(undefined);
+  const questionCount =
+    questionCountProp !== undefined ? questionCountProp : fetchedQuestionCount;
 
   // Fallback: only fetch on client if no count was provided from server
   useEffect(() => {
@@ -37,9 +32,9 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
     (async () => {
       try {
         const ids = await getRallyeQuestions(rallye.id);
-        if (isMounted) setQuestionCount(ids.length);
+        if (isMounted) setFetchedQuestionCount(ids.length);
       } catch (e) {
-        if (isMounted) setQuestionCount(0);
+        if (isMounted) setFetchedQuestionCount(0);
         console.error('Failed to load question count for rallye', rallye.id, e);
       }
     })();

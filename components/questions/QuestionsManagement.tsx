@@ -23,8 +23,11 @@ export default function QuestionManagement() {
   };
 
   useEffect(() => {
-    // Initial fetch
-    handleFilterChange({});
+    const fetchInitial = async () => {
+      const fetchedQuestions: Question[] = await getQuestions({});
+      setQuestions(fetchedQuestions);
+    };
+    fetchInitial();
   }, []);
 
   // antworten wir empfelen Antworten nicht länger als ... Zeichen 50?

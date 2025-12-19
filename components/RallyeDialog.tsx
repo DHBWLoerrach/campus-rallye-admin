@@ -54,6 +54,7 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
   // Modal schließen und Form zurücksetzen, wenn erfolgreich gespeichert wurde
   useEffect(() => {
     if (formState?.success) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpen(false);
       setName('');
     }
