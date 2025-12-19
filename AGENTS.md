@@ -60,7 +60,7 @@ IMPORTANT: Stop after each step and wait for my “OK” before committing or mo
 
 ## Testing Guidelines
 
-There is no dedicated automated test suite yet. Before opening a PR, run `npm run lint` and manually verify the key flows (login, `/rallyes`, `/questions`, and affected API routes).
+Automated tests use Vitest + React Testing Library. Run `npm test` (jsdom by default). Test files follow `*.test.ts` / `*.test.tsx` alongside the code (e.g., `lib/supabase-public.test.ts`). Before opening a PR, run `npm run lint` and `npm test`, and manually verify key flows (login, `/rallyes`, `/questions`, and affected API routes).
 
 ## Commit & Pull Request Guidelines
 
