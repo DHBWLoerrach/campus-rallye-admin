@@ -1,9 +1,10 @@
 import Database from 'better-sqlite3';
+import type { Database as SqliteDb } from 'better-sqlite3';
 import path from 'path';
 
-let dbInstance: Database | null = null;
+let dbInstance: SqliteDb | null = null;
 
-export function getDb(): Database {
+export function getDb(): SqliteDb {
   if (dbInstance) return dbInstance;
 
   const dbPath = process.env.SQLITE_DB_PATH;
