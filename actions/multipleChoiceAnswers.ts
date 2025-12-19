@@ -1,11 +1,27 @@
 'use server';
-import { revalidatePath } from 'next/cache';
-import { requireProfile } from '@/lib/require-profile';
 import createClient from '@/lib/supabase';
 
-type FormState = { errors?: { message?: string } } | undefined;
+type QuestionRow = {
+  id: number;
+  answer?: string | null;
+};
 
-export async function getChildren(id) {
+type ParentQuestion = {
+  id: number;
+  question_type: string | null;
+};
+
+type QuestionInput = {
+  id: number;
+  answer?: string | null;
+};
+
+const isQuestionInput = (item: unknown): item is QuestionInput => {
+  if (typeof item !== 'object' || item === null) return false;
+  return typeof (item as { id?: unknown }).id === 'number';
+};
+
+export async function getChildren(id: number): Promise<QuestionRow[] | null> {
   // console.log(id);
   const supabase = await createClient();
   // console.log("test");
@@ -14,20 +30,20 @@ export async function getChildren(id) {
     .select('*')
     .eq('parent_id', id);
   // console.log(questions);
-  return questions;
+  return questions as QuestionRow[] | null;
 }
 
-export async function saveQuestions(questions, parent) {
+export async function saveQuestions(
+  questions: unknown[],
+  parent: ParentQuestion
+): Promise<void> {
   const supabase = await createClient();
   let current_questions = await getChildren(parent.id);
   if (!current_questions) current_questions = [];
   for (const item of current_questions) {
     if (
       !questions.some(
-        (question) =>
-          typeof question === 'object' &&
-          question !== null &&
-          question.id === item.id
+        (question) => isQuestionInput(question) && question.id === item.id
       )
     ) {
       // delete
@@ -48,7 +64,7 @@ export async function saveQuestions(questions, parent) {
 
   // Fragen aktualisieren oder erstellen
   for (const item of questions) {
-    if (typeof item === 'object' && item !== null) {
+    if (isQuestionInput(item)) {
       if (current_questions.some((question) => question.id === item.id)) {
         // update
         console.log('update', item.id);
