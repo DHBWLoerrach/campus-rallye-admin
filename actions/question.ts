@@ -26,6 +26,7 @@ export async function getCategories(): Promise<string[]> {
 }
 
 export async function getQuestionById(id: number): Promise<Question | null> {
+  await requireProfile();
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -50,6 +51,7 @@ export async function getQuestions(filters: {
   type?: string;
   category?: string;
 }): Promise<Question[]> {
+  await requireProfile();
   const supabase = await createClient();
 
   // Build base query with nested answers to avoid N+1

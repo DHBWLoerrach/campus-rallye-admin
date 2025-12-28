@@ -41,6 +41,7 @@ export async function updateVotingBatch(
 }
 
 export async function getVotingQuestions(rallyeId: number): Promise<number[]> {
+  await requireProfile();
   const supabase = await createClient();
 
   const { data, error } = await supabase

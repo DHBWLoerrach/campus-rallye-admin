@@ -59,6 +59,7 @@ export async function assignQuestionsToRallye(
 }
 
 export async function getRallyeQuestions(rallyeId: number) {
+  await requireProfile();
   const supabase = await createClient();
 
   const { data, error } = await supabase

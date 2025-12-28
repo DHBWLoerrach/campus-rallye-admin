@@ -1,5 +1,6 @@
 'use server';
 import createClient from '@/lib/supabase';
+import { requireProfile } from '@/lib/require-profile';
 
 type QuestionRow = {
   id: number;
@@ -22,6 +23,7 @@ const isQuestionInput = (item: unknown): item is QuestionInput => {
 };
 
 export async function getChildren(id: number): Promise<QuestionRow[] | null> {
+  await requireProfile();
   // console.log(id);
   const supabase = await createClient();
   // console.log("test");
@@ -37,6 +39,7 @@ export async function saveQuestions(
   questions: unknown[],
   parent: ParentQuestion
 ): Promise<void> {
+  await requireProfile();
   const supabase = await createClient();
   let current_questions = await getChildren(parent.id);
   if (!current_questions) current_questions = [];

@@ -41,7 +41,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
     studiengang: formData.get('studiengang') as string,
     password: formData.get('password') as string,
   };
-  
+
   const { error } = await supabase
     .from('rallye')
     .update({
@@ -62,6 +62,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
 }
 
 export async function getRallyes(): Promise<Rallye[]> {
+  await requireProfile();
   const supabase = await createClient();
 
   const { data, error } = await supabase
