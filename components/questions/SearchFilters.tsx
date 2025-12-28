@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { getCategories } from '@/actions/question';
+import React, { useState } from 'react';
 import { questionTypes } from '../../helpers/questionTypes';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,13 +18,13 @@ interface SearchFiltersProps {
     category?: string;
     assigned?: boolean;
   }) => void;
-  categories?: string[];
+  categories: string[];
   showAssignedToggle?: boolean;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
   onFilterChange,
-  categories: categoriesProp,
+  categories,
   showAssignedToggle = true,
 }) => {
   const [filters, setFilters] = useState({
@@ -35,9 +34,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     category: '',
     assigned: undefined,
   });
-  const [categories, setCategories] = useState<string[]>(categoriesProp || []);
-  const resolvedCategories =
-    categoriesProp && categoriesProp.length > 0 ? categoriesProp : categories;
 
   const handleChange = (field: string, value: string | boolean | undefined) => {
     const newFilters = { ...filters, [field]: value };
@@ -45,24 +41,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     onFilterChange(newFilters);
   };
 
-  useEffect(() => {
-    // Use provided categories if available; otherwise fetch
-    if (categoriesProp && categoriesProp.length > 0) {
-      return;
-    }
-    const fetchCategories = async () => {
-      try {
-        let data: Array<string> = [];
-        data = await getCategories();
-        setCategories(data);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        // todo return error message
-      }
-    };
-
-    fetchCategories();
-  }, [categoriesProp]);
   return (
     <>
       <div className="flex flex-wrap gap-4 flex-1">
@@ -95,7 +73,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
-            {resolvedCategories.map((category) => (
+            {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
               </SelectItem>

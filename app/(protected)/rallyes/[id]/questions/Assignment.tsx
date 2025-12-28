@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -70,11 +70,11 @@ export default function Assignment({
     remove: number[];
   }>({ add: [], remove: [] });
 
-  // Track last saved state to detect unsaved changes
-  const [savedSelectedQuestions, setSavedSelectedQuestions] = useState<
-    number[]
-  >(initialSelectedQuestions || []);
-  const [savedVotingQuestions, setSavedVotingQuestions] = useState<number[]>(
+  // Track last saved state to detect unsaved changes (using refs to avoid effect sync)
+  const savedSelectedQuestionsRef = useRef<number[]>(
+    initialSelectedQuestions || []
+  );
+  const savedVotingQuestionsRef = useRef<number[]>(
     initialVotingQuestions || []
   );
 
@@ -94,14 +94,6 @@ export default function Assignment({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rallyeId]);
 
-  // Keep saved baselines in sync when props change (SSR preloaded data)
-  useEffect(() => {
-    setSavedSelectedQuestions(initialSelectedQuestions || []);
-  }, [initialSelectedQuestions]);
-  useEffect(() => {
-    setSavedVotingQuestions(initialVotingQuestions || []);
-  }, [initialVotingQuestions]);
-
   const loadExistingAssignments = async (rallyeId: number) => {
     try {
       const [existingQuestions, existingVotes] = await Promise.all([
@@ -111,8 +103,8 @@ export default function Assignment({
       setSelectedQuestions(existingQuestions);
       setVotingQuestions(existingVotes);
       // Update saved baselines to what exists in DB now
-      setSavedSelectedQuestions(existingQuestions);
-      setSavedVotingQuestions(existingVotes);
+      savedSelectedQuestionsRef.current = existingQuestions;
+      savedVotingQuestionsRef.current = existingVotes;
     } catch (error) {
       console.error('Error loading existing assignments:', error);
       // todo return error message
@@ -171,8 +163,8 @@ export default function Assignment({
   };
 
   const hasUnsavedChanges =
-    !arraysEqualAsSets(selectedQuestions, savedSelectedQuestions) ||
-    !arraysEqualAsSets(votingQuestions, savedVotingQuestions) ||
+    !arraysEqualAsSets(selectedQuestions, savedSelectedQuestionsRef.current) ||
+    !arraysEqualAsSets(votingQuestions, savedVotingQuestionsRef.current) ||
     pendingVotingChanges.add.length > 0 ||
     pendingVotingChanges.remove.length > 0;
 
