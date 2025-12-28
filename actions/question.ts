@@ -121,6 +121,7 @@ export async function createQuestion(data: {
   bucket_path?: string;
   answers: { correct: boolean; text?: string }[];
 }) {
+  await requireProfile();
   try {
     const supabase = await createClient();
 
@@ -196,6 +197,7 @@ export async function updateQuestion(
     answers: { id?: number; correct: boolean; text?: string }[];
   }
 ) {
+  await requireProfile();
   try {
     const supabase = await createClient();
 
@@ -295,6 +297,7 @@ export async function updateQuestion(
 }
 
 export async function deleteQuestion(id: number) {
+  await requireProfile();
   try {
     const supabase = await createClient();
     // delete answers first
