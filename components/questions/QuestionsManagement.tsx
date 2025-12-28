@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { getQuestions } from '@/actions/question';
@@ -8,8 +8,16 @@ import QuestionsTable from './QuestionsTable';
 import type { Question } from '@/helpers/questions';
 import SearchFilters from './SearchFilters';
 
-export default function QuestionManagement() {
-  const [questions, setQuestions] = useState<Question[]>();
+interface Props {
+  initialQuestions: Question[];
+  categories: string[];
+}
+
+export default function QuestionManagement({
+  initialQuestions,
+  categories,
+}: Props) {
+  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
 
   const handleFilterChange = async (filters: {
     question?: string;
@@ -21,14 +29,6 @@ export default function QuestionManagement() {
     const fetchedQuestions: Question[] = await getQuestions(filters);
     setQuestions(fetchedQuestions);
   };
-
-  useEffect(() => {
-    const fetchInitial = async () => {
-      const fetchedQuestions: Question[] = await getQuestions({});
-      setQuestions(fetchedQuestions);
-    };
-    fetchInitial();
-  }, []);
 
   // antworten wir empfelen Antworten nicht länger als ... Zeichen 50?
 
@@ -43,6 +43,7 @@ export default function QuestionManagement() {
           <SearchFilters
             onFilterChange={handleFilterChange}
             showAssignedToggle={false}
+            categories={categories}
           />
           <Button asChild className="bg-dhbw">
             <Link href="/questions/new">

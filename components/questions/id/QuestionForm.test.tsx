@@ -1,15 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import QuestionForm from './QuestionForm';
 import type { Question } from '@/helpers/questions';
-import { getCategories } from '@/actions/question';
-
-vi.mock('@/actions/question', () => ({
-  getCategories: vi.fn().mockResolvedValue([]),
-}));
 
 describe('QuestionForm', () => {
-  it('normalizes null values to empty strings for inputs', async () => {
+  it('normalizes null values to empty strings for inputs', () => {
     const initialData = {
       hint: null,
       category: null,
@@ -25,10 +20,9 @@ describe('QuestionForm', () => {
         initialData={initialData}
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
+        categories={['Test Category']}
       />
     );
-
-    await waitFor(() => expect(getCategories).toHaveBeenCalled());
 
     expect(screen.getByLabelText('Hinweis')).toHaveValue('');
     expect(screen.getByPlaceholderText(/Antwort/i)).toHaveValue('');

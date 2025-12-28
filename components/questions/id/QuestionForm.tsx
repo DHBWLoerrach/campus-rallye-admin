@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Plus, Minus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
-import { getCategories } from '@/actions/question';
 import QuestionImage from './QuestionImage';
 
 interface QuestionFormProps {
@@ -21,6 +20,7 @@ interface QuestionFormProps {
   onSubmit: (data: QuestionFormData) => void;
   onCancel: () => void;
   onDelete?: () => void;
+  categories: string[];
 }
 
 interface FormErrors {
@@ -36,6 +36,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   onSubmit,
   onCancel,
   onDelete,
+  categories,
 }) => {
   const [formData, setFormData] = useState<QuestionFormData>({
     content: initialData?.content || '',
@@ -47,17 +48,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     answers: initialData?.answers || [{ id: 0, correct: true, text: '' }],
   });
 
-  const [categories, setCategories] = useState<string[]>([]);
   const [isNewCategory, setIsNewCategory] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      const fetchedCategories = await getCategories();
-      setCategories(fetchedCategories);
-    };
-    loadCategories();
-  }, []);
 
   const handleFormChange = <K extends keyof QuestionFormData>(
     field: K,
@@ -390,7 +382,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           <Button type="button" variant="outline" onClick={onCancel}>
             Abbrechen
           </Button>
-          <Button type="submit" /*className="bg-blue-600 text-white"*/ variant="dhbwStyle">
+          <Button
+            type="submit"
+            /*className="bg-blue-600 text-white"*/ variant="dhbwStyle"
+          >
             Speichern
           </Button>
           {onDelete && (

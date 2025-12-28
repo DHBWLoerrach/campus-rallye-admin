@@ -1,8 +1,7 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  getQuestionById,
   createQuestion,
   updateQuestion,
   deleteQuestion,
@@ -10,23 +9,14 @@ import {
 import { Question, QuestionFormData } from '@/helpers/questions';
 import QuestionForm from '@/components/questions/id/QuestionForm';
 
-const QuestionPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const router = useRouter();
-  const [initialData, setInitialData] = useState<Question | null>(null);
+interface Props {
+  id: string;
+  initialData: Question | null;
+  categories: string[];
+}
 
-  useEffect(() => {
-    if (id === 'new') {
-      return;
-    }
-    if (id) {
-      getQuestionById(Number(id)).then((data) => {
-        if (data) {
-          setInitialData(data);
-        }
-      });
-    }
-  }, [id]);
+const QuestionPage: React.FC<Props> = ({ id, initialData, categories }) => {
+  const router = useRouter();
 
   const handleSubmit = async (data: QuestionFormData) => {
     try {
@@ -59,10 +49,6 @@ const QuestionPage: React.FC = () => {
     }
   };
 
-  if (!initialData && id !== 'new') {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl mb-4">
@@ -73,6 +59,7 @@ const QuestionPage: React.FC = () => {
         onCancel={handleCancel}
         onDelete={id !== 'new' ? handleDelete : undefined}
         initialData={initialData}
+        categories={categories}
       />
     </div>
   );

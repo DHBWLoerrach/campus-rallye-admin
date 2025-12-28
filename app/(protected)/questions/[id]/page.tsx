@@ -1,12 +1,22 @@
-import { NextPage } from 'next';
 import QuestionPage from '@/components/questions/id/QuestionPage';
+import { getQuestionById, getCategories } from '@/actions/question';
 
-const Question: NextPage = () => {
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export default async function Question({ params }: Props) {
+  const { id } = await params;
+  const isNew = id === 'new';
+
+  const [question, categories] = await Promise.all([
+    isNew ? Promise.resolve(null) : getQuestionById(Number(id)),
+    getCategories(),
+  ]);
+
   return (
     <main className="m-4">
-      <QuestionPage />
+      <QuestionPage id={id} initialData={question} categories={categories} />
     </main>
   );
-};
-
-export default Question;
+}
