@@ -11,7 +11,11 @@ type Profile = {
 const cachedProfiles = new Map<string, Profile>();
 
 export async function requireProfile(createProfile = false): Promise<Profile> {
-  const { uuid, email } = await getUserContext();
+  const { uuid, email, roles } = await getUserContext();
+
+  if (!roles.includes('staff')) {
+    throw new Error('Zugriff verweigert');
+  }
 
   const cached = cachedProfiles.get(uuid);
   if (cached) return cached;
