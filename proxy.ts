@@ -28,7 +28,7 @@ export async function proxy(req: NextRequest) {
 
   if (token) {
     try {
-      const { payload } = await verifyKeycloakToken(token, keycloakConfig);
+      const payload = await verifyKeycloakToken(token, keycloakConfig);
       // Normalized extraction to support dev/prod differences
       uuid = extractKeycloakUuid(payload);
       roles = extractKeycloakRoles(payload);

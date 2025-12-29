@@ -60,7 +60,7 @@ export async function verifyKeycloakToken(
   // Note: We intentionally do NOT enforce `aud` here because our Keycloak server delivers other values as audience ('account').
   // If there would be an Audience Mapper in Keycloak, we could enforce aud as an additional check.
 
-  return { payload };
+  return payload;
 }
 
 export function extractKeycloakUuid(payload: KeycloakTokenPayload) {

@@ -19,7 +19,7 @@ export async function getUserContext(): Promise<UserContext> {
   if (!token) throw new Error('Missing access token header');
 
   try {
-    const { payload } = await verifyKeycloakToken(token);
+    const payload = await verifyKeycloakToken(token);
     const uuid = extractKeycloakUuid(payload);
     if (!uuid) throw new Error('Missing user sub/uuid in token');
 
