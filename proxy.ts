@@ -1,32 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtDecode } from 'jwt-decode';
+import {
+  extractKeycloakRoles,
+  extractKeycloakUuid,
+  getKeycloakConfig,
+  verifyKeycloakToken,
+} from '@/lib/keycloak';
 
-type TokenPayload = {
-  UUID?: string;
-  uuid?: string;
-  sub?: string;
-  roles?: string[];
-  realm_access?: { roles?: string[] };
-  resource_access?: Record<string, { roles?: string[] }>;
-};
+function safeReturnTo(req: NextRequest) {
+  const redirectTo = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+  const withLeadingSlash = redirectTo.startsWith('/')
+    ? redirectTo
+    : `/${redirectTo}`;
+  return withLeadingSlash.replace(/^\/+/, '/');
+}
 
-export function proxy(req: NextRequest) {
-  // exctract access token (set by Traefik / oauth2-proxy)
-  const token = req.headers.get('x-forwarded-access-token') ?? '';
+export async function proxy(req: NextRequest) {
+  // extract access token (set by Traefik / oauth2-proxy)
+  const token = req.headers.get('x-forwarded-access-token');
   let uuid: string | null = null;
   let roles: string[] = [];
 
+  const keycloakConfig = getKeycloakConfig();
+  if (!keycloakConfig) {
+    console.error('Missing KEYCLOAK_ISSUER or KEYCLOAK_AUDIENCE');
+    return NextResponse.redirect(new URL('/access-denied', req.url));
+  }
+
   if (token) {
     try {
-      const data = jwtDecode<TokenPayload>(token);
-      // Normalized extraction to support dev/prod differences
-      uuid = data.UUID ?? data.uuid ?? data.sub ?? null;
-      const resourceRoles = Object.values(data.resource_access ?? {}).flatMap(
-        (resource) => resource.roles ?? []
+      const { payload, audience } = await verifyKeycloakToken(
+        token,
+        keycloakConfig
       );
-      const extracted =
-        data?.realm_access?.roles ?? data?.roles ?? resourceRoles ?? [];
-      roles = Array.isArray(extracted) ? extracted : [];
+      // Normalized extraction to support dev/prod differences
+      uuid = extractKeycloakUuid(payload);
+      roles = extractKeycloakRoles(payload, audience);
     } catch {
       console.warn('Invalid token');
     }
@@ -39,9 +47,8 @@ export function proxy(req: NextRequest) {
     const authUrl = isDev
       ? 'http://localhost:4181/oauth2/start'
       : '/oauth2/start';
-    const redirectTo = `${req.nextUrl.pathname}${req.nextUrl.search}`;
     const loginUrl = new URL(authUrl, req.url);
-    loginUrl.searchParams.set('rd', redirectTo);
+    loginUrl.searchParams.set('rd', safeReturnTo(req));
     return NextResponse.redirect(loginUrl);
   }
 

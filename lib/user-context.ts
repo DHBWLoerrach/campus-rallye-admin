@@ -1,6 +1,11 @@
 import { headers } from 'next/headers';
-import { SignJWT, type JWTPayload } from 'jose';
-import { jwtDecode } from 'jwt-decode';
+import { SignJWT } from 'jose';
+import {
+  extractKeycloakEmail,
+  extractKeycloakRoles,
+  extractKeycloakUuid,
+  verifyKeycloakToken,
+} from '@/lib/keycloak';
 
 type UserContext = {
   uuid: string;
@@ -8,58 +13,18 @@ type UserContext = {
   roles: string[];
 };
 
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((v) => typeof v === 'string');
-}
-
-function getStringClaim(
-  claims: Record<string, unknown>,
-  key: string
-): string | undefined {
-  const value = claims[key];
-  return typeof value === 'string' ? value : undefined;
-}
-
-function getRolesFromRealmAccess(value: unknown): string[] | null {
-  if (!value || typeof value !== 'object') return null;
-  const roles = (value as { roles?: unknown }).roles;
-  return isStringArray(roles) ? roles : null;
-}
-
-function getRolesFromResourceAccess(value: unknown): string[] {
-  if (!value || typeof value !== 'object') return [];
-  return Object.values(value as Record<string, unknown>).flatMap((resource) => {
-    if (!resource || typeof resource !== 'object') return [];
-    const roles = (resource as { roles?: unknown }).roles;
-    return isStringArray(roles) ? roles : [];
-  });
-}
-
 export async function getUserContext(): Promise<UserContext> {
   const h = await headers();
   const token = h.get('x-forwarded-access-token');
   if (!token) throw new Error('Missing access token header');
 
   try {
-    const data = jwtDecode<JWTPayload & Record<string, unknown>>(token);
-    const claims = data as JWTPayload & Record<string, unknown>;
-
-    const uuid =
-      getStringClaim(claims, 'UUID') ??
-      getStringClaim(claims, 'uuid') ??
-      claims.sub ??
-      null;
+    const { payload, audience } = await verifyKeycloakToken(token);
+    const uuid = extractKeycloakUuid(payload);
     if (!uuid) throw new Error('Missing user sub/uuid in token');
 
-    const email =
-      getStringClaim(claims, 'email') ??
-      getStringClaim(claims, 'preferred_username') ??
-      null;
-
-    const realmRoles = getRolesFromRealmAccess(claims['realm_access']);
-    const directRoles = isStringArray(claims['roles']) ? claims['roles'] : null;
-    const resourceRoles = getRolesFromResourceAccess(claims['resource_access']);
-    const roles = realmRoles ?? directRoles ?? resourceRoles;
+    const email = extractKeycloakEmail(payload);
+    const roles = extractKeycloakRoles(payload, audience);
 
     return { uuid, email, roles };
   } catch (err) {

@@ -1,0 +1,117 @@
+// @vitest-environment node
+import { SignJWT, exportJWK, generateKeyPair } from 'jose';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
+const AUDIENCE = 'campusrallye';
+const KEY_ID = 'test-key';
+
+const { mockHeaders } = vi.hoisted(() => ({
+  mockHeaders: vi.fn(),
+}));
+
+vi.mock('next/headers', () => ({
+  headers: mockHeaders,
+}));
+
+let privateKey: Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
+let getUserContext: typeof import('./user-context').getUserContext;
+
+beforeAll(async () => {
+  process.env.KEYCLOAK_ISSUER = ISSUER;
+  process.env.KEYCLOAK_AUDIENCE = AUDIENCE;
+
+  const { publicKey, privateKey: pk } = await generateKeyPair('RS256');
+  privateKey = pk;
+  const jwk = await exportJWK(publicKey);
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => {
+      const jwks = { keys: [{ ...jwk, kid: KEY_ID, use: 'sig', alg: 'RS256' }] };
+      return new Response(JSON.stringify(jwks), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    })
+  );
+
+  ({ getUserContext } = await import('./user-context'));
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+  delete process.env.KEYCLOAK_ISSUER;
+  delete process.env.KEYCLOAK_AUDIENCE;
+});
+
+beforeEach(() => {
+  mockHeaders.mockReset();
+});
+
+async function signToken({
+  roles = [],
+  aud = AUDIENCE,
+  azp,
+  subject = 'user-123',
+  email = 'user@example.test',
+}: {
+  roles?: string[];
+  aud?: string;
+  azp?: string;
+  subject?: string;
+  email?: string;
+} = {}) {
+  const payload: Record<string, unknown> = {
+    realm_access: { roles },
+    resource_access: { [AUDIENCE]: { roles } },
+    email,
+  };
+  if (azp) {
+    payload.azp = azp;
+  }
+
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: 'RS256', kid: KEY_ID })
+    .setIssuedAt()
+    .setIssuer(ISSUER)
+    .setAudience(aud)
+    .setSubject(subject)
+    .setExpirationTime('2h')
+    .sign(privateKey);
+}
+
+function setTokenHeader(token?: string) {
+  const headers = new Headers();
+  if (token) {
+    headers.set('x-forwarded-access-token', token);
+  }
+  mockHeaders.mockResolvedValue(headers);
+}
+
+describe('getUserContext', () => {
+  it('returns user context for a valid token', async () => {
+    const token = await signToken({ roles: ['staff'] });
+    setTokenHeader(token);
+
+    await expect(getUserContext()).resolves.toEqual({
+      uuid: 'user-123',
+      email: 'user@example.test',
+      roles: ['staff'],
+    });
+  });
+
+  it('rejects tokens with the wrong audience', async () => {
+    const token = await signToken({ aud: 'other', azp: 'other' });
+    setTokenHeader(token);
+
+    await expect(getUserContext()).rejects.toThrow('Invalid access token');
+  });
+
+  it('rejects when the token header is missing', async () => {
+    setTokenHeader();
+    await expect(getUserContext()).rejects.toThrow(
+      'Missing access token header'
+    );
+  });
+});
