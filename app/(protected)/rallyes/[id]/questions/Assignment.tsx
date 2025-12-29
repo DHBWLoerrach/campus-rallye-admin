@@ -209,7 +209,7 @@ export default function Assignment({
             <div className="sticky top-0 z-10 bg-card">
               <SearchFilters
                 onFilterChange={handleFilterChange}
-                categories={initialCategories}
+                categories={initialCategories ?? []}
               />
             </div>
             <div className="border rounded-md h-[60vh] overflow-y-auto">
