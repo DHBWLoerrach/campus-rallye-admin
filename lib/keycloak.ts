@@ -87,18 +87,3 @@ export function extractKeycloakRoles(payload: KeycloakTokenPayload) {
     : [];
   return realmRoles;
 }
-
-// export function extractKeycloakRoles(
-//   payload: KeycloakTokenPayload,
-//   audience: string
-// ) {
-//   const realmRoles = Array.isArray(payload.realm_access?.roles)
-//     ? payload.realm_access?.roles
-//     : [];
-//   const resourceRoles = Array.isArray(
-//     payload.resource_access?.[audience]?.roles
-//   )
-//     ? payload.resource_access?.[audience]?.roles
-//     : [];
-//   return Array.from(new Set([...realmRoles, ...resourceRoles]));
-// }
