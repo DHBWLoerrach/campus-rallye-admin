@@ -16,10 +16,12 @@ vi.mock('next/headers', () => ({
 
 let privateKey: Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
 let getUserContext: typeof import('./user-context').getUserContext;
+let getSupabaseJwt: typeof import('./user-context').getSupabaseJwt;
 
 beforeAll(async () => {
   process.env.KEYCLOAK_ISSUER = ISSUER;
   process.env.KEYCLOAK_AUDIENCE = AUDIENCE;
+  process.env.SUPABASE_JWT_SECRET = 'test-secret';
 
   const { publicKey, privateKey: pk } = await generateKeyPair('RS256');
   privateKey = pk;
@@ -36,13 +38,14 @@ beforeAll(async () => {
     })
   );
 
-  ({ getUserContext } = await import('./user-context'));
+  ({ getUserContext, getSupabaseJwt } = await import('./user-context'));
 });
 
 afterAll(() => {
   vi.unstubAllGlobals();
   delete process.env.KEYCLOAK_ISSUER;
   delete process.env.KEYCLOAK_AUDIENCE;
+  delete process.env.SUPABASE_JWT_SECRET;
 });
 
 beforeEach(() => {
@@ -113,5 +116,22 @@ describe('getUserContext', () => {
     await expect(getUserContext()).rejects.toThrow(
       'Missing access token header'
     );
+  });
+});
+
+describe('getSupabaseJwt', () => {
+  it('returns a jwt for staff users', async () => {
+    const token = await signToken({ roles: ['staff'], subject: 'staff-123' });
+    setTokenHeader(token);
+
+    const jwt = await getSupabaseJwt();
+    expect(jwt.split('.')).toHaveLength(3);
+  });
+
+  it('rejects non-staff users', async () => {
+    const token = await signToken({ roles: ['student'], subject: 'user-456' });
+    setTokenHeader(token);
+
+    await expect(getSupabaseJwt()).rejects.toThrow('Zugriff verweigert');
   });
 });
