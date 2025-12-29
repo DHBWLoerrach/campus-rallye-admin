@@ -28,13 +28,10 @@ export async function proxy(req: NextRequest) {
 
   if (token) {
     try {
-      const { payload, audience } = await verifyKeycloakToken(
-        token,
-        keycloakConfig
-      );
+      const { payload } = await verifyKeycloakToken(token, keycloakConfig);
       // Normalized extraction to support dev/prod differences
       uuid = extractKeycloakUuid(payload);
-      roles = extractKeycloakRoles(payload, audience);
+      roles = extractKeycloakRoles(payload);
     } catch {
       console.warn('Invalid token');
     }

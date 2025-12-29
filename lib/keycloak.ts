@@ -50,16 +50,17 @@ export async function verifyKeycloakToken(
     }
   );
 
-  const azp = typeof payload.azp === 'string' ? payload.azp : null;
   // Keycloak often doesn't put the client_id into `aud` for access tokens in all flows.
   // `azp` ("authorized party") is the most reliable binding to the OIDC client that obtained the token.
   // If this is not our expected client_id, treat it as a token for a different client/context.
-  if (!azp || azp !== resolved.audience) throw new Error('Invalid azp');
+  if (typeof payload.azp !== 'string' || payload.azp !== resolved.audience) {
+    throw new Error('Invalid azp');
+  }
 
   // Note: We intentionally do NOT enforce `aud` here because our Keycloak server delivers other values as audience ('account').
   // If there would be an Audience Mapper in Keycloak, we could enforce aud as an additional check.
 
-  return { payload, audience: resolved.audience };
+  return { payload };
 }
 
 export function extractKeycloakUuid(payload: KeycloakTokenPayload) {
@@ -80,17 +81,24 @@ export function extractKeycloakEmail(payload: KeycloakTokenPayload) {
   );
 }
 
-export function extractKeycloakRoles(
-  payload: KeycloakTokenPayload,
-  audience: string
-) {
+export function extractKeycloakRoles(payload: KeycloakTokenPayload) {
   const realmRoles = Array.isArray(payload.realm_access?.roles)
-    ? payload.realm_access?.roles
+    ? payload.realm_access.roles
     : [];
-  const resourceRoles = Array.isArray(
-    payload.resource_access?.[audience]?.roles
-  )
-    ? payload.resource_access?.[audience]?.roles
-    : [];
-  return Array.from(new Set([...realmRoles, ...resourceRoles]));
+  return realmRoles;
 }
+
+// export function extractKeycloakRoles(
+//   payload: KeycloakTokenPayload,
+//   audience: string
+// ) {
+//   const realmRoles = Array.isArray(payload.realm_access?.roles)
+//     ? payload.realm_access?.roles
+//     : [];
+//   const resourceRoles = Array.isArray(
+//     payload.resource_access?.[audience]?.roles
+//   )
+//     ? payload.resource_access?.[audience]?.roles
+//     : [];
+//   return Array.from(new Set([...realmRoles, ...resourceRoles]));
+// }
