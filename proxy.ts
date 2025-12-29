@@ -58,7 +58,10 @@ export async function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-// 💡 Apply this middleware only to protected paths
+// Middleware configuration: Protects all routes except explicitly defined exceptions.
+// Exceptions: root, the access-denied page, favicon, Next.js static assets, and the `assets` path.
 export const config = {
-  matcher: ['/questions/:path*', '/rallyes/:path*', '/api/:path*'],
+  matcher: [
+    '/((?!$|access-denied|favicon\\.ico|_next/static|_next/image|assets).*)',
+  ],
 };
