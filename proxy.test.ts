@@ -40,8 +40,8 @@ afterAll(() => {
 
 async function signToken({
   roles = [],
-  aud = AUDIENCE,
-  azp,
+  aud = 'account',
+  azp = AUDIENCE,
   subject = 'user-123',
 }: {
   roles?: string[];
@@ -94,7 +94,7 @@ describe('proxy', () => {
   });
 
   it('redirects invalid tokens to login', async () => {
-    const token = await signToken({ aud: 'other', azp: 'other' });
+    const token = await signToken({ azp: 'other' });
     const response = await proxy(buildRequest('/questions?tab=1', token));
 
     const location = response.headers.get('location');

@@ -34,6 +34,7 @@ export async function verifyKeycloakToken(
 ) {
   const resolved = config ?? getKeycloakConfig();
   if (!resolved) {
+    // if issuer/audience are missing, we cannot verify trust boundaries.
     throw new Error('Missing KEYCLOAK_ISSUER or KEYCLOAK_AUDIENCE');
   }
 
@@ -41,22 +42,22 @@ export async function verifyKeycloakToken(
     token,
     resolved.jwks,
     {
+      // issuer must match exactly (prevents accepting tokens from a different realm/IdP).
       issuer: resolved.issuer,
       algorithms: ['RS256'],
+      // tolerate small clock skew; jwtVerify still enforces exp/nbf by default.
+      clockTolerance: '5s',
     }
   );
 
-  // KEYCLOAK_AUDIENCE is the Keycloak client_id; some flows may not include
-  // the client_id in aud, so we accept azp as a fallback for the authorized party.
-  const tokenAud = Array.isArray(payload.aud)
-    ? payload.aud
-    : payload.aud
-      ? [payload.aud]
-      : [];
   const azp = typeof payload.azp === 'string' ? payload.azp : null;
-  if (!tokenAud.includes(resolved.audience) && azp !== resolved.audience) {
-    throw new Error('Invalid audience');
-  }
+  // Keycloak often doesn't put the client_id into `aud` for access tokens in all flows.
+  // `azp` ("authorized party") is the most reliable binding to the OIDC client that obtained the token.
+  // If this is not our expected client_id, treat it as a token for a different client/context.
+  if (!azp || azp !== resolved.audience) throw new Error('Invalid azp');
+
+  // Note: We intentionally do NOT enforce `aud` here because our Keycloak server delivers other values as audience ('account').
+  // If there would be an Audience Mapper in Keycloak, we could enforce aud as an additional check.
 
   return { payload, audience: resolved.audience };
 }
@@ -86,7 +87,9 @@ export function extractKeycloakRoles(
   const realmRoles = Array.isArray(payload.realm_access?.roles)
     ? payload.realm_access?.roles
     : [];
-  const resourceRoles = Array.isArray(payload.resource_access?.[audience]?.roles)
+  const resourceRoles = Array.isArray(
+    payload.resource_access?.[audience]?.roles
+  )
     ? payload.resource_access?.[audience]?.roles
     : [];
   return Array.from(new Set([...realmRoles, ...resourceRoles]));

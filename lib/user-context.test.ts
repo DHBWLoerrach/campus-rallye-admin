@@ -51,8 +51,8 @@ beforeEach(() => {
 
 async function signToken({
   roles = [],
-  aud = AUDIENCE,
-  azp,
+  aud = 'account',
+  azp = AUDIENCE,
   subject = 'user-123',
   email = 'user@example.test',
 }: {
@@ -101,8 +101,8 @@ describe('getUserContext', () => {
     });
   });
 
-  it('rejects tokens with the wrong audience', async () => {
-    const token = await signToken({ aud: 'other', azp: 'other' });
+  it('rejects tokens with the wrong azp', async () => {
+    const token = await signToken({ azp: 'other' });
     setTokenHeader(token);
 
     await expect(getUserContext()).rejects.toThrow('Invalid access token');
