@@ -46,9 +46,13 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     onFilterChange(newFilters);
   };
 
+  const gridClassName = rallyes?.length
+    ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px_220px]'
+    : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px]';
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px]">
+      <div className={gridClassName}>
         <Input
           placeholder="Suche (Frage)"
           onChange={(e) => handleChange('question', e.target.value)}
@@ -85,7 +89,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         </Select>
         {rallyes && (
           <Select onValueChange={(value) => handleChange('rallyeId', value)}>
-            <SelectTrigger className="w-[220px]" aria-label="Rallye">
+            <SelectTrigger className="w-full" aria-label="Rallye">
               <SelectValue placeholder="Rallye" />
             </SelectTrigger>
             <SelectContent>
@@ -98,22 +102,19 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             </SelectContent>
           </Select>
         )}
-        {showAssignedToggle && (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="assigned-toggle"
-              checked={filters.assigned === true}
-              onCheckedChange={(checked) =>
-                handleChange('assigned', checked === true ? true : undefined)
-              }
-            />
-            <label htmlFor="assigned-toggle" className="text-sm">
-              Nur ausgewählte Fragen
-            </label>
-          </div>
-        )}
       </div>
-      {/* assigned toggle is shown inline in the grid when `showAssignedToggle` is true */}
+      {showAssignedToggle && (
+        <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          <Checkbox
+            id="assigned-toggle"
+            checked={filters.assigned === true}
+            onCheckedChange={(checked) =>
+              handleChange('assigned', checked === true ? true : undefined)
+            }
+          />
+          <label htmlFor="assigned-toggle">Nur ausgewählte Fragen</label>
+        </div>
+      )}
     </div>
   );
 };
