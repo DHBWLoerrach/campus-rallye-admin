@@ -4,7 +4,12 @@ import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
 import { Rallye, RallyeOption, RallyeStatus } from '@/lib/types';
 
-type FormState = { errors?: { message?: string } } | undefined;
+type FormState =
+  | {
+      errors?: { message?: string };
+      success?: { message?: string; rallyeId?: number };
+    }
+  | undefined;
 
 export async function createRallye(state: FormState, formData: FormData) {
   await requireProfile();
@@ -12,21 +17,30 @@ export async function createRallye(state: FormState, formData: FormData) {
 
   const data = { name: formData.get('name') as string };
 
-  const { error } = await supabase.from('rallye').insert({
-    name: data.name,
-    status: 'inactive' as RallyeStatus,
-    end_time: new Date(),
-    studiengang: 'Kein Studiengang',
-    password: '',
-  });
+  const { data: createdRallye, error } = await supabase
+    .from('rallye')
+    .insert({
+      name: data.name,
+      status: 'inactive' as RallyeStatus,
+      end_time: new Date(),
+      studiengang: 'Kein Studiengang',
+      password: '',
+    })
+    .select('id')
+    .single();
 
-  if (error) {
+  if (error || !createdRallye) {
     console.log(error);
     return { errors: { message: 'Es ist ein Fehler aufgetreten' } };
   }
 
   revalidatePath('/');
-  return { success: { message: 'Rallye erfolgreich gespeichert' } };
+  return {
+    success: {
+      message: 'Rallye erfolgreich gespeichert',
+      rallyeId: createdRallye.id,
+    },
+  };
 }
 
 export async function updateRallye(state: FormState, formData: FormData) {
