@@ -240,12 +240,12 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
             <SaveButton />
           </div>
           {formState?.errors && (
-            <span className="text-sm text-red-500 ml-2">
+            <span className="text-sm text-destructive ml-2">
               {formState.errors.message}
             </span>
           )}
           {formState?.success && (
-            <span className="text-sm text-green-500 ml-2">
+            <span className="text-sm text-success ml-2">
               {formState.success.message}
             </span>
           )}

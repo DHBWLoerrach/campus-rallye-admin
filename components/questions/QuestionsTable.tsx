@@ -113,9 +113,9 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                         <TableCell colSpan={6}>
                           <div className="pl-6 flex items-center gap-2">
                             {answer.correct ? (
-                              <Check className="h-4 w-4 text-green-500" />
+                              <Check className="h-4 w-4 text-success" />
                             ) : (
-                              <X className="h-4 w-4 text-red-500" />
+                              <X className="h-4 w-4 text-destructive" />
                             )}
                             {answer.text}
                           </div>
