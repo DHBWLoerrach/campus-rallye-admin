@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter as FontSans } from 'next/font/google';
+import { IBM_Plex_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 
-const fontSans = FontSans({
+const fontSans = IBM_Plex_Sans({
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
   variable: '--font-sans',
 });
 
