@@ -34,6 +34,11 @@ const QuestionPage: React.FC<Props> = ({
   const hasReturnTarget = returnToParam.startsWith('/');
   const isRallyeContext = returnToParam.startsWith('/rallyes/');
   const returnLabel = isRallyeContext ? 'Zurück zur Rallye' : 'Zurück';
+  const assignedRallyeIds = new Set(initialRallyeIds);
+  const assignedRallyes = rallyes.filter((rallye) =>
+    assignedRallyeIds.has(rallye.id)
+  );
+  const hasAssignments = initialRallyeIds.length > 0;
 
   const handleSubmit = async (data: QuestionFormData) => {
     try {
@@ -91,6 +96,34 @@ const QuestionPage: React.FC<Props> = ({
           </p>
         </div>
       </section>
+
+      {hasAssignments && (
+        <div className="mb-4 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+          <span className="font-medium">Zugeordnet zu:</span>{' '}
+          {assignedRallyes.length > 0 ? (
+            <>
+              {assignedRallyes.map((rallye, index) => (
+                <React.Fragment key={rallye.id}>
+                  <Link
+                    href={`/rallyes/${rallye.id}/questions`}
+                    className="underline underline-offset-2"
+                  >
+                    {rallye.name}
+                  </Link>
+                  {index < assignedRallyes.length - 1 ? ', ' : ''}
+                </React.Fragment>
+              ))}
+              {assignedRallyes.length > 1 && (
+                <span className="ml-2 text-muted-foreground">
+                  Wirkt in allen zugeordneten Rallyes.
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-muted-foreground">Unbekannte Rallyes</span>
+          )}
+        </div>
+      )}
 
       <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <QuestionForm
