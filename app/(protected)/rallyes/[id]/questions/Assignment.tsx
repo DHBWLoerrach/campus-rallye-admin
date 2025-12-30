@@ -297,7 +297,7 @@ export default function Assignment({
                             }}
                             className={
                               !['upload', 'knowledge'].includes(question.type)
-                                ? 'data-[state=checked]:bg-gray-200 data-[state=unchecked]:bg-gray-100 border-dashed border-gray-400'
+                                ? 'border-dashed border-border/70 bg-muted/40 text-muted-foreground data-[state=checked]:bg-muted data-[state=checked]:text-muted-foreground data-[state=unchecked]:bg-muted/60'
                                 : ''
                             }
                           />
