@@ -17,9 +17,13 @@ import { getQuestionMediaPublicUrl } from '@/lib/supabase-public';
 
 interface QuestionsTableProps {
   questions: Question[];
+  rallyeMap?: Record<number, string[]>;
 }
 
-const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
+const QuestionsTable: React.FC<QuestionsTableProps> = ({
+  questions,
+  rallyeMap,
+}) => {
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   const questionTypeLabels = questionTypes.reduce<Record<string, string>>(
@@ -46,22 +50,26 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
               <TableHead className="w-8"></TableHead>
               <TableHead>Frage</TableHead>
               <TableHead>Typ</TableHead>
-              <TableHead className="w-20">Punkte</TableHead>
-              <TableHead>Bild</TableHead>
-              <TableHead>Kategorie</TableHead>
-              <TableHead>Hinweis</TableHead>
-              <TableHead>Aktionen</TableHead>
+            <TableHead className="w-20">Punkte</TableHead>
+            <TableHead>Bild</TableHead>
+            <TableHead>Kategorie</TableHead>
+            <TableHead className="w-20">Rallyes</TableHead>
+            <TableHead>Hinweis</TableHead>
+            <TableHead>Aktionen</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {questions.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={9} className="text-center">
+                Keine Einträge
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {questions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center">
-                  Keine Einträge
-                </TableCell>
-              </TableRow>
-            ) : (
-              questions.map((question) => (
+          ) : (
+            questions.map((question) => {
+              const rallyeNames = rallyeMap?.[question.id] ?? [];
+
+              return (
                 <React.Fragment key={question.id}>
                   <TableRow>
                   <TableCell>
@@ -94,6 +102,15 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                       )}
                     </TableCell>
                     <TableCell>{question.category}</TableCell>
+                    <TableCell>
+                      {rallyeNames.length === 0 ? (
+                        <span className="text-muted-foreground">0</span>
+                      ) : (
+                        <span title={rallyeNames.join(', ')}>
+                          {rallyeNames.length}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>{question.hint}</TableCell>
                     <TableCell>
                       <Button asChild variant="dhbwStyle" size="sm">
@@ -110,7 +127,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                         className="bg-muted/40 text-muted-foreground"
                       >
                         <TableCell />
-                        <TableCell colSpan={6}>
+                        <TableCell colSpan={8}>
                           <div className="pl-6 flex items-center gap-2">
                             {answer.correct ? (
                               <Check className="h-4 w-4 text-success" />
@@ -123,8 +140,9 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                       </TableRow>
                     ))}
                 </React.Fragment>
-              ))
-            )}
+              );
+            })
+          )}
           </TableBody>
         </Table>
       </div>

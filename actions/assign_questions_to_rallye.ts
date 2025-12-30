@@ -149,3 +149,65 @@ export async function getQuestionRallyes(questionId: number) {
 
   return data.map((row) => row.rallye_id);
 }
+
+export async function getQuestionRallyeMap(questionIds: number[]) {
+  await requireProfile();
+  if (questionIds.length === 0) {
+    return {} as Record<number, string[]>;
+  }
+
+  const supabase = await createClient();
+  const { data: joins, error: joinError } = await supabase
+    .from('join_rallye_questions')
+    .select('question_id, rallye_id')
+    .in('question_id', questionIds);
+
+  if (joinError) {
+    console.error('Error fetching question rallye links:', joinError);
+    return {} as Record<number, string[]>;
+  }
+
+  const rallyeIds = Array.from(
+    new Set(
+      (joins || [])
+        .map((row) => row.rallye_id)
+        .filter((id): id is number => typeof id === 'number')
+    )
+  );
+
+  if (rallyeIds.length === 0) {
+    return {} as Record<number, string[]>;
+  }
+
+  const { data: rallyes, error: rallyeError } = await supabase
+    .from('rallye')
+    .select('id, name')
+    .in('id', rallyeIds);
+
+  if (rallyeError) {
+    console.error('Error fetching rallye names:', rallyeError);
+    return {} as Record<number, string[]>;
+  }
+
+  const rallyeNameById = new Map<number, string>();
+  (rallyes || []).forEach((rallye) => {
+    rallyeNameById.set(rallye.id, rallye.name);
+  });
+
+  const map = new Map<number, string[]>();
+  (joins || []).forEach((row) => {
+    const rallyeName = rallyeNameById.get(row.rallye_id);
+    if (!rallyeName) return;
+    const existing = map.get(row.question_id) ?? [];
+    existing.push(rallyeName);
+    map.set(row.question_id, existing);
+  });
+
+  const result: Record<number, string[]> = {};
+  map.forEach((names, questionId) => {
+    result[questionId] = names.sort((a, b) =>
+      a.localeCompare(b, 'de', { sensitivity: 'base' })
+    );
+  });
+  return result;
+}
