@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
+import Link from 'next/link';
 
 interface Props {
   rallyeId: number;
@@ -224,12 +225,13 @@ export default function Assignment({
                   <TableHead className="w-20">Punkte</TableHead>
                   <TableHead>Kategorie</TableHead>
                   <TableHead className="w-8">Abstimmung</TableHead>
+                  <TableHead className="w-28">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {questions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center">
+                    <TableCell colSpan={7} className="text-center">
                       Keine Fragen verfügbar
                     </TableCell>
                   </TableRow>
@@ -291,11 +293,24 @@ export default function Assignment({
                             }}
                             className={
                               !['upload', 'knowledge'].includes(question.type)
-                                ? 'border-dashed border-border/70 bg-muted/40 text-muted-foreground data-[state=checked]:bg-muted data-[state=checked]:text-muted-foreground data-[state=unchecked]:bg-muted/60'
+                                ? 'data-[state=checked]:bg-gray-200 data-[state=unchecked]:bg-gray-100 border-dashed border-gray-400'
                                 : ''
                             }
                           />
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button asChild variant="outline" size="sm">
+                          <Link
+                            href={`/questions/${
+                              question.id
+                            }?returnTo=${encodeURIComponent(
+                              `/rallyes/${rallyeId}/questions`
+                            )}`}
+                          >
+                            Bearbeiten
+                          </Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))

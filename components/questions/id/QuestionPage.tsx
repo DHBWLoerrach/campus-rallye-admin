@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createQuestion,
   updateQuestion,
@@ -26,6 +26,9 @@ const QuestionPage: React.FC<Props> = ({
   initialRallyeIds,
 }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnToParam = searchParams.get('returnTo') ?? '';
+  const returnTo = returnToParam.startsWith('/') ? returnToParam : '/questions';
 
   const handleSubmit = async (data: QuestionFormData) => {
     try {
@@ -40,7 +43,7 @@ const QuestionPage: React.FC<Props> = ({
           answers: data.answers || [],
         });
       }
-      router.push('/questions');
+      router.push(returnTo);
     } catch (error) {
       console.error('Error submitting data:', error);
       // todo return error message
@@ -48,13 +51,13 @@ const QuestionPage: React.FC<Props> = ({
   };
 
   const handleCancel = () => {
-    router.push('/questions');
+    router.push(returnTo);
   };
 
   const handleDelete = async () => {
     if (id && id !== 'new') {
       await deleteQuestion(Number(id));
-      router.push('/questions');
+      router.push(returnTo);
     }
   };
 
