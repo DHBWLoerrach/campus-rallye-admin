@@ -15,7 +15,7 @@ export default function NavItems({ routes }: { routes: Route[] }) {
             key={route.href}
             href={route.href}
             className={cn(
-              'transition-colors hover:text-foreground px-2 py-1 hover:bg-blue-50 hover:no-underline',
+              'rounded-full px-3 py-1 transition-colors hover:bg-accent hover:text-foreground hover:no-underline',
               {
                 'border-b-2 border-dhbw': route.href === pathname,
               }
