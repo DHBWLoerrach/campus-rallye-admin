@@ -172,7 +172,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     if (formData.type !== 'upload' && validAnswers?.length === 0) {
       newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
     }
-    console.log(newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -189,7 +188,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     if (!validateForm(cleanedData)) {
       return;
     }
-    console.log(cleanedData);
     onSubmit(cleanedData);
   };
 
