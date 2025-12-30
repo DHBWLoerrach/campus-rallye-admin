@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import type { RallyeOption } from '@/lib/types';
 
 interface SearchFiltersProps {
   onFilterChange: (filters: {
@@ -16,15 +17,18 @@ interface SearchFiltersProps {
     answer?: string;
     type?: string;
     category?: string;
+    rallyeId?: string;
     assigned?: boolean;
   }) => void;
   categories: string[];
+  rallyes?: RallyeOption[];
   showAssignedToggle?: boolean;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
   onFilterChange,
   categories,
+  rallyes,
   showAssignedToggle = true,
 }) => {
   const [filters, setFilters] = useState({
@@ -32,6 +36,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     answer: '',
     type: '',
     category: '',
+    rallyeId: '',
     assigned: undefined,
   });
 
@@ -78,19 +83,37 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             ))}
           </SelectContent>
         </Select>
+        {rallyes && (
+          <Select onValueChange={(value) => handleChange('rallyeId', value)}>
+            <SelectTrigger className="w-[220px]" aria-label="Rallye">
+              <SelectValue placeholder="Rallye" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Alle Rallyes</SelectItem>
+              {rallyes.map((rallye) => (
+                <SelectItem key={rallye.id} value={rallye.id.toString()}>
+                  {rallye.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {showAssignedToggle && (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="assigned-toggle"
+              checked={filters.assigned === true}
+              onCheckedChange={(checked) =>
+                handleChange('assigned', checked === true ? true : undefined)
+              }
+            />
+            <label htmlFor="assigned-toggle" className="text-sm">
+              Nur ausgewählte Fragen
+            </label>
+          </div>
+        )}
       </div>
-      {showAssignedToggle && (
-        <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          <Checkbox
-            id="active"
-            checked={filters.assigned === true}
-            onCheckedChange={(checked) =>
-              handleChange('assigned', checked === true ? true : undefined)
-            }
-          />
-          <label htmlFor="active">Nur ausgewählte Fragen</label>
-        </div>
-      )}
+      {/* assigned toggle is shown inline in the grid when `showAssignedToggle` is true */}
     </div>
   );
 };

@@ -115,6 +115,7 @@ export default function Assignment({
     answer?: string;
     type?: string;
     category?: string;
+    rallyeId?: string;
     assigned?: boolean;
   }) => {
     const filteredQuestions = await getQuestions(filters);

@@ -7,15 +7,18 @@ import { Button } from '@/components/ui/button';
 import QuestionsTable from './QuestionsTable';
 import type { Question } from '@/helpers/questions';
 import SearchFilters from './SearchFilters';
+import type { RallyeOption } from '@/lib/types';
 
 interface Props {
   initialQuestions: Question[];
   categories: string[];
+  rallyes: RallyeOption[];
 }
 
 export default function QuestionManagement({
   initialQuestions,
   categories,
+  rallyes,
 }: Props) {
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
 
@@ -24,6 +27,7 @@ export default function QuestionManagement({
     answer?: string;
     type?: string;
     category?: string;
+    rallyeId?: string;
     assigned?: boolean;
   }) => {
     const fetchedQuestions: Question[] = await getQuestions(filters);
@@ -36,35 +40,38 @@ export default function QuestionManagement({
     return <div>Loading...</div>;
   }
 
+  // Recommend limiting answer length to ~50 characters? (TODO)
+
+  if (!questions) return <div>Loading...</div>;
+
   return (
-    <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1 text-left">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Fragen
-          </p>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Fragenkatalog
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Suchen, filtern und bearbeiten.
-          </p>
+    <div className="p-4 max-w-[1400px] mx-auto">
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-4 items-center justify-between">
+          <SearchFilters
+            onFilterChange={handleFilterChange}
+            showAssignedToggle={false}
+            categories={categories}
+            rallyes={rallyes}
+          />
+          <Button asChild variant="dhbwStyle">
+            <Link href="/questions/new">
+              <Plus className="w-4 h-4 mr-2" />
+              Erstellen
+            </Link>
+          </Button>
         </div>
-        <Button asChild variant="dhbwStyle" className="w-full sm:w-auto">
-          <Link href="/questions/new">
-            <Plus className="w-4 h-4" />
-            Erstellen
-          </Link>
-        </Button>
-      </section>
-      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
-        <SearchFilters
-          onFilterChange={handleFilterChange}
-          showAssignedToggle={false}
-          categories={categories}
-        />
-        <QuestionsTable questions={questions} />
-      </section>
+
+        <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+          <SearchFilters
+            onFilterChange={handleFilterChange}
+            showAssignedToggle={false}
+            categories={categories}
+            rallyes={rallyes}
+          />
+          <QuestionsTable questions={questions} />
+        </section>
+      </div>
     </div>
   );
 }

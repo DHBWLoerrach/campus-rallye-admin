@@ -51,6 +51,7 @@ export async function getQuestions(filters: {
   answer?: string;
   type?: string;
   category?: string;
+  rallyeId?: string;
 }): Promise<Question[]> {
   await requireProfile();
   const supabase = await createClient();
@@ -72,6 +73,35 @@ export async function getQuestions(filters: {
 
   if (filters.category && filters.category !== 'all') {
     query = query.eq('category', filters.category);
+  }
+
+  if (filters.rallyeId && filters.rallyeId !== 'all') {
+    const rallyeId = Number(filters.rallyeId);
+    if (!Number.isNaN(rallyeId)) {
+      const { data: rallyeRows, error: rallyeErr } = await supabase
+        .from('join_rallye_questions')
+        .select('question_id')
+        .eq('rallye_id', rallyeId);
+
+      if (rallyeErr) {
+        console.error('Error filtering by rallye:', rallyeErr);
+        return [];
+      }
+
+      const ids = Array.from(
+        new Set(
+          (rallyeRows || [])
+            .map((row) => row.question_id)
+            .filter((id): id is number => typeof id === 'number')
+        )
+      );
+
+      if (ids.length === 0) {
+        return [];
+      }
+
+      query = query.in('id', ids);
+    }
   }
 
   // If filtering by answer text, narrow by question IDs that match
