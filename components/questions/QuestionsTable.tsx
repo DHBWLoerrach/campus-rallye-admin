@@ -39,8 +39,8 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   };
   return (
     <>
-      <div className="border rounded-md">
-        <Table>
+      <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/90">
+        <Table className="text-sm">
           <TableHeader>
             <TableRow>
               <TableHead className="w-8"></TableHead>
@@ -64,17 +64,17 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
               questions.map((question) => (
                 <React.Fragment key={question.id}>
                   <TableRow>
-                    <TableCell>
-                      <ChevronDown
-                        className={`w-4 h-4 cursor-pointer transition-transform ${
-                          expandedRows.includes(question.id) ? 'rotate-180' : ''
-                        }`}
-                        onClick={() => toggleRow(question.id)}
-                      />
-                    </TableCell>
-                    <TableCell className="max-w-md truncate">
-                      {question.content}
-                    </TableCell>
+                  <TableCell>
+                    <ChevronDown
+                      className={`h-4 w-4 cursor-pointer text-muted-foreground transition-transform hover:text-foreground ${
+                        expandedRows.includes(question.id) ? 'rotate-180' : ''
+                      }`}
+                      onClick={() => toggleRow(question.id)}
+                    />
+                  </TableCell>
+                  <TableCell className="max-w-md truncate">
+                    {question.content}
+                  </TableCell>
                     <TableCell>{questionTypeLabels[question.type]}</TableCell>
                     <TableCell>{question.points}</TableCell>
                     <TableCell>
@@ -88,7 +88,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                           className="object-cover rounded"
                         />
                       ) : (
-                        <span className="text-gray-400 flex justify-center">
+                        <span className="flex justify-center text-muted-foreground">
                           -
                         </span>
                       )}
@@ -96,7 +96,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     <TableCell>{question.category}</TableCell>
                     <TableCell>{question.hint}</TableCell>
                     <TableCell>
-                      <Button asChild className="bg-dhbw">
+                      <Button asChild variant="dhbwStyle" size="sm">
                         <Link href={`/questions/${question.id}`}>
                           Bearbeiten
                         </Link>
@@ -105,7 +105,10 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                   </TableRow>
                   {expandedRows.includes(question.id) &&
                     question.answers?.map((answer) => (
-                      <TableRow key={answer.id} className="bg-muted/50">
+                      <TableRow
+                        key={answer.id}
+                        className="bg-muted/40 text-muted-foreground"
+                      >
                         <TableCell />
                         <TableCell colSpan={6}>
                           <div className="pl-6 flex items-center gap-2">

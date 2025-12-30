@@ -8,7 +8,7 @@ export default async function Questions() {
   ]);
 
   return (
-    <main className="m-4">
+    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
       <QuestionsManagement
         initialQuestions={questions}
         categories={categories}

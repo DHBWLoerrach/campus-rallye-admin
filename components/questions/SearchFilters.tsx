@@ -42,20 +42,18 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   };
 
   return (
-    <>
-      <div className="flex flex-wrap gap-4 flex-1">
+    <div className="flex flex-col gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px]">
         <Input
           placeholder="Suche (Frage)"
-          className="max-w-[200px]"
           onChange={(e) => handleChange('question', e.target.value)}
         />
         <Input
           placeholder="Suche (Antwort)"
-          className="max-w-[200px]"
           onChange={(e) => handleChange('answer', e.target.value)}
         />
         <Select onValueChange={(value) => handleChange('type', value)}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger>
             <SelectValue placeholder="Typ" />
           </SelectTrigger>
           <SelectContent>
@@ -68,7 +66,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           </SelectContent>
         </Select>
         <Select onValueChange={(value) => handleChange('category', value)}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger>
             <SelectValue placeholder="Kategorie" />
           </SelectTrigger>
           <SelectContent>
@@ -80,22 +78,20 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             ))}
           </SelectContent>
         </Select>
-        {showAssignedToggle && (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="active"
-              checked={filters.assigned === true}
-              onCheckedChange={(checked) =>
-                handleChange('assigned', checked === true ? true : undefined)
-              }
-            />
-            <label htmlFor="active" className="text-sm">
-              Nur ausgewählte Fragen
-            </label>
-          </div>
-        )}
       </div>
-    </>
+      {showAssignedToggle && (
+        <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          <Checkbox
+            id="active"
+            checked={filters.assigned === true}
+            onCheckedChange={(checked) =>
+              handleChange('assigned', checked === true ? true : undefined)
+            }
+          />
+          <label htmlFor="active">Nur ausgewählte Fragen</label>
+        </div>
+      )}
+    </div>
   );
 };
 
