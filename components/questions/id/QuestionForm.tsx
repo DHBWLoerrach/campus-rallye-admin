@@ -355,7 +355,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             placeholder="Rallye suchen"
             className="max-w-xs"
           />
-          <div className="border rounded-md p-3 max-h-56 overflow-y-auto space-y-2">
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-3 max-h-56 overflow-y-auto space-y-2">
             {rallyes.length === 0 ? (
               <div className="text-sm text-muted-foreground">
                 Keine Rallyes vorhanden

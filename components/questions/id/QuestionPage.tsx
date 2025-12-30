@@ -77,7 +77,7 @@ const QuestionPage: React.FC<Props> = ({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+    <div className="flex flex-col gap-6">
       {hasReturnTarget && (
         <div className="mb-2">
           <Button asChild variant="ghost" size="sm">
@@ -103,7 +103,7 @@ const QuestionPage: React.FC<Props> = ({
       </section>
 
       {hasAssignments && (
-        <div className="mb-4 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+        <div className="rounded-2xl border border-border/60 bg-muted/40 px-4 py-3 text-sm">
           <span className="font-medium">Zugeordnet zu:</span>{' '}
           {assignedRallyes.length > 0 ? (
             <>
