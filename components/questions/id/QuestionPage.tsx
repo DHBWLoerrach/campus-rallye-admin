@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createQuestion,
@@ -8,6 +9,7 @@ import {
 } from '@/actions/question';
 import { Question, QuestionFormData } from '@/helpers/questions';
 import type { RallyeOption } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 import QuestionForm from '@/components/questions/id/QuestionForm';
 
 interface Props {
@@ -29,6 +31,9 @@ const QuestionPage: React.FC<Props> = ({
   const searchParams = useSearchParams();
   const returnToParam = searchParams.get('returnTo') ?? '';
   const returnTo = returnToParam.startsWith('/') ? returnToParam : '/questions';
+  const hasReturnTarget = returnToParam.startsWith('/');
+  const isRallyeContext = returnToParam.startsWith('/rallyes/');
+  const returnLabel = isRallyeContext ? 'Zurück zur Rallye' : 'Zurück';
 
   const handleSubmit = async (data: QuestionFormData) => {
     try {
@@ -62,7 +67,15 @@ const QuestionPage: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+      {hasReturnTarget && (
+        <div className="mb-2">
+          <Button asChild variant="ghost" size="sm">
+            <Link href={returnTo}>{returnLabel}</Link>
+          </Button>
+        </div>
+      )}
+
       <section className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="space-y-1 text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -78,6 +91,7 @@ const QuestionPage: React.FC<Props> = ({
           </p>
         </div>
       </section>
+
       <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <QuestionForm
           onSubmit={handleSubmit}

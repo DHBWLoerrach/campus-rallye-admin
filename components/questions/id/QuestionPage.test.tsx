@@ -34,4 +34,22 @@ describe('QuestionPage', () => {
 
     expect(push).toHaveBeenCalledWith('/rallyes/1/questions');
   });
+
+  it('shows a rallye return link when returnTo is set', () => {
+    mockSearchParams.get.mockReturnValue('/rallyes/1/questions');
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={null}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(
+      screen.getByRole('link', { name: 'Zurück zur Rallye' })
+    ).toHaveAttribute('href', '/rallyes/1/questions');
+  });
 });
