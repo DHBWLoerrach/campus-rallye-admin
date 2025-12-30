@@ -53,7 +53,7 @@ export default async function Page(props: PageProps) {
   const initialCategories = Array.from(categoriesSet);
 
   return (
-    <main className="m-4">
+    <main className="w-full">
       <Assignment
         rallyeId={rallyeId}
         rallyeName={rallye.name}

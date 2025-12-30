@@ -2,13 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
-import {
   Table,
   TableBody,
   TableCell,
@@ -173,159 +166,166 @@ export default function Assignment({
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="mb-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => {
-                if (isSubmitting) return;
-                if (!hasUnsavedChanges) {
-                  router.push('/rallyes');
-                  return;
-                }
-                setPendingHref('/rallyes');
-                setShowLeaveConfirm(true);
-              }}
-            >
-              ← Zurück zu Rallyes
-            </Button>
+    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => {
+              if (isSubmitting) return;
+              if (!hasUnsavedChanges) {
+                router.push('/rallyes');
+                return;
+              }
+              setPendingHref('/rallyes');
+              setShowLeaveConfirm(true);
+            }}
+          >
+            ← Zurück zu Rallyes
+          </Button>
+          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            <span>Aktuell zugeordnet</span>
+            <span className="text-foreground">{selectedQuestions.length}</span>
           </div>
-          <CardTitle>
+        </div>
+        <div className="space-y-1 text-left">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Rallye
+          </p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Fragen zuordnen
+          </h1>
+          <p className="text-sm text-muted-foreground">
             {rallyeName
-              ? `Fragen der Rallye "${rallyeName}" zuordnen`
+              ? `Rallye „${rallyeName}“`
               : 'Fragen einer Rallye zuordnen'}
-          </CardTitle>
-          <CardDescription>
-            Aktuell zugeordnet: {selectedQuestions.length}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="sticky top-0 z-10 bg-card">
-              <SearchFilters
-                onFilterChange={handleFilterChange}
-                categories={initialCategories ?? []}
-              />
-            </div>
-            <div className="border rounded-md h-[60vh] overflow-y-auto">
-              <Table>
-                <TableHeader>
+          </p>
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+        <div className="sticky top-0 z-10 rounded-2xl bg-card/80 p-3 backdrop-blur">
+          <SearchFilters
+            onFilterChange={handleFilterChange}
+            categories={initialCategories ?? []}
+          />
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/90">
+          <div className="max-h-[60vh] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">Auswahl</TableHead>
+                  <TableHead>Frage</TableHead>
+                  <TableHead>Typ</TableHead>
+                  <TableHead className="w-20">Punkte</TableHead>
+                  <TableHead>Kategorie</TableHead>
+                  <TableHead className="w-8">Abstimmung</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {questions.length === 0 ? (
                   <TableRow>
-                    <TableHead className="w-12">Auswahl</TableHead>
-                    <TableHead>Frage</TableHead>
-                    <TableHead>Typ</TableHead>
-                    <TableHead className="w-20">Punkte</TableHead>
-                    <TableHead>Kategorie</TableHead>
-                    <TableHead className="w-8">Abstimmung</TableHead>
+                    <TableCell colSpan={6} className="text-center">
+                      Keine Fragen verfügbar
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {questions.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center">
-                        Keine Fragen verfügbar
+                ) : (
+                  questions.map((question) => (
+                    <TableRow key={question.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedQuestions.includes(question.id)}
+                          onCheckedChange={(checked) => {
+                            const isChecked = checked === true;
+                            setSelectedQuestions((prev) =>
+                              isChecked
+                                ? prev.includes(question.id)
+                                  ? prev
+                                  : [...prev, question.id]
+                                : prev.filter((id) => id !== question.id)
+                            );
+                          }}
+                        />
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    questions.map((question) => (
-                      <TableRow key={question.id}>
-                        <TableCell>
+                      <TableCell className="max-w-md truncate">
+                        {question.content}
+                      </TableCell>
+                      <TableCell>{questionTypeLabels[question.type]}</TableCell>
+                      <TableCell>{question.points}</TableCell>
+                      <TableCell>{question.category}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-center">
                           <Checkbox
-                            checked={selectedQuestions.includes(question.id)}
+                            disabled={
+                              !['upload', 'knowledge'].includes(question.type)
+                            }
+                            checked={votingQuestions.includes(question.id)}
                             onCheckedChange={(checked) => {
                               const isChecked = checked === true;
-                              setSelectedQuestions((prev) =>
+                              setVotingQuestions((prev) =>
                                 isChecked
                                   ? prev.includes(question.id)
                                     ? prev
                                     : [...prev, question.id]
                                   : prev.filter((id) => id !== question.id)
                               );
+                              setPendingVotingChanges((prev) => {
+                                const add = new Set(prev.add);
+                                const remove = new Set(prev.remove);
+                                if (isChecked) {
+                                  add.add(question.id);
+                                  remove.delete(question.id);
+                                } else {
+                                  add.delete(question.id);
+                                  remove.add(question.id);
+                                }
+                                return {
+                                  add: Array.from(add),
+                                  remove: Array.from(remove),
+                                };
+                              });
                             }}
+                            className={
+                              !['upload', 'knowledge'].includes(question.type)
+                                ? 'border-dashed border-border/70 bg-muted/40 text-muted-foreground data-[state=checked]:bg-muted data-[state=checked]:text-muted-foreground data-[state=unchecked]:bg-muted/60'
+                                : ''
+                            }
                           />
-                        </TableCell>
-                        <TableCell className="max-w-md truncate">
-                          {question.content}
-                        </TableCell>
-                        <TableCell>
-                          {questionTypeLabels[question.type]}
-                        </TableCell>
-                        <TableCell>{question.points}</TableCell>
-                        <TableCell>{question.category}</TableCell>
-                        <TableCell>
-                          <div className="justify-center flex">
-                            <Checkbox
-                              disabled={
-                                !['upload', 'knowledge'].includes(question.type)
-                              }
-                              checked={votingQuestions.includes(question.id)}
-                              onCheckedChange={(checked) => {
-                                const isChecked = checked === true;
-                                setVotingQuestions((prev) =>
-                                  isChecked
-                                    ? prev.includes(question.id)
-                                      ? prev
-                                      : [...prev, question.id]
-                                    : prev.filter((id) => id !== question.id)
-                                );
-                                setPendingVotingChanges((prev) => {
-                                  const add = new Set(prev.add);
-                                  const remove = new Set(prev.remove);
-                                  if (isChecked) {
-                                    add.add(question.id);
-                                    remove.delete(question.id);
-                                  } else {
-                                    add.delete(question.id);
-                                    remove.add(question.id);
-                                  }
-                                  return {
-                                    add: Array.from(add),
-                                    remove: Array.from(remove),
-                                  };
-                                });
-                              }}
-                              className={
-                                !['upload', 'knowledge'].includes(question.type)
-                                  ? 'data-[state=checked]:bg-gray-200 data-[state=unchecked]:bg-gray-100 border-dashed border-gray-400'
-                                  : ''
-                              }
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
+        </div>
 
-          <div className="flex justify-end space-x-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                // reload assignments for current rallye
-                loadExistingAssignments(rallyeId);
-                setPendingVotingChanges({ add: [], remove: [] });
-              }}
-            >
-              Zurücksetzen
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              variant="dhbwStyle"
-            >
-              Speichern
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              // reload assignments for current rallye
+              loadExistingAssignments(rallyeId);
+              setPendingVotingChanges({ add: [], remove: [] });
+            }}
+          >
+            Zurücksetzen
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            variant="dhbwStyle"
+          >
+            Speichern
+          </Button>
+        </div>
+      </section>
+
       {/* Unsaved changes confirmation dialog */}
       <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
         <DialogContent>
@@ -338,7 +338,7 @@ export default function Assignment({
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="secondary"
+              variant="destructive"
               onClick={() => {
                 // discard changes and navigate
                 setShowLeaveConfirm(false);
@@ -354,7 +354,7 @@ export default function Assignment({
               Abbrechen
             </Button>
             <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
+              variant="dhbwStyle"
               disabled={isSubmitting}
               onClick={async () => {
                 await handleSubmit();
