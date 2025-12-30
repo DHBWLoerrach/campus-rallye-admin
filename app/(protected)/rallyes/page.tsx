@@ -28,11 +28,22 @@ export default async function Home() {
     });
   }
   return (
-    <main className="flex flex-col m-4">
-      <div className="flex justify-end gap-4 mb-4">
-        <RallyeDialog buttonStyle="mb-4 self-end" />
-      </div>
-      <section className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1 text-left">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Rallyes
+          </p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Rallyes verwalten
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Erstellen, bearbeiten und Fragen zuordnen.
+          </p>
+        </div>
+        <RallyeDialog buttonStyle="w-full sm:w-auto" />
+      </section>
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {rallyes?.map((rallye) => (
           <Rallye
             key={rallye.id}

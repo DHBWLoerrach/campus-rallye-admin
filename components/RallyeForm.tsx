@@ -90,9 +90,9 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md shadow-md">
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center text-xl ">
+    <Card className="w-full max-w-md">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between gap-3">
           Rallye bearbeiten
           <Button
             variant="ghost"

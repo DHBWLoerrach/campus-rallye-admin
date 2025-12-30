@@ -45,24 +45,22 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
 
   return (
     <Card
-      className="w-full max-w-md shadow-md cursor-pointer"
+      className="group relative w-full cursor-pointer overflow-hidden border-border/60 bg-card/90 transition-all hover:-translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_28px_rgba(0,0,0,0.12)]"
       onClick={() => router.push(`/rallyes/${rallye.id}/questions`)}
       role="button"
       aria-label={`Rallye ${rallye.name} öffnen`}
     >
-      <CardHeader>
-        <CardTitle className="text-xl">{rallye.name}</CardTitle>
-        <div className="flex items-center justify-between">
-          <Badge
-            variant={isActive ? 'default' : 'secondary'}
-            className="text-sm font-medium"
-          >
-            {statusLabel}
-          </Badge>
+      <div className="absolute inset-x-0 top-0 h-1 bg-primary/80" aria-hidden="true" />
+      <CardHeader className="space-y-3 pb-4">
+        <div className="flex items-start justify-between gap-3">
+          <CardTitle className="text-lg font-semibold leading-tight">
+            {rallye.name}
+          </CardTitle>
           <Button
             variant="ghost"
             size="icon"
             aria-label="Bearbeiten"
+            className="text-muted-foreground hover:text-foreground"
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
@@ -71,19 +69,32 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
             <Pencil className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
+        <div className="flex items-center justify-between">
+          <Badge variant={isActive ? 'default' : 'secondary'}>
+            {statusLabel}
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="flex items-center justify-between">
-          <div className="text-muted-foreground">Ende:</div>
-          <div className="font-medium">
-            <FormattedEndTime value={rallye.end_time} />
+        <div className="grid gap-3 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Ende
+            </span>
+            <span className="font-medium text-foreground">
+              <FormattedEndTime value={rallye.end_time} />
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Studiengang
+            </span>
+            <span className="font-medium text-foreground">
+              {rallye.studiengang}
+            </span>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="text-muted-foreground">Studiengang:</div>
-          <div className="font-medium">{rallye.studiengang}</div>
-        </div>
-        <div className="flex items-center justify-between pt-2 border-t">
+        <div className="flex items-center justify-between text-sm">
           <div className="text-muted-foreground">
             {questionCount === undefined
               ? 'Fragen: …'
@@ -93,12 +104,15 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
           </div>
           <Link
             href={`/rallyes/${rallye.id}/questions`}
-            className="text-sm font-medium flex items-center gap-1 hover:underline"
+            className="group flex items-center gap-1 font-semibold text-primary hover:underline"
             onClick={(e) => e.stopPropagation()}
             aria-label="Fragen zuordnen"
           >
-            Fragen zuordnen…
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            Fragen zuordnen
+            <ChevronRight
+              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
           </Link>
         </div>
       </CardContent>
