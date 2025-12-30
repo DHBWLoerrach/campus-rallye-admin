@@ -53,26 +53,36 @@ export default function QuestionManagement({
   if (!questions) return <div>Loading...</div>;
 
   return (
-    <div className="p-4 max-w-[1400px] mx-auto">
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-4 items-center justify-between">
-          <SearchFilters
-            onFilterChange={handleFilterChange}
-            showAssignedToggle={false}
-            categories={categories}
-            rallyes={rallyes}
-          />
-          <Button asChild variant="dhbwStyle">
-            <Link href="/questions/new">
-              <Plus className="w-4 h-4 mr-2" />
-              Erstellen
-            </Link>
-          </Button>
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1 text-left">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Fragen
+          </p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Fragenkatalog
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Suchen, filtern und bearbeiten.
+          </p>
         </div>
-        <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
-          <QuestionsTable questions={questions} rallyeMap={rallyeMap} />
-        </section>
-      </div>
+        <Button asChild variant="dhbwStyle" className="w-full sm:w-auto">
+          <Link href="/questions/new">
+            <Plus className="w-4 h-4" />
+            Erstellen
+          </Link>
+        </Button>
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+        <SearchFilters
+          onFilterChange={handleFilterChange}
+          showAssignedToggle={false}
+          categories={categories}
+          rallyes={rallyes}
+        />
+        <QuestionsTable questions={questions} rallyeMap={rallyeMap} />
+      </section>
     </div>
   );
 }
