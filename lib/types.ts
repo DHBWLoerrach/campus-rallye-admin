@@ -16,6 +16,8 @@ export interface Rallye {
   created_at: string;
 }
 
+export type RallyeOption = Pick<Rallye, 'id' | 'name'>;
+
 // Helper functions for status logic
 export const getRallyeStatusLabel = (status: RallyeStatus): string => {
   switch (status) {

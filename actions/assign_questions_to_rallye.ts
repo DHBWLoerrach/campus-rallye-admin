@@ -75,3 +75,77 @@ export async function getRallyeQuestions(rallyeId: number) {
 
   return data.map((row) => row.question_id);
 }
+
+export async function assignRallyesToQuestion(
+  questionId: number,
+  rallyeIds: number[]
+) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data: existingAssignments, error: existingError } = await supabase
+    .from('join_rallye_questions')
+    .select('rallye_id')
+    .eq('question_id', questionId);
+
+  if (existingError) throw existingError;
+
+  const existingRallyeIds =
+    existingAssignments?.map((a) => a.rallye_id) || [];
+  const uniqueRallyeIds = Array.from(new Set(rallyeIds));
+
+  const rallyesToAdd = uniqueRallyeIds.filter(
+    (id) => !existingRallyeIds.includes(id)
+  );
+  const rallyesToRemove = existingRallyeIds.filter(
+    (id) => !uniqueRallyeIds.includes(id)
+  );
+
+  if (rallyesToRemove.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('join_rallye_questions')
+      .delete()
+      .eq('question_id', questionId)
+      .in('rallye_id', rallyesToRemove);
+
+    if (deleteError) throw deleteError;
+  }
+
+  if (rallyesToAdd.length > 0) {
+    const newAssignments = rallyesToAdd.map((rallyeId) => ({
+      rallye_id: rallyeId,
+      question_id: questionId,
+    }));
+
+    const { error: insertError } = await supabase
+      .from('join_rallye_questions')
+      .insert(newAssignments);
+
+    if (insertError) throw insertError;
+  }
+
+  revalidatePath('/rallyes');
+  revalidatePath('/questions');
+  const revalidateRallyes = new Set([...rallyesToAdd, ...rallyesToRemove]);
+  revalidateRallyes.forEach((rallyeId) => {
+    revalidatePath(`/rallyes/${rallyeId}/questions`);
+  });
+  return true;
+}
+
+export async function getQuestionRallyes(questionId: number) {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('join_rallye_questions')
+    .select('rallye_id')
+    .eq('question_id', questionId);
+
+  if (error) {
+    console.error('Error fetching question rallyes:', error);
+    return [];
+  }
+
+  return data.map((row) => row.rallye_id);
+}

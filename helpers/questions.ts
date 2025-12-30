@@ -16,4 +16,6 @@ export interface Question {
   answers?: Answer[];
 }
 
-export type QuestionFormData = Omit<Question, 'id'>;
+export type QuestionFormData = Omit<Question, 'id'> & {
+  rallyeIds?: number[];
+};

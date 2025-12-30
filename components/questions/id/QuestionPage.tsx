@@ -7,15 +7,24 @@ import {
   deleteQuestion,
 } from '@/actions/question';
 import { Question, QuestionFormData } from '@/helpers/questions';
+import type { RallyeOption } from '@/lib/types';
 import QuestionForm from '@/components/questions/id/QuestionForm';
 
 interface Props {
   id: string;
   initialData: Question | null;
   categories: string[];
+  rallyes: RallyeOption[];
+  initialRallyeIds: number[];
 }
 
-const QuestionPage: React.FC<Props> = ({ id, initialData, categories }) => {
+const QuestionPage: React.FC<Props> = ({
+  id,
+  initialData,
+  categories,
+  rallyes,
+  initialRallyeIds,
+}) => {
   const router = useRouter();
 
   const handleSubmit = async (data: QuestionFormData) => {
@@ -73,6 +82,8 @@ const QuestionPage: React.FC<Props> = ({ id, initialData, categories }) => {
           onDelete={id !== 'new' ? handleDelete : undefined}
           initialData={initialData}
           categories={categories}
+          rallyes={rallyes}
+          initialRallyeIds={initialRallyeIds}
         />
       </section>
     </div>

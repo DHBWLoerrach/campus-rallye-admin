@@ -2,7 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
-import { Rallye, RallyeStatus } from '@/lib/types';
+import { Rallye, RallyeOption, RallyeStatus } from '@/lib/types';
 
 type FormState = { errors?: { message?: string } } | undefined;
 
@@ -76,6 +76,24 @@ export async function getRallyes(): Promise<Rallye[]> {
   }
 
   return data || [];
+}
+
+export async function getRallyeOptions(): Promise<RallyeOption[]> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.from('rallye').select('id, name');
+
+  if (error) {
+    console.error('Error fetching rallye options:', error);
+    return [];
+  }
+
+  const rallyes = (data || []) as RallyeOption[];
+  rallyes.sort((a, b) =>
+    a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+  );
+  return rallyes;
 }
 
 export async function deleteRallye(rallyeId: string) {

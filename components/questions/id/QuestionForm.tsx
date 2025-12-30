@@ -3,6 +3,7 @@ import { Plus, Minus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
+import type { RallyeOption } from '@/lib/types';
 import QuestionImage from './QuestionImage';
 
 interface QuestionFormProps {
@@ -21,6 +23,8 @@ interface QuestionFormProps {
   onCancel: () => void;
   onDelete?: () => void;
   categories: string[];
+  rallyes: RallyeOption[];
+  initialRallyeIds?: number[];
 }
 
 interface FormErrors {
@@ -37,6 +41,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   onCancel,
   onDelete,
   categories,
+  rallyes,
+  initialRallyeIds = [],
 }) => {
   const [formData, setFormData] = useState<QuestionFormData>({
     content: initialData?.content || '',
@@ -46,10 +52,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     category: initialData?.category,
     bucket_path: initialData?.bucket_path,
     answers: initialData?.answers || [{ id: 0, correct: true, text: '' }],
+    rallyeIds: initialRallyeIds,
   });
 
   const [isNewCategory, setIsNewCategory] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [rallyeFilter, setRallyeFilter] = useState('');
 
   const handleFormChange = <K extends keyof QuestionFormData>(
     field: K,
@@ -73,6 +81,18 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       setIsNewCategory(false);
       setFormData((prev) => ({ ...prev, category: value }));
     }
+  };
+
+  const handleRallyeToggle = (rallyeId: number, isChecked: boolean) => {
+    setFormData((prev) => {
+      const nextIds = new Set(prev.rallyeIds ?? []);
+      if (isChecked) {
+        nextIds.add(rallyeId);
+      } else {
+        nextIds.delete(rallyeId);
+      }
+      return { ...prev, rallyeIds: Array.from(nextIds) };
+    });
   };
 
   const handleAnswerChange = (
@@ -126,6 +146,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       answers: newAnswers,
     }));
   };
+
+  const normalizedRallyeFilter = rallyeFilter.trim().toLowerCase();
+  const visibleRallyes = normalizedRallyeFilter
+    ? rallyes.filter((rallye) =>
+        rallye.name.toLowerCase().includes(normalizedRallyeFilter)
+      )
+    : rallyes;
 
   const addAnswer = () => {
     setFormData((prev) => ({
@@ -318,6 +345,42 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               />
             </div>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Rallyes zuordnen</Label>
+          <Input
+            value={rallyeFilter}
+            onChange={(e) => setRallyeFilter(e.target.value)}
+            placeholder="Rallye suchen"
+            className="max-w-xs"
+          />
+          <div className="border rounded-md p-3 max-h-56 overflow-y-auto space-y-2">
+            {rallyes.length === 0 ? (
+              <div className="text-sm text-muted-foreground">
+                Keine Rallyes vorhanden
+              </div>
+            ) : visibleRallyes.length === 0 ? (
+              <div className="text-sm text-muted-foreground">
+                Keine Rallyes gefunden
+              </div>
+            ) : (
+              visibleRallyes.map((rallye) => (
+                <div key={rallye.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`rallye-${rallye.id}`}
+                    checked={formData.rallyeIds?.includes(rallye.id) ?? false}
+                    onCheckedChange={(checked) =>
+                      handleRallyeToggle(rallye.id, checked === true)
+                    }
+                  />
+                  <Label htmlFor={`rallye-${rallye.id}`} className="text-sm">
+                    {rallye.name}
+                  </Label>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {formData.type !== 'upload' && (

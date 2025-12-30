@@ -2,6 +2,7 @@
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
 import type { Question } from '@/helpers/questions';
+import { assignRallyesToQuestion } from '@/actions/assign_questions_to_rallye';
 
 export async function getCategories(): Promise<string[]> {
   await requireProfile();
@@ -123,6 +124,7 @@ export async function createQuestion(data: {
   category?: string;
   bucket_path?: string;
   answers: { correct: boolean; text?: string }[];
+  rallyeIds?: number[];
 }) {
   await requireProfile();
   try {
@@ -178,6 +180,10 @@ export async function createQuestion(data: {
       return false;
     }
 
+    if (data.rallyeIds && data.rallyeIds.length > 0) {
+      await assignRallyesToQuestion(questionId, data.rallyeIds);
+    }
+
     console.log('Question and answers added successfully');
     // todo return success message
     return true;
@@ -198,6 +204,7 @@ export async function updateQuestion(
     category?: string;
     bucket_path?: string;
     answers: { id?: number; correct: boolean; text?: string }[];
+    rallyeIds?: number[];
   }
 ) {
   await requireProfile();
@@ -287,6 +294,10 @@ export async function updateQuestion(
           return false;
         }
       }
+    }
+
+    if (data.rallyeIds !== undefined) {
+      await assignRallyesToQuestion(id, data.rallyeIds);
     }
 
     console.log('Question and answers updated successfully');
