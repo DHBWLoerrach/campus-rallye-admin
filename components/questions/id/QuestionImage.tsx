@@ -56,28 +56,26 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <Label>Bild</Label>
-      <div className="text-sm text-gray-600">
-        (Bilder werden sofort hochgeladen)
-      </div>
+      <p className="text-xs text-muted-foreground">
+        Bilder werden sofort hochgeladen.
+      </p>
 
       {bucketPath ? (
-        <div className="relative">
-          <div className="mt-2 relative w-full h-[200px] flex items-center justify-center">
-            <Image
-              src={getQuestionMediaPublicUrl(bucketPath)}
-              alt="Question image"
-              fill
-              sizes="(max-width: 768px) 100vw, 200px"
-              className="object-contain rounded-md"
-            />
+        <div className="space-y-3">
+          <div className="relative rounded-xl border border-border/60 bg-muted/30 p-3">
+            <div className="relative h-[200px] w-full">
+              <Image
+                src={getQuestionMediaPublicUrl(bucketPath)}
+                alt="Question image"
+                fill
+                sizes="(max-width: 768px) 100vw, 200px"
+                className="object-contain"
+              />
+            </div>
           </div>
-          <Button
-            type="button"
-            onClick={handleRemoveImage}
-            className="mt-2 bg-red-600 text-white"
-          >
+          <Button type="button" variant="destructive" size="sm" onClick={handleRemoveImage}>
             Bild entfernen
           </Button>
         </div>
@@ -91,12 +89,11 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
             className="hidden"
             id="image-upload"
           />
-          <Label
-            htmlFor="image-upload"
-            className="cursor-pointer inline-block px-4 py-2 bg-blue-600 text-white rounded-md"
-          >
-            {uploading ? 'Wird hochgeladen...' : 'Bild hochladen'}
-          </Label>
+          <Button asChild variant="outline" size="sm">
+            <Label htmlFor="image-upload" className="cursor-pointer">
+              {uploading ? 'Wird hochgeladen...' : 'Bild hochladen'}
+            </Label>
+          </Button>
         </div>
       )}
     </div>

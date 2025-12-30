@@ -195,113 +195,135 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="question">Frage*</Label>
-          <Input
-            id="question"
-            value={formData.content}
-            onChange={(e) => handleFormChange('content', e.target.value)}
-            placeholder="Geben Sie die Frage ein"
-            className={`border p-2 w-full ${
-              errors.content ? 'border-red-500' : ''
-            }`}
-          />
-          {errors.content && (
-            <span className="text-sm text-red-500">{errors.content}</span>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="type">Fragetyp*</Label>
-          <Select
-            value={formData.type}
-            onValueChange={(value) => handleFormChange('type', value)}
-            disabled={initialData?.id !== undefined}
-          >
-            <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Wählen Sie einen Fragetyp" />
-            </SelectTrigger>
-            <SelectContent>
-              {questionTypes.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
-                  {type.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.type && (
-            <span className="text-sm text-red-500">{errors.type}</span>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="points">Punkte</Label>
-          <Input
-            type="number"
-            id="points"
-            value={formData.points}
-            onChange={(e) => handleFormChange('points', Number(e.target.value))}
-            placeholder="Enter points"
-            className={`border p-2 w-full ${
-              errors.points ? 'border-red-500' : ''
-            }`}
-          />
-          {errors.points && (
-            <span className="text-sm text-red-500">{errors.points}</span>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="hint">Hinweis</Label>
-          <Input
-            id="hint"
-            value={formData.hint ?? ''}
-            onChange={(e) => handleFormChange('hint', e.target.value)}
-            placeholder="Geben Sie einen Hinweis ein"
-            className="border p-2 w-full"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="category">Kategorie</Label>
-          <Select
-            value={isNewCategory ? 'new' : formData.category || ''}
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Wählen Sie eine Kategorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Bitte auswählen</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-              <SelectItem value="new">+ Neue Kategorie</SelectItem>
-            </SelectContent>
-          </Select>
-          {isNewCategory && (
+      <div className="space-y-6">
+        <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="question">Frage*</Label>
             <Input
-              type="text"
-              value={formData.category ?? ''}
-              placeholder="Neue Kategorie eingeben"
-              className="mt-2"
-              onChange={(e) => handleFormChange('category', e.target.value)}
+              id="question"
+              value={formData.content}
+              onChange={(e) => handleFormChange('content', e.target.value)}
+              placeholder="Geben Sie die Frage ein"
+              className={
+                errors.content
+                  ? 'border-destructive focus-visible:ring-destructive/40'
+                  : ''
+              }
             />
-          )}
-          {errors.category && (
-            <span className="text-sm text-red-500">{errors.category}</span>
+            {errors.content && (
+              <span className="text-sm text-destructive">{errors.content}</span>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="type">Fragetyp*</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => handleFormChange('type', value)}
+              disabled={initialData?.id !== undefined}
+            >
+              <SelectTrigger
+                className={
+                  errors.type
+                    ? 'border-destructive focus:ring-destructive/40'
+                    : ''
+                }
+              >
+                <SelectValue placeholder="Wählen Sie einen Fragetyp" />
+              </SelectTrigger>
+              <SelectContent>
+                {questionTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.type && (
+              <span className="text-sm text-destructive">{errors.type}</span>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="points">Punkte</Label>
+            <Input
+              type="number"
+              id="points"
+              value={formData.points}
+              onChange={(e) =>
+                handleFormChange('points', Number(e.target.value))
+              }
+              placeholder="Punkte eingeben"
+              className={
+                errors.points
+                  ? 'border-destructive focus-visible:ring-destructive/40'
+                  : ''
+              }
+            />
+            {errors.points && (
+              <span className="text-sm text-destructive">{errors.points}</span>
+            )}
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="hint">Hinweis</Label>
+            <Input
+              id="hint"
+              value={formData.hint ?? ''}
+              onChange={(e) => handleFormChange('hint', e.target.value)}
+              placeholder="Geben Sie einen Hinweis ein"
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="category">Kategorie</Label>
+            <Select
+              value={isNewCategory ? 'new' : formData.category || ''}
+              onValueChange={handleCategoryChange}
+            >
+              <SelectTrigger
+                className={
+                  errors.category
+                    ? 'border-destructive focus:ring-destructive/40'
+                    : ''
+                }
+              >
+                <SelectValue placeholder="Wählen Sie eine Kategorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Bitte auswählen</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+                <SelectItem value="new">+ Neue Kategorie</SelectItem>
+              </SelectContent>
+            </Select>
+            {isNewCategory && (
+              <Input
+                type="text"
+                value={formData.category ?? ''}
+                placeholder="Neue Kategorie eingeben"
+                onChange={(e) => handleFormChange('category', e.target.value)}
+              />
+            )}
+            {errors.category && (
+              <span className="text-sm text-destructive">
+                {errors.category}
+              </span>
+            )}
+          </div>
+          {formData.type === 'picture' && (
+            <div className="md:col-span-2">
+              <QuestionImage
+                bucketPath={formData.bucket_path}
+                onImageChange={(newPath) =>
+                  handleFormChange('bucket_path', newPath)
+                }
+              />
+            </div>
           )}
         </div>
-        {formData.type === 'picture' && (
-          <QuestionImage
-            bucketPath={formData.bucket_path}
-            onImageChange={(newPath) =>
-              handleFormChange('bucket_path', newPath)
-            }
-          />
-        )}
 
         {formData.type !== 'upload' && (
-          <div className="space-y-2">
+          <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
             <Label>
               {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
             </Label>
@@ -309,10 +331,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <RadioGroup
                 value={getCorrectAnswerIndex().toString()}
                 onValueChange={handleCorrectAnswerSelect}
-                className="space-y-2"
+                className="space-y-3"
               >
                 {formData.answers?.map((answer, index) => (
-                  <div key={index} className="flex gap-2 items-center">
+                  <div
+                    key={index}
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-2"
+                  >
                     <RadioGroupItem
                       value={index.toString()}
                       id={`answer-${index}`}
@@ -327,15 +352,17 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                         placeholder="Füge eine Antwort hinzu"
                         className={
                           errors.answers
-                            ? 'border-red-500 border p-2 w-full'
-                            : 'border p-2 w-full'
+                            ? 'border-destructive focus-visible:ring-destructive/40'
+                            : ''
                         }
                       />
                     </Label>
                     <Button
                       type="button"
+                      variant="outline"
+                      size="icon"
                       onClick={() => removeAnswer(index)}
-                      className="bg-red-600 text-white"
+                      className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Minus className="h-4 w-4" aria-hidden="true" />
                     </Button>
@@ -354,8 +381,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     placeholder="Füge eine Antwort hinzu"
                     className={
                       errors.answers
-                        ? 'border-red-500 border p-2 flex-1'
-                        : 'border p-2 flex-1'
+                        ? 'border-destructive focus-visible:ring-destructive/40'
+                        : ''
                     }
                   />
                 </div>
@@ -363,29 +390,22 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             )}
 
             {formData.type === 'multiple_choice' && (
-              <Button
-                type="button"
-                onClick={addAnswer}
-                className="bg-green-600 text-white"
-              >
+              <Button type="button" variant="secondary" onClick={addAnswer}>
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                Antwort
+                Antwort hinzufügen
               </Button>
             )}
             {errors.answers && (
-              <span className="m-5 text-sm text-red-500">{errors.answers}</span>
+              <span className="text-sm text-destructive">{errors.answers}</span>
             )}
           </div>
         )}
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2 border-t border-border/60 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
             Abbrechen
           </Button>
-          <Button
-            type="submit"
-            /*className="bg-blue-600 text-white"*/ variant="dhbwStyle"
-          >
+          <Button type="submit" variant="dhbwStyle">
             Speichern
           </Button>
           {onDelete && (
@@ -401,7 +421,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   onDelete();
                 }
               }}
-              className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Löschen

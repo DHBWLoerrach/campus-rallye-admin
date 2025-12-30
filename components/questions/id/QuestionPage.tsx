@@ -50,17 +50,31 @@ const QuestionPage: React.FC<Props> = ({ id, initialData, categories }) => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl mb-4">
-        {id === 'new' ? 'Neue Frage erstellen' : 'Frage bearbeiten'}
-      </h1>
-      <QuestionForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        onDelete={id !== 'new' ? handleDelete : undefined}
-        initialData={initialData}
-        categories={categories}
-      />
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+        <div className="space-y-1 text-left">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Fragen
+          </p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            {id === 'new' ? 'Neue Frage erstellen' : 'Frage bearbeiten'}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {id === 'new'
+              ? 'Frage formulieren, Antworten definieren und optional ein Bild hinterlegen.'
+              : 'Inhalt, Antworten und Metadaten aktualisieren.'}
+          </p>
+        </div>
+      </section>
+      <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+        <QuestionForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          onDelete={id !== 'new' ? handleDelete : undefined}
+          initialData={initialData}
+          categories={categories}
+        />
+      </section>
     </div>
   );
 };

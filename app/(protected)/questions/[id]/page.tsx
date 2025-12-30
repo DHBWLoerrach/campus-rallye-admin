@@ -15,7 +15,7 @@ export default async function Question({ params }: Props) {
   ]);
 
   return (
-    <main className="m-4">
+    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
       <QuestionPage id={id} initialData={question} categories={categories} />
     </main>
   );
