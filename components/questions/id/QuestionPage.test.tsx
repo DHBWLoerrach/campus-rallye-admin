@@ -18,7 +18,10 @@ describe('QuestionPage', () => {
   });
 
   it('returns to the provided returnTo param on cancel', () => {
-    mockSearchParams.get.mockReturnValue('/rallyes/1/questions');
+    mockSearchParams.get.mockImplementation((key) => {
+      if (key === 'returnTo') return '/rallyes/1/questions';
+      return '';
+    });
 
     render(
       <QuestionPage
@@ -36,7 +39,10 @@ describe('QuestionPage', () => {
   });
 
   it('shows a rallye return link when returnTo is set', () => {
-    mockSearchParams.get.mockReturnValue('/rallyes/1/questions');
+    mockSearchParams.get.mockImplementation((key) => {
+      if (key === 'returnTo') return '/rallyes/1/questions';
+      return '';
+    });
 
     render(
       <QuestionPage
@@ -54,7 +60,7 @@ describe('QuestionPage', () => {
   });
 
   it('shows assigned rallyes with a global impact hint', () => {
-    mockSearchParams.get.mockReturnValue('');
+    mockSearchParams.get.mockImplementation(() => '');
 
     render(
       <QuestionPage
@@ -79,5 +85,28 @@ describe('QuestionPage', () => {
     expect(
       screen.getByText('Wirkt in allen zugeordneten Rallyes.')
     ).toBeInTheDocument();
+  });
+
+  it('preselects a rallye for new questions when rallyeId is provided', () => {
+    mockSearchParams.get.mockImplementation((key) => {
+      if (key === 'rallyeId') return '2';
+      return '';
+    });
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={null}
+        categories={[]}
+        rallyes={[
+          { id: 1, name: 'Rallye A' },
+          { id: 2, name: 'Rallye B' },
+        ]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    const checkbox = screen.getByRole('checkbox', { name: 'Rallye B' });
+    expect(checkbox).toHaveAttribute('data-state', 'checked');
   });
 });

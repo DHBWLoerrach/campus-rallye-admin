@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -19,7 +21,6 @@ import {
   getRallyeQuestions,
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
-import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
-import Link from 'next/link';
 
 interface Props {
   rallyeId: number;
@@ -64,7 +64,7 @@ export default function Assignment({
     remove: number[];
   }>({ add: [], remove: [] });
 
-  // Track last saved state to detect unsaved changes (using refs to avoid effect sync)
+  // Track last saved state to detect unsaved changes.
   const savedSelectedQuestionsRef = useRef<number[]>(
     initialSelectedQuestions || []
   );
@@ -78,7 +78,6 @@ export default function Assignment({
   }, {} as Record<string, string>);
 
   useEffect(() => {
-    // If no initial data provided (edge case), fetch on mount
     if (!initialSelectedQuestions || !initialVotingQuestions) {
       loadExistingAssignments(rallyeId);
     }
@@ -88,26 +87,24 @@ export default function Assignment({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rallyeId]);
 
-  const loadExistingAssignments = async (rallyeId: number) => {
+  const loadExistingAssignments = async (targetRallyeId: number) => {
     try {
       const [existingQuestions, existingVotes] = await Promise.all([
-        getRallyeQuestions(rallyeId),
-        getVotingQuestions(rallyeId),
+        getRallyeQuestions(targetRallyeId),
+        getVotingQuestions(targetRallyeId),
       ]);
       setSelectedQuestions(existingQuestions);
       setVotingQuestions(existingVotes);
-      // Update saved baselines to what exists in DB now
       savedSelectedQuestionsRef.current = existingQuestions;
       savedVotingQuestionsRef.current = existingVotes;
     } catch (error) {
       console.error('Error loading existing assignments:', error);
-      // todo return error message
     }
   };
 
   const fetchQuestions = async () => {
-    const questions = await getQuestions({});
-    setQuestions(questions);
+    const fetchedQuestions = await getQuestions({});
+    setQuestions(fetchedQuestions);
   };
 
   const handleFilterChange = async (filters: {
@@ -137,12 +134,8 @@ export default function Assignment({
           pendingVotingChanges.remove
         ),
       ]);
-      // Reset pending changes
       setPendingVotingChanges({ add: [], remove: [] });
-      // Baselines will be refreshed by loadExistingAssignments below
-      // Show success message
     } catch (error) {
-      // Show error message
       console.error('Error saving questions:', error);
     } finally {
       setIsSubmitting(false);
@@ -163,7 +156,6 @@ export default function Assignment({
     pendingVotingChanges.add.length > 0 ||
     pendingVotingChanges.remove.length > 0;
 
-  // Navigation confirm dialog state
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
@@ -171,27 +163,38 @@ export default function Assignment({
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => {
-              if (isSubmitting) return;
-              if (!hasUnsavedChanges) {
-                router.push('/rallyes');
-                return;
-              }
-              setPendingHref('/rallyes');
-              setShowLeaveConfirm(true);
-            }}
-          >
-            ← Zurück zu Rallyes
-          </Button>
-          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-            <span>Aktuell zugeordnet</span>
-            <span className="text-foreground">{selectedQuestions.length}</span>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                if (isSubmitting) return;
+                if (!hasUnsavedChanges) {
+                  router.push('/rallyes');
+                  return;
+                }
+                setPendingHref('/rallyes');
+                setShowLeaveConfirm(true);
+              }}
+            >
+              ← Zurück zu Rallyes
+            </Button>
+            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              <span>Aktuell zugeordnet</span>
+              <span className="text-foreground">{selectedQuestions.length}</span>
+            </div>
           </div>
+          <Button asChild variant="dhbwStyle" size="sm">
+            <Link
+              href={`/questions/new?returnTo=${encodeURIComponent(
+                `/rallyes/${rallyeId}/questions`
+              )}&rallyeId=${rallyeId}`}
+            >
+              Neue Frage
+            </Link>
+          </Button>
         </div>
         <div className="space-y-1 text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -325,7 +328,6 @@ export default function Assignment({
           <Button
             variant="outline"
             onClick={() => {
-              // reload assignments for current rallye
               loadExistingAssignments(rallyeId);
               setPendingVotingChanges({ add: [], remove: [] });
             }}
@@ -342,7 +344,6 @@ export default function Assignment({
         </div>
       </section>
 
-      {/* Unsaved changes confirmation dialog */}
       <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
         <DialogContent>
           <DialogHeader>
@@ -356,7 +357,6 @@ export default function Assignment({
             <Button
               variant="destructive"
               onClick={() => {
-                // discard changes and navigate
                 setShowLeaveConfirm(false);
                 router.push(pendingHref || '/rallyes');
               }}

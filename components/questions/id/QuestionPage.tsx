@@ -29,16 +29,21 @@ const QuestionPage: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isNew = id === 'new';
   const returnToParam = searchParams.get('returnTo') ?? '';
   const returnTo = returnToParam.startsWith('/') ? returnToParam : '/questions';
   const hasReturnTarget = returnToParam.startsWith('/');
   const isRallyeContext = returnToParam.startsWith('/rallyes/');
   const returnLabel = isRallyeContext ? 'Zurück zur Rallye' : 'Zurück';
-  const assignedRallyeIds = new Set(initialRallyeIds);
+  const rallyeIdParam = searchParams.get('rallyeId') ?? '';
+  const rallyeIdValue = rallyeIdParam ? Number(rallyeIdParam) : Number.NaN;
+  const effectiveRallyeIds =
+    isNew && !Number.isNaN(rallyeIdValue) ? [rallyeIdValue] : initialRallyeIds;
+  const assignedRallyeIds = new Set(effectiveRallyeIds);
   const assignedRallyes = rallyes.filter((rallye) =>
     assignedRallyeIds.has(rallye.id)
   );
-  const hasAssignments = initialRallyeIds.length > 0;
+  const hasAssignments = effectiveRallyeIds.length > 0;
 
   const handleSubmit = async (data: QuestionFormData) => {
     try {
@@ -133,7 +138,7 @@ const QuestionPage: React.FC<Props> = ({
           initialData={initialData}
           categories={categories}
           rallyes={rallyes}
-          initialRallyeIds={initialRallyeIds}
+          initialRallyeIds={effectiveRallyeIds}
         />
       </section>
     </div>
