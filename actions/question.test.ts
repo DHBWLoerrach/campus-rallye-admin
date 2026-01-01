@@ -126,3 +126,68 @@ describe('getQuestions', () => {
     expect(questionsQuery.in).toHaveBeenCalledWith('id', ['42']);
   });
 });
+
+describe('getCategories', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const makeQuery = (response: { data: unknown; error: unknown }) => {
+    const query = {
+      select: vi.fn(() => query),
+      not: vi.fn(() => query),
+      then: (resolve: (value: unknown) => unknown, reject: (reason?: unknown) => unknown) =>
+        Promise.resolve(response).then(resolve, reject),
+    };
+
+    return query;
+  };
+
+  it('returns empty array without logging an error when no categories exist', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const query = makeQuery({ data: [], error: null });
+    const from = vi.fn(() => query);
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { getCategories } = await import('./question');
+    const result = await getCategories();
+
+    expect(result).toEqual([]);
+    expect(from).toHaveBeenCalledWith('questions');
+    expect(query.select).toHaveBeenCalledWith('category');
+    expect(query.not).toHaveBeenCalledWith('category', 'is', null);
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    errorSpy.mockRestore();
+  });
+
+  it('logs and returns empty array when fetching categories fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const query = makeQuery({ data: null, error: new Error('Boom') });
+    const from = vi.fn(() => query);
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { getCategories } = await import('./question');
+    const result = await getCategories();
+
+    expect(result).toEqual([]);
+    expect(from).toHaveBeenCalledWith('questions');
+    expect(query.select).toHaveBeenCalledWith('category');
+    expect(query.not).toHaveBeenCalledWith('category', 'is', null);
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Error fetching categories:',
+      expect.any(Error)
+    );
+
+    errorSpy.mockRestore();
+  });
+});

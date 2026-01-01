@@ -16,10 +16,10 @@ export async function getCategories(): Promise<string[]> {
   if (categoriesError) {
     console.error('Error fetching categories:', categoriesError);
     // todo return error message
+    return [];
   }
 
   if (!categories || categories.length === 0) {
-    console.error('No questions found');
     return [];
   }
 
