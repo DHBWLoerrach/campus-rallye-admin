@@ -47,23 +47,47 @@ export async function updateRallye(state: FormState, formData: FormData) {
   await requireProfile();
   const supabase = await createClient();
 
+  const endTimeInput = formData.get('end_time');
+  const endTimeRaw =
+    typeof endTimeInput === 'string' ? endTimeInput.trim() : '';
+  let endTime: Date | undefined;
+  if (endTimeRaw) {
+    const parsed = new Date(endTimeRaw);
+    if (Number.isNaN(parsed.getTime())) {
+      return { errors: { message: 'Ungültiges Datum' } };
+    }
+    endTime = parsed;
+  }
+
   const data = {
     id: formData.get('id') as string,
     name: formData.get('name') as string,
     status: formData.get('status') as RallyeStatus,
-    end_time: new Date(formData.get('end_time') as string),
     studiengang: formData.get('studiengang') as string,
     password: formData.get('password') as string,
   };
 
+  const updatePayload: {
+    name: string;
+    status: RallyeStatus;
+    studiengang: string;
+    password: string;
+    end_time?: Date;
+  } = {
+    name: data.name,
+    status: data.status,
+    studiengang: data.studiengang,
+    password: data.password,
+  };
+
+  if (endTime) {
+    updatePayload.end_time = endTime;
+  }
+
   const { error } = await supabase
     .from('rallye')
     .update({
-      name: data.name,
-      status: data.status,
-      end_time: data.end_time,
-      studiengang: data.studiengang,
-      password: data.password,
+      ...updatePayload,
     })
     .eq('id', data.id);
 
