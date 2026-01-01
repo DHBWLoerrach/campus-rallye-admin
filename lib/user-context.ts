@@ -33,17 +33,12 @@ export async function getUserContext(): Promise<UserContext> {
   }
 }
 
-// TTL-aware cache per runtime instance for the signed supabase JWT
-let cache: { jwt: string; uuid: string; exp: number } | null = null;
-
 export async function getSupabaseJwt(): Promise<string> {
   const { uuid, roles } = await getUserContext();
   if (!roles.includes('staff')) {
     throw new Error('Zugriff verweigert');
   }
   const now = Math.floor(Date.now() / 1000);
-
-  if (cache && cache.uuid === uuid && cache.exp - now > 30) return cache.jwt;
 
   const secretStr = process.env.SUPABASE_JWT_SECRET;
   if (!secretStr) throw new Error('Missing SUPABASE_JWT_SECRET');
@@ -60,6 +55,5 @@ export async function getSupabaseJwt(): Promise<string> {
     .setExpirationTime(exp)
     .sign(secret);
 
-  cache = { jwt, uuid, exp };
   return jwt;
 }
