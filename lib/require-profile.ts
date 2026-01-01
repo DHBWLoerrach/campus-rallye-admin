@@ -8,17 +8,12 @@ type Profile = {
   created_at?: string | null;
 };
 
-const cachedProfiles = new Map<string, Profile>();
-
 export async function requireProfile(createProfile = false): Promise<Profile> {
   const { uuid, email, roles } = await getUserContext();
 
   if (!roles.includes('staff')) {
     throw new Error('Zugriff verweigert');
   }
-
-  const cached = cachedProfiles.get(uuid);
-  if (cached) return cached;
 
   const supabase = await createClient();
 
@@ -35,7 +30,6 @@ export async function requireProfile(createProfile = false): Promise<Profile> {
 
   const profile = profileData as Profile | null;
   if (profile) {
-    cachedProfiles.set(uuid, profile);
     return profile;
   }
 
@@ -57,6 +51,5 @@ export async function requireProfile(createProfile = false): Promise<Profile> {
 
   const newProfile = newProfileData as Profile;
   insertLocalUser(uuid, email);
-  cachedProfiles.set(uuid, newProfile);
   return newProfile;
 }
