@@ -180,6 +180,22 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                           </TableCell>
                         </TableRow>
                       )}
+                      {hasRallyes && (
+                        <TableRow className="bg-muted/40 text-muted-foreground">
+                          <TableCell />
+                          <TableCell
+                            colSpan={3}
+                            title={`${rallyeLabel}: ${rallyeNames.join(', ')}`}
+                          >
+                            <div className="pl-6 text-xs">
+                              <span className="font-semibold">
+                                {rallyeLabel}:
+                              </span>{' '}
+                              {rallyeNames.join(', ')}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
                       {question.answers?.map((answer) => (
                         <TableRow
                           key={answer.id}

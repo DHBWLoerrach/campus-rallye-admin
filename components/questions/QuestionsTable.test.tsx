@@ -49,5 +49,7 @@ describe('QuestionsTable', () => {
     fireEvent.click(toggle as SVGElement);
     expect(screen.getByText('Hinweis:')).toBeInTheDocument();
     expect(screen.getByText('Hinweistext')).toBeInTheDocument();
+    expect(screen.getByText('Rallyes:')).toBeInTheDocument();
+    expect(screen.getByText('Rallye A, Rallye B')).toBeInTheDocument();
   });
 });
