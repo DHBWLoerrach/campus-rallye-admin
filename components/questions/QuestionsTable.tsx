@@ -44,7 +44,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
               <TableHead className="w-8"></TableHead>
               <TableHead>Frage</TableHead>
               <TableHead>Typ</TableHead>
-              <TableHead>Aktionen</TableHead>
+              <TableHead className="w-12 text-center">Aktionen</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -73,8 +73,13 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                         {question.content}
                       </TableCell>
                       <TableCell>{questionTypeLabels[question.type]}</TableCell>
-                    <TableCell>
-                      <Button asChild variant="dhbwStyle" size="sm">
+                    <TableCell className="text-center">
+                      <Button
+                        asChild
+                        variant="dhbwStyle"
+                        size="icon"
+                        className="h-7 w-7"
+                      >
                         <Link href={`/questions/${question.id}`}>
                           <Pencil className="h-4 w-4" aria-hidden="true" />
                           <span className="sr-only">Bearbeiten</span>
