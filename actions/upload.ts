@@ -41,9 +41,7 @@ export async function uploadImage(
     'image/webp': 'webp',
   };
   const fileExt = extMap[contentType] || 'bin';
-  const uniqueFileName = `${Math.random().toString(36).substring(2)}.${
-    fileExt || 'bin'
-  }`;
+  const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
   // Upload file to Supabase storage
   const { error } = await supabase.storage
     .from('question-media')
@@ -66,7 +64,7 @@ export async function deleteImage(
   if (!normalizedPath) {
     return fail('Ungültiger Dateipfad');
   }
-  const validPath = /^[a-z0-9]+\.(png|jpg|jpeg|gif|webp|bin)$/i;
+  const validPath = /^[a-z0-9-]+\.(png|jpg|jpeg|gif|webp|bin)$/i;
   if (!validPath.test(normalizedPath)) {
     return fail('Ungültiger Dateipfad');
   }

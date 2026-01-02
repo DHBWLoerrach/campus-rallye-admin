@@ -85,4 +85,23 @@ describe('deleteImage', () => {
     expect(result.error).toBe('Ungültiger Dateipfad');
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
+
+  it('accepts UUID-based bucket paths', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const remove = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn(() => ({ remove }));
+    mockCreateClient.mockResolvedValue({ storage: { from } });
+
+    const { deleteImage } = await import('./upload');
+    const result = await deleteImage(
+      '123e4567-e89b-12d3-a456-426614174000.png'
+    );
+
+    expect(result.success).toBe(true);
+    expect(from).toHaveBeenCalledWith('question-media');
+    expect(remove).toHaveBeenCalledWith([
+      '123e4567-e89b-12d3-a456-426614174000.png',
+    ]);
+  });
 });
