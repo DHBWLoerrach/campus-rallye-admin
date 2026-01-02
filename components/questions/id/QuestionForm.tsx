@@ -221,8 +221,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.points = 'Punkte müssen größer oder gleich 0 sein';
     }
 
-    const validAnswers = data.answers?.filter((a) => a.text?.trim());
-    if (formData.type !== 'upload' && validAnswers?.length === 0) {
+    const validAnswers = data.answers?.filter((a) => a.text?.trim()) ?? [];
+    if (data.type === 'multiple_choice') {
+      if (validAnswers.length < 2) {
+        newErrors.answers = 'Mindestens zwei Antworten müssen eingegeben werden';
+      }
+    } else if (data.type !== 'upload' && validAnswers.length === 0) {
       newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
     }
     setErrors(newErrors);

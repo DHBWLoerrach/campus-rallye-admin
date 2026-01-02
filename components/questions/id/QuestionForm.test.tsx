@@ -122,4 +122,29 @@ describe('QuestionForm', () => {
     expect(radios).toHaveLength(2);
     expect(radios[1]).toHaveAttribute('data-state', 'checked');
   });
+
+  it('requires at least two answers for multiple choice', () => {
+    const handleSubmit = vi.fn();
+
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Mehrfachauswahl',
+          type: 'multiple_choice',
+          answers: [{ id: 1, correct: true, text: 'Antwort A' }],
+        }}
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+        rallyes={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('Mindestens zwei Antworten müssen eingegeben werden')
+    ).toBeInTheDocument();
+  });
 });
