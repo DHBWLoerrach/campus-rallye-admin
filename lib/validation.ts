@@ -92,9 +92,9 @@ export const questionBaseSchema = z.object({
   content: z.string().trim().min(1, 'Bitte geben Sie eine Frage ein'),
   type: questionTypeSchema,
   points: pointsSchema,
-  hint: z.string().optional(),
-  category: z.string().optional(),
-  bucket_path: z.string().optional(),
+  hint: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  bucket_path: z.string().optional().nullable(),
   answers: z.array(answerSchema).default([]),
   rallyeIds: idArraySchema.optional(),
 });
