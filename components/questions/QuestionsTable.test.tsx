@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import QuestionsTable from './QuestionsTable';
 
 describe('QuestionsTable', () => {
   it('renders a compact questions table with meta indicators', () => {
-    render(
+    const { container } = render(
       <QuestionsTable
         questions={[
           {
@@ -42,5 +42,12 @@ describe('QuestionsTable', () => {
       'href',
       '/questions/1'
     );
+
+    expect(screen.queryByText('Hinweistext')).not.toBeInTheDocument();
+    const toggle = container.querySelector('tbody tr td svg');
+    expect(toggle).not.toBeNull();
+    fireEvent.click(toggle as SVGElement);
+    expect(screen.getByText('Hinweis:')).toBeInTheDocument();
+    expect(screen.getByText('Hinweistext')).toBeInTheDocument();
   });
 });

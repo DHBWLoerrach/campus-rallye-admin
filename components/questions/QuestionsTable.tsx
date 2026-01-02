@@ -77,8 +77,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                 const hasImage = Boolean(question.bucket_path);
                 const hasHint = Boolean(question.hint?.trim());
                 const hasRallyes = rallyeNames.length > 0;
-                const showMeta =
-                  hasPoints || hasImage || hasHint || hasRallyes;
+                const showMeta = hasPoints || hasImage || hasHint || hasRallyes;
                 const rallyeLabel =
                   rallyeNames.length === 1 ? 'Rallye' : 'Rallyes';
 
@@ -168,8 +167,20 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                       </Button>
                     </TableCell>
                   </TableRow>
-                    {expandedRows.includes(question.id) &&
-                      question.answers?.map((answer) => (
+                  {expandedRows.includes(question.id) && (
+                    <>
+                      {hasHint && (
+                        <TableRow className="bg-muted/40 text-muted-foreground">
+                          <TableCell />
+                          <TableCell colSpan={3}>
+                            <div className="pl-6 text-xs">
+                              <span className="font-semibold">Hinweis:</span>{' '}
+                              {question.hint}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {question.answers?.map((answer) => (
                         <TableRow
                           key={answer.id}
                           className="bg-muted/40 text-muted-foreground"
@@ -187,9 +198,11 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                           </TableCell>
                         </TableRow>
                       ))}
-                  </React.Fragment>
-                );
-              })
+                    </>
+                  )}
+                </React.Fragment>
+              );
+            })
             )}
           </TableBody>
         </Table>
