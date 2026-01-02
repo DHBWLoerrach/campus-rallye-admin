@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
+import { getQuestionRallyeMap } from '@/actions/assign_questions_to_rallye';
 import { getQuestions } from '@/actions/question';
 import { Button } from '@/components/ui/button';
 import QuestionsTable from './QuestionsTable';
@@ -13,14 +14,18 @@ interface Props {
   initialQuestions: Question[];
   categories: string[];
   rallyes: RallyeOption[];
+  initialRallyeMap: Record<number, string[]>;
 }
 
 export default function QuestionManagement({
   initialQuestions,
   categories,
   rallyes,
+  initialRallyeMap,
 }: Props) {
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
+  const [rallyeMap, setRallyeMap] =
+    useState<Record<number, string[]>>(initialRallyeMap);
 
   const handleFilterChange = async (filters: {
     question?: string;
@@ -34,10 +39,19 @@ export default function QuestionManagement({
     if (!questionsResult.success) {
       console.error(questionsResult.error);
       setQuestions([]);
+      setRallyeMap({});
       return;
     }
     const fetchedQuestions = questionsResult.data ?? [];
     setQuestions(fetchedQuestions);
+    const questionIds = fetchedQuestions.map((question) => question.id);
+    const nextRallyeMapResult = await getQuestionRallyeMap(questionIds);
+    if (!nextRallyeMapResult.success) {
+      console.error(nextRallyeMapResult.error);
+      setRallyeMap({});
+      return;
+    }
+    setRallyeMap(nextRallyeMapResult.data ?? {});
   };
 
   // antworten wir empfelen Antworten nicht länger als ... Zeichen 50?
@@ -79,7 +93,7 @@ export default function QuestionManagement({
           categories={categories}
           rallyes={rallyes}
         />
-        <QuestionsTable questions={questions} />
+        <QuestionsTable questions={questions} rallyeMap={rallyeMap} />
       </section>
     </div>
   );
