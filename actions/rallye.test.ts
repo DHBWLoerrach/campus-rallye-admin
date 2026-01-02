@@ -26,9 +26,19 @@ describe('updateRallye', () => {
     vi.resetModules();
   });
 
+  type UpdatePayload = {
+    name: string;
+    status: string;
+    studiengang: string;
+    password: string;
+    end_time?: Date;
+  };
+
   const setupSupabaseUpdate = () => {
     const eq = vi.fn().mockResolvedValue({ error: null });
-    const update = vi.fn(() => ({ eq }));
+    const update = vi.fn<(payload: UpdatePayload) => { eq: typeof eq }>(() => ({
+      eq,
+    }));
     const from = vi.fn(() => ({ update }));
     mockCreateClient.mockResolvedValue({ from });
     return { from, update, eq };
@@ -96,14 +106,19 @@ describe('updateRallye', () => {
       password: 'secret',
     }));
 
-    const payload = update.mock.calls[0]?.[0];
+    expect(update).toHaveBeenCalledTimes(1);
+    const payload = update.mock.calls[0][0];
     expect(payload).toMatchObject({
       name: 'Test',
       status: 'running',
       studiengang: 'Informatik',
       password: 'secret',
     });
-    expect(payload.end_time).toBeInstanceOf(Date);
-    expect(payload.end_time.toISOString()).toBe('2024-02-10T10:11:12.000Z');
+    const endTime = payload.end_time;
+    expect(endTime).toBeInstanceOf(Date);
+    if (!(endTime instanceof Date)) {
+      throw new Error('Expected end_time to be a Date');
+    }
+    expect(endTime.toISOString()).toBe('2024-02-10T10:11:12.000Z');
   });
 });
