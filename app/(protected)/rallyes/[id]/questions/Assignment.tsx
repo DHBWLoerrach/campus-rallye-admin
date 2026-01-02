@@ -92,7 +92,7 @@ export default function Assignment({
   const loadExistingAssignments = async (targetRallyeId: number) => {
     setIsLoadingAssignments(true);
     try {
-      const [existingQuestionsResult, existingVotes] = await Promise.all([
+      const [existingQuestionsResult, existingVotesResult] = await Promise.all([
         getRallyeQuestions(targetRallyeId),
         getVotingQuestions(targetRallyeId),
       ]);
@@ -105,8 +105,15 @@ export default function Assignment({
         setSelectedQuestions(questionIds);
         savedSelectedQuestionsRef.current = questionIds;
       }
-      setVotingQuestions(existingVotes);
-      savedVotingQuestionsRef.current = existingVotes;
+      if (!existingVotesResult.success) {
+        console.error(existingVotesResult.error);
+        setVotingQuestions([]);
+        savedVotingQuestionsRef.current = [];
+      } else {
+        const voteIds = existingVotesResult.data ?? [];
+        setVotingQuestions(voteIds);
+        savedVotingQuestionsRef.current = voteIds;
+      }
     } catch (error) {
       console.error('Error loading existing assignments:', error);
     } finally {
@@ -163,7 +170,7 @@ export default function Assignment({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const [assignResult] = await Promise.all([
+      const [assignResult, votingResult] = await Promise.all([
         assignQuestionsToRallye(rallyeId, selectedQuestions),
         updateVotingBatch(
           rallyeId,
@@ -173,6 +180,9 @@ export default function Assignment({
       ]);
       if (!assignResult.success) {
         throw new Error(assignResult.error);
+      }
+      if (!votingResult.success) {
+        throw new Error(votingResult.error);
       }
       setPendingVotingChanges({ add: [], remove: [] });
     } catch (error) {

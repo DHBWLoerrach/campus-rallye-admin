@@ -1,17 +1,17 @@
 'use server';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
+import { fail, ok, type ActionResult } from '@/lib/action-result';
 
 export async function uploadImage(
   base64File: string,
   fileName: string
-): Promise<string> {
+): Promise<ActionResult<{ fileName: string }>> {
   await requireProfile();
-  const supabase = await createClient();
 
   const [meta, base64Data] = base64File.split(',');
   if (!base64Data) {
-    throw new Error('Invalid base64 file data');
+    return fail('Ungültige Datei');
   }
   // MIME-Type Whitelist (nur Bilder erlaubt)
   const allowedTypes = [
@@ -23,14 +23,15 @@ export async function uploadImage(
   ];
   const contentType = meta?.match(/^data:(.+);base64$/)?.[1] ?? '';
   if (!allowedTypes.includes(contentType)) {
-    throw new Error('Unsupported file type. Allowed: PNG, JPEG, GIF, WEBP');
+    return fail('Dateityp nicht unterstützt');
   }
   // Größenlimit (z.B. 5 MB)
   const MAX_SIZE = 5 * 1024 * 1024;
   const buffer = Buffer.from(base64Data, 'base64');
   if (buffer.length > MAX_SIZE) {
-    throw new Error('File too large. Max 5 MB allowed.');
+    return fail('Datei ist zu groß');
   }
+  const supabase = await createClient();
   // Generate unique filename
   const fileExt = fileName.includes('.')
     ? fileName.split('.').pop()
@@ -46,13 +47,19 @@ export async function uploadImage(
     });
   if (error) {
     console.error('Supabase upload error:', error);
-    throw error;
+    return fail('Upload fehlgeschlagen');
   }
-  return uniqueFileName;
+  return ok({ fileName: uniqueFileName });
 }
 
-export async function deleteImage(bucketPath: string): Promise<void> {
+export async function deleteImage(
+  bucketPath: string
+): Promise<ActionResult<{ message: string }>> {
   await requireProfile();
+
+  if (!bucketPath || bucketPath.trim().length === 0) {
+    return fail('Ungültiger Dateipfad');
+  }
   const supabase = await createClient();
 
   const { error } = await supabase.storage
@@ -60,7 +67,8 @@ export async function deleteImage(bucketPath: string): Promise<void> {
     .remove([bucketPath]);
 
   if (error) {
-    // todo return error message
-    throw error;
+    console.error('Supabase delete error:', error);
+    return fail('Löschen fehlgeschlagen');
   }
+  return ok({ message: 'Bild gelöscht' });
 }

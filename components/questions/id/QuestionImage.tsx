@@ -29,8 +29,13 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
       reader.onload = async () => {
         try {
           const base64String = reader.result as string;
-          const fileName = await uploadImage(base64String, file.name);
-          onImageChange(fileName);
+          const result = await uploadImage(base64String, file.name);
+          if (!result.success) {
+            throw new Error(result.error);
+          }
+          if (result.data?.fileName) {
+            onImageChange(result.data.fileName);
+          }
         } catch (error) {
           console.error('Error uploading image:', error);
         } finally {
@@ -48,7 +53,10 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
     if (!bucketPath) return;
 
     try {
-      await deleteImage(bucketPath);
+      const result = await deleteImage(bucketPath);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
       onImageChange(undefined);
     } catch (error) {
       console.error('Error removing image:', error);
