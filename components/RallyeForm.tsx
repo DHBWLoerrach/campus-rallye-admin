@@ -44,9 +44,7 @@ function SaveButton() {
 }
 
 export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
-  const [formState, formAction] = useActionState(updateRallye, {
-    errors: { message: '' },
-  });
+  const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
   const [date24, setDate24] = useState<Date | undefined>(
@@ -75,8 +73,8 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
     setIsDeleting(true);
     try {
       const result = await deleteRallye(rallye.id.toString());
-      if (result.errors) {
-        console.error(result.errors.message);
+      if (!result.success) {
+        console.error(result.error);
       } else {
         // Nach erfolgreichem Löschen zurück zur Übersicht
         onCancel();
@@ -239,14 +237,14 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
 
             <SaveButton />
           </div>
-          {formState?.errors && (
+          {formState?.success === false && (
             <span className="text-sm text-destructive ml-2">
-              {formState.errors.message}
+              {formState.error}
             </span>
           )}
-          {formState?.success && (
+          {formState?.success && formState.data?.message && (
             <span className="text-sm text-success ml-2">
-              {formState.success.message}
+              {formState.data.message}
             </span>
           )}
         </form>

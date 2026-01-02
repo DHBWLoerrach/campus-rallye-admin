@@ -35,13 +35,16 @@ describe('updateRallye', () => {
   };
 
   const setupSupabaseUpdate = () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: 1 }, error: null });
+    const selectEq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq: selectEq }));
     const eq = vi.fn().mockResolvedValue({ error: null });
     const update = vi.fn<(payload: UpdatePayload) => { eq: typeof eq }>(() => ({
       eq,
     }));
-    const from = vi.fn(() => ({ update }));
+    const from = vi.fn(() => ({ select, update }));
     mockCreateClient.mockResolvedValue({ from });
-    return { from, update, eq };
+    return { from, update, eq, select, selectEq, maybeSingle };
   };
 
   const makeFormData = (entries: Record<string, string>) => {
@@ -57,7 +60,7 @@ describe('updateRallye', () => {
     const { update } = setupSupabaseUpdate();
 
     const { updateRallye } = await import('./rallye');
-    await updateRallye(undefined, makeFormData({
+    await updateRallye(null, makeFormData({
       id: '1',
       name: 'Test',
       status: 'running',
@@ -79,7 +82,7 @@ describe('updateRallye', () => {
     const { update } = setupSupabaseUpdate();
 
     const { updateRallye } = await import('./rallye');
-    const result = await updateRallye(undefined, makeFormData({
+    const result = await updateRallye(null, makeFormData({
       id: '1',
       name: 'Test',
       status: 'running',
@@ -88,7 +91,7 @@ describe('updateRallye', () => {
       password: 'secret',
     }));
 
-    expect(result).toEqual({ errors: { message: 'Ungültiges Datum' } });
+    expect(result).toEqual({ success: false, error: 'Ungültiges Datum' });
     expect(update).not.toHaveBeenCalled();
   });
 
@@ -97,7 +100,7 @@ describe('updateRallye', () => {
     const { update } = setupSupabaseUpdate();
 
     const { updateRallye } = await import('./rallye');
-    await updateRallye(undefined, makeFormData({
+    await updateRallye(null, makeFormData({
       id: '1',
       name: 'Test',
       status: 'running',

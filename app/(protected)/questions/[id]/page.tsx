@@ -11,12 +11,13 @@ export default async function Question({ params }: Props) {
   const { id } = await params;
   const isNew = id === 'new';
 
-  const [question, categories, rallyes, assignedRallyes] = await Promise.all([
+  const [question, categories, rallyesResult, assignedRallyes] = await Promise.all([
     isNew ? Promise.resolve(null) : getQuestionById(Number(id)),
     getCategories(),
     getRallyeOptions(),
     isNew ? Promise.resolve([]) : getQuestionRallyes(Number(id)),
   ]);
+  const rallyes = rallyesResult.success ? rallyesResult.data ?? [] : [];
 
   return (
     <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">

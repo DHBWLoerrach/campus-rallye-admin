@@ -56,15 +56,13 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
     formData: FormData
   ) => {
     const result = await createRallye(state, formData);
-    if (result?.success?.rallyeId) {
-      setCreatedRallyeId(result.success.rallyeId);
+    if (result?.success && result.data?.rallyeId) {
+      setCreatedRallyeId(result.data.rallyeId);
       setCreatedRallyeName((formData.get('name') as string) || '');
     }
     return result;
   };
-  const [formState, formAction] = useActionState(handleCreate, {
-    errors: { message: '' },
-  });
+  const [formState, formAction] = useActionState(handleCreate, null);
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -131,9 +129,9 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
             <DialogFooter>
               <SaveButton disabled={name?.trim().length === 0} />
             </DialogFooter>
-            {formState?.errors && (
+            {formState?.success === false && (
               <span className="text-sm text-red-500 ml-2">
-                {formState.errors.message}
+                {formState.error}
               </span>
             )}
           </form>

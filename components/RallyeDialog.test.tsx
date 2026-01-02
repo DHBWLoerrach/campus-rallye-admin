@@ -17,7 +17,8 @@ describe('RallyeDialog', () => {
 
   it('shows an assignment CTA after creating a rallye', async () => {
     mockCreateRallye.mockResolvedValue({
-      success: { message: 'Rallye erfolgreich gespeichert', rallyeId: 42 },
+      success: true,
+      data: { message: 'Rallye erfolgreich gespeichert', rallyeId: 42 },
     });
 
     render(<RallyeDialog buttonStyle="" />);

@@ -4,11 +4,12 @@ import { getRallyeOptions } from '@/actions/rallye';
 import { getQuestionRallyeMap } from '@/actions/assign_questions_to_rallye';
 
 export default async function Questions() {
-  const [questions, categories, rallyes] = await Promise.all([
+  const [questions, categories, rallyesResult] = await Promise.all([
     getQuestions({}),
     getCategories(),
     getRallyeOptions(),
   ]);
+  const rallyes = rallyesResult.success ? rallyesResult.data ?? [] : [];
   const initialRallyeMap = await getQuestionRallyeMap(
     questions.map((question) => question.id)
   );
