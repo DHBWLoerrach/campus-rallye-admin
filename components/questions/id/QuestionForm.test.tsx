@@ -69,4 +69,57 @@ describe('QuestionForm', () => {
       expect.arrayContaining([1, 2])
     );
   });
+
+  it('keeps a correct answer when removing the last answer', () => {
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Beispielfrage',
+          type: 'multiple_choice',
+          answers: [{ id: 1, correct: true, text: 'Antwort A' }],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        rallyes={[]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Antwort entfernen' })
+    );
+
+    const radios = screen.getAllByRole('radio');
+    expect(radios).toHaveLength(1);
+    expect(radios[0]).toHaveAttribute('data-state', 'checked');
+  });
+
+  it('reassigns the correct answer when removing the selected one', () => {
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Mehrfachauswahl',
+          type: 'multiple_choice',
+          answers: [
+            { id: 1, correct: false, text: 'Antwort A' },
+            { id: 2, correct: true, text: 'Antwort B' },
+            { id: 3, correct: false, text: 'Antwort C' },
+          ],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        rallyes={[]}
+      />
+    );
+
+    const removeButtons = screen.getAllByRole('button', {
+      name: 'Antwort entfernen',
+    });
+    fireEvent.click(removeButtons[1]);
+
+    const radios = screen.getAllByRole('radio');
+    expect(radios).toHaveLength(2);
+    expect(radios[1]).toHaveAttribute('data-state', 'checked');
+  });
 });

@@ -161,18 +161,44 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     }));
   };
 
-  const removeAnswer = (index: number) => {
-    if (formData.answers?.length === 1) {
-      setFormData((prev) => ({
-        ...prev,
-        answers: [{ id: 0, correct: false, text: '' }],
-      }));
-      return;
+  const ensureCorrectAnswer = (
+    answers: QuestionFormData['answers'],
+    fallbackIndex: number
+  ) => {
+    if (!answers || answers.length === 0) {
+      return [{ id: 0, correct: true, text: '' }];
     }
-    setFormData((prev) => ({
-      ...prev,
-      answers: prev.answers?.filter((_, i) => i !== index),
+
+    if (answers.some((answer) => answer.correct)) {
+      return answers;
+    }
+
+    const safeIndex = Math.min(fallbackIndex, answers.length - 1);
+    return answers.map((answer, index) => ({
+      ...answer,
+      correct: index === safeIndex,
     }));
+  };
+
+  const removeAnswer = (index: number) => {
+    setFormData((prev) => {
+      const currentAnswers = prev.answers ?? [];
+      if (currentAnswers.length <= 1) {
+        return {
+          ...prev,
+          answers: [{ id: 0, correct: true, text: '' }],
+        };
+      }
+
+      const updatedAnswers = currentAnswers.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        answers: ensureCorrectAnswer(
+          updatedAnswers,
+          Math.min(index, updatedAnswers.length - 1)
+        ),
+      };
+    });
   };
 
   const validateForm = (data: QuestionFormData): boolean => {
@@ -423,6 +449,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                       variant="outline"
                       size="icon"
                       onClick={() => removeAnswer(index)}
+                      aria-label="Antwort entfernen"
                       className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Minus className="h-4 w-4" aria-hidden="true" />
