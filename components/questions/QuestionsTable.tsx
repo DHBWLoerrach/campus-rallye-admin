@@ -77,6 +77,15 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                 const hasImage = Boolean(question.bucket_path);
                 const hasHint = Boolean(question.hint?.trim());
                 const hasRallyes = rallyeNames.length > 0;
+                const answers = question.answers ?? [];
+                const hasAnswers = answers.length > 0;
+                const answersTitle = answers
+                  .map((answer) => {
+                    const label = answer.correct ? 'Richtig' : 'Falsch';
+                    const text = answer.text?.trim() || '-';
+                    return `${label}: ${text}`;
+                  })
+                  .join(' | ');
                 const showMeta = hasPoints || hasImage || hasHint || hasRallyes;
                 const rallyeLabel =
                   rallyeNames.length === 1 ? 'Rallye' : 'Rallyes';
@@ -199,24 +208,41 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                           </TableCell>
                         </TableRow>
                       )}
-                      {question.answers?.map((answer) => (
-                        <TableRow
-                          key={answer.id}
-                          className="bg-muted/40 text-muted-foreground border-0"
-                        >
+                      {hasAnswers && (
+                        <TableRow className="bg-muted/40 text-muted-foreground border-0">
                           <TableCell />
-                          <TableCell colSpan={3} className="py-1.5">
-                            <div className="pl-5 border-l border-border/40 flex items-center gap-2">
-                              {answer.correct ? (
-                                <Check className="h-4 w-4 text-success" />
-                              ) : (
-                                <X className="h-4 w-4 text-destructive" />
-                              )}
-                              {answer.text}
+                          <TableCell colSpan={3} className="py-1">
+                            <div className="pl-5 border-l border-border/40 text-xs flex items-center gap-2">
+                              <span className="font-medium text-muted-foreground/80 whitespace-nowrap">
+                                Antworten:
+                              </span>
+                              <div
+                                className="min-w-0 flex-1 truncate"
+                                title={answersTitle}
+                              >
+                                {answers.map((answer, index) => (
+                                  <span
+                                    key={answer.id ?? `${question.id}-${index}`}
+                                    className="inline-flex items-center gap-1"
+                                  >
+                                    {answer.correct ? (
+                                      <Check className="h-3 w-3 text-success/70" />
+                                    ) : (
+                                      <X className="h-3 w-3 text-destructive/70" />
+                                    )}
+                                    <span>{answer.text?.trim() || '-'}</span>
+                                    {index < answers.length - 1 && (
+                                      <span className="mx-1 text-muted-foreground/60">
+                                        |
+                                      </span>
+                                    )}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )}
                     </>
                   )}
                 </React.Fragment>

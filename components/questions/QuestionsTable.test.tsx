@@ -14,6 +14,10 @@ describe('QuestionsTable', () => {
             points: 2,
             hint: 'Hinweistext',
             bucket_path: 'questions/1.png',
+            answers: [
+              { id: 1, correct: true, text: 'Antwort A' },
+              { id: 2, correct: false, text: 'Antwort B' },
+            ],
           },
         ]}
         rallyeMap={{ 1: ['Rallye A', 'Rallye B'] }}
@@ -51,5 +55,8 @@ describe('QuestionsTable', () => {
     expect(screen.getByText('Hinweistext')).toBeInTheDocument();
     expect(screen.getByText('Rallyes:')).toBeInTheDocument();
     expect(screen.getByText('Rallye A, Rallye B')).toBeInTheDocument();
+    expect(screen.getByText('Antworten:')).toBeInTheDocument();
+    expect(screen.getByText('Antwort A')).toBeInTheDocument();
+    expect(screen.getByText('Antwort B')).toBeInTheDocument();
   });
 });
