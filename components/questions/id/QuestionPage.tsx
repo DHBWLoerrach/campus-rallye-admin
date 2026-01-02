@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -44,8 +44,13 @@ const QuestionPage: React.FC<Props> = ({
     assignedRallyeIds.has(rallye.id)
   );
   const hasAssignments = effectiveRallyeIds.length > 0;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const handleSubmit = async (data: QuestionFormData) => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
     try {
       if (id !== 'new') {
         await updateQuestion(Number(id), {
@@ -62,6 +67,9 @@ const QuestionPage: React.FC<Props> = ({
     } catch (error) {
       console.error('Error submitting data:', error);
       // todo return error message
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -139,6 +147,7 @@ const QuestionPage: React.FC<Props> = ({
           categories={categories}
           rallyes={rallyes}
           initialRallyeIds={effectiveRallyeIds}
+          isSubmitting={isSubmitting}
         />
       </section>
     </div>

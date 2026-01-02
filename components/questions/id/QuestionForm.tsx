@@ -25,6 +25,7 @@ interface QuestionFormProps {
   categories: string[];
   rallyes: RallyeOption[];
   initialRallyeIds?: number[];
+  isSubmitting?: boolean;
 }
 
 interface FormErrors {
@@ -43,6 +44,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   categories,
   rallyes,
   initialRallyeIds = [],
+  isSubmitting = false,
 }) => {
   const [formData, setFormData] = useState<QuestionFormData>({
     content: initialData?.content || '',
@@ -242,6 +244,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
 
     // Remove empty answers
     const cleanedData = {
@@ -257,7 +260,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-6">
+      <fieldset
+        disabled={isSubmitting}
+        className="space-y-6 border-0 p-0 m-0"
+      >
         <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="question">Frage*</Label>
@@ -527,7 +533,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             </Button>
           )}
         </div>
-      </div>
+      </fieldset>
     </form>
   );
 };

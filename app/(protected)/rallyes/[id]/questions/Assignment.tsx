@@ -56,6 +56,8 @@ export default function Assignment({
     initialQuestions || []
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [votingQuestions, setVotingQuestions] = useState<number[]>(
     initialVotingQuestions || []
   );
@@ -88,6 +90,7 @@ export default function Assignment({
   }, [rallyeId]);
 
   const loadExistingAssignments = async (targetRallyeId: number) => {
+    setIsLoadingAssignments(true);
     try {
       const [existingQuestions, existingVotes] = await Promise.all([
         getRallyeQuestions(targetRallyeId),
@@ -99,12 +102,21 @@ export default function Assignment({
       savedVotingQuestionsRef.current = existingVotes;
     } catch (error) {
       console.error('Error loading existing assignments:', error);
+    } finally {
+      setIsLoadingAssignments(false);
     }
   };
 
   const fetchQuestions = async () => {
-    const fetchedQuestions = await getQuestions({});
-    setQuestions(fetchedQuestions);
+    setIsLoadingQuestions(true);
+    try {
+      const fetchedQuestions = await getQuestions({});
+      setQuestions(fetchedQuestions);
+    } catch (error) {
+      console.error('Error loading questions:', error);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
   };
 
   const handleFilterChange = async (filters: {
@@ -115,12 +127,19 @@ export default function Assignment({
     rallyeId?: string;
     assigned?: boolean;
   }) => {
-    const filteredQuestions = await getQuestions(filters);
-    const finalQuestions =
-      filters.assigned === true
-        ? filteredQuestions.filter((q) => selectedQuestions.includes(q.id))
-        : filteredQuestions;
-    setQuestions(finalQuestions);
+    setIsLoadingQuestions(true);
+    try {
+      const filteredQuestions = await getQuestions(filters);
+      const finalQuestions =
+        filters.assigned === true
+          ? filteredQuestions.filter((q) => selectedQuestions.includes(q.id))
+          : filteredQuestions;
+      setQuestions(finalQuestions);
+    } catch (error) {
+      console.error('Error filtering questions:', error);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -158,6 +177,7 @@ export default function Assignment({
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const isLoading = isLoadingAssignments || isLoadingQuestions;
 
   return (
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
@@ -218,6 +238,9 @@ export default function Assignment({
             categories={initialCategories ?? []}
           />
         </div>
+        {isLoading && (
+          <p className="text-xs text-muted-foreground">Lade Daten...</p>
+        )}
         <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/90">
           <div className="max-h-[60vh] overflow-y-auto">
             <Table>
@@ -234,11 +257,19 @@ export default function Assignment({
               </TableHeader>
               <TableBody>
                 {questions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center">
-                      Keine Fragen verfügbar
-                    </TableCell>
-                  </TableRow>
+                  isLoadingQuestions ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center">
+                        Lade Fragen...
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center">
+                        Keine Fragen verfügbar
+                      </TableCell>
+                    </TableRow>
+                  )
                 ) : (
                   questions.map((question) => (
                     <TableRow key={question.id}>
