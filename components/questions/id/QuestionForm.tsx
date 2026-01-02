@@ -225,6 +225,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     if (data.type === 'multiple_choice') {
       if (validAnswers.length < 2) {
         newErrors.answers = 'Mindestens zwei Antworten müssen eingegeben werden';
+      } else {
+        const normalizedAnswers = validAnswers.map(
+          (answer) => answer.text?.trim().toLowerCase() ?? ''
+        );
+        if (new Set(normalizedAnswers).size !== normalizedAnswers.length) {
+          newErrors.answers = 'Antworten müssen unterschiedlich sein';
+        }
       }
     } else if (data.type !== 'upload' && validAnswers.length === 0) {
       newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
