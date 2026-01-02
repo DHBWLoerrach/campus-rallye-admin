@@ -109,12 +109,13 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                         {showMeta && (
                           <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
                             {hasPoints && (
-                              <span
-                                className="inline-flex items-center tabular-nums"
+                              <Badge
+                                variant="outline"
+                                className="px-2 py-0.5 text-[0.55rem] font-medium normal-case tracking-normal text-muted-foreground/80 border-border/50"
                                 title={`Punkte: ${question.points}`}
                               >
                                 {question.points}p
-                              </span>
+                              </Badge>
                             )}
                             {hasImage && (
                               <span
