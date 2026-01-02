@@ -62,14 +62,19 @@ export async function deleteImage(
 ): Promise<ActionResult<{ message: string }>> {
   await requireProfile();
 
-  if (!bucketPath || bucketPath.trim().length === 0) {
+  const normalizedPath = bucketPath.trim();
+  if (!normalizedPath) {
+    return fail('Ungültiger Dateipfad');
+  }
+  const validPath = /^[a-z0-9]+\.(png|jpg|jpeg|gif|webp|bin)$/i;
+  if (!validPath.test(normalizedPath)) {
     return fail('Ungültiger Dateipfad');
   }
   const supabase = await createClient();
 
   const { error } = await supabase.storage
     .from('question-media')
-    .remove([bucketPath]);
+    .remove([normalizedPath]);
 
   if (error) {
     console.error('Supabase delete error:', error);

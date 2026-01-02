@@ -71,4 +71,18 @@ describe('deleteImage', () => {
     expect(result.error).toBe('Ungültiger Dateipfad');
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
+
+  it('rejects paths with invalid characters without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const { deleteImage } = await import('./upload');
+    const result = await deleteImage('foo/bar.png');
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('Expected validation to fail');
+    }
+    expect(result.error).toBe('Ungültiger Dateipfad');
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
 });
