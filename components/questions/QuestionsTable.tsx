@@ -79,6 +79,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                 const hasRallyes = rallyeNames.length > 0;
                 const answers = question.answers ?? [];
                 const hasAnswers = answers.length > 0;
+                const answersLabel = answers.length === 1 ? 'Antwort' : 'Antworten';
                 const answersTitle = answers
                   .map((answer) => {
                     const label = answer.correct ? 'Richtig' : 'Falsch';
@@ -214,7 +215,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                           <TableCell colSpan={3} className="py-1">
                             <div className="pl-5 border-l border-border/40 text-xs flex items-center gap-2">
                               <span className="font-medium text-muted-foreground/80 whitespace-nowrap">
-                                Antworten:
+                                {answersLabel}:
                               </span>
                               <div
                                 className="min-w-0 flex-1 truncate"

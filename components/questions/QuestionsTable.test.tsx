@@ -59,4 +59,25 @@ describe('QuestionsTable', () => {
     expect(screen.getByText('Antwort A')).toBeInTheDocument();
     expect(screen.getByText('Antwort B')).toBeInTheDocument();
   });
+
+  it('uses singular label when there is only one answer', () => {
+    const { container } = render(
+      <QuestionsTable
+        questions={[
+          {
+            id: 1,
+            content: 'Testfrage',
+            type: 'knowledge',
+            answers: [{ id: 1, correct: true, text: 'Einzelantwort' }],
+          },
+        ]}
+      />
+    );
+
+    const toggle = container.querySelector('tbody tr td svg');
+    expect(toggle).not.toBeNull();
+    fireEvent.click(toggle as SVGElement);
+    expect(screen.getByText('Antwort:')).toBeInTheDocument();
+    expect(screen.getByText('Einzelantwort')).toBeInTheDocument();
+  });
 });
