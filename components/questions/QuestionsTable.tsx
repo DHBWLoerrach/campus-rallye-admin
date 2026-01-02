@@ -76,9 +76,9 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     <TableCell className="text-center">
                       <Button
                         asChild
-                        variant="dhbwStyle"
+                        variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
                       >
                         <Link href={`/questions/${question.id}`}>
                           <Pencil className="h-4 w-4" aria-hidden="true" />
