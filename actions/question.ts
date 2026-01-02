@@ -133,8 +133,7 @@ export async function getQuestions(filters: {
         (answerRows || [])
           .map((row) => row.question_id)
           .filter(
-            (id): id is number | string =>
-              typeof id === 'number' || typeof id === 'string'
+            (id): id is number => typeof id === 'number'
           )
       )
     );

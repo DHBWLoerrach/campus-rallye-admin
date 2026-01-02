@@ -127,11 +127,11 @@ describe('getQuestions', () => {
     return query;
   };
 
-  it('filters by answer text when answer ids are strings', async () => {
+  it('filters by answer text when answer ids are numbers', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const answersQuery = makeQuery({
-      data: [{ question_id: '42' }],
+      data: [{ question_id: 42 }],
       error: null,
     });
     const questionsResponse = {
@@ -165,7 +165,7 @@ describe('getQuestions', () => {
     expect(result).toEqual({ success: true, data: questionsResponse.data });
     expect(answersQuery.select).toHaveBeenCalledWith('question_id');
     expect(answersQuery.ilike).toHaveBeenCalledWith('text', '%Antwort%');
-    expect(questionsQuery.in).toHaveBeenCalledWith('id', ['42']);
+    expect(questionsQuery.in).toHaveBeenCalledWith('id', [42]);
   });
 });
 
