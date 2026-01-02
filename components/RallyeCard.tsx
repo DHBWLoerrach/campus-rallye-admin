@@ -31,7 +31,17 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
     let isMounted = true;
     (async () => {
       try {
-        const ids = await getRallyeQuestions(rallye.id);
+        const result = await getRallyeQuestions(rallye.id);
+        if (!result.success) {
+          console.error(
+            'Failed to load question count for rallye',
+            rallye.id,
+            result.error
+          );
+          if (isMounted) setFetchedQuestionCount(0);
+          return;
+        }
+        const ids = result.data ?? [];
         if (isMounted) setFetchedQuestionCount(ids.length);
       } catch (e) {
         if (isMounted) setFetchedQuestionCount(0);

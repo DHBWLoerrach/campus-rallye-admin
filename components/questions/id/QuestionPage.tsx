@@ -46,27 +46,37 @@ const QuestionPage: React.FC<Props> = ({
   const hasAssignments = effectiveRallyeIds.length > 0;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (data: QuestionFormData) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       if (id !== 'new') {
-        await updateQuestion(Number(id), {
+        const result = await updateQuestion(Number(id), {
           ...data,
           answers: data.answers || [],
         });
+        if (!result.success) {
+          setSubmitError(result.error);
+          return;
+        }
       } else {
-        await createQuestion({
+        const result = await createQuestion({
           ...data,
           answers: data.answers || [],
         });
+        if (!result.success) {
+          setSubmitError(result.error);
+          return;
+        }
       }
       router.push(returnTo);
     } catch (error) {
       console.error('Error submitting data:', error);
-      // todo return error message
+      setSubmitError('Speichern fehlgeschlagen');
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -79,7 +89,11 @@ const QuestionPage: React.FC<Props> = ({
 
   const handleDelete = async () => {
     if (id && id !== 'new') {
-      await deleteQuestion(Number(id));
+      const result = await deleteQuestion(Number(id));
+      if (!result.success) {
+        setSubmitError(result.error);
+        return;
+      }
       router.push(returnTo);
     }
   };
@@ -135,6 +149,12 @@ const QuestionPage: React.FC<Props> = ({
           ) : (
             <span className="text-muted-foreground">Unbekannte Rallyes</span>
           )}
+        </div>
+      )}
+
+      {submitError && (
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+          {submitError}
         </div>
       )}
 

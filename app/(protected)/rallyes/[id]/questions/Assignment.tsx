@@ -92,13 +92,20 @@ export default function Assignment({
   const loadExistingAssignments = async (targetRallyeId: number) => {
     setIsLoadingAssignments(true);
     try {
-      const [existingQuestions, existingVotes] = await Promise.all([
+      const [existingQuestionsResult, existingVotes] = await Promise.all([
         getRallyeQuestions(targetRallyeId),
         getVotingQuestions(targetRallyeId),
       ]);
-      setSelectedQuestions(existingQuestions);
+      if (!existingQuestionsResult.success) {
+        console.error(existingQuestionsResult.error);
+        setSelectedQuestions([]);
+        savedSelectedQuestionsRef.current = [];
+      } else {
+        const questionIds = existingQuestionsResult.data ?? [];
+        setSelectedQuestions(questionIds);
+        savedSelectedQuestionsRef.current = questionIds;
+      }
       setVotingQuestions(existingVotes);
-      savedSelectedQuestionsRef.current = existingQuestions;
       savedVotingQuestionsRef.current = existingVotes;
     } catch (error) {
       console.error('Error loading existing assignments:', error);
@@ -110,8 +117,13 @@ export default function Assignment({
   const fetchQuestions = async () => {
     setIsLoadingQuestions(true);
     try {
-      const fetchedQuestions = await getQuestions({});
-      setQuestions(fetchedQuestions);
+      const fetchedQuestionsResult = await getQuestions({});
+      if (!fetchedQuestionsResult.success) {
+        console.error(fetchedQuestionsResult.error);
+        setQuestions([]);
+        return;
+      }
+      setQuestions(fetchedQuestionsResult.data ?? []);
     } catch (error) {
       console.error('Error loading questions:', error);
     } finally {
@@ -129,7 +141,13 @@ export default function Assignment({
   }) => {
     setIsLoadingQuestions(true);
     try {
-      const filteredQuestions = await getQuestions(filters);
+      const filteredQuestionsResult = await getQuestions(filters);
+      if (!filteredQuestionsResult.success) {
+        console.error(filteredQuestionsResult.error);
+        setQuestions([]);
+        return;
+      }
+      const filteredQuestions = filteredQuestionsResult.data ?? [];
       const finalQuestions =
         filters.assigned === true
           ? filteredQuestions.filter((q) => selectedQuestions.includes(q.id))
@@ -145,7 +163,7 @@ export default function Assignment({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await Promise.all([
+      const [assignResult] = await Promise.all([
         assignQuestionsToRallye(rallyeId, selectedQuestions),
         updateVotingBatch(
           rallyeId,
@@ -153,6 +171,9 @@ export default function Assignment({
           pendingVotingChanges.remove
         ),
       ]);
+      if (!assignResult.success) {
+        throw new Error(assignResult.error);
+      }
       setPendingVotingChanges({ add: [], remove: [] });
     } catch (error) {
       console.error('Error saving questions:', error);

@@ -19,6 +19,48 @@ describe('question write actions', () => {
     vi.resetModules();
   });
 
+  it('returns validation errors before touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const { createQuestion } = await import('./question');
+
+    const result = await createQuestion({
+      content: '',
+      type: 'knowledge',
+      points: 1,
+      answers: [{ correct: true, text: 'Antwort' }],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('Expected validation to fail');
+    }
+    expect(result.error).toBe('Ungültige Eingaben');
+    expect(result.issues?.content).toBe('Bitte geben Sie eine Frage ein');
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
+  it('validates points on update before touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const { updateQuestion } = await import('./question');
+
+    const result = await updateQuestion(1, {
+      content: 'Frage',
+      type: 'knowledge',
+      points: -1,
+      answers: [{ id: 1, correct: true, text: 'Antwort' }],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('Expected validation to fail');
+    }
+    expect(result.error).toBe('Ungültige Eingaben');
+    expect(result.issues?.points).toBe('Punkte müssen größer oder gleich 0 sein');
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
   it('createQuestion requires a profile before touching Supabase', async () => {
     mockRequireProfile.mockRejectedValue(new Error('Denied'));
 
@@ -120,7 +162,7 @@ describe('getQuestions', () => {
     const { getQuestions } = await import('./question');
     const result = await getQuestions({ answer: 'Antwort' });
 
-    expect(result).toEqual(questionsResponse.data);
+    expect(result).toEqual({ success: true, data: questionsResponse.data });
     expect(answersQuery.select).toHaveBeenCalledWith('question_id');
     expect(answersQuery.ilike).toHaveBeenCalledWith('text', '%Antwort%');
     expect(questionsQuery.in).toHaveBeenCalledWith('id', ['42']);
@@ -157,7 +199,7 @@ describe('getCategories', () => {
     const { getCategories } = await import('./question');
     const result = await getCategories();
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ success: true, data: [] });
     expect(from).toHaveBeenCalledWith('questions');
     expect(query.select).toHaveBeenCalledWith('category');
     expect(query.not).toHaveBeenCalledWith('category', 'is', null);
@@ -179,7 +221,7 @@ describe('getCategories', () => {
     const { getCategories } = await import('./question');
     const result = await getCategories();
 
-    expect(result).toEqual([]);
+    expect(result.success).toBe(false);
     expect(from).toHaveBeenCalledWith('questions');
     expect(query.select).toHaveBeenCalledWith('category');
     expect(query.not).toHaveBeenCalledWith('category', 'is', null);

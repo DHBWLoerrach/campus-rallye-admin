@@ -35,11 +35,23 @@ export default function QuestionManagement({
     rallyeId?: string;
     assigned?: boolean;
   }) => {
-    const fetchedQuestions: Question[] = await getQuestions(filters);
+    const questionsResult = await getQuestions(filters);
+    if (!questionsResult.success) {
+      console.error(questionsResult.error);
+      setQuestions([]);
+      setRallyeMap({});
+      return;
+    }
+    const fetchedQuestions = questionsResult.data ?? [];
     setQuestions(fetchedQuestions);
     const questionIds = fetchedQuestions.map((question) => question.id);
-    const nextRallyeMap = await getQuestionRallyeMap(questionIds);
-    setRallyeMap(nextRallyeMap);
+    const nextRallyeMapResult = await getQuestionRallyeMap(questionIds);
+    if (!nextRallyeMapResult.success) {
+      console.error(nextRallyeMapResult.error);
+      setRallyeMap({});
+      return;
+    }
+    setRallyeMap(nextRallyeMapResult.data ?? {});
   };
 
   // antworten wir empfelen Antworten nicht länger als ... Zeichen 50?
