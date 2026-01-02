@@ -38,7 +38,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   return (
     <>
       <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/90">
-        <Table className="text-sm">
+        <Table className="text-sm [&_th]:h-9 [&_th]:px-3 [&_td]:px-3 [&_td]:py-2">
           <TableHeader>
             <TableRow>
               <TableHead className="w-8"></TableHead>
