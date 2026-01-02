@@ -14,7 +14,6 @@ import {
   Image as ImageIcon,
   Lightbulb,
   Pencil,
-  Star,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -111,13 +110,9 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                           <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
                             {hasPoints && (
                               <span
-                                className="inline-flex items-center gap-1"
+                                className="inline-flex items-center tabular-nums"
                                 title={`Punkte: ${question.points}`}
                               >
-                                <Star
-                                  className="h-3 w-3"
-                                  aria-hidden="true"
-                                />
                                 {question.points}p
                               </span>
                             )}
