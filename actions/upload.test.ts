@@ -32,6 +32,24 @@ describe('uploadImage', () => {
     expect(result.error).toBe('Ungültige Datei');
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
+
+  it('derives file extension from content type', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const upload = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn(() => ({ upload }));
+    mockCreateClient.mockResolvedValue({ storage: { from } });
+
+    const { uploadImage } = await import('./upload');
+    const result = await uploadImage('data:image/png;base64,AAAA', 'photo.jpg');
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error('Expected upload to succeed');
+    }
+    expect(result.data?.fileName).toMatch(/\.png$/);
+    expect(from).toHaveBeenCalledWith('question-media');
+  });
 });
 
 describe('deleteImage', () => {

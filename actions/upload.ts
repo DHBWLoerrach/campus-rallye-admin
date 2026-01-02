@@ -33,9 +33,14 @@ export async function uploadImage(
   }
   const supabase = await createClient();
   // Generate unique filename
-  const fileExt = fileName.includes('.')
-    ? fileName.split('.').pop()
-    : undefined;
+  const extMap: Record<string, string> = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg',
+    'image/gif': 'gif',
+    'image/webp': 'webp',
+  };
+  const fileExt = extMap[contentType] || 'bin';
   const uniqueFileName = `${Math.random().toString(36).substring(2)}.${
     fileExt || 'bin'
   }`;
@@ -46,7 +51,7 @@ export async function uploadImage(
       contentType,
     });
   if (error) {
-    console.error('Supabase upload error:', error);
+    console.error('Supabase upload error:', { fileName, contentType }, error);
     return fail('Upload fehlgeschlagen');
   }
   return ok({ fileName: uniqueFileName });
