@@ -170,25 +170,28 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                   {expandedRows.includes(question.id) && (
                     <>
                       {hasHint && (
-                        <TableRow className="bg-muted/40 text-muted-foreground">
+                        <TableRow className="bg-muted/40 text-muted-foreground border-0">
                           <TableCell />
-                          <TableCell colSpan={3}>
-                            <div className="pl-6 text-xs">
-                              <span className="font-semibold">Hinweis:</span>{' '}
+                          <TableCell colSpan={3} className="py-1.5">
+                            <div className="pl-5 border-l border-border/40 text-xs">
+                              <span className="font-medium text-muted-foreground/80">
+                                Hinweis:
+                              </span>{' '}
                               {question.hint}
                             </div>
                           </TableCell>
                         </TableRow>
                       )}
                       {hasRallyes && (
-                        <TableRow className="bg-muted/40 text-muted-foreground">
+                        <TableRow className="bg-muted/40 text-muted-foreground border-0">
                           <TableCell />
                           <TableCell
                             colSpan={3}
                             title={`${rallyeLabel}: ${rallyeNames.join(', ')}`}
+                            className="py-1.5"
                           >
-                            <div className="pl-6 text-xs">
-                              <span className="font-semibold">
+                            <div className="pl-5 border-l border-border/40 text-xs">
+                              <span className="font-medium text-muted-foreground/80">
                                 {rallyeLabel}:
                               </span>{' '}
                               {rallyeNames.join(', ')}
@@ -199,11 +202,11 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                       {question.answers?.map((answer) => (
                         <TableRow
                           key={answer.id}
-                          className="bg-muted/40 text-muted-foreground"
+                          className="bg-muted/40 text-muted-foreground border-0"
                         >
                           <TableCell />
-                          <TableCell colSpan={3}>
-                            <div className="pl-6 flex items-center gap-2">
+                          <TableCell colSpan={3} className="py-1.5">
+                            <div className="pl-5 border-l border-border/40 flex items-center gap-2">
                               {answer.correct ? (
                                 <Check className="h-4 w-4 text-success" />
                               ) : (
