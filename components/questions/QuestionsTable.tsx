@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Check, ChevronDown, X } from 'lucide-react';
+import { Check, ChevronDown, Pencil, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { questionTypes } from '../../helpers/questionTypes';
@@ -73,13 +73,14 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                         {question.content}
                       </TableCell>
                       <TableCell>{questionTypeLabels[question.type]}</TableCell>
-                      <TableCell>
-                        <Button asChild variant="dhbwStyle" size="sm">
-                          <Link href={`/questions/${question.id}`}>
-                            Bearbeiten
-                          </Link>
-                        </Button>
-                      </TableCell>
+                    <TableCell>
+                      <Button asChild variant="dhbwStyle" size="sm">
+                        <Link href={`/questions/${question.id}`}>
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
+                          <span className="sr-only">Bearbeiten</span>
+                        </Link>
+                      </Button>
+                    </TableCell>
                     </TableRow>
                     {expandedRows.includes(question.id) &&
                       question.answers?.map((answer) => (
