@@ -57,6 +57,7 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const currentYear = new Date().getFullYear();
+  const statusLabelId = `rallye-${rallye.id}-status-label`;
   const calendarStartMonth = new Date(currentYear, 0, 1);
   const calendarEndMonth = new Date(currentYear + 5, 11, 31);
 
@@ -113,13 +114,12 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
           />
 
           <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-status`}>
-              Status der Rallye
-            </Label>
+            <Label id={statusLabelId}>Status der Rallye</Label>
             <RadioGroup
               name="status"
               value={status}
               onValueChange={(value) => setStatus(value as RallyeStatus)}
+              aria-labelledby={statusLabelId}
             >
               {allStatuses.map((statusOption) => (
                 <div key={statusOption} className="flex items-center space-x-2">
