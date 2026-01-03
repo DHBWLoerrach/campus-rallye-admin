@@ -409,15 +409,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   handleFormChange('points', Number(e.target.value))
                 }
                 placeholder="0"
+                min={0}
                 className={`w-28 ${
                   errors.points
                     ? 'border-destructive focus-visible:ring-destructive/40'
                     : ''
                 }`}
               />
-              <span className="text-xs text-muted-foreground">
-                Punkte, z. B. 0–10
-              </span>
             </div>
             {errors.points && (
               <span className="text-sm text-destructive">{errors.points}</span>
