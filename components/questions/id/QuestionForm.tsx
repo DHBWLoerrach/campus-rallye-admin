@@ -315,6 +315,89 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <span className="text-sm text-destructive">{errors.type}</span>
             )}
           </div>
+        </div>
+
+        {formData.type !== 'upload' && (
+          <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
+            <Label>
+              {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
+            </Label>
+            {formData.type === 'multiple_choice' ? (
+              <RadioGroup
+                value={getCorrectAnswerIndex().toString()}
+                onValueChange={handleCorrectAnswerSelect}
+                className="space-y-3"
+              >
+                {formData.answers?.map((answer, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-2"
+                  >
+                    <RadioGroupItem
+                      value={index.toString()}
+                      id={`answer-${index}`}
+                    />
+                    <Label htmlFor={`answer-${index}`} className="flex-1">
+                      <Input
+                        type="text"
+                        value={answer.text ?? ''}
+                        onChange={(e) =>
+                          handleAnswerChange(index, 'text', e.target.value)
+                        }
+                        placeholder="Füge eine Antwort hinzu"
+                        className={
+                          errors.answers
+                            ? 'border-destructive focus-visible:ring-destructive/40'
+                            : ''
+                        }
+                      />
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeAnswer(index)}
+                      aria-label="Antwort entfernen"
+                      className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Minus className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                ))}
+              </RadioGroup>
+            ) : (
+              formData.answers?.map((answer, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Input
+                    type="text"
+                    value={answer.text ?? ''}
+                    onChange={(e) =>
+                      handleAnswerChange(index, 'text', e.target.value)
+                    }
+                    placeholder="Füge eine Antwort hinzu"
+                    className={
+                      errors.answers
+                        ? 'border-destructive focus-visible:ring-destructive/40'
+                        : ''
+                    }
+                  />
+                </div>
+              ))
+            )}
+
+            {formData.type === 'multiple_choice' && (
+              <Button type="button" variant="secondary" onClick={addAnswer}>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Antwort hinzufügen
+              </Button>
+            )}
+            {errors.answers && (
+              <span className="text-sm text-destructive">{errors.answers}</span>
+            )}
+          </div>
+        )}
+
+        <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="points">Punkte</Label>
             <Input
@@ -430,86 +513,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             )}
           </div>
         </div>
-
-        {formData.type !== 'upload' && (
-          <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
-            <Label>
-              {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
-            </Label>
-            {formData.type === 'multiple_choice' ? (
-              <RadioGroup
-                value={getCorrectAnswerIndex().toString()}
-                onValueChange={handleCorrectAnswerSelect}
-                className="space-y-3"
-              >
-                {formData.answers?.map((answer, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-2"
-                  >
-                    <RadioGroupItem
-                      value={index.toString()}
-                      id={`answer-${index}`}
-                    />
-                    <Label htmlFor={`answer-${index}`} className="flex-1">
-                      <Input
-                        type="text"
-                        value={answer.text ?? ''}
-                        onChange={(e) =>
-                          handleAnswerChange(index, 'text', e.target.value)
-                        }
-                        placeholder="Füge eine Antwort hinzu"
-                        className={
-                          errors.answers
-                            ? 'border-destructive focus-visible:ring-destructive/40'
-                            : ''
-                        }
-                      />
-                    </Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeAnswer(index)}
-                      aria-label="Antwort entfernen"
-                      className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      <Minus className="h-4 w-4" aria-hidden="true" />
-                    </Button>
-                  </div>
-                ))}
-              </RadioGroup>
-            ) : (
-              formData.answers?.map((answer, index) => (
-                <div key={index} className="flex gap-2 items-center">
-                  <Input
-                    type="text"
-                    value={answer.text ?? ''}
-                    onChange={(e) =>
-                      handleAnswerChange(index, 'text', e.target.value)
-                    }
-                    placeholder="Füge eine Antwort hinzu"
-                    className={
-                      errors.answers
-                        ? 'border-destructive focus-visible:ring-destructive/40'
-                        : ''
-                    }
-                  />
-                </div>
-              ))
-            )}
-
-            {formData.type === 'multiple_choice' && (
-              <Button type="button" variant="secondary" onClick={addAnswer}>
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Antwort hinzufügen
-              </Button>
-            )}
-            {errors.answers && (
-              <span className="text-sm text-destructive">{errors.answers}</span>
-            )}
-          </div>
-        )}
 
         <div className="flex flex-wrap justify-end gap-2 border-t border-border/60 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
