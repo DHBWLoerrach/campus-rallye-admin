@@ -400,20 +400,25 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="points">Punkte</Label>
-            <Input
-              type="number"
-              id="points"
-              value={formData.points}
-              onChange={(e) =>
-                handleFormChange('points', Number(e.target.value))
-              }
-              placeholder="Punkte eingeben"
-              className={
-                errors.points
-                  ? 'border-destructive focus-visible:ring-destructive/40'
-                  : ''
-              }
-            />
+            <div className="flex flex-wrap items-center gap-3">
+              <Input
+                type="number"
+                id="points"
+                value={formData.points}
+                onChange={(e) =>
+                  handleFormChange('points', Number(e.target.value))
+                }
+                placeholder="0"
+                className={`w-28 ${
+                  errors.points
+                    ? 'border-destructive focus-visible:ring-destructive/40'
+                    : ''
+                }`}
+              />
+              <span className="text-xs text-muted-foreground">
+                Punkte, z. B. 0–10
+              </span>
+            </div>
             {errors.points && (
               <span className="text-sm text-destructive">{errors.points}</span>
             )}
