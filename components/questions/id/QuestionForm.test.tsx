@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import QuestionForm from './QuestionForm';
-import type { Question } from '@/helpers/questions';
+import type { Answer, Question, QuestionFormData } from '@/helpers/questions';
 
 describe('QuestionForm', () => {
   it('normalizes null values to empty strings for inputs', () => {
@@ -174,5 +174,35 @@ describe('QuestionForm', () => {
     expect(
       screen.getByText('Antworten müssen unterschiedlich sein')
     ).toBeInTheDocument();
+  });
+
+  it('strips placeholder answer ids before submit', () => {
+    const handleSubmit = vi.fn();
+
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Mehrfachauswahl',
+          type: 'multiple_choice',
+          answers: [{ id: 1, correct: true, text: 'Antwort A' }],
+        }}
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+        rallyes={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Antwort hinzufügen' }));
+    const answerInputs = screen.getAllByPlaceholderText(/Antwort/i);
+    fireEvent.change(answerInputs[1], { target: { value: 'Antwort B' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+    const submitted = handleSubmit.mock.calls[0][0] as QuestionFormData;
+    const submittedAnswers: Answer[] = submitted.answers ?? [];
+    expect(submittedAnswers).toHaveLength(2);
+    expect(submittedAnswers.some((answer) => answer.id === 0)).toBe(false);
+    expect(submittedAnswers.some((answer) => answer.id === 1)).toBe(true);
   });
 });

@@ -249,7 +249,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     // Remove empty answers
     const cleanedData = {
       ...formData,
-      answers: formData.answers?.filter((answer) => answer.text?.trim()),
+      answers: formData.answers
+        ?.filter((answer) => answer.text?.trim())
+        .map((answer) => ({
+          ...answer,
+          id: answer.id && answer.id > 0 ? answer.id : undefined,
+        })),
     };
 
     if (!validateForm(cleanedData)) {
