@@ -3,6 +3,7 @@ import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
 import type { Question } from '@/helpers/questions';
 import { assignRallyesToQuestion } from '@/actions/assign_questions_to_rallye';
+import { deleteImage } from '@/actions/upload';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import {
   formatZodError,
@@ -403,7 +404,7 @@ export async function deleteQuestion(
 
     const { data: existingQuestion, error: existingError } = await supabase
       .from('questions')
-      .select('id')
+      .select('id, bucket_path')
       .eq('id', idResult.data)
       .maybeSingle();
 
@@ -415,6 +416,11 @@ export async function deleteQuestion(
     if (!existingQuestion) {
       return fail('Frage nicht gefunden');
     }
+
+    const bucketPath =
+      typeof existingQuestion.bucket_path === 'string'
+        ? existingQuestion.bucket_path.trim()
+        : '';
 
     // delete answers first
     const { error: answersError } = await supabase
@@ -436,6 +442,17 @@ export async function deleteQuestion(
     if (questionError) {
       console.error('Error deleting question:', questionError);
       return fail('Frage konnte nicht gelöscht werden');
+    }
+
+    if (bucketPath) {
+      try {
+        const deleteResult = await deleteImage(bucketPath);
+        if (!deleteResult.success) {
+          console.error('Error deleting question image:', deleteResult.error);
+        }
+      } catch (error) {
+        console.error('Error deleting question image:', error);
+      }
     }
 
     console.log('Question and answers deleted successfully');

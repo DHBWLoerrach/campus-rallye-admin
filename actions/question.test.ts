@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockRequireProfile, mockCreateClient } = vi.hoisted(() => ({
-  mockRequireProfile: vi.fn(),
-  mockCreateClient: vi.fn(),
-}));
+const { mockRequireProfile, mockCreateClient, mockDeleteImage } = vi.hoisted(
+  () => ({
+    mockRequireProfile: vi.fn(),
+    mockCreateClient: vi.fn(),
+    mockDeleteImage: vi.fn(),
+  })
+);
 
 vi.mock('@/lib/require-profile', () => ({
   requireProfile: mockRequireProfile,
@@ -11,6 +14,10 @@ vi.mock('@/lib/require-profile', () => ({
 
 vi.mock('@/lib/supabase', () => ({
   default: mockCreateClient,
+}));
+
+vi.mock('@/actions/upload', () => ({
+  deleteImage: mockDeleteImage,
 }));
 
 describe('question write actions', () => {
@@ -104,6 +111,98 @@ describe('question write actions', () => {
     await expect(deleteQuestion(1)).rejects.toThrow('Denied');
 
     expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+});
+
+describe('deleteQuestion', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const buildDeleteQuery = () => ({
+    delete: vi.fn(() => ({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    })),
+  });
+
+  it('deletes the stored image when a bucket path exists', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockDeleteImage.mockResolvedValue({
+      success: true,
+      data: { message: 'Bild gelöscht' },
+    });
+
+    const questionSelect = vi.fn(() => ({
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: {
+            id: 12,
+            bucket_path: '123e4567-e89b-12d3-a456-426614174000.png',
+          },
+          error: null,
+        }),
+      })),
+    }));
+    const questionsQuery = {
+      select: questionSelect,
+      delete: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      })),
+    };
+    const answersQuery = buildDeleteQuery();
+
+    const from = vi.fn((table: string) => {
+      if (table === 'questions') return questionsQuery;
+      if (table === 'answers') return answersQuery;
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { deleteQuestion } = await import('./question');
+    const result = await deleteQuestion(12);
+
+    expect(result.success).toBe(true);
+    expect(questionSelect).toHaveBeenCalledWith('id, bucket_path');
+    expect(mockDeleteImage).toHaveBeenCalledWith(
+      '123e4567-e89b-12d3-a456-426614174000.png'
+    );
+  });
+
+  it('skips image deletion when no bucket path is stored', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const questionSelect = vi.fn(() => ({
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { id: 15, bucket_path: null },
+          error: null,
+        }),
+      })),
+    }));
+    const questionsQuery = {
+      select: questionSelect,
+      delete: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      })),
+    };
+    const answersQuery = buildDeleteQuery();
+
+    const from = vi.fn((table: string) => {
+      if (table === 'questions') return questionsQuery;
+      if (table === 'answers') return answersQuery;
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { deleteQuestion } = await import('./question');
+    const result = await deleteQuestion(15);
+
+    expect(result.success).toBe(true);
+    expect(questionSelect).toHaveBeenCalledWith('id, bucket_path');
+    expect(mockDeleteImage).not.toHaveBeenCalled();
   });
 });
 
