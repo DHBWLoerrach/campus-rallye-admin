@@ -261,13 +261,11 @@ export default function Assignment({
         </div>
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
-        <div className="sticky top-0 z-10 rounded-2xl bg-card/80 p-3 backdrop-blur">
-          <SearchFilters
-            onFilterChange={handleFilterChange}
-            categories={initialCategories ?? []}
-          />
-        </div>
+      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+        <SearchFilters
+          onFilterChange={handleFilterChange}
+          categories={initialCategories ?? []}
+        />
         {isLoading && (
           <p className="text-xs text-muted-foreground">Lade Daten...</p>
         )}
