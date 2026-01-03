@@ -59,7 +59,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const [isNewCategory, setIsNewCategory] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [rallyeFilter, setRallyeFilter] = useState('');
 
   const handleFormChange = <K extends keyof QuestionFormData>(
     field: K,
@@ -148,13 +147,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       answers: newAnswers,
     }));
   };
-
-  const normalizedRallyeFilter = rallyeFilter.trim().toLowerCase();
-  const visibleRallyes = normalizedRallyeFilter
-    ? rallyes.filter((rallye) =>
-        rallye.name.toLowerCase().includes(normalizedRallyeFilter)
-      )
-    : rallyes;
 
   const addAnswer = () => {
     setFormData((prev) => ({
@@ -488,23 +480,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
         <div className="space-y-2">
           <Label>Rallyes zuordnen</Label>
-          <Input
-            value={rallyeFilter}
-            onChange={(e) => setRallyeFilter(e.target.value)}
-            placeholder="Rallye suchen"
-            className="max-w-xs"
-          />
           <div className="rounded-xl border border-border/60 bg-muted/30 p-3 max-h-56 overflow-y-auto space-y-2">
             {rallyes.length === 0 ? (
               <div className="text-sm text-muted-foreground">
                 Keine Rallyes vorhanden
               </div>
-            ) : visibleRallyes.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                Keine Rallyes gefunden
-              </div>
             ) : (
-              visibleRallyes.map((rallye) => (
+              rallyes.map((rallye) => (
                 <div key={rallye.id} className="flex items-center gap-2">
                   <Checkbox
                     id={`rallye-${rallye.id}`}
