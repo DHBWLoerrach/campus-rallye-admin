@@ -15,6 +15,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
   onImageChange,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -23,6 +24,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
       const file = event.target.files?.[0];
       if (!file) return;
       setUploading(true);
+      setErrorMessage(null);
 
       // Convert file to base64
       const reader = new FileReader();
@@ -35,16 +37,26 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
           }
           if (result.data?.fileName) {
             onImageChange(result.data.fileName);
+            setErrorMessage(null);
+            return;
           }
+          throw new Error('Missing file name');
         } catch (error) {
           console.error('Error uploading image:', error);
+          setErrorMessage('Bild konnte nicht hochgeladen werden');
         } finally {
           setUploading(false);
         }
       };
+      reader.onerror = () => {
+        console.error('Error reading image file');
+        setErrorMessage('Bild konnte nicht gelesen werden');
+        setUploading(false);
+      };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error handling image:', error);
+      setErrorMessage('Bild konnte nicht hochgeladen werden');
       setUploading(false);
     }
   };
@@ -53,6 +65,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
     if (!bucketPath) return;
 
     try {
+      setErrorMessage(null);
       const result = await deleteImage(bucketPath);
       if (!result.success) {
         throw new Error(result.error);
@@ -60,6 +73,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
       onImageChange(undefined);
     } catch (error) {
       console.error('Error removing image:', error);
+      setErrorMessage('Bild konnte nicht entfernt werden');
     }
   };
 
@@ -69,6 +83,9 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
       <p className="text-xs text-muted-foreground">
         Bilder werden sofort hochgeladen.
       </p>
+      {errorMessage && (
+        <p className="text-xs text-destructive">{errorMessage}</p>
+      )}
 
       {bucketPath ? (
         <div className="space-y-3">
