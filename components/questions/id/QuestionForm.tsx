@@ -345,7 +345,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           </div>
         </div>
 
-        {formData.type !== 'upload' && (
+        {formData.type && formData.type !== 'upload' && (
           <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
             <Label>
               {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}

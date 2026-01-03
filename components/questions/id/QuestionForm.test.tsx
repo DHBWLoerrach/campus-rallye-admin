@@ -8,6 +8,7 @@ describe('QuestionForm', () => {
     const initialData = {
       hint: null,
       category: null,
+      type: 'knowledge',
       answers: [{ id: 1, correct: true, text: null }],
     } as unknown as Partial<Question>;
 
