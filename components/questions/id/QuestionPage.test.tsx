@@ -138,4 +138,64 @@ describe('QuestionPage', () => {
     expect(confirmSpy).toHaveBeenCalled();
     confirmSpy.mockRestore();
   });
+
+  it('allows navigation via link when user confirms leaving dirty form', () => {
+    mockSearchParams.get.mockImplementation(() => '');
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(
+      <QuestionPage
+        id="1"
+        initialData={{
+          id: 1,
+          content: 'Beispielfrage',
+          type: 'knowledge',
+          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+        }}
+        categories={[]}
+        rallyes={[{ id: 1, name: 'Rallye A' }]}
+        initialRallyeIds={[1]}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/Frage/i), {
+      target: { value: 'Neue Frage' },
+    });
+    fireEvent.click(screen.getByRole('link', { name: 'Rallye A' }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it('prompts before cancel when form is dirty', () => {
+    mockSearchParams.get.mockImplementation((key) => {
+      if (key === 'returnTo') return '/rallyes/1/questions';
+      return '';
+    });
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    render(
+      <QuestionPage
+        id="1"
+        initialData={{
+          id: 1,
+          content: 'Beispielfrage',
+          type: 'knowledge',
+          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+        }}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/Frage/i), {
+      target: { value: 'Geänderte Frage' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
 });

@@ -1,7 +1,8 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useUnsavedChangesGuard } from '@/lib/use-unsaved-changes-guard';
 import {
   createQuestion,
   updateQuestion,
@@ -28,7 +29,6 @@ const QuestionPage: React.FC<Props> = ({
   initialRallyeIds,
 }) => {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const isNew = id === 'new';
   const returnToParam = searchParams.get('returnTo') ?? '';
@@ -49,103 +49,10 @@ const QuestionPage: React.FC<Props> = ({
   const isSubmittingRef = useRef(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
-  const isDirtyRef = useRef(false);
-  const hasGuardRef = useRef(false);
-  const allowNextPopRef = useRef(false);
-  const currentUrl = searchParams.toString()
-    ? `${pathname}?${searchParams.toString()}`
-    : pathname;
-  const currentUrlRef = useRef(currentUrl);
   const unsavedChangesMessage =
     'Ungespeicherte Änderungen gehen verloren. Möchten Sie die Seite wirklich verlassen?';
 
-  useEffect(() => {
-    currentUrlRef.current = currentUrl;
-  }, [currentUrl]);
-
-  const handleDirtyChange = (nextDirty: boolean) => {
-    isDirtyRef.current = nextDirty;
-    setIsDirty(nextDirty);
-  };
-
-  useEffect(() => {
-    if (!isDirty || hasGuardRef.current) return;
-    window.history.pushState({ guard: true }, '', currentUrlRef.current);
-    hasGuardRef.current = true;
-  }, [isDirty]);
-
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!isDirtyRef.current) return;
-      event.preventDefault();
-      event.returnValue = '';
-    };
-
-    const handlePopState = () => {
-      if (allowNextPopRef.current) {
-        allowNextPopRef.current = false;
-        return;
-      }
-
-      if (!isDirtyRef.current) {
-        if (hasGuardRef.current) {
-          allowNextPopRef.current = true;
-          window.history.back();
-        }
-        return;
-      }
-
-      const confirmLeave = window.confirm(unsavedChangesMessage);
-      if (confirmLeave) {
-        allowNextPopRef.current = true;
-        window.history.back();
-        return;
-      }
-
-      window.history.pushState({ guard: true }, '', currentUrlRef.current);
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [unsavedChangesMessage]);
-
-  useEffect(() => {
-    const handleDocumentClick = (event: MouseEvent) => {
-      if (!isDirtyRef.current || event.defaultPrevented) return;
-      if (event.button !== 0) return;
-      if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
-        return;
-      }
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const anchor = target.closest('a');
-      if (!anchor || anchor.hasAttribute('download')) return;
-
-      const href = anchor.getAttribute('href');
-      if (!href || href.startsWith('#')) return;
-      if (anchor.target && anchor.target !== '_self') return;
-
-      const targetUrl = new URL(anchor.href, window.location.href);
-      if (targetUrl.href === window.location.href) return;
-
-      const confirmLeave = window.confirm(unsavedChangesMessage);
-      if (!confirmLeave) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }
-    };
-
-    document.addEventListener('click', handleDocumentClick, true);
-    return () => {
-      document.removeEventListener('click', handleDocumentClick, true);
-    };
-  }, [unsavedChangesMessage]);
+  useUnsavedChangesGuard(isDirty, unsavedChangesMessage);
 
   const handleSubmit = async (data: QuestionFormData) => {
     if (isSubmittingRef.current) return;
@@ -183,7 +90,7 @@ const QuestionPage: React.FC<Props> = ({
   };
 
   const handleCancel = () => {
-    if (isDirtyRef.current && !window.confirm(unsavedChangesMessage)) {
+    if (isDirty && !window.confirm(unsavedChangesMessage)) {
       return;
     }
     router.push(returnTo);
@@ -270,7 +177,7 @@ const QuestionPage: React.FC<Props> = ({
           rallyes={rallyes}
           initialRallyeIds={effectiveRallyeIds}
           isSubmitting={isSubmitting}
-          onDirtyChange={handleDirtyChange}
+          onDirtyChange={setIsDirty}
         />
       </section>
     </div>
