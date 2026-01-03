@@ -17,8 +17,7 @@ export async function getCategories(): Promise<ActionResult<string[]>> {
 
   const { data: categories, error: categoriesError } = await supabase
     .from('questions')
-    .select('category')
-    .not('category', 'is', null);
+    .select('category');
 
   if (categoriesError) {
     console.error('Error fetching categories:', categoriesError);
@@ -29,7 +28,11 @@ export async function getCategories(): Promise<ActionResult<string[]>> {
     return ok([]);
   }
 
-  return ok([...new Set(categories.map((item) => item.category as string))]);
+  const normalizedCategories = categories
+    .map((item) => (typeof item.category === 'string' ? item.category.trim() : ''))
+    .filter((category) => category.length > 0);
+
+  return ok([...new Set(normalizedCategories)]);
 }
 
 export async function getQuestionById(

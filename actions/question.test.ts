@@ -178,7 +178,6 @@ describe('getCategories', () => {
   const makeQuery = (response: { data: unknown; error: unknown }) => {
     const query = {
       select: vi.fn(() => query),
-      not: vi.fn(() => query),
       then: (resolve: (value: unknown) => unknown, reject: (reason?: unknown) => unknown) =>
         Promise.resolve(response).then(resolve, reject),
     };
@@ -202,10 +201,35 @@ describe('getCategories', () => {
     expect(result).toEqual({ success: true, data: [] });
     expect(from).toHaveBeenCalledWith('questions');
     expect(query.select).toHaveBeenCalledWith('category');
-    expect(query.not).toHaveBeenCalledWith('category', 'is', null);
     expect(errorSpy).not.toHaveBeenCalled();
 
     errorSpy.mockRestore();
+  });
+
+  it('filters empty categories and returns unique values', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const query = makeQuery({
+      data: [
+        { category: 'Allgemein' },
+        { category: null },
+        { category: ' ' },
+        { category: 'Allgemein' },
+        { category: 'Sport' },
+      ],
+      error: null,
+    });
+    const from = vi.fn(() => query);
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { getCategories } = await import('./question');
+    const result = await getCategories();
+
+    expect(result).toEqual({
+      success: true,
+      data: ['Allgemein', 'Sport'],
+    });
   });
 
   it('logs and returns empty array when fetching categories fails', async () => {
@@ -224,7 +248,6 @@ describe('getCategories', () => {
     expect(result.success).toBe(false);
     expect(from).toHaveBeenCalledWith('questions');
     expect(query.select).toHaveBeenCalledWith('category');
-    expect(query.not).toHaveBeenCalledWith('category', 'is', null);
     expect(errorSpy).toHaveBeenCalledWith(
       'Error fetching categories:',
       expect.any(Error)
