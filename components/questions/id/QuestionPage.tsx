@@ -1,7 +1,7 @@
 'use client';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   createQuestion,
   updateQuestion,
@@ -28,6 +28,7 @@ const QuestionPage: React.FC<Props> = ({
   initialRallyeIds,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const isNew = id === 'new';
   const returnToParam = searchParams.get('returnTo') ?? '';
@@ -47,6 +48,46 @@ const QuestionPage: React.FC<Props> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const isDirtyRef = useRef(false);
+  const currentUrl = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
+  const currentUrlRef = useRef(currentUrl);
+  const unsavedChangesMessage =
+    'Ungespeicherte Änderungen gehen verloren. Möchten Sie die Seite wirklich verlassen?';
+
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+  }, [isDirty]);
+
+  useEffect(() => {
+    currentUrlRef.current = currentUrl;
+  }, [currentUrl]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isDirtyRef.current) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    const handlePopState = () => {
+      if (!isDirtyRef.current) return;
+      const confirmLeave = window.confirm(unsavedChangesMessage);
+      if (!confirmLeave) {
+        router.push(currentUrlRef.current);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [router, unsavedChangesMessage]);
 
   const handleSubmit = async (data: QuestionFormData) => {
     if (isSubmittingRef.current) return;
@@ -84,6 +125,9 @@ const QuestionPage: React.FC<Props> = ({
   };
 
   const handleCancel = () => {
+    if (isDirtyRef.current && !window.confirm(unsavedChangesMessage)) {
+      return;
+    }
     router.push(returnTo);
   };
 
@@ -102,8 +146,8 @@ const QuestionPage: React.FC<Props> = ({
     <div className="flex flex-col gap-6">
       {hasReturnTarget && (
         <div className="mb-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link href={returnTo}>{returnLabel}</Link>
+          <Button variant="ghost" size="sm" onClick={handleCancel}>
+            {returnLabel}
           </Button>
         </div>
       )}
@@ -134,6 +178,14 @@ const QuestionPage: React.FC<Props> = ({
                   <Link
                     href={`/rallyes/${rallye.id}/questions`}
                     className="underline underline-offset-2"
+                    onClick={(event) => {
+                      if (
+                        isDirtyRef.current &&
+                        !window.confirm(unsavedChangesMessage)
+                      ) {
+                        event.preventDefault();
+                      }
+                    }}
                   >
                     {rallye.name}
                   </Link>
@@ -168,6 +220,7 @@ const QuestionPage: React.FC<Props> = ({
           rallyes={rallyes}
           initialRallyeIds={effectiveRallyeIds}
           isSubmitting={isSubmitting}
+          onDirtyChange={setIsDirty}
         />
       </section>
     </div>

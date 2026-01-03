@@ -4,12 +4,13 @@ import QuestionPage from './QuestionPage';
 
 const { push, mockSearchParams } = vi.hoisted(() => ({
   push: vi.fn(),
-  mockSearchParams: { get: vi.fn() },
+  mockSearchParams: { get: vi.fn(), toString: vi.fn(() => '') },
 }));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
   useSearchParams: () => mockSearchParams,
+  usePathname: () => '/questions/new',
 }));
 
 describe('QuestionPage', () => {
@@ -55,8 +56,8 @@ describe('QuestionPage', () => {
     );
 
     expect(
-      screen.getByRole('link', { name: 'Zurück zur Rallye' })
-    ).toHaveAttribute('href', '/rallyes/1/questions');
+      screen.getByRole('button', { name: 'Zurück zur Rallye' })
+    ).toBeInTheDocument();
   });
 
   it('shows assigned rallyes with a global impact hint', () => {

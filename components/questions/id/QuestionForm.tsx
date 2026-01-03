@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Plus, Minus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ interface QuestionFormProps {
   onSubmit: (data: QuestionFormData) => void;
   onCancel: () => void;
   onDelete?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
   categories: string[];
   rallyes: RallyeOption[];
   initialRallyeIds?: number[];
@@ -36,29 +37,69 @@ interface FormErrors {
   answers?: string;
 }
 
+const buildInitialFormData = (
+  initialData: Partial<Question> | null | undefined,
+  initialRallyeIds: number[]
+): QuestionFormData => ({
+  content: initialData?.content ?? '',
+  type: initialData?.type ?? '',
+  points: initialData?.points ?? 0,
+  hint: initialData?.hint ?? undefined,
+  category: initialData?.category ?? undefined,
+  bucket_path: initialData?.bucket_path ?? undefined,
+  answers: initialData?.answers?.length
+    ? initialData.answers
+    : [{ id: 0, correct: true, text: '' }],
+  rallyeIds: initialRallyeIds,
+});
+
+const normalizeFormData = (data: QuestionFormData) => ({
+  content: data.content ?? '',
+  type: data.type ?? '',
+  points: data.points ?? 0,
+  hint: data.hint ?? '',
+  category: data.category ?? '',
+  bucket_path: data.bucket_path ?? '',
+  answers: (data.answers ?? []).map((answer) => ({
+    id: answer.id ?? 0,
+    correct: Boolean(answer.correct),
+    text: answer.text ?? '',
+  })),
+  rallyeIds: [...(data.rallyeIds ?? [])].sort((a, b) => a - b),
+});
+
 const QuestionForm: React.FC<QuestionFormProps> = ({
   initialData = {},
   onSubmit,
   onCancel,
   onDelete,
+  onDirtyChange,
   categories,
   rallyes,
   initialRallyeIds = [],
   isSubmitting = false,
 }) => {
-  const [formData, setFormData] = useState<QuestionFormData>({
-    content: initialData?.content || '',
-    type: initialData?.type || '',
-    points: initialData?.points || 0,
-    hint: initialData?.hint,
-    category: initialData?.category,
-    bucket_path: initialData?.bucket_path,
-    answers: initialData?.answers || [{ id: 0, correct: true, text: '' }],
-    rallyeIds: initialRallyeIds,
-  });
+  const initialSerializedRef = useRef<string | null>(null);
+  const dirtyStateRef = useRef(false);
+  const [formData, setFormData] = useState<QuestionFormData>(() =>
+    buildInitialFormData(initialData, initialRallyeIds)
+  );
 
   const [isNewCategory, setIsNewCategory] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    const nextSerialized = JSON.stringify(normalizeFormData(formData));
+    if (initialSerializedRef.current === null) {
+      initialSerializedRef.current = nextSerialized;
+      return;
+    }
+    const nextDirty = nextSerialized !== initialSerializedRef.current;
+    if (nextDirty !== dirtyStateRef.current) {
+      dirtyStateRef.current = nextDirty;
+      onDirtyChange?.(nextDirty);
+    }
+  }, [formData, onDirtyChange]);
 
   const handleFormChange = <K extends keyof QuestionFormData>(
     field: K,

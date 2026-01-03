@@ -206,4 +206,32 @@ describe('QuestionForm', () => {
     expect(submittedAnswers.some((answer) => answer.id === 0)).toBe(false);
     expect(submittedAnswers.some((answer) => answer.id === 1)).toBe(true);
   });
+
+  it('reports dirty state changes', () => {
+    const handleDirtyChange = vi.fn();
+
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Beispielfrage',
+          type: 'knowledge',
+          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        onDirtyChange={handleDirtyChange}
+        categories={[]}
+        rallyes={[]}
+      />
+    );
+
+    const questionInput = screen.getByLabelText(/Frage/i);
+    fireEvent.change(questionInput, { target: { value: 'Neue Frage' } });
+
+    expect(handleDirtyChange).toHaveBeenCalledWith(true);
+
+    fireEvent.change(questionInput, { target: { value: 'Beispielfrage' } });
+
+    expect(handleDirtyChange).toHaveBeenLastCalledWith(false);
+  });
 });
