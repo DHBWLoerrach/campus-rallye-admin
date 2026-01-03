@@ -287,63 +287,61 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <span className="text-sm text-destructive">{errors.content}</span>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="type">Fragetyp*</Label>
-            <div className="flex flex-wrap items-start gap-3">
-              <div className="min-w-[220px] flex-1">
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => handleFormChange('type', value)}
-                  disabled={initialData?.id !== undefined}
-                >
-                  <SelectTrigger
-                    className={
-                      errors.type
-                        ? 'border-destructive focus:ring-destructive/40'
-                        : ''
-                    }
-                  >
-                    <SelectValue placeholder="Wählen Sie einen Fragetyp" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {questionTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-28">
-                <Label
-                  htmlFor="points"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  Punkte
-                </Label>
-                <Input
-                  type="number"
-                  id="points"
-                  value={formData.points}
-                  onChange={(e) =>
-                    handleFormChange('points', Number(e.target.value))
-                  }
-                  placeholder="0"
-                  min={0}
-                  className={`w-28 ${
-                    errors.points
-                      ? 'border-destructive focus-visible:ring-destructive/40'
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
+            <div className="space-y-2">
+              <Label htmlFor="type">Fragetyp*</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => handleFormChange('type', value)}
+                disabled={initialData?.id !== undefined}
+              >
+                <SelectTrigger
+                  className={
+                    errors.type
+                      ? 'border-destructive focus:ring-destructive/40'
                       : ''
-                  }`}
-                />
-              </div>
+                  }
+                >
+                  <SelectValue placeholder="Wählen Sie einen Fragetyp" />
+                </SelectTrigger>
+                <SelectContent>
+                  {questionTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.type && (
+                <span className="text-sm text-destructive">{errors.type}</span>
+              )}
             </div>
-            {errors.type && (
-              <span className="text-sm text-destructive">{errors.type}</span>
-            )}
-            {errors.points && (
-              <span className="text-sm text-destructive">{errors.points}</span>
-            )}
+            <div className="space-y-2">
+              <Label
+                htmlFor="points"
+                className="text-xs font-medium text-muted-foreground"
+              >
+                Punkte
+              </Label>
+              <Input
+                type="number"
+                id="points"
+                value={formData.points}
+                onChange={(e) =>
+                  handleFormChange('points', Number(e.target.value))
+                }
+                placeholder="0"
+                min={0}
+                className={`w-full ${
+                  errors.points
+                    ? 'border-destructive focus-visible:ring-destructive/40'
+                    : ''
+                }`}
+              />
+              {errors.points && (
+                <span className="text-sm text-destructive">{errors.points}</span>
+              )}
+            </div>
           </div>
         </div>
 
