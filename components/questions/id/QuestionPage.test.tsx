@@ -110,4 +110,32 @@ describe('QuestionPage', () => {
     const checkbox = screen.getByRole('checkbox', { name: 'Rallye B' });
     expect(checkbox).toHaveAttribute('data-state', 'checked');
   });
+
+  it('prompts before navigating via link when form is dirty', () => {
+    mockSearchParams.get.mockImplementation(() => '');
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    render(
+      <QuestionPage
+        id="1"
+        initialData={{
+          id: 1,
+          content: 'Beispielfrage',
+          type: 'knowledge',
+          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+        }}
+        categories={[]}
+        rallyes={[{ id: 1, name: 'Rallye A' }]}
+        initialRallyeIds={[1]}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/Frage/i), {
+      target: { value: 'Neue Frage' },
+    });
+    fireEvent.click(screen.getByRole('link', { name: 'Rallye A' }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
 });

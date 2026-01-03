@@ -114,6 +114,39 @@ const QuestionPage: React.FC<Props> = ({
     };
   }, [unsavedChangesMessage]);
 
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (!isDirtyRef.current || event.defaultPrevented) return;
+      if (event.button !== 0) return;
+      if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest('a');
+      if (!anchor || anchor.hasAttribute('download')) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#')) return;
+      if (anchor.target && anchor.target !== '_self') return;
+
+      const targetUrl = new URL(anchor.href, window.location.href);
+      if (targetUrl.href === window.location.href) return;
+
+      const confirmLeave = window.confirm(unsavedChangesMessage);
+      if (!confirmLeave) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    };
+
+    document.addEventListener('click', handleDocumentClick, true);
+    return () => {
+      document.removeEventListener('click', handleDocumentClick, true);
+    };
+  }, [unsavedChangesMessage]);
+
   const handleSubmit = async (data: QuestionFormData) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
@@ -203,14 +236,6 @@ const QuestionPage: React.FC<Props> = ({
                   <Link
                     href={`/rallyes/${rallye.id}/questions`}
                     className="underline underline-offset-2"
-                    onClick={(event) => {
-                      if (
-                        isDirtyRef.current &&
-                        !window.confirm(unsavedChangesMessage)
-                      ) {
-                        event.preventDefault();
-                      }
-                    }}
                   >
                     {rallye.name}
                   </Link>
