@@ -309,10 +309,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               )}
             </div>
             <div className="space-y-2">
-              <Label
-                htmlFor="points"
-                className="text-xs font-medium text-muted-foreground"
-              >
+              <Label htmlFor="points">
                 Punkte
               </Label>
               <Input
