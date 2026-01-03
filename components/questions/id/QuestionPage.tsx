@@ -50,6 +50,8 @@ const QuestionPage: React.FC<Props> = ({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const isDirtyRef = useRef(false);
+  const hasGuardRef = useRef(false);
+  const allowNextPopRef = useRef(false);
   const currentUrl = searchParams.toString()
     ? `${pathname}?${searchParams.toString()}`
     : pathname;
@@ -58,12 +60,19 @@ const QuestionPage: React.FC<Props> = ({
     'Ungespeicherte Änderungen gehen verloren. Möchten Sie die Seite wirklich verlassen?';
 
   useEffect(() => {
-    isDirtyRef.current = isDirty;
-  }, [isDirty]);
-
-  useEffect(() => {
     currentUrlRef.current = currentUrl;
   }, [currentUrl]);
+
+  const handleDirtyChange = (nextDirty: boolean) => {
+    isDirtyRef.current = nextDirty;
+    setIsDirty(nextDirty);
+  };
+
+  useEffect(() => {
+    if (!isDirty || hasGuardRef.current) return;
+    window.history.pushState({ guard: true }, '', currentUrlRef.current);
+    hasGuardRef.current = true;
+  }, [isDirty]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -73,11 +82,27 @@ const QuestionPage: React.FC<Props> = ({
     };
 
     const handlePopState = () => {
-      if (!isDirtyRef.current) return;
-      const confirmLeave = window.confirm(unsavedChangesMessage);
-      if (!confirmLeave) {
-        router.push(currentUrlRef.current);
+      if (allowNextPopRef.current) {
+        allowNextPopRef.current = false;
+        return;
       }
+
+      if (!isDirtyRef.current) {
+        if (hasGuardRef.current) {
+          allowNextPopRef.current = true;
+          window.history.back();
+        }
+        return;
+      }
+
+      const confirmLeave = window.confirm(unsavedChangesMessage);
+      if (confirmLeave) {
+        allowNextPopRef.current = true;
+        window.history.back();
+        return;
+      }
+
+      window.history.pushState({ guard: true }, '', currentUrlRef.current);
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -87,7 +112,7 @@ const QuestionPage: React.FC<Props> = ({
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [router, unsavedChangesMessage]);
+  }, [unsavedChangesMessage]);
 
   const handleSubmit = async (data: QuestionFormData) => {
     if (isSubmittingRef.current) return;
@@ -220,7 +245,7 @@ const QuestionPage: React.FC<Props> = ({
           rallyes={rallyes}
           initialRallyeIds={effectiveRallyeIds}
           isSubmitting={isSubmitting}
-          onDirtyChange={setIsDirty}
+          onDirtyChange={handleDirtyChange}
         />
       </section>
     </div>
