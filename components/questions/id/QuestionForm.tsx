@@ -255,6 +255,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     onSubmit(cleanedData);
   };
 
+  const hasType = Boolean(formData.type);
+  const isMultipleChoice = formData.type === 'multiple_choice';
+  const isUpload = formData.type === 'upload';
+  const isPicture = formData.type === 'picture';
+  const showAnswers = hasType && !isUpload;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset
@@ -334,12 +340,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           </div>
         </div>
 
-        {formData.type && formData.type !== 'upload' && (
+        {showAnswers && (
           <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
             <Label>
-              {formData.type === 'multiple_choice' ? 'Antworten*' : 'Antwort*'}
+              {isMultipleChoice ? 'Antworten*' : 'Antwort*'}
             </Label>
-            {formData.type === 'multiple_choice' ? (
+            {isMultipleChoice ? (
               <RadioGroup
                 value={getCorrectAnswerIndex().toString()}
                 onValueChange={handleCorrectAnswerSelect}
@@ -402,7 +408,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               ))
             )}
 
-            {formData.type === 'multiple_choice' && (
+            {isMultipleChoice && (
               <Button type="button" variant="secondary" onClick={addAnswer}>
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Antwort hinzufügen
@@ -463,7 +469,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               </span>
             )}
           </div>
-          {formData.type === 'picture' && (
+          {isPicture && (
             <div className="md:col-span-2">
               <QuestionImage
                 bucketPath={formData.bucket_path}
