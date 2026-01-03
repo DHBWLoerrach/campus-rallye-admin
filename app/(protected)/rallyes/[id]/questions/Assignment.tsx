@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ChevronDown, Pencil } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import { getQuestions } from '@/actions/question';
 import { questionTypes } from '@/helpers/questionTypes';
 import {
   assignQuestionsToRallye,
+  getQuestionRallyeMap,
   getRallyeQuestions,
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
@@ -29,15 +31,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { updateVotingBatch, getVotingQuestions } from '@/actions/voting';
+import QuestionDetailsRows from '@/components/questions/QuestionDetailsRows';
+import QuestionSummary from '@/components/questions/QuestionSummary';
 
 interface Props {
   rallyeId: number;
   rallyeName?: string;
   initialQuestions?: Question[];
   initialSelectedQuestions?: number[];
-  initialVotingQuestions?: number[];
   initialCategories?: string[];
+  initialRallyeMap?: Record<number, string[]>;
 }
 
 export default function Assignment({
@@ -45,8 +48,8 @@ export default function Assignment({
   rallyeName,
   initialQuestions,
   initialSelectedQuestions,
-  initialVotingQuestions,
   initialCategories,
+  initialRallyeMap,
 }: Props) {
   const router = useRouter();
   const [selectedQuestions, setSelectedQuestions] = useState<number[]>(
@@ -55,23 +58,17 @@ export default function Assignment({
   const [questions, setQuestions] = useState<Question[]>(
     initialQuestions || []
   );
+  const [rallyeMap, setRallyeMap] = useState<Record<number, string[]>>(
+    initialRallyeMap || {}
+  );
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
-  const [votingQuestions, setVotingQuestions] = useState<number[]>(
-    initialVotingQuestions || []
-  );
-  const [pendingVotingChanges, setPendingVotingChanges] = useState<{
-    add: number[];
-    remove: number[];
-  }>({ add: [], remove: [] });
 
   // Track last saved state to detect unsaved changes.
   const savedSelectedQuestionsRef = useRef<number[]>(
     initialSelectedQuestions || []
-  );
-  const savedVotingQuestionsRef = useRef<number[]>(
-    initialVotingQuestions || []
   );
 
   const questionTypeLabels = questionTypes.reduce((acc, type) => {
@@ -80,7 +77,7 @@ export default function Assignment({
   }, {} as Record<string, string>);
 
   useEffect(() => {
-    if (!initialSelectedQuestions || !initialVotingQuestions) {
+    if (!initialSelectedQuestions) {
       loadExistingAssignments(rallyeId);
     }
     if (!initialQuestions) {
@@ -89,13 +86,19 @@ export default function Assignment({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rallyeId]);
 
+  const toggleRow = (questionId: number) => {
+    setExpandedRows((current) =>
+      current.includes(questionId)
+        ? current.filter((id) => id !== questionId)
+        : [...current, questionId]
+    );
+  };
+
   const loadExistingAssignments = async (targetRallyeId: number) => {
     setIsLoadingAssignments(true);
     try {
-      const [existingQuestionsResult, existingVotesResult] = await Promise.all([
-        getRallyeQuestions(targetRallyeId),
-        getVotingQuestions(targetRallyeId),
-      ]);
+      const existingQuestionsResult =
+        await getRallyeQuestions(targetRallyeId);
       if (!existingQuestionsResult.success) {
         console.error(existingQuestionsResult.error);
         setSelectedQuestions([]);
@@ -105,20 +108,22 @@ export default function Assignment({
         setSelectedQuestions(questionIds);
         savedSelectedQuestionsRef.current = questionIds;
       }
-      if (!existingVotesResult.success) {
-        console.error(existingVotesResult.error);
-        setVotingQuestions([]);
-        savedVotingQuestionsRef.current = [];
-      } else {
-        const voteIds = existingVotesResult.data ?? [];
-        setVotingQuestions(voteIds);
-        savedVotingQuestionsRef.current = voteIds;
-      }
     } catch (error) {
       console.error('Error loading existing assignments:', error);
     } finally {
       setIsLoadingAssignments(false);
     }
+  };
+
+  const refreshRallyeMap = async (nextQuestions: Question[]) => {
+    const questionIds = nextQuestions.map((question) => question.id);
+    const nextRallyeMapResult = await getQuestionRallyeMap(questionIds);
+    if (!nextRallyeMapResult.success) {
+      console.error(nextRallyeMapResult.error);
+      setRallyeMap({});
+      return;
+    }
+    setRallyeMap(nextRallyeMapResult.data ?? {});
   };
 
   const fetchQuestions = async () => {
@@ -128,9 +133,12 @@ export default function Assignment({
       if (!fetchedQuestionsResult.success) {
         console.error(fetchedQuestionsResult.error);
         setQuestions([]);
+        setRallyeMap({});
         return;
       }
-      setQuestions(fetchedQuestionsResult.data ?? []);
+      const fetchedQuestions = fetchedQuestionsResult.data ?? [];
+      setQuestions(fetchedQuestions);
+      await refreshRallyeMap(fetchedQuestions);
     } catch (error) {
       console.error('Error loading questions:', error);
     } finally {
@@ -152,6 +160,7 @@ export default function Assignment({
       if (!filteredQuestionsResult.success) {
         console.error(filteredQuestionsResult.error);
         setQuestions([]);
+        setRallyeMap({});
         return;
       }
       const filteredQuestions = filteredQuestionsResult.data ?? [];
@@ -160,6 +169,7 @@ export default function Assignment({
           ? filteredQuestions.filter((q) => selectedQuestions.includes(q.id))
           : filteredQuestions;
       setQuestions(finalQuestions);
+      await refreshRallyeMap(finalQuestions);
     } catch (error) {
       console.error('Error filtering questions:', error);
     } finally {
@@ -170,21 +180,13 @@ export default function Assignment({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const [assignResult, votingResult] = await Promise.all([
-        assignQuestionsToRallye(rallyeId, selectedQuestions),
-        updateVotingBatch(
-          rallyeId,
-          pendingVotingChanges.add,
-          pendingVotingChanges.remove
-        ),
-      ]);
+      const assignResult = await assignQuestionsToRallye(
+        rallyeId,
+        selectedQuestions
+      );
       if (!assignResult.success) {
         throw new Error(assignResult.error);
       }
-      if (!votingResult.success) {
-        throw new Error(votingResult.error);
-      }
-      setPendingVotingChanges({ add: [], remove: [] });
     } catch (error) {
       console.error('Error saving questions:', error);
     } finally {
@@ -201,10 +203,7 @@ export default function Assignment({
   };
 
   const hasUnsavedChanges =
-    !arraysEqualAsSets(selectedQuestions, savedSelectedQuestionsRef.current) ||
-    !arraysEqualAsSets(votingQuestions, savedVotingQuestionsRef.current) ||
-    pendingVotingChanges.add.length > 0 ||
-    pendingVotingChanges.remove.length > 0;
+    !arraysEqualAsSets(selectedQuestions, savedSelectedQuestionsRef.current);
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
@@ -274,112 +273,101 @@ export default function Assignment({
         )}
         <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/90">
           <div className="max-h-[60vh] overflow-y-auto">
-            <Table>
+            <Table className="text-sm [&_th]:h-9 [&_th]:px-3 [&_td]:px-3 [&_td]:py-2">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">Auswahl</TableHead>
+                  <TableHead className="w-16">Auswahl</TableHead>
                   <TableHead>Frage</TableHead>
                   <TableHead>Typ</TableHead>
-                  <TableHead className="w-20">Punkte</TableHead>
-                  <TableHead>Kategorie</TableHead>
-                  <TableHead className="w-8">Abstimmung</TableHead>
-                  <TableHead className="w-28">Aktionen</TableHead>
+                  <TableHead className="w-12 text-center">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {questions.length === 0 ? (
                   isLoadingQuestions ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center">
+                      <TableCell colSpan={4} className="text-center">
                         Lade Fragen...
                       </TableCell>
                     </TableRow>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center">
+                      <TableCell colSpan={4} className="text-center">
                         Keine Fragen verfügbar
                       </TableCell>
                     </TableRow>
                   )
                 ) : (
-                  questions.map((question) => (
-                    <TableRow key={question.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedQuestions.includes(question.id)}
-                          onCheckedChange={(checked) => {
-                            const isChecked = checked === true;
-                            setSelectedQuestions((prev) =>
-                              isChecked
-                                ? prev.includes(question.id)
-                                  ? prev
-                                  : [...prev, question.id]
-                                : prev.filter((id) => id !== question.id)
-                            );
-                          }}
+                  questions.map((question) => {
+                    const rallyeNames = rallyeMap[question.id] ?? [];
+
+                    return (
+                      <Fragment key={question.id}>
+                        <TableRow>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedQuestions.includes(question.id)}
+                                onCheckedChange={(checked) => {
+                                  const isChecked = checked === true;
+                                  setSelectedQuestions((prev) =>
+                                    isChecked
+                                      ? prev.includes(question.id)
+                                        ? prev
+                                        : [...prev, question.id]
+                                      : prev.filter((id) => id !== question.id)
+                                  );
+                                }}
+                              />
+                              <ChevronDown
+                                className={`h-4 w-4 cursor-pointer text-muted-foreground transition-transform hover:text-foreground ${
+                                  expandedRows.includes(question.id)
+                                    ? 'rotate-180'
+                                    : ''
+                                }`}
+                                onClick={() => toggleRow(question.id)}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-md">
+                            <QuestionSummary
+                              question={question}
+                              rallyeNames={rallyeNames}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {questionTypeLabels[question.type]}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            >
+                              <Link
+                                href={`/questions/${
+                                  question.id
+                                }?returnTo=${encodeURIComponent(
+                                  `/rallyes/${rallyeId}/questions`
+                                )}`}
+                              >
+                                <Pencil className="h-4 w-4" aria-hidden="true" />
+                                <span className="sr-only">Bearbeiten</span>
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        <QuestionDetailsRows
+                          question={question}
+                          rallyeNames={rallyeNames}
+                          isExpanded={expandedRows.includes(question.id)}
+                          leadingCellsCount={1}
+                          colSpan={3}
                         />
-                      </TableCell>
-                      <TableCell className="max-w-md truncate">
-                        {question.content}
-                      </TableCell>
-                      <TableCell>{questionTypeLabels[question.type]}</TableCell>
-                      <TableCell>{question.points}</TableCell>
-                      <TableCell>{question.category}</TableCell>
-                      <TableCell>
-                        <div className="flex justify-center">
-                          <Checkbox
-                            disabled={
-                              !['upload', 'knowledge'].includes(question.type)
-                            }
-                            checked={votingQuestions.includes(question.id)}
-                            onCheckedChange={(checked) => {
-                              const isChecked = checked === true;
-                              setVotingQuestions((prev) =>
-                                isChecked
-                                  ? prev.includes(question.id)
-                                    ? prev
-                                    : [...prev, question.id]
-                                  : prev.filter((id) => id !== question.id)
-                              );
-                              setPendingVotingChanges((prev) => {
-                                const add = new Set(prev.add);
-                                const remove = new Set(prev.remove);
-                                if (isChecked) {
-                                  add.add(question.id);
-                                  remove.delete(question.id);
-                                } else {
-                                  add.delete(question.id);
-                                  remove.add(question.id);
-                                }
-                                return {
-                                  add: Array.from(add),
-                                  remove: Array.from(remove),
-                                };
-                              });
-                            }}
-                            className={
-                              !['upload', 'knowledge'].includes(question.type)
-                                ? 'border-dashed border-border/70 bg-muted/40 text-muted-foreground data-[state=checked]:bg-muted data-[state=checked]:text-muted-foreground data-[state=unchecked]:bg-muted/60'
-                                : ''
-                            }
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button asChild variant="outline" size="sm">
-                          <Link
-                            href={`/questions/${
-                              question.id
-                            }?returnTo=${encodeURIComponent(
-                              `/rallyes/${rallyeId}/questions`
-                            )}`}
-                          >
-                            Bearbeiten
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                      </Fragment>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -391,7 +379,6 @@ export default function Assignment({
             variant="outline"
             onClick={() => {
               loadExistingAssignments(rallyeId);
-              setPendingVotingChanges({ add: [], remove: [] });
             }}
           >
             Zurücksetzen
