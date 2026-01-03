@@ -501,13 +501,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-end gap-2 border-t border-border/60 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Abbrechen
-          </Button>
-          <Button type="submit" variant="dhbwStyle">
-            Speichern
-          </Button>
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4">
           {onDelete && (
             <Button
               variant="outline"
@@ -527,6 +521,17 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               Löschen
             </Button>
           )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="ml-auto"
+          >
+            Abbrechen
+          </Button>
+          <Button type="submit" variant="dhbwStyle">
+            Speichern
+          </Button>
         </div>
       </fieldset>
     </form>
