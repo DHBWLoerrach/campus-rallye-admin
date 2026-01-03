@@ -315,7 +315,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 </Select>
               </div>
               <div className="w-28">
-                <Label htmlFor="points" className="sr-only">
+                <Label
+                  htmlFor="points"
+                  className="text-xs font-medium text-muted-foreground"
+                >
                   Punkte
                 </Label>
                 <Input
