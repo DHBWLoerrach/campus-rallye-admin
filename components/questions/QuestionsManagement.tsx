@@ -54,15 +54,9 @@ export default function QuestionManagement({
     setRallyeMap(nextRallyeMapResult.data ?? {});
   };
 
-  // antworten wir empfelen Antworten nicht länger als ... Zeichen 50?
-
   if (!questions) {
     return <div>Loading...</div>;
   }
-
-  // Recommend limiting answer length to ~50 characters? (TODO)
-
-  if (!questions) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-col gap-6">
