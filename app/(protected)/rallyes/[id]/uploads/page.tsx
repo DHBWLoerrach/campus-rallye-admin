@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getRallyeUploadAnswers } from '@/actions/upload-answers';
+import UploadPhotoSlideshow from '@/components/UploadPhotoSlideshow';
 import UploadPhotoTile from '@/components/UploadPhotoTile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,7 @@ export default async function Page(props: PageProps) {
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button asChild variant="outline" size="sm">
-            <Link href="/rallyes">← Zurück zu Rallyes</Link>
+            <Link href="/rallyes">Zurück zur Übersicht</Link>
           </Button>
         </div>
         <div className="space-y-1 text-left">
@@ -72,21 +73,33 @@ export default async function Page(props: PageProps) {
             );
             const totalTeams =
               teamIdsWithPhoto.size + question.teamsWithoutPhoto.length;
+            const hasUploads = question.answers.length > 0;
             return (
               <div
                 key={question.id}
                 className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm"
               >
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Upload-Frage
-                  </p>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    {question.content}
-                  </h2>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      Upload-Frage
+                    </p>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      {question.content}
+                    </h2>
+                  </div>
+                  {hasUploads && (
+                    <UploadPhotoSlideshow
+                      questionContent={question.content}
+                      photos={question.answers.map((answer) => ({
+                        signedUrl: answer.signedUrl,
+                        teamName: answer.teamName,
+                      }))}
+                    />
+                  )}
                 </div>
 
-                {question.answers.length > 0 ? (
+                {hasUploads ? (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {question.answers.map((answer) => (
                       <UploadPhotoTile
