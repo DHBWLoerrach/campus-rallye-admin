@@ -1,7 +1,7 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getRallyeUploadAnswers } from '@/actions/upload-answers';
+import UploadPhotoTile from '@/components/UploadPhotoTile';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
@@ -89,23 +89,11 @@ export default async function Page(props: PageProps) {
                 {question.answers.length > 0 ? (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {question.answers.map((answer) => (
-                      <div
+                      <UploadPhotoTile
                         key={answer.teamQuestionId}
-                        className="overflow-hidden rounded-xl border border-border/60 bg-muted/30"
-                      >
-                        <div className="relative aspect-[4/3] bg-muted/40">
-                          <Image
-                            src={answer.signedUrl}
-                            alt={`Upload von ${answer.teamName}`}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="border-t border-border/60 px-3 py-2 text-sm font-medium text-foreground">
-                          {answer.teamName}
-                        </div>
-                      </div>
+                        signedUrl={answer.signedUrl}
+                        teamName={answer.teamName}
+                      />
                     ))}
                   </div>
                 ) : (
