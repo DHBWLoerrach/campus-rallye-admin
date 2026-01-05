@@ -13,9 +13,15 @@ interface RallyeCardProps {
   rallye: Rallye;
   onEdit: () => void;
   questionCount?: number;
+  uploadQuestionCount?: number;
 }
 
-export default function RallyeCard({ rallye, onEdit, questionCount: questionCountProp }: RallyeCardProps) {
+export default function RallyeCard({
+  rallye,
+  onEdit,
+  questionCount: questionCountProp,
+  uploadQuestionCount: uploadQuestionCountProp,
+}: RallyeCardProps) {
   const statusLabel = getRallyeStatusLabel(rallye.status);
   const isActive = isRallyeActive(rallye.status);
   const router = useRouter();
@@ -24,6 +30,7 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
   >(undefined);
   const questionCount =
     questionCountProp !== undefined ? questionCountProp : fetchedQuestionCount;
+  const uploadQuestionCount = uploadQuestionCountProp ?? 0;
 
   // Fallback: only fetch on client if no count was provided from server
   useEffect(() => {
@@ -125,18 +132,20 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
                 aria-hidden="true"
               />
             </Link>
-            <Link
-              href={`/rallyes/${rallye.id}/uploads`}
-              className="group flex items-center gap-1 text-xs font-semibold text-primary/80 hover:text-primary hover:underline"
-              onClick={(e) => e.stopPropagation()}
-              aria-label="Upload-Fotos anzeigen"
-            >
-              Upload-Fotos
-              <Camera
-                className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6"
-                aria-hidden="true"
-              />
-            </Link>
+            {uploadQuestionCount > 0 && (
+              <Link
+                href={`/rallyes/${rallye.id}/uploads`}
+                className="group flex items-center gap-1 text-xs font-semibold text-primary/80 hover:text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Upload-Fotos anzeigen"
+              >
+                Upload-Fotos
+                <Camera
+                  className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6"
+                  aria-hidden="true"
+                />
+              </Link>
+            )}
           </div>
         </div>
       </CardContent>

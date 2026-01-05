@@ -8,9 +8,14 @@ import type { Rallye } from '@/lib/types';
 interface RallyeProps {
   rallye: Rallye;
   questionCount?: number;
+  uploadQuestionCount?: number;
 }
 
-export default function Rallye({ rallye, questionCount }: RallyeProps) {
+export default function Rallye({
+  rallye,
+  questionCount,
+  uploadQuestionCount,
+}: RallyeProps) {
   const [editMode, setEditMode] = useState<boolean>(false);
 
   return editMode ? (
@@ -19,6 +24,7 @@ export default function Rallye({ rallye, questionCount }: RallyeProps) {
     <RallyeCard
       rallye={rallye}
       questionCount={questionCount}
+      uploadQuestionCount={uploadQuestionCount}
       onEdit={() => setEditMode(true)}
     />
   );

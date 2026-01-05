@@ -28,6 +28,7 @@ describe('RallyeCard', () => {
           created_at: '2024-01-01',
         }}
         questionCount={0}
+        uploadQuestionCount={1}
         onEdit={vi.fn()}
       />
     );
@@ -39,5 +40,28 @@ describe('RallyeCard', () => {
     expect(
       screen.getByRole('link', { name: 'Upload-Fotos anzeigen' })
     ).toHaveAttribute('href', '/rallyes/12/uploads');
+  });
+
+  it('hides the upload photos link when no upload questions exist', () => {
+    render(
+      <RallyeCard
+        rallye={{
+          id: 7,
+          name: 'Rallye 7',
+          status: 'running',
+          end_time: '2024-01-01',
+          studiengang: 'Test',
+          password: '',
+          created_at: '2024-01-01',
+        }}
+        questionCount={0}
+        uploadQuestionCount={0}
+        onEdit={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.queryByRole('link', { name: 'Upload-Fotos anzeigen' })
+    ).not.toBeInTheDocument();
   });
 });
