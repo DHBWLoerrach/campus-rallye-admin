@@ -9,6 +9,13 @@ const supabasePattern = {
   pathname: '/storage/v1/object/public/**',
 };
 
+const supabaseSignedPattern = {
+  protocol: protocol.replace(':', ''),
+  hostname,
+  ...(port ? { port } : {}),
+  pathname: '/storage/v1/object/sign/**',
+};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -18,7 +25,7 @@ const nextConfig = {
     },
   },
   images: {
-    remotePatterns: [supabasePattern],
+    remotePatterns: [supabasePattern, supabaseSignedPattern],
   },
 };
 

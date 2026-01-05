@@ -1,4 +1,4 @@
-import { ChevronRight, Pencil } from 'lucide-react';
+import { Camera, ChevronRight, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -112,18 +112,32 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
               ? 'Keine Fragen'
               : `${questionCount} ${questionCount === 1 ? 'Frage' : 'Fragen'}`}
           </div>
-          <Link
-            href={`/rallyes/${rallye.id}/questions`}
-            className="group flex items-center gap-1 font-semibold text-primary hover:underline"
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Fragen zuordnen"
-          >
-            Fragen zuordnen
-            <ChevronRight
-              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
-          </Link>
+          <div className="flex flex-col items-end gap-1">
+            <Link
+              href={`/rallyes/${rallye.id}/questions`}
+              className="group flex items-center gap-1 font-semibold text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Fragen zuordnen"
+            >
+              Fragen zuordnen
+              <ChevronRight
+                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </Link>
+            <Link
+              href={`/rallyes/${rallye.id}/uploads`}
+              className="group flex items-center gap-1 text-xs font-semibold text-primary/80 hover:text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Upload-Fotos anzeigen"
+            >
+              Upload-Fotos
+              <Camera
+                className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6"
+                aria-hidden="true"
+              />
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>
