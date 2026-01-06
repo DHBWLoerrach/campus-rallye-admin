@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import FormattedEndTime from '@/components/FormattedEndTime';
 import { Rallye, getRallyeStatusLabel, isRallyeActive } from '@/lib/types';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getRallyeQuestions } from '@/actions/assign_questions_to_rallye';
@@ -24,7 +23,6 @@ export default function RallyeCard({
 }: RallyeCardProps) {
   const statusLabel = getRallyeStatusLabel(rallye.status);
   const isActive = isRallyeActive(rallye.status);
-  const router = useRouter();
   const [fetchedQuestionCount, setFetchedQuestionCount] = useState<
     number | undefined
   >(undefined);
