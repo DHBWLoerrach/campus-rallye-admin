@@ -1,4 +1,4 @@
-import { Camera, ChevronRight, Pencil } from 'lucide-react';
+import { Camera, ChevronRight, Pencil, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -142,6 +142,20 @@ export default function RallyeCard({
                 Upload-Fotos
                 <Camera
                   className="h-3.5 w-3.5 transition-transform group-hover:-rotate-6"
+                  aria-hidden="true"
+                />
+              </Link>
+            )}
+            {rallye.status === 'ended' && (
+              <Link
+                href={`/rallyes/${rallye.id}/results`}
+                className="group flex items-center gap-1 text-xs font-semibold text-primary/80 hover:text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Endstand anzeigen"
+              >
+                Endstand
+                <Trophy
+                  className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5"
                   aria-hidden="true"
                 />
               </Link>
