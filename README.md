@@ -9,8 +9,9 @@ an der [DHBW Lörrach](https://www.dhbw-loerrach.de).
 - Bei https://supabase.com kostenlos anmelden
 - In Supabase ein neues Projekt erstellen (z.B. `CampusRallye`)
 - Im Supabase-Projekt zum _SQL Editor_ wechseln (via linker Seitenleiste)
-- Das SQL-Schema aus der Datei [`supabase/schema.sql`](supabase/schema.sql)) in die Zwischenablage kopieren
+- Das SQL-Schema aus der Datei [`supabase/schema.sql`](supabase/schema.sql) in die Zwischenablage kopieren
 - Das eben kopierte SQL-Schema im SQL-Editor einfügen und ausführen (grüner `Run`-Button).
+- Zusätzlich die "Buckets" für Dateiverwaltung erstellen, siehe [`supabase/bucket.md`](supabase/bucket.md).
 
 Supabase-Owner können einen SQL-Dump des Schemas (Tabellen, Funktionen, usw.) ohne Daten wie folgt mit dem Supabase-CLI erstellen:
 
@@ -56,7 +57,7 @@ Die Werte dazu sind folgendermaßen zu finden.
 Im Webinterface von Supabase oben auf _Connect_ klicken und für `NEXT_PUBLIC_SUPABASE_URL` den passenden Wert im Reiter _App Frameworks_ verwenden.
 Wenn `SUPABASE_URL` gesetzt wird, sollte es in der Regel denselben Wert haben.
 
-Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden. 
+Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden.
 Der Wert für `SUPABASE_JWT_SECRET` kann via _JWY Keys_ gefunden werden.
 
 ## Lokale SQLite-DB für Nutzerdaten
