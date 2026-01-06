@@ -28,7 +28,7 @@ export default function UploadPhotoTile({
           className="group w-full overflow-hidden rounded-xl border border-border/60 bg-muted/30 text-left transition hover:border-border/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={`Upload-Foto von ${teamName} vergrößern`}
         >
-          <div className="relative aspect-4/3 bg-muted/40">
+          <div className="relative aspect-3/2 bg-muted/40">
             <Image
               src={signedUrl}
               alt={`Upload von ${teamName}`}

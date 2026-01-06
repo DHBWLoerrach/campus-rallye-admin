@@ -39,7 +39,7 @@ export default async function Page(props: PageProps) {
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button asChild variant="outline" size="sm">
-            <Link href="/rallyes">Zurück zur Übersicht</Link>
+            <Link href="/rallyes">← Zurück zu Rallyes</Link>
           </Button>
         </div>
         <div className="space-y-1 text-left">
