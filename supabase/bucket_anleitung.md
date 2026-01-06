@@ -1,60 +1,65 @@
-Bucket konfigurieren:
-    
-- Die unten stehende SQL Befehle in Supabase in den SQL Editor ausführen
-- Anschließend zum Storage navigieren
-- Hier sollte der Bucket namens `question-media` zusehen sein
-- diesen bearbeiten und auf `public` setzen, da der Code sonst nicht darauf zugreifen kann
+# Dateiverwaltung in Supabase einrichten
+
+Wir brauchen zwei sogenannte "Buckets" im Supabase-Storage, um dort Dateien für die App und die Webapp zu verwalten:
+
+- `question-pictures` für Bilder in Rallye-Fragen
+- `upload-photos` für Foto-Uploads der Teams einer Rallye
+
+Buckets in Supabase erstellen:
+
+- Auf `Storage` in der linken Seitenleiste navigieren
+- Im Bereich `Files` auf den Button `New Bucket` klicken
+  - Bei beiden Buckets konfigurieren:
+    - `Restrict file size`: 10 MB
+    - `Restrict MIME types` einschalten und `image/*` eintragen
+  - Bucket 1: `question-pictures` als Name und `Public` **aktivieren**
+  - Bucket 2: `Upload-photos` als Name und `Public` **ausschalten**
+
+Nun benötigen wir noch `Row Level Security (RLS)`-Policies für die beiden Buckets.
+Dazu zum `SQL Editor` in der linken Seitenleiste navigieren, folgende SQL-Anweisungen einfügen und mit dem `Run`-Button ausführen.
 
 ```sql
--- Erstelle den Bucket
-insert into storage.buckets (id, name)
-values ('question-media', 'question-media');
+-- RLS-Policies für question-pictures
+-- Nur eingeloggte User dürfen Bilder hochladen (für Webapp)
+CREATE POLICY "Allow authenticated users to upload"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'question-pictures');
 
--- Setze die Policies für den Bucket
-create policy "Authenticated users can upload media"
-on storage.objects for insert
-to authenticated
-with check (bucket_id = 'question-media');
+-- Nur eingeloggte User dürfen Bilder aktualisieren (für Webapp)
+CREATE POLICY "Allow authenticated users to update"
+ON storage.objects FOR UPDATE
+TO authenticated
+WITH CHECK (bucket_id = 'question-pictures');
 
-create policy "Authenticated users can update media"
-on storage.objects for update
-to authenticated
-with check (bucket_id = 'question-media');
+-- Nur eingeloggte User dürfen Bilder löschen (für Webapp)
+CREATE POLICY "Allow authenticated users to delete"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'question-pictures');
 
-create policy "Authenticated users can delete media"
-on storage.objects for delete
-to authenticated
-using (bucket_id = 'question-media');
+-- Jeder darf Bilder von Fragen sehen
+CREATE POLICY "Anyone can view media"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'question-pictures');
 
-create policy "Anyone can view media"
-on storage.objects for select
-to public
-using (bucket_id = 'question-media');
+-- RLS-Policies für upload-photos
+-- App-Benutzer (Teams) dürfen Fotos hochladen
+CREATE POLICY "Allow anon uploads"
+ON storage.objects FOR INSERT
+TO anon
+WITH CHECK (bucket_id = 'upload-photos');
 
--- das gleiche für upload_photo_answers
+-- Nur eingeloggte User dürfen Fotos ansehen (für Webapp)
+CREATE POLICY "Allow authenticated users to view"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (bucket_id = 'upload-photos');
 
--- Erstelle den Bucket
-insert into storage.buckets (id, name)
-values ('upload_photo_answers', 'upload_photo_answers');
-
--- Setze die Policies für den Bucket
-create policy "Anyone can upload media (upload_photo_answers)"
-on storage.objects for insert
-to public
-with check (bucket_id = 'upload_photo_answers');
-
-create policy "Authenticated users can update media (upload_photo_answers)"
-on storage.objects for update
-to authenticated
-with check (bucket_id = 'upload_photo_answers');
-
-create policy "Authenticated users can delete media (upload_photo_answers)"
-on storage.objects for delete
-to authenticated
-using (bucket_id = 'upload_photo_answers');
-
-create policy "Anyone can view media (upload_photo_answers)"
-on storage.objects for select
-to public
-using (bucket_id = 'upload_photo_answers');
+-- Nur eingeloggte User dürfen Fotos löschen (für Webapp)
+CREATE POLICY "Allow authenticated users to delete"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'upload-photos');
 ```
