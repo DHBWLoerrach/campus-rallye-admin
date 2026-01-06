@@ -62,12 +62,14 @@ export default function RallyeCard({
 
   return (
     <Card
-      className="group relative w-full cursor-pointer overflow-hidden border-border/60 bg-card/90 transition-all hover:-translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_28px_rgba(0,0,0,0.12)]"
-      onClick={() => router.push(`/rallyes/${rallye.id}/questions`)}
+      className="group relative w-full overflow-hidden border-border/60 bg-card/90 transition-all hover:-translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_28px_rgba(0,0,0,0.12)]"
       role="button"
       aria-label={`Rallye ${rallye.name} öffnen`}
     >
-      <div className="absolute inset-x-0 top-0 h-1 bg-primary/80" aria-hidden="true" />
+      <div
+        className="absolute inset-x-0 top-0 h-1 bg-primary/80"
+        aria-hidden="true"
+      />
       <CardHeader className="space-y-3 pb-4">
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-lg font-semibold leading-tight">
@@ -77,7 +79,7 @@ export default function RallyeCard({
             variant="ghost"
             size="icon"
             aria-label="Bearbeiten"
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
