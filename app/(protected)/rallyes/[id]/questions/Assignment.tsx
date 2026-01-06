@@ -220,6 +220,7 @@ export default function Assignment({
               size="sm"
               type="button"
               disabled={isSubmitting}
+              className="cursor-pointer"
               onClick={() => {
                 if (isSubmitting) return;
                 if (!hasUnsavedChanges) {

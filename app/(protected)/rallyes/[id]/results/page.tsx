@@ -51,7 +51,12 @@ export default async function Page(props: PageProps) {
     <main className="mx-auto flex w-full max-w-450 flex-col gap-4 px-4 py-4">
       <section className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="cursor-pointer"
+          >
             <Link href="/rallyes">← Zurück zu Rallyes</Link>
           </Button>
         </div>

@@ -35,6 +35,7 @@ function SaveButton() {
       type="submit"
       variant="dhbwStyle"
       size="default"
+      className="cursor-pointer"
       aria-disabled={pending}
       disabled={pending}
     >
@@ -184,7 +185,9 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
                 type="button"
                 variant="outline"
                 size="icon"
-                aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
+                aria-label={
+                  showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'
+                }
                 onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? (
@@ -203,7 +206,7 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Löschen
@@ -220,12 +223,14 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
                 <DialogFooter>
                   <Button
                     variant="outline"
+                    className="cursor-pointer"
                     onClick={() => setShowDeleteDialog(false)}
                   >
                     Abbrechen
                   </Button>
                   <Button
                     variant="destructive"
+                    className="cursor-pointer"
                     onClick={handleDelete}
                     disabled={isDeleting}
                   >

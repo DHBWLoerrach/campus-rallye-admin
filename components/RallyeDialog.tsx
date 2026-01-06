@@ -24,7 +24,7 @@ function SaveButton({ disabled }: { disabled: boolean }) {
       type="submit"
       variant="dhbwStyle"
       size="default"
-      className="mt-4"
+      className="mt-4 cursor-pointer"
       aria-disabled={pending || disabled}
       disabled={pending || disabled}
     >
@@ -97,7 +97,7 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
                 : 'Rallye wurde erstellt.'}
             </p>
             <DialogFooter className="gap-2 sm:justify-end">
-              <Button asChild variant="dhbwStyle">
+              <Button asChild variant="dhbwStyle" className="cursor-pointer">
                 <Link
                   href={`/rallyes/${createdRallyeId}/questions`}
                   onClick={() => setOpen(false)}
@@ -105,7 +105,11 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
                   Fragen zuordnen
                 </Link>
               </Button>
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={() => setOpen(false)}
+              >
                 Schließen
               </Button>
             </DialogFooter>

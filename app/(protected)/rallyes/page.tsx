@@ -51,7 +51,7 @@ export default async function Home() {
             Erstellen, bearbeiten und Fragen zuordnen.
           </p>
         </div>
-        <RallyeDialog buttonStyle="w-full sm:w-auto" />
+        <RallyeDialog buttonStyle="w-full sm:w-auto cursor-pointer" />
       </section>
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {rallyes?.map((rallye) => (

@@ -111,7 +111,12 @@ const QuestionPage: React.FC<Props> = ({
     <div className="flex flex-col gap-6">
       {hasReturnTarget && (
         <div className="mb-2">
-          <Button variant="ghost" size="sm" onClick={handleCancel}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="cursor-pointer"
+          >
             {returnLabel}
           </Button>
         </div>
