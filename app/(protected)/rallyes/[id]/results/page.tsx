@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { CircleCheck, Timer } from 'lucide-react';
 import { getRallyeResults } from '@/actions/rallye-results';
 import { Button } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
@@ -86,11 +87,11 @@ export default async function Page(props: PageProps) {
           {(results.data ?? []).map((row) => {
             const medal =
               row.rank === 1
-                ? '🥇'
+                ? '1 🥇'
                 : row.rank === 2
-                ? '🥈'
+                ? '2 🥈'
                 : row.rank === 3
-                ? '🥉'
+                ? '3 🥉'
                 : '';
             return (
               <article
@@ -119,27 +120,19 @@ export default async function Page(props: PageProps) {
                 </div>
                 <div className="flex flex-col gap-3 p-4">
                   <div className="space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      Team
-                    </p>
                     <h2 className="text-base font-semibold text-foreground">
                       {row.teamName}
                     </h2>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                        Punkte
-                      </p>
-                      <p className="text-xl font-semibold text-foreground">
-                        {row.points}
+                      <p className="flex items-center justify-start gap-2 text-xl font-semibold text-foreground">
+                        <CircleCheck className="h-5 w-5" /> {row.points}
                       </p>
                     </div>
                     <div className="space-y-1 text-right">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                        Zeit
-                      </p>
-                      <p className="text-xl font-semibold text-foreground">
+                      <p className="flex items-center justify-end gap-2 text-lg font-semibold text-muted-foreground">
+                        <Timer className="h-5 w-5" />
                         {formatDuration(row.durationMs)}
                       </p>
                     </div>
