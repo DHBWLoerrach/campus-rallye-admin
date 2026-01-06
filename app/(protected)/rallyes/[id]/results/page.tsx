@@ -25,7 +25,7 @@ function formatDuration(ms?: number | null) {
   if (h > 0) {
     return `${h}:${mStr}:${sStr}`;
   }
-  return `${mStr}:${sStr}`;
+  return `${m}:${sStr}`;
 }
 
 export default async function Page(props: PageProps) {
