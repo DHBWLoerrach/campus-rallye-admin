@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CircleCheck, Timer } from 'lucide-react';
+import { Star, Timer } from 'lucide-react';
 import { getRallyeResults } from '@/actions/rallye-results';
 import { Button } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
@@ -127,7 +127,7 @@ export default async function Page(props: PageProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <p className="flex items-center justify-start gap-2 text-xl font-semibold text-foreground">
-                        <CircleCheck className="h-5 w-5" /> {row.points}
+                        <Star className="h-5 w-5" /> {row.points}
                       </p>
                     </div>
                     <div className="space-y-1 text-right">
