@@ -11,7 +11,7 @@ an der [DHBW Lörrach](https://www.dhbw-loerrach.de).
 - Im Supabase-Projekt zum _SQL Editor_ wechseln (via linker Seitenleiste)
 - Das SQL-Schema aus der Datei [`supabase/schema.sql`](supabase/schema.sql) in die Zwischenablage kopieren
 - Das eben kopierte SQL-Schema im SQL-Editor einfügen und ausführen (grüner `Run`-Button).
-- Zusätzlich die "Buckets" für Dateiverwaltung erstellen, siehe [`supabase/bucket.md`](supabase/bucket.md).
+- Zusätzlich die "Buckets" für Dateiverwaltung erstellen, siehe [`supabase/buckets.md`](supabase/buckets.md).
 
 Supabase-Owner können einen SQL-Dump des Schemas (Tabellen, Funktionen, usw.) ohne Daten wie folgt mit dem Supabase-CLI erstellen:
 
