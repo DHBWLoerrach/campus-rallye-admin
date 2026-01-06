@@ -11,6 +11,7 @@ export type RallyeResultRow = {
   teamName: string;
   points: number;
   durationMs: number | null;
+  photoUrl?: string;
 };
 
 type RallyeRow = {
@@ -24,6 +25,14 @@ type TeamRow = {
   created_at: string;
   time_played: string | null;
 };
+
+type UploadRow = {
+  team_id: number;
+  team_answer: string | null;
+  created_at: string;
+};
+
+const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 const formatDurationMs = (team: TeamRow): number | null => {
   if (!team.time_played) return null;
@@ -98,12 +107,60 @@ export async function getRallyeResults(
     pointsByTeam.set(teamId, current + (Number.isNaN(points) ? 0 : points));
   });
 
+  const { data: uploadRows, error: uploadError } = await supabase
+    .from('team_questions')
+    .select('team_id, team_answer, created_at, questions!inner(type)')
+    .in('team_id', teamIds)
+    .eq('questions.type', 'upload');
+
+  if (uploadError) {
+    console.error('Error fetching upload answers:', uploadError);
+    return fail('Ergebnisse konnten nicht geladen werden');
+  }
+
+  const latestUploadByTeam = new Map<
+    number,
+    { fileName: string; createdAt: number }
+  >();
+  (uploadRows || []).forEach((row) => {
+    const upload = row as UploadRow;
+    const fileName = (upload.team_answer ?? '').trim();
+    if (!fileName) return;
+    const createdAt = new Date(upload.created_at).getTime();
+    if (Number.isNaN(createdAt)) return;
+    const current = latestUploadByTeam.get(upload.team_id);
+    if (!current || createdAt > current.createdAt) {
+      latestUploadByTeam.set(upload.team_id, { fileName, createdAt });
+    }
+  });
+
+  const photoUrlByTeam = new Map<number, string>();
+  const storage = supabase.storage.from('upload_photo_answers');
+  await Promise.all(
+    Array.from(latestUploadByTeam.entries()).map(async ([teamId, upload]) => {
+      const { data, error } = await storage.createSignedUrl(
+        upload.fileName,
+        SIGNED_URL_TTL_SECONDS
+      );
+      if (error || !data?.signedUrl) {
+        console.error('Error creating signed url:', {
+          teamId,
+          fileName: upload.fileName,
+          error,
+        });
+        return;
+      }
+      photoUrlByTeam.set(teamId, data.signedUrl);
+    })
+  );
+
   const rows = teams.map((team) => ({
     rank: 0,
     teamId: team.id,
     teamName: team.name,
     points: pointsByTeam.get(team.id) ?? 0,
     durationMs: formatDurationMs(team),
+    photoUrl: photoUrlByTeam.get(team.id),
   }));
 
   rows.sort((a, b) => {

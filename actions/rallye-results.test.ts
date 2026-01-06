@@ -101,14 +101,57 @@ describe('getRallyeResults', () => {
       in: vi.fn(() => Promise.resolve({ data: teamQuestionRows, error: null })),
     };
 
-    const from = vi.fn((table: string) => {
-      if (table === 'rallye') return rallyeQuery;
-      if (table === 'rallye_team') return teamQuery;
-      if (table === 'team_questions') return teamQuestionQuery;
-      throw new Error(`Unexpected table ${table}`);
-    });
+    const uploadRows = [
+      {
+        team_id: 10,
+        team_answer: 'older.png',
+        created_at: '2024-01-01T00:10:00.000Z',
+      },
+      {
+        team_id: 10,
+        team_answer: 'newer.png',
+        created_at: '2024-01-01T00:12:00.000Z',
+      },
+      {
+        team_id: 11,
+        team_answer: 'team-b.png',
+        created_at: '2024-01-01T00:05:00.000Z',
+      },
+    ];
 
-    mockCreateClient.mockResolvedValue({ from });
+    const uploadQuery = {
+      select: vi.fn(() => uploadQuery),
+      in: vi.fn(() => ({
+        eq: vi.fn(() => Promise.resolve({ data: uploadRows, error: null })),
+      })),
+    };
+
+    const createSignedUrl = vi.fn((path: string) =>
+      Promise.resolve({
+        data: { signedUrl: `https://example.com/${path}` },
+        error: null,
+      })
+    );
+    const storageFrom = vi.fn(() => ({ createSignedUrl }));
+
+    const teamQuestionsRouter = {
+      select: vi.fn((fields: string) => {
+        if (fields.includes('team_answer')) {
+          return uploadQuery;
+        }
+        return teamQuestionQuery;
+      }),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === 'rallye') return rallyeQuery;
+        if (table === 'rallye_team') return teamQuery;
+        if (table === 'team_questions') return teamQuestionsRouter;
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: { from: storageFrom },
+    });
 
     const { getRallyeResults } = await import('./rallye-results');
     const result = await getRallyeResults(1);
@@ -121,5 +164,9 @@ describe('getRallyeResults', () => {
     expect(result.data?.[0].rank).toBe(1);
     expect(result.data?.[1].teamName).toBe('Team Alpha');
     expect(result.data?.[1].rank).toBe(2);
+    expect(result.data?.[0].photoUrl).toBe('https://example.com/team-b.png');
+    expect(result.data?.[1].photoUrl).toBe('https://example.com/newer.png');
+    expect(storageFrom).toHaveBeenCalledWith('upload_photo_answers');
+    expect(createSignedUrl).toHaveBeenCalledWith('newer.png', 3600);
   });
 });
