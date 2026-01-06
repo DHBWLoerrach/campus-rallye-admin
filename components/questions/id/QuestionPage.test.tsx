@@ -56,7 +56,7 @@ describe('QuestionPage', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Zurück zur Rallye' })
+      screen.getByRole('button', { name: '← Zurück zu Rallye' })
     ).toBeInTheDocument();
   });
 
@@ -77,12 +77,14 @@ describe('QuestionPage', () => {
     );
 
     expect(screen.getByText('Zugeordnet zu:')).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Rallye A' })
-    ).toHaveAttribute('href', '/rallyes/1/questions');
-    expect(
-      screen.getByRole('link', { name: 'Rallye B' })
-    ).toHaveAttribute('href', '/rallyes/2/questions');
+    expect(screen.getByRole('link', { name: 'Rallye A' })).toHaveAttribute(
+      'href',
+      '/rallyes/1/questions'
+    );
+    expect(screen.getByRole('link', { name: 'Rallye B' })).toHaveAttribute(
+      'href',
+      '/rallyes/2/questions'
+    );
     expect(
       screen.getByText('Wirkt in allen zugeordneten Rallyes.')
     ).toBeInTheDocument();

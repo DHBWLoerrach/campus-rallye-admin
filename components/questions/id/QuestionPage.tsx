@@ -35,7 +35,7 @@ const QuestionPage: React.FC<Props> = ({
   const returnTo = returnToParam.startsWith('/') ? returnToParam : '/questions';
   const hasReturnTarget = returnToParam.startsWith('/');
   const isRallyeContext = returnToParam.startsWith('/rallyes/');
-  const returnLabel = isRallyeContext ? 'Zurück zur Rallye' : 'Zurück';
+  const returnLabel = isRallyeContext ? '← Zurück zu Rallye' : '← Zurück';
   const rallyeIdParam = searchParams.get('rallyeId') ?? '';
   const rallyeIdValue = rallyeIdParam ? Number(rallyeIdParam) : Number.NaN;
   const effectiveRallyeIds =
@@ -109,20 +109,23 @@ const QuestionPage: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {hasReturnTarget && (
-        <div className="mb-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCancel}
-            className="cursor-pointer"
-          >
-            {returnLabel}
-          </Button>
-        </div>
-      )}
-
       <section className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {hasReturnTarget && (
+            <div className="mb-2">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleCancel}
+                className="cursor-pointer"
+              >
+                {returnLabel}
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="space-y-1 text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Fragen
