@@ -112,7 +112,6 @@ export default async function Page(props: PageProps) {
                     </div>
                   )}
                   <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-background/90 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-foreground shadow-sm">
-                    <span>Platz</span>
                     <span className="text-sm font-semibold text-foreground">
                       {medal || row.rank}
                     </span>
