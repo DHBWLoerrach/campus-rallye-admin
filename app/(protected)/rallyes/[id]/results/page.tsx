@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getRallyeResults } from '@/actions/rallye-results';
+import RallyeResultRank from '@/components/RallyeResultRank';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -95,8 +96,8 @@ export default async function Page(props: PageProps) {
             <TableBody>
               {(results.data ?? []).map((row) => (
                 <TableRow key={row.teamId}>
-                  <TableCell className="text-center font-semibold">
-                    {row.rank}
+                  <TableCell className="text-center text-lg font-semibold">
+                    <RallyeResultRank rank={row.rank} />
                   </TableCell>
                   <TableCell className="font-medium">{row.teamName}</TableCell>
                   <TableCell className="text-right">{row.points}</TableCell>
