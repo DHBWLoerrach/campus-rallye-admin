@@ -100,7 +100,7 @@ export default async function Page(props: PageProps) {
                 </div>
 
                 {hasUploads ? (
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {question.answers.map((answer) => (
                       <UploadPhotoTile
                         key={answer.teamQuestionId}
