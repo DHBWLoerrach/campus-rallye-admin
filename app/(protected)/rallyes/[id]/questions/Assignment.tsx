@@ -97,8 +97,7 @@ export default function Assignment({
   const loadExistingAssignments = async (targetRallyeId: number) => {
     setIsLoadingAssignments(true);
     try {
-      const existingQuestionsResult =
-        await getRallyeQuestions(targetRallyeId);
+      const existingQuestionsResult = await getRallyeQuestions(targetRallyeId);
       if (!existingQuestionsResult.success) {
         console.error(existingQuestionsResult.error);
         setSelectedQuestions([]);
@@ -202,15 +201,17 @@ export default function Assignment({
     return true;
   };
 
-  const hasUnsavedChanges =
-    !arraysEqualAsSets(selectedQuestions, savedSelectedQuestionsRef.current);
+  const hasUnsavedChanges = !arraysEqualAsSets(
+    selectedQuestions,
+    savedSelectedQuestionsRef.current
+  );
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const isLoading = isLoadingAssignments || isLoadingQuestions;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+    <div className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -233,7 +234,9 @@ export default function Assignment({
             </Button>
             <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               <span>Aktuell zugeordnet</span>
-              <span className="text-foreground">{selectedQuestions.length}</span>
+              <span className="text-foreground">
+                {selectedQuestions.length}
+              </span>
             </div>
           </div>
           <Button asChild variant="dhbwStyle" size="sm">
@@ -305,7 +308,9 @@ export default function Assignment({
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Checkbox
-                                checked={selectedQuestions.includes(question.id)}
+                                checked={selectedQuestions.includes(
+                                  question.id
+                                )}
                                 onCheckedChange={(checked) => {
                                   const isChecked = checked === true;
                                   setSelectedQuestions((prev) =>
@@ -350,7 +355,10 @@ export default function Assignment({
                                   `/rallyes/${rallyeId}/questions`
                                 )}`}
                               >
-                                <Pencil className="h-4 w-4" aria-hidden="true" />
+                                <Pencil
+                                  className="h-4 w-4"
+                                  aria-hidden="true"
+                                />
                                 <span className="sr-only">Bearbeiten</span>
                               </Link>
                             </Button>

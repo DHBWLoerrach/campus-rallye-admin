@@ -94,7 +94,7 @@ export default function UploadPhotoSlideshow({
           Slideshow starten
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden border-0 p-0 shadow-none sm:rounded-none">
+      <DialogContent className="flex h-dvh w-screen max-w-none flex-col gap-0 overflow-hidden border-0 p-0 shadow-none sm:rounded-none">
         <DialogHeader className="border-b border-border/60 bg-card/95 pl-4 pr-12 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1 text-left">

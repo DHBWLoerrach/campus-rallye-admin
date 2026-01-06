@@ -34,7 +34,7 @@ export default async function Questions() {
     ? initialRallyeMapResult.data ?? {}
     : {};
   return (
-    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+    <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
       <QuestionsManagement
         initialQuestions={questions}
         categories={categories}

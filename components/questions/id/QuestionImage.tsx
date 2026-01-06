@@ -90,7 +90,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
       {bucketPath ? (
         <div className="space-y-3">
           <div className="relative rounded-xl border border-border/60 bg-muted/30 p-3">
-            <div className="relative h-[200px] w-full">
+            <div className="relative h-50 w-full">
               <Image
                 src={getQuestionMediaPublicUrl(bucketPath)}
                 alt="Question image"
@@ -100,7 +100,12 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
               />
             </div>
           </div>
-          <Button type="button" variant="destructive" size="sm" onClick={handleRemoveImage}>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={handleRemoveImage}
+          >
             Bild entfernen
           </Button>
         </div>

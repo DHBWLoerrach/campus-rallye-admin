@@ -80,7 +80,7 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
           Rallye erstellen
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Rallye erstellen</DialogTitle>
           <DialogDescription>

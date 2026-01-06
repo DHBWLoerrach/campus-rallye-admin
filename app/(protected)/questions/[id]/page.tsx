@@ -37,7 +37,9 @@ export default async function Question({ params }: Props) {
   }
 
   const question =
-    questionResult && questionResult.success ? questionResult.data ?? null : null;
+    questionResult && questionResult.success
+      ? questionResult.data ?? null
+      : null;
   const categories = categoriesResult.success
     ? categoriesResult.data ?? []
     : [];
@@ -48,7 +50,7 @@ export default async function Question({ params }: Props) {
       : [];
 
   return (
-    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+    <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
       <QuestionPage
         id={id}
         initialData={question}

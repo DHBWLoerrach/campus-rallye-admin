@@ -24,13 +24,17 @@ export default async function Nav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between px-4">
+      <div className="mx-auto flex h-16 w-full max-w-350 items-center justify-between px-4">
         <nav className="hidden flex-col sm:flex sm:flex-row sm:items-center gap-2 text-sm font-semibold">
-        <NavItems routes={routes} />
+          <NavItems routes={routes} />
         </nav>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="shrink-0 sm:hidden">
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 sm:hidden"
+            >
               <Menu className="h-5 w-5" />
               <span className="sr-only">Navigationsmenü ein-/ausblenden</span>
             </Button>

@@ -38,7 +38,7 @@ export default async function Home() {
     });
   }
   return (
-    <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6">
+    <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1 text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
