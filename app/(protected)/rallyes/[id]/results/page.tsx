@@ -11,14 +11,21 @@ interface PageProps {
 
 type RallyeRow = { id: number; name: string };
 
-const formatDuration = (durationMs: number | null): string => {
-  if (durationMs === null) return 'k.A.';
-  const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const paddedSeconds = String(seconds).padStart(2, '0');
-  return `${minutes}:${paddedSeconds}`;
-};
+function formatDuration(ms?: number | null) {
+  if (ms == null) return '-';
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+
+  const mStr = m.toString().padStart(2, '0');
+  const sStr = s.toString().padStart(2, '0');
+
+  if (h > 0) {
+    return `${h}:${mStr}:${sStr}`;
+  }
+  return `${mStr}:${sStr}`;
+}
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
