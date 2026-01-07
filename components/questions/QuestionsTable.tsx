@@ -69,45 +69,50 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                     <TableRow>
                       <TableCell>
                         <ChevronDown
-                          className={`h-4 w-4 cursor-pointer text-muted-foreground transition-transform hover:text-foreground ${
-                            expandedRows.includes(question.id)
+                          className={`h-4 w-4 cursor-pointer text-muted-foreground transition-transform hover:text-foreground ${expandedRows.includes(question.id)
                               ? 'rotate-180'
                               : ''
-                        }`}
-                        onClick={() => toggleRow(question.id)}
-                      />
-                    </TableCell>
-                    <TableCell className="max-w-md">
-                      <QuestionSummary
-                        question={question}
-                        rallyeNames={rallyeNames}
-                      />
-                    </TableCell>
-                    <TableCell>{questionTypeLabels[question.type]}</TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      >
-                        <Link href={`/questions/${question.id}`}>
-                          <Pencil className="h-4 w-4" aria-hidden="true" />
-                          <span className="sr-only">Bearbeiten</span>
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <QuestionDetailsRows
-                    question={question}
-                    rallyeNames={rallyeNames}
-                    isExpanded={expandedRows.includes(question.id)}
-                    leadingCellsCount={1}
-                    colSpan={3}
-                  />
-                </React.Fragment>
-              );
-            })
+                            }`}
+                          onClick={() => toggleRow(question.id)}
+                        />
+                      </TableCell>
+                      <TableCell className="max-w-md">
+                        <QuestionSummary
+                          question={question}
+                          rallyeNames={rallyeNames}
+                        />
+                      </TableCell>
+                      <TableCell>{questionTypeLabels[question.type]}</TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        >
+                          <Link href={`/questions/${question.id}`}>
+                            <Pencil className="h-4 w-4" aria-hidden="true" />
+                            <span className="sr-only">Bearbeiten</span>
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expandedRows.includes(question.id) && (
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableCell colSpan={4} className="p-0">
+                          <div className="p-3 pl-12 border-b">
+                            <QuestionDetailsRows
+                              question={question}
+                              rallyeNames={rallyeNames}
+                              isExpanded={true}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
           </TableBody>
         </Table>

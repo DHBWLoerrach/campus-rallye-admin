@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, CirclePlus, CircleMinus, Info, Plus } from 'lucide-react';
+import { ChevronDown, CircleMinus, CirclePlus, Info, Pencil, Plus } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -316,8 +316,23 @@ export default function Assignment({
                   question={question}
                   rallyeNames={rallyeNames}
                   isExpanded={true}
-                  leadingCellsCount={0}
-                  colSpan={1}
+                  action={
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2"
+                    >
+                      <Link
+                        href={`/questions/${question.id}?returnTo=${encodeURIComponent(
+                          `/rallyes/${rallyeId}/questions`
+                        )}`}
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Frage bearbeiten
+                      </Link>
+                    </Button>
+                  }
                 />
               </div>
             </TableCell>

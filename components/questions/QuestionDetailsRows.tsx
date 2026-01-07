@@ -1,21 +1,21 @@
 import { Check, X } from 'lucide-react';
-import { TableCell, TableRow } from '@/components/ui/table';
 import type { Question } from '@/helpers/questions';
+import { cn } from '@/lib/utils';
 
 interface QuestionDetailsRowsProps {
   question: Question;
   rallyeNames?: string[];
   isExpanded: boolean;
-  leadingCellsCount: number;
-  colSpan: number;
+  className?: string;
+  action?: React.ReactNode;
 }
 
 const QuestionDetailsRows = ({
   question,
   rallyeNames = [],
   isExpanded,
-  leadingCellsCount,
-  colSpan,
+  className,
+  action,
 }: QuestionDetailsRowsProps) => {
   if (!isExpanded) return null;
 
@@ -33,73 +33,64 @@ const QuestionDetailsRows = ({
     .join(' | ');
   const rallyeLabel = rallyeNames.length === 1 ? 'Rallye' : 'Rallyes';
 
-  const leadingCells = Array.from({ length: leadingCellsCount }, (_, index) => (
-    <TableCell key={`leading-${index}`} />
-  ));
+  if (!hasHint && !hasRallyes && !hasAnswers && !action) {
+    return null;
+  }
 
   return (
-    <>
+    <div className={cn("flex flex-col gap-2 text-sm text-muted-foreground relative pr-24 min-h-[28px]", className)}>
+      {action && (
+        <div className="absolute right-0 top-0">
+          {action}
+        </div>
+      )}
       {hasHint && (
-        <TableRow className="bg-muted/40 text-muted-foreground border-0">
-          {leadingCells}
-          <TableCell colSpan={colSpan} className="py-1.5">
-            <div className="pl-5 border-l border-border/40 text-xs">
-              <span className="font-medium text-muted-foreground/80">
-                Hinweis:
-              </span>{' '}
-              {question.hint}
-            </div>
-          </TableCell>
-        </TableRow>
+        <div className="flex flex-col gap-1">
+          <div className="pl-3 border-l-2 border-primary/20 text-xs">
+            <span className="font-medium text-foreground/80">
+              Hinweis:
+            </span>{' '}
+            {question.hint}
+          </div>
+        </div>
       )}
       {hasRallyes && (
-        <TableRow className="bg-muted/40 text-muted-foreground border-0">
-          {leadingCells}
-          <TableCell
-            colSpan={colSpan}
-            title={`${rallyeLabel}: ${rallyeNames.join(', ')}`}
-            className="py-1.5"
-          >
-            <div className="pl-5 border-l border-border/40 text-xs">
-              <span className="font-medium text-muted-foreground/80">
-                {rallyeLabel}:
-              </span>{' '}
-              {rallyeNames.join(', ')}
-            </div>
-          </TableCell>
-        </TableRow>
+        <div className="flex flex-col gap-1" title={`${rallyeLabel}: ${rallyeNames.join(', ')}`}>
+          <div className="pl-3 border-l-2 border-blue-500/20 text-xs">
+            <span className="font-medium text-foreground/80">
+              {rallyeLabel}:
+            </span>{' '}
+            {rallyeNames.join(', ')}
+          </div>
+        </div>
       )}
       {hasAnswers && (
-        <TableRow className="bg-muted/40 text-muted-foreground border-0">
-          {leadingCells}
-          <TableCell colSpan={colSpan} className="py-1">
-            <div className="pl-5 border-l border-border/40 text-xs flex items-center gap-2">
-              <span className="font-medium text-muted-foreground/80 whitespace-nowrap">
-                {answersLabel}:
-              </span>
-              <div className="min-w-0 flex-1 truncate" title={answersTitle}>
-                {answers.map((answer, index) => (
-                  <span
-                    key={answer.id ?? `${question.id}-${index}`}
-                    className="inline-flex items-center gap-1"
-                  >
-                    {answer.correct ? (
-                      <Check className="h-3 w-3 text-success/70" />
-                    ) : (
-                      <X className="h-3 w-3 text-destructive/70" />
-                    )}
-                    <span>{answer.text?.trim() || '-'}</span>
-                    {index < answers.length - 1 && (
-                      <span className="mx-1 text-muted-foreground/60">|</span>
-                    )}
+        <div className="flex flex-col gap-1">
+          <div className="pl-3 border-l-2 border-emerald-500/20 text-xs flex flex-wrap items-center gap-2">
+            <span className="font-medium text-foreground/80 whitespace-nowrap">
+              {answersLabel}:
+            </span>
+            <div className="flex flex-wrap gap-x-3 gap-y-1" title={answersTitle}>
+              {answers.map((answer, index) => (
+                <span
+                  key={answer.id ?? `${question.id}-${index}`}
+                  className="inline-flex items-center gap-1"
+                >
+                  {answer.correct ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  ) : (
+                    <X className="h-3.5 w-3.5 text-destructive/60" />
+                  )}
+                  <span className={cn(answer.correct && "font-medium text-emerald-700")}>
+                    {answer.text?.trim() || '-'}
                   </span>
-                ))}
-              </div>
+                </span>
+              ))}
             </div>
-          </TableCell>
-        </TableRow>
+          </div>
+        </div>
       )}
-    </>
+    </div>
   );
 };
 
