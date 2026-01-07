@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Assignment from './Assignment';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import * as questionActions from '@/actions/question';
 import * as assignActions from '@/actions/assign_questions_to_rallye';
 import { Question } from '@/helpers/questions';
@@ -31,15 +31,15 @@ const mockQuestions: Question[] = [
 describe('Assignment Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (questionActions.getQuestions as any).mockResolvedValue({
+    (questionActions.getQuestions as Mock).mockResolvedValue({
       success: true,
       data: mockQuestions,
     });
-    (assignActions.getQuestionRallyeMap as any).mockResolvedValue({
+    (assignActions.getQuestionRallyeMap as Mock).mockResolvedValue({
       success: true,
       data: {},
     });
-    (assignActions.assignQuestionsToRallye as any).mockResolvedValue({
+    (assignActions.assignQuestionsToRallye as Mock).mockResolvedValue({
       success: true,
     });
   });

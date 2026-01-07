@@ -3,7 +3,14 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, CircleMinus, CirclePlus, Info, Pencil, Plus } from 'lucide-react';
+import {
+  ChevronDown,
+  CircleMinus,
+  CirclePlus,
+  Info,
+  Pencil,
+  Plus,
+} from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -277,8 +284,9 @@ export default function Assignment({
               className="p-1 hover:bg-muted rounded text-muted-foreground"
             >
               <ChevronDown
-                className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''
-                  }`}
+                className={`h-4 w-4 transition-transform ${
+                  isExpanded ? 'rotate-180' : ''
+                }`}
               />
             </button>
           </TableCell>
@@ -302,7 +310,6 @@ export default function Assignment({
                     {question.category}
                   </Badge>
                 )}
-
               </div>
             </div>
           </TableCell>
@@ -324,7 +331,9 @@ export default function Assignment({
                       className="h-6 gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2"
                     >
                       <Link
-                        href={`/questions/${question.id}?returnTo=${encodeURIComponent(
+                        href={`/questions/${
+                          question.id
+                        }?returnTo=${encodeURIComponent(
                           `/rallyes/${rallyeId}/questions`
                         )}`}
                       >
@@ -397,9 +406,9 @@ export default function Assignment({
           </h1>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start h-[calc(100vh-250px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start h-auto lg:h-[calc(100vh-250px)]">
           {/* Left Column: Available */}
-          <Card className="flex flex-col h-full overflow-hidden border-border/60 shadow-sm bg-card/80">
+          <Card className="flex flex-col h-125 lg:h-full overflow-hidden border-border/60 shadow-sm bg-card/80">
             <CardHeader className="pb-3 border-b bg-muted/20">
               <CardTitle className="text-base font-semibold flex items-center justify-between">
                 <span>
@@ -490,7 +499,7 @@ export default function Assignment({
           </Card>
 
           {/* Right Column: Assigned */}
-          <Card className="flex flex-col h-full overflow-hidden border-border/60 shadow-sm bg-card/80 ring-1 ring-border/50">
+          <Card className="flex flex-col h-125 lg:h-full overflow-hidden border-border/60 shadow-sm bg-card/80 ring-1 ring-border/50">
             <CardHeader className="pb-3 border-b bg-muted/20">
               <CardTitle className="text-base font-semibold flex items-center justify-between">
                 <span>Zugewiesen ({assignedQuestions.length})</span>
@@ -498,7 +507,8 @@ export default function Assignment({
               </CardTitle>
               <div className="flex items-center text-xs text-muted-foreground">
                 <Info className="h-3 w-3 mr-1" />
-                Reihenfolge: ohne Effekt. Anzeige in der App zufällig; Upload-Fragen immer zuletzt.
+                Reihenfolge: ohne Effekt. Anzeige in der App zufällig;
+                Upload-Fragen immer zuletzt.
               </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden p-0 relative">
