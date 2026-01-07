@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, Pencil } from 'lucide-react';
+import { ChevronDown, CirclePlus, CircleMinus, Info, Plus } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Question } from '@/helpers/questions';
 import { getQuestions } from '@/actions/question';
@@ -20,7 +19,6 @@ import { questionTypes } from '@/helpers/questionTypes';
 import {
   assignQuestionsToRallye,
   getQuestionRallyeMap,
-  getRallyeQuestions,
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
 import {
@@ -32,7 +30,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import QuestionDetailsRows from '@/components/questions/QuestionDetailsRows';
-import QuestionSummary from '@/components/questions/QuestionSummary';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface Props {
   rallyeId: number;
@@ -52,24 +57,28 @@ export default function Assignment({
   initialRallyeMap,
 }: Props) {
   const router = useRouter();
-  const [selectedQuestions, setSelectedQuestions] = useState<number[]>(
-    initialSelectedQuestions || []
-  );
-  const [questions, setQuestions] = useState<Question[]>(
+
+  // "Assigned" Questions (Right Column) - The Source of Truth for the assignment
+  const [assignedQuestions, setAssignedQuestions] = useState<Question[]>([]);
+
+  // "Available" Questions (Left Column) - Fetched from server based on filters
+  const [availableQuestions, setAvailableQuestions] = useState<Question[]>(
     initialQuestions || []
   );
+
   const [rallyeMap, setRallyeMap] = useState<Record<number, string[]>>(
     initialRallyeMap || {}
   );
+
+  // Expanded rows state
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
-  // Track last saved state to detect unsaved changes.
-  const savedSelectedQuestionsRef = useRef<number[]>(
-    initialSelectedQuestions || []
-  );
+  // Track last saved state to detect unsaved changes (list of IDs).
+  const savedAssignedIdsRef = useRef<number[]>(initialSelectedQuestions || []);
 
   const questionTypeLabels = questionTypes.reduce((acc, type) => {
     acc[type.id] = type.name;
@@ -77,9 +86,24 @@ export default function Assignment({
   }, {} as Record<string, string>);
 
   useEffect(() => {
-    if (!initialSelectedQuestions) {
+    // Initialize assigned questions
+    if (initialQuestions && initialSelectedQuestions) {
+      const assigned = initialQuestions.filter((q) =>
+        initialSelectedQuestions.includes(q.id)
+      );
+      // If we miss some (e.g. search filter on initial load excluded them), we might need to fetch them?
+      // But typically initialQuestions on Page load is ALL questions.
+      // However, if assigned is less than initialSelectedQuestions, we should fetch specifically.
+      if (assigned.length < initialSelectedQuestions.length) {
+        loadExistingAssignments(rallyeId);
+      } else {
+        setAssignedQuestions(assigned);
+      }
+    } else {
       loadExistingAssignments(rallyeId);
     }
+
+    // Determine available questions (initially all)
     if (!initialQuestions) {
       fetchQuestions();
     }
@@ -97,15 +121,21 @@ export default function Assignment({
   const loadExistingAssignments = async (targetRallyeId: number) => {
     setIsLoadingAssignments(true);
     try {
-      const existingQuestionsResult = await getRallyeQuestions(targetRallyeId);
-      if (!existingQuestionsResult.success) {
-        console.error(existingQuestionsResult.error);
-        setSelectedQuestions([]);
-        savedSelectedQuestionsRef.current = [];
+      // Fetch specifically the questions assigned to this rallye
+      const assignedResult = await getQuestions({
+        rallyeId: String(targetRallyeId),
+      });
+      if (!assignedResult.success) {
+        console.error(assignedResult.error);
+        setAssignedQuestions([]);
+        savedAssignedIdsRef.current = [];
       } else {
-        const questionIds = existingQuestionsResult.data ?? [];
-        setSelectedQuestions(questionIds);
-        savedSelectedQuestionsRef.current = questionIds;
+        const questions = assignedResult.data ?? [];
+        setAssignedQuestions(questions);
+        savedAssignedIdsRef.current = questions.map((q) => q.id);
+
+        // Ensure we have rallye map for these
+        refreshRallyeMap(questions);
       }
     } catch (error) {
       console.error('Error loading existing assignments:', error);
@@ -115,14 +145,17 @@ export default function Assignment({
   };
 
   const refreshRallyeMap = async (nextQuestions: Question[]) => {
+    // Only fetch for IDs we don't know yet? Or just refresh batch.
     const questionIds = nextQuestions.map((question) => question.id);
+    if (questionIds.length === 0) return;
+
+    // Optimization: filter out already known IDs if we want, but for now simple batch
     const nextRallyeMapResult = await getQuestionRallyeMap(questionIds);
     if (!nextRallyeMapResult.success) {
       console.error(nextRallyeMapResult.error);
-      setRallyeMap({});
       return;
     }
-    setRallyeMap(nextRallyeMapResult.data ?? {});
+    setRallyeMap((prev) => ({ ...prev, ...(nextRallyeMapResult.data ?? {}) }));
   };
 
   const fetchQuestions = async () => {
@@ -130,13 +163,11 @@ export default function Assignment({
     try {
       const fetchedQuestionsResult = await getQuestions({});
       if (!fetchedQuestionsResult.success) {
-        console.error(fetchedQuestionsResult.error);
-        setQuestions([]);
-        setRallyeMap({});
+        setAvailableQuestions([]);
         return;
       }
       const fetchedQuestions = fetchedQuestionsResult.data ?? [];
-      setQuestions(fetchedQuestions);
+      setAvailableQuestions(fetchedQuestions);
       await refreshRallyeMap(fetchedQuestions);
     } catch (error) {
       console.error('Error loading questions:', error);
@@ -155,20 +186,20 @@ export default function Assignment({
   }) => {
     setIsLoadingQuestions(true);
     try {
+      // If "assigned" filter is checked, we might just filter client side?
+      // But the "assigned" filter in SearchFilters is usually "Show only assigned".
+      // In this split view, "assigned" filter might be confusing.
+      // We should probably ignore it or apply it to the LEFT column (e.g. show only available questions that are assigned to *some* rallye? Unlikely use case).
+      // Let's assume standard filters apply to the LEFT column.
+
       const filteredQuestionsResult = await getQuestions(filters);
       if (!filteredQuestionsResult.success) {
-        console.error(filteredQuestionsResult.error);
-        setQuestions([]);
-        setRallyeMap({});
+        setAvailableQuestions([]);
         return;
       }
       const filteredQuestions = filteredQuestionsResult.data ?? [];
-      const finalQuestions =
-        filters.assigned === true
-          ? filteredQuestions.filter((q) => selectedQuestions.includes(q.id))
-          : filteredQuestions;
-      setQuestions(finalQuestions);
-      await refreshRallyeMap(finalQuestions);
+      setAvailableQuestions(filteredQuestions);
+      await refreshRallyeMap(filteredQuestions);
     } catch (error) {
       console.error('Error filtering questions:', error);
     } finally {
@@ -176,21 +207,31 @@ export default function Assignment({
     }
   };
 
+  // Move from Left to Right
+  const assignQuestion = (question: Question) => {
+    if (assignedQuestions.some((q) => q.id === question.id)) return;
+    setAssignedQuestions((prev) => [...prev, question]);
+  };
+
+  // Move from Right to Left (Remove)
+  const unassignQuestion = (questionId: number) => {
+    setAssignedQuestions((prev) => prev.filter((q) => q.id !== questionId));
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const assignResult = await assignQuestionsToRallye(
-        rallyeId,
-        selectedQuestions
-      );
+      const currentIds = assignedQuestions.map((q) => q.id);
+      const assignResult = await assignQuestionsToRallye(rallyeId, currentIds);
       if (!assignResult.success) {
         throw new Error(assignResult.error);
       }
+      // Update ref to current state
+      savedAssignedIdsRef.current = currentIds;
     } catch (error) {
       console.error('Error saving questions:', error);
     } finally {
       setIsSubmitting(false);
-      await loadExistingAssignments(rallyeId);
     }
   };
 
@@ -202,243 +243,380 @@ export default function Assignment({
   };
 
   const hasUnsavedChanges = !arraysEqualAsSets(
-    selectedQuestions,
-    savedSelectedQuestionsRef.current
+    assignedQuestions.map((q) => q.id),
+    savedAssignedIdsRef.current
   );
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
-  const isLoading = isLoadingAssignments || isLoadingQuestions;
+
+  // Derived list for Left Column: Available MINUS Assigned
+  // This ensures a question doesn't appear on both sides
+  const displayedAvailableQuestions = availableQuestions.filter(
+    (availQ) =>
+      !assignedQuestions.some((assignedQ) => assignedQ.id === availQ.id)
+  );
+
+  const QuestionRow = ({
+    question,
+    action,
+  }: {
+    question: Question;
+    action: React.ReactNode;
+  }) => {
+    const rallyeNames = rallyeMap[question.id] ?? [];
+    const isExpanded = expandedRows.includes(question.id);
+
+    return (
+      <Fragment>
+        <TableRow className="group">
+          <TableCell className="w-7.5 p-2">
+            <button
+              onClick={() => toggleRow(question.id)}
+              className="p-1 hover:bg-muted rounded text-muted-foreground"
+            >
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''
+                  }`}
+              />
+            </button>
+          </TableCell>
+          <TableCell className="p-2">
+            <div className="flex flex-col gap-1">
+              <div className="font-medium text-sm line-clamp-2">
+                {question.content}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] px-1 py-0 h-5 font-normal"
+                >
+                  {questionTypeLabels[question.type]}
+                </Badge>
+                {question.category && (
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] px-1 py-0 h-5 font-normal text-muted-foreground"
+                  >
+                    {question.category}
+                  </Badge>
+                )}
+
+              </div>
+            </div>
+          </TableCell>
+          <TableCell className="w-10 p-2 text-right">{action}</TableCell>
+        </TableRow>
+        {isExpanded && (
+          <TableRow className="bg-muted/30">
+            <TableCell colSpan={3} className="p-0">
+              <div className="p-4 border-b">
+                <QuestionDetailsRows
+                  question={question}
+                  rallyeNames={rallyeNames}
+                  isExpanded={true}
+                  leadingCellsCount={0}
+                  colSpan={1}
+                />
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
+      </Fragment>
+    );
+  };
 
   return (
-    <div className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
-      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              disabled={isSubmitting}
-              className="cursor-pointer"
-              onClick={() => {
-                if (isSubmitting) return;
-                if (!hasUnsavedChanges) {
-                  router.push('/rallyes');
-                  return;
-                }
-                setPendingHref('/rallyes');
-                setShowLeaveConfirm(true);
-              }}
-            >
-              ← Zurück zu Rallyes
-            </Button>
-            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              <span>Aktuell zugeordnet</span>
-              <span className="text-foreground">
-                {selectedQuestions.length}
-              </span>
+    <TooltipProvider>
+      <div className="mx-auto flex w-full max-w-400 flex-col gap-6 px-4 py-6">
+        {/* Header Section */}
+        <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                disabled={isSubmitting}
+                className="cursor-pointer"
+                onClick={() => {
+                  if (isSubmitting) return;
+                  if (!hasUnsavedChanges) {
+                    router.push('/rallyes');
+                    return;
+                  }
+                  setPendingHref('/rallyes');
+                  setShowLeaveConfirm(true);
+                }}
+              >
+                ← Zurück
+              </Button>
+              {hasUnsavedChanges && (
+                <Badge variant="destructive" className="animate-pulse">
+                  Ungespeicherte Änderungen
+                </Badge>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={!hasUnsavedChanges}
+                onClick={() => {
+                  setShowDiscardConfirm(true);
+                }}
+              >
+                Änderungen verwerfen
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || !hasUnsavedChanges}
+                variant="dhbwStyle"
+              >
+                {isSubmitting ? 'Speichert...' : 'Änderungen speichern'}
+              </Button>
             </div>
           </div>
-          <Button asChild variant="dhbwStyle" size="sm">
-            <Link
-              href={`/questions/new?returnTo=${encodeURIComponent(
-                `/rallyes/${rallyeId}/questions`
-              )}&rallyeId=${rallyeId}`}
-            >
-              Neue Frage
-            </Link>
-          </Button>
-        </div>
-        <div className="space-y-1 text-left">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Rallye
-          </p>
           <h1 className="text-2xl font-semibold text-foreground">
-            Fragen zuordnen
+            Fragen-Zuordnung: {rallyeName}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {rallyeName
-              ? `Rallye „${rallyeName}“`
-              : 'Fragen einer Rallye zuordnen'}
-          </p>
-        </div>
-      </section>
+        </section>
 
-      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
-        <SearchFilters
-          onFilterChange={handleFilterChange}
-          categories={initialCategories ?? []}
-        />
-        {isLoading && (
-          <p className="text-xs text-muted-foreground">Lade Daten...</p>
-        )}
-        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/90">
-          <div className="max-h-[60vh] overflow-y-auto">
-            <Table className="text-sm [&_th]:h-9 [&_th]:px-3 [&_td]:px-3 [&_td]:py-2">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Auswahl</TableHead>
-                  <TableHead>Frage</TableHead>
-                  <TableHead>Typ</TableHead>
-                  <TableHead className="w-12 text-center">Aktionen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {questions.length === 0 ? (
-                  isLoadingQuestions ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start h-[calc(100vh-250px)]">
+          {/* Left Column: Available */}
+          <Card className="flex flex-col h-full overflow-hidden border-border/60 shadow-sm bg-card/80">
+            <CardHeader className="pb-3 border-b bg-muted/20">
+              <CardTitle className="text-base font-semibold flex items-center justify-between">
+                <span>
+                  Verfügbare Fragen ({displayedAvailableQuestions.length})
+                </span>
+                <Link
+                  href={`/questions/new?returnTo=${encodeURIComponent(
+                    `/rallyes/${rallyeId}/questions`
+                  )}&rallyeId=${rallyeId}`}
+                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1"
+                  >
+                    <Plus className="h-3 w-3" /> Neu
+                  </Button>
+                </Link>
+              </CardTitle>
+              <div className="mt-2">
+                <SearchFilters
+                  onFilterChange={handleFilterChange}
+                  categories={initialCategories ?? []}
+                  compact={true}
+                  showAssignedToggle={false}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-0 relative">
+              <div className="absolute inset-0 overflow-y-auto">
+                <Table>
+                  <TableHeader className="bg-card sticky top-0 z-10 shadow-sm">
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center">
-                        Lade Fragen...
-                      </TableCell>
+                      <TableHead className="w-7.5"></TableHead>
+                      <TableHead>Verfügbare Frage</TableHead>
+                      <TableHead className="w-10"></TableHead>
                     </TableRow>
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center">
-                        Keine Fragen verfügbar
-                      </TableCell>
-                    </TableRow>
-                  )
-                ) : (
-                  questions.map((question) => {
-                    const rallyeNames = rallyeMap[question.id] ?? [];
-
-                    return (
-                      <Fragment key={question.id}>
-                        <TableRow>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                checked={selectedQuestions.includes(
-                                  question.id
-                                )}
-                                onCheckedChange={(checked) => {
-                                  const isChecked = checked === true;
-                                  setSelectedQuestions((prev) =>
-                                    isChecked
-                                      ? prev.includes(question.id)
-                                        ? prev
-                                        : [...prev, question.id]
-                                      : prev.filter((id) => id !== question.id)
-                                  );
-                                }}
-                              />
-                              <ChevronDown
-                                className={`h-4 w-4 cursor-pointer text-muted-foreground transition-transform hover:text-foreground ${
-                                  expandedRows.includes(question.id)
-                                    ? 'rotate-180'
-                                    : ''
-                                }`}
-                                onClick={() => toggleRow(question.id)}
-                              />
-                            </div>
-                          </TableCell>
-                          <TableCell className="max-w-md">
-                            <QuestionSummary
-                              question={question}
-                              rallyeNames={rallyeNames}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {questionTypeLabels[question.type]}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Button
-                              asChild
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            >
-                              <Link
-                                href={`/questions/${
-                                  question.id
-                                }?returnTo=${encodeURIComponent(
-                                  `/rallyes/${rallyeId}/questions`
-                                )}`}
-                              >
-                                <Pencil
-                                  className="h-4 w-4"
-                                  aria-hidden="true"
-                                />
-                                <span className="sr-only">Bearbeiten</span>
-                              </Link>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                        <QuestionDetailsRows
-                          question={question}
-                          rallyeNames={rallyeNames}
-                          isExpanded={expandedRows.includes(question.id)}
-                          leadingCellsCount={1}
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingQuestions ? (
+                      <TableRow>
+                        <TableCell
                           colSpan={3}
+                          className="text-center h-24 text-muted-foreground"
+                        >
+                          Lade Fragen...
+                        </TableCell>
+                      </TableRow>
+                    ) : displayedAvailableQuestions.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className="text-center h-24 text-muted-foreground"
+                        >
+                          Keine Fragen gefunden
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      displayedAvailableQuestions.map((q) => (
+                        <QuestionRow
+                          key={q.id}
+                          question={q}
+                          action={
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-primary hover:bg-primary/10"
+                                  onClick={() => assignQuestion(q)}
+                                  aria-label={`add-question-${q.id}`}
+                                >
+                                  <CirclePlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Zur Rallye hinzufügen</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          }
                         />
-                      </Fragment>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Right Column: Assigned */}
+          <Card className="flex flex-col h-full overflow-hidden border-border/60 shadow-sm bg-card/80 ring-1 ring-border/50">
+            <CardHeader className="pb-3 border-b bg-muted/20">
+              <CardTitle className="text-base font-semibold flex items-center justify-between">
+                <span>Zugewiesen ({assignedQuestions.length})</span>
+                {/* Placeholder for future sorting buttons */}
+              </CardTitle>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <Info className="h-3 w-3 mr-1" />
+                Reihenfolge: ohne Effekt. Anzeige in der App zufällig; Upload-Fragen immer zuletzt.
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-0 relative">
+              <div className="absolute inset-0 overflow-y-auto bg-muted/10">
+                <Table>
+                  <TableHeader className="bg-card sticky top-0 z-10 shadow-sm">
+                    <TableRow>
+                      <TableHead className="w-7.5"></TableHead>
+                      <TableHead>Zugeordnete Frage</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingAssignments ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className="text-center h-24 text-muted-foreground"
+                        >
+                          Lade Zuordnungen...
+                        </TableCell>
+                      </TableRow>
+                    ) : assignedQuestions.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className="text-center h-24 text-muted-foreground"
+                        >
+                          Noch keine Fragen zugeordnet
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      assignedQuestions.map((q) => (
+                        <QuestionRow
+                          key={q.id}
+                          question={q}
+                          action={
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                  onClick={() => unassignQuestion(q.id)}
+                                  aria-label={`remove-question-${q.id}`}
+                                >
+                                  <CircleMinus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Aus Rallye entfernen</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          }
+                        />
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="flex flex-wrap justify-end gap-3">
-          <Button
-            variant="outline"
-            onClick={() => {
-              loadExistingAssignments(rallyeId);
-            }}
-          >
-            Zurücksetzen
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            variant="dhbwStyle"
-          >
-            Speichern
-          </Button>
-        </div>
-      </section>
+        <Dialog open={showDiscardConfirm} onOpenChange={setShowDiscardConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Änderungen verwerfen?</DialogTitle>
+              <DialogDescription>
+                Möchten Sie alle ungespeicherten Änderungen wirklich verwerfen?
+                Dieser Vorgang kann nicht rückgängig gemacht werden.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowDiscardConfirm(false)}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  loadExistingAssignments(rallyeId);
+                  setShowDiscardConfirm(false);
+                }}
+              >
+                Verwerfen
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ungespeicherte Änderungen</DialogTitle>
-            <DialogDescription>
-              Es gibt ungespeicherte Änderungen. Möchten Sie speichern,
-              verwerfen oder abbrechen?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setShowLeaveConfirm(false);
-                router.push(pendingHref || '/rallyes');
-              }}
-            >
-              Verwerfen
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowLeaveConfirm(false)}
-            >
-              Abbrechen
-            </Button>
-            <Button
-              variant="dhbwStyle"
-              disabled={isSubmitting}
-              onClick={async () => {
-                await handleSubmit();
-                setShowLeaveConfirm(false);
-                router.push(pendingHref || '/rallyes');
-              }}
-            >
-              Speichern
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ungespeicherte Änderungen</DialogTitle>
+              <DialogDescription>
+                Es gibt ungespeicherte Änderungen. Möchten Sie speichern,
+                verwerfen oder abbrechen?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setShowLeaveConfirm(false);
+                  router.push(pendingHref || '/rallyes');
+                }}
+              >
+                Verwerfen
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowLeaveConfirm(false)}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                variant="dhbwStyle"
+                disabled={isSubmitting}
+                onClick={async () => {
+                  await handleSubmit();
+                  setShowLeaveConfirm(false);
+                  router.push(pendingHref || '/rallyes');
+                }}
+              >
+                Speichern
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </TooltipProvider>
   );
 }

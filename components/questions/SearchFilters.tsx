@@ -23,6 +23,7 @@ interface SearchFiltersProps {
   categories: string[];
   rallyes?: RallyeOption[];
   showAssignedToggle?: boolean;
+  compact?: boolean;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
@@ -30,6 +31,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   categories,
   rallyes,
   showAssignedToggle = true,
+  compact = false,
 }) => {
   const [filters, setFilters] = useState({
     question: '',
@@ -46,7 +48,9 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     onFilterChange(newFilters);
   };
 
-  const gridClassName = rallyes?.length
+  const gridClassName = compact
+    ? 'grid gap-2 grid-cols-1 sm:grid-cols-2'
+    : rallyes?.length
     ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px_220px]'
     : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px]';
 
