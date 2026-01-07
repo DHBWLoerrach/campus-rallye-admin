@@ -80,6 +80,12 @@ export default function Assignment({
   // Expanded rows state
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
+  // Animation state for flash effects
+  const [recentlyAdded, setRecentlyAdded] = useState<Set<number>>(new Set());
+  const [recentlyRemoved, setRecentlyRemoved] = useState<Set<number>>(
+    new Set()
+  );
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
@@ -218,11 +224,40 @@ export default function Assignment({
   const assignQuestion = (question: Question) => {
     if (assignedQuestions.some((q) => q.id === question.id)) return;
     setAssignedQuestions((prev) => [...prev, question]);
+
+    // Trigger green flash animation
+    setRecentlyAdded((prev) => new Set(prev).add(question.id));
+    setTimeout(() => {
+      setRecentlyAdded((prev) => {
+        const next = new Set(prev);
+        next.delete(question.id);
+        return next;
+      });
+    }, 600);
   };
 
   // Move from Right to Left (Remove)
   const unassignQuestion = (questionId: number) => {
-    setAssignedQuestions((prev) => prev.filter((q) => q.id !== questionId));
+    // Trigger red flash animation first
+    setRecentlyRemoved((prev) => new Set(prev).add(questionId));
+    setTimeout(() => {
+      setAssignedQuestions((prev) => prev.filter((q) => q.id !== questionId));
+      setRecentlyRemoved((prev) => {
+        const next = new Set(prev);
+        next.delete(questionId);
+        return next;
+      });
+
+      // Trigger green flash in the available (left) table
+      setRecentlyAdded((prev) => new Set(prev).add(questionId));
+      setTimeout(() => {
+        setRecentlyAdded((prev) => {
+          const next = new Set(prev);
+          next.delete(questionId);
+          return next;
+        });
+      }, 600);
+    }, 400);
   };
 
   const handleSubmit = async () => {
@@ -274,10 +309,16 @@ export default function Assignment({
   }) => {
     const rallyeNames = rallyeMap[question.id] ?? [];
     const isExpanded = expandedRows.includes(question.id);
+    const isAdded = recentlyAdded.has(question.id);
+    const isRemoved = recentlyRemoved.has(question.id);
 
     return (
       <Fragment>
-        <TableRow className="group">
+        <TableRow
+          className={`group ${isAdded ? 'animate-flash-green' : ''} ${
+            isRemoved ? 'animate-flash-red' : ''
+          }`}
+        >
           <TableCell className="w-7.5 p-2">
             <button
               onClick={() => toggleRow(question.id)}
