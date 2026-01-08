@@ -53,6 +53,7 @@ interface Props {
   initialSelectedQuestions?: number[];
   initialCategories?: string[];
   initialRallyeMap?: Record<number, string[]>;
+  maxPoints?: number;
 }
 
 export default function Assignment({
@@ -62,6 +63,7 @@ export default function Assignment({
   initialSelectedQuestions,
   initialCategories,
   initialRallyeMap,
+  maxPoints = 0,
 }: Props) {
   const router = useRouter();
 
@@ -445,6 +447,10 @@ export default function Assignment({
           <h1 className="text-2xl font-semibold text-foreground">
             Fragen-Zuordnung: {rallyeName}
           </h1>
+          <p className="text-sm text-muted-foreground">
+            {assignedQuestions.length} Fragen zugeordnet{' · '}
+            <span className="font-medium text-primary">{maxPoints} Punkte gesamt</span>
+          </p>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start h-auto lg:h-[calc(100vh-250px)]">

@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Star, Timer } from 'lucide-react';
-import { getRallyeResults } from '@/actions/rallye-results';
+import { getRallyeResults, getRallyeMaxPoints } from '@/actions/rallye-results';
 import { Button } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
 
@@ -47,6 +47,8 @@ export default async function Page(props: PageProps) {
   const rallye = data as RallyeRow;
 
   const results = await getRallyeResults(rallyeId);
+  const maxPointsResult = await getRallyeMaxPoints(rallyeId);
+  const maxPoints = maxPointsResult.success ? maxPointsResult.data ?? 0 : 0;
 
   return (
     <main className="mx-auto flex w-full max-w-450 flex-col gap-4 px-4 py-4">
@@ -67,7 +69,7 @@ export default async function Page(props: PageProps) {
           </p>
           <h1 className="text-xl font-semibold text-foreground">Endstand</h1>
           <p className="text-sm text-muted-foreground">
-            Rallye „{rallye.name}“
+            Rallye „{rallye.name}“ · Maximale Punktzahl: {maxPoints}
           </p>
         </div>
       </section>
@@ -128,6 +130,11 @@ export default async function Page(props: PageProps) {
                     <div className="space-y-1">
                       <p className="flex items-center justify-start gap-2 text-xl font-semibold text-foreground">
                         <Star className="h-5 w-5" /> {row.points}
+                        {maxPoints > 0 && (
+                          <span className="text-sm font-normal text-muted-foreground">
+                            ({Math.round((row.points / maxPoints) * 100)}%)
+                          </span>
+                        )}
                       </p>
                     </div>
                     <div className="space-y-1 text-right">

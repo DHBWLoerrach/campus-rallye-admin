@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import createClient from '@/lib/supabase';
 import type { Question } from '@/helpers/questions';
 import { getQuestionRallyeMap } from '@/actions/assign_questions_to_rallye';
+import { getRallyeMaxPoints } from '@/actions/rallye-results';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -30,7 +31,7 @@ export default async function Page(props: PageProps) {
   const rallye = data as RallyeRow;
 
   // Preload initial data server-side to avoid extra client POSTs
-  const [assignedRes, questionsRes] = await Promise.all([
+  const [assignedRes, questionsRes, maxPointsRes] = await Promise.all([
     supabase
       .from('join_rallye_questions')
       .select('question_id')
@@ -41,6 +42,7 @@ export default async function Page(props: PageProps) {
       .select(
         'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
       ),
+    getRallyeMaxPoints(rallyeId),
   ]);
 
   const initialSelectedQuestions = (
@@ -62,6 +64,8 @@ export default async function Page(props: PageProps) {
     ? initialRallyeMapResult.data ?? {}
     : {};
 
+  const maxPoints = maxPointsRes.success ? maxPointsRes.data ?? 0 : 0;
+
   return (
     <main className="w-full">
       <Assignment
@@ -71,6 +75,7 @@ export default async function Page(props: PageProps) {
         initialSelectedQuestions={initialSelectedQuestions}
         initialCategories={initialCategories}
         initialRallyeMap={initialRallyeMap}
+        maxPoints={maxPoints}
       />
     </main>
   );

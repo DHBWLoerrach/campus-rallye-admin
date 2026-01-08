@@ -169,4 +169,119 @@ describe('getRallyeResults', () => {
     expect(storageFrom).toHaveBeenCalledWith('upload_photo_answers');
     expect(createSignedUrl).toHaveBeenCalledWith('newer.png', 3600);
   });
+
+  it('returns 0 for rallye with no teams', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const rallyeQuery = {
+      select: vi.fn(() => rallyeQuery),
+      eq: vi.fn(() => ({
+        maybeSingle: vi
+          .fn()
+          .mockResolvedValue({ data: { id: 1, status: 'ended' }, error: null }),
+      })),
+    };
+
+    const teamQuery = {
+      select: vi.fn(() => teamQuery),
+      eq: vi.fn(() => Promise.resolve({ data: [], error: null })),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === 'rallye') return rallyeQuery;
+        if (table === 'rallye_team') return teamQuery;
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    });
+
+    const { getRallyeResults } = await import('./rallye-results');
+    const result = await getRallyeResults(1);
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected success');
+    expect(result.data).toEqual([]);
+  });
+});
+
+describe('getRallyeMaxPoints', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  it('returns sum of all question points for a rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const joinQuery = {
+      select: vi.fn(() => joinQuery),
+      eq: vi.fn(() => ({
+        then: vi.fn((cb) =>
+          cb({
+            data: [{ question_id: 1 }, { question_id: 2 }, { question_id: 3 }],
+            error: null,
+          })
+        ),
+      })),
+    };
+
+    const questionQuery = {
+      select: vi.fn(() => questionQuery),
+      in: vi.fn(() => Promise.resolve({ data: [{ points: 5 }, { points: 3 }, { points: 2 }], error: null })),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === 'join_rallye_questions') return joinQuery;
+        if (table === 'questions') return questionQuery;
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    });
+
+    const { getRallyeMaxPoints } = await import('./rallye-results');
+    const result = await getRallyeMaxPoints(1);
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected success');
+    expect(result.data).toBe(10);
+  });
+
+  it('returns 0 for rallye with no questions', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const joinQuery = {
+      select: vi.fn(() => joinQuery),
+      eq: vi.fn(() => ({
+        then: vi.fn((cb) =>
+          cb({
+            data: [],
+            error: null,
+          })
+        ),
+      })),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn(() => joinQuery),
+    });
+
+    const { getRallyeMaxPoints } = await import('./rallye-results');
+    const result = await getRallyeMaxPoints(1);
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected success');
+    expect(result.data).toBe(0);
+  });
+
+  it('rejects invalid rallye ids without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const { getRallyeMaxPoints } = await import('./rallye-results');
+    const result = await getRallyeMaxPoints(0);
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected validation to fail');
+    expect(result.error).toBe('Ungültige Rallye-ID');
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
 });

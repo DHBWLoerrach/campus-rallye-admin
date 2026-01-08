@@ -181,3 +181,46 @@ export async function getRallyeResults(
 
   return ok(rows);
 }
+
+export async function getRallyeMaxPoints(
+  rallyeId: number
+): Promise<ActionResult<number>> {
+  await requireProfile();
+  const rallyeIdResult = idSchema.safeParse(rallyeId);
+  if (!rallyeIdResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(rallyeIdResult.error));
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('join_rallye_questions')
+    .select('question_id')
+    .eq('rallye_id', rallyeIdResult.data);
+
+  if (error) {
+    console.error('Error fetching rallye questions:', error);
+    return fail('Fragen konnten nicht geladen werden');
+  }
+
+  const questionIds = (data ?? []).map((row) => row.question_id);
+  if (questionIds.length === 0) {
+    return ok(0);
+  }
+
+  const { data: questions, error: questionsError } = await supabase
+    .from('questions')
+    .select('points')
+    .in('id', questionIds);
+
+  if (questionsError) {
+    console.error('Error fetching questions:', questionsError);
+    return fail('Fragen konnten nicht geladen werden');
+  }
+
+  const totalPoints = (questions ?? []).reduce((sum, q) => {
+    const points = q.points;
+    return sum + (typeof points === 'number' ? points : 0);
+  }, 0);
+
+  return ok(totalPoints);
+}
