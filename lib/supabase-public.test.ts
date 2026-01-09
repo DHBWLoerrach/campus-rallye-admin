@@ -51,7 +51,7 @@ describe('getQuestionMediaPublicUrl', () => {
     env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co/';
     const url = getQuestionMediaPublicUrl('folder/space name.png');
     expect(url).toBe(
-      'https://example.supabase.co/storage/v1/object/public/question-media/folder/space%20name.png'
+      'https://example.supabase.co/storage/v1/object/public/question-pictures/folder/space%20name.png'
     );
   });
 });

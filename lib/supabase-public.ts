@@ -20,7 +20,7 @@ function encodePath(path: string): string {
 }
 
 export function getQuestionMediaPublicUrl(bucketPath: string): string {
-  return `${getSupabasePublicUrl()}/storage/v1/object/public/question-media/${encodePath(
+  return `${getSupabasePublicUrl()}/storage/v1/object/public/question-pictures/${encodePath(
     bucketPath
   )}`;
 }

@@ -44,7 +44,7 @@ export async function uploadImage(
   const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
   // Upload file to Supabase storage
   const { error } = await supabase.storage
-    .from('question-media')
+    .from('question-pictures')
     .upload(uniqueFileName, buffer, {
       contentType,
     });
@@ -71,7 +71,7 @@ export async function deleteImage(
   const supabase = await createClient();
 
   const { error } = await supabase.storage
-    .from('question-media')
+    .from('question-pictures')
     .remove([normalizedPath]);
 
   if (error) {

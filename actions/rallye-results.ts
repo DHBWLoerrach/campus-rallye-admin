@@ -135,7 +135,7 @@ export async function getRallyeResults(
   });
 
   const photoUrlByTeam = new Map<number, string>();
-  const storage = supabase.storage.from('upload_photo_answers');
+  const storage = supabase.storage.from('upload-photos');
   await Promise.all(
     Array.from(latestUploadByTeam.entries()).map(async ([teamId, upload]) => {
       const { data, error } = await storage.createSignedUrl(

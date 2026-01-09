@@ -142,7 +142,7 @@ describe('getRallyeUploadAnswers', () => {
     expect(result.data?.[0].teamsWithoutPhoto).toEqual([
       { id: 2, name: 'Team Beta' },
     ]);
-    expect(storageFrom).toHaveBeenCalledWith('upload_photo_answers');
+    expect(storageFrom).toHaveBeenCalledWith('upload-photos');
     expect(createSignedUrl).toHaveBeenCalledWith('photo.png', 3600);
   });
 });

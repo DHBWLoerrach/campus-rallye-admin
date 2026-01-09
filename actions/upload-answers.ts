@@ -80,11 +80,12 @@ export async function getRallyeUploadAnswers(
     return fail('Rallye nicht gefunden');
   }
 
-  const { data: uploadQuestionRows, error: uploadQuestionError } = await supabase
-    .from('join_rallye_questions')
-    .select('question_id, questions!inner(id, content, type)')
-    .eq('rallye_id', rallyeIdResult.data)
-    .eq('questions.type', 'upload');
+  const { data: uploadQuestionRows, error: uploadQuestionError } =
+    await supabase
+      .from('join_rallye_questions')
+      .select('question_id, questions!inner(id, content, type)')
+      .eq('rallye_id', rallyeIdResult.data)
+      .eq('questions.type', 'upload');
 
   if (uploadQuestionError) {
     console.error('Error fetching upload questions:', uploadQuestionError);
@@ -157,7 +158,7 @@ export async function getRallyeUploadAnswers(
   const answeredTeamsByQuestionId = new Map<number, Set<number>>();
 
   if (answerCandidates.length > 0) {
-    const storage = supabase.storage.from('upload_photo_answers');
+    const storage = supabase.storage.from('upload-photos');
     const signedAnswers = await Promise.all(
       answerCandidates.map(async (candidate) => {
         const { data, error } = await storage.createSignedUrl(
@@ -198,7 +199,9 @@ export async function getRallyeUploadAnswers(
   const result: UploadAnswerQuestion[] = uploadQuestions.map((question) => {
     const answeredTeams =
       answeredTeamsByQuestionId.get(question.id) ?? new Set<number>();
-    const teamsWithoutPhoto = teams.filter((team) => !answeredTeams.has(team.id));
+    const teamsWithoutPhoto = teams.filter(
+      (team) => !answeredTeams.has(team.id)
+    );
     return {
       id: question.id,
       content: question.content,

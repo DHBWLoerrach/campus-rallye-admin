@@ -41,7 +41,10 @@ describe('getRallyeResults', () => {
       eq: vi.fn(() => ({
         maybeSingle: vi
           .fn()
-          .mockResolvedValue({ data: { id: 1, status: 'running' }, error: null }),
+          .mockResolvedValue({
+            data: { id: 1, status: 'running' },
+            error: null,
+          }),
       })),
     };
 
@@ -166,7 +169,7 @@ describe('getRallyeResults', () => {
     expect(result.data?.[1].rank).toBe(2);
     expect(result.data?.[0].photoUrl).toBe('https://example.com/team-b.png');
     expect(result.data?.[1].photoUrl).toBe('https://example.com/newer.png');
-    expect(storageFrom).toHaveBeenCalledWith('upload_photo_answers');
+    expect(storageFrom).toHaveBeenCalledWith('upload-photos');
     expect(createSignedUrl).toHaveBeenCalledWith('newer.png', 3600);
   });
 
@@ -227,7 +230,12 @@ describe('getRallyeMaxPoints', () => {
 
     const questionQuery = {
       select: vi.fn(() => questionQuery),
-      in: vi.fn(() => Promise.resolve({ data: [{ points: 5 }, { points: 3 }, { points: 2 }], error: null })),
+      in: vi.fn(() =>
+        Promise.resolve({
+          data: [{ points: 5 }, { points: 3 }, { points: 2 }],
+          error: null,
+        })
+      ),
     };
 
     mockCreateClient.mockResolvedValue({

@@ -48,7 +48,7 @@ describe('uploadImage', () => {
       throw new Error('Expected upload to succeed');
     }
     expect(result.data?.fileName).toMatch(/\.png$/);
-    expect(from).toHaveBeenCalledWith('question-media');
+    expect(from).toHaveBeenCalledWith('question-pictures');
   });
 });
 
@@ -99,7 +99,7 @@ describe('deleteImage', () => {
     );
 
     expect(result.success).toBe(true);
-    expect(from).toHaveBeenCalledWith('question-media');
+    expect(from).toHaveBeenCalledWith('question-pictures');
     expect(remove).toHaveBeenCalledWith([
       '123e4567-e89b-12d3-a456-426614174000.png',
     ]);
