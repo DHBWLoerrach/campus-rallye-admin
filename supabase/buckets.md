@@ -21,44 +21,45 @@ Dazu zum `SQL Editor` in der linken Seitenleiste navigieren, folgende SQL-Anweis
 ```sql
 -- RLS-Policies für question-pictures
 -- Nur eingeloggte User dürfen Bilder hochladen (für Webapp)
-CREATE POLICY "Allow authenticated users to upload"
+CREATE POLICY "Authenticated users can upload question pictures"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (bucket_id = 'question-pictures');
 
 -- Nur eingeloggte User dürfen Bilder aktualisieren (für Webapp)
-CREATE POLICY "Allow authenticated users to update"
+CREATE POLICY "Authenticated users can update question pictures"
 ON storage.objects FOR UPDATE
 TO authenticated
+USING (bucket_id = 'question-pictures')
 WITH CHECK (bucket_id = 'question-pictures');
 
 -- Nur eingeloggte User dürfen Bilder löschen (für Webapp)
-CREATE POLICY "Allow authenticated users to delete"
+CREATE POLICY "Authenticated users can delete question pictures"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (bucket_id = 'question-pictures');
 
 -- Jeder darf Bilder von Fragen sehen
-CREATE POLICY "Anyone can view media"
+CREATE POLICY "Anyone can view question pictures"
 ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'question-pictures');
 
 -- RLS-Policies für upload-photos
 -- App-Benutzer (Teams) dürfen Fotos hochladen
-CREATE POLICY "Allow anon uploads"
+CREATE POLICY "Anon users can upload photos"
 ON storage.objects FOR INSERT
 TO anon
 WITH CHECK (bucket_id = 'upload-photos');
 
 -- Nur eingeloggte User dürfen Fotos ansehen (für Webapp)
-CREATE POLICY "Allow authenticated users to view"
+CREATE POLICY "Authenticated users can view photos"
 ON storage.objects FOR SELECT
 TO authenticated
 USING (bucket_id = 'upload-photos');
 
 -- Nur eingeloggte User dürfen Fotos löschen (für Webapp)
-CREATE POLICY "Allow authenticated users to delete"
+CREATE POLICY "Authenticated users can delete photos"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (bucket_id = 'upload-photos');
