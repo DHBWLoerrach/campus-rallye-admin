@@ -59,13 +59,21 @@ Wenn `SUPABASE_URL` gesetzt wird, sollte es in der Regel denselben Wert haben.
 
 Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden.
 
-`SUPABASE_JWT_JWK` ist ein privater JWK (Elliptic Curve, P-256) und muss selbst erzeugt und in Supabase importiert werden (dazu die Supabase-CLI installieren):
+`SUPABASE_JWT_JWK` ist ein privater JWK (Elliptic Curve, P-256) und muss selbst lokal erzeugt und in Supabase importiert werden (dazu die Supabase-CLI installieren):
 
 ```
 supabase gen signing-key --algorithm ES256
 ```
 
-Das durch obigen Befehl generierte JWK-JSON (inkl. `d`) in Supabase unter _Project Settings_ → _JWT Signing Keys_ als Standby Key importieren und anschließend rotieren (`Rotate keys`-Button). Das JWK-JSON vollständig als `SUPABASE_JWT_JWK` in `.env.local` ablegen:
+Dieser Befehl erzeugt ein JWK-JSON (inkl. `d`) und gibt es auf der Konsole aus. Wir benötigen nur den JSON-String. Das durch obigen Befehl generierte JWK-JSON (inkl. `d`) in Supabase importieren:
+
+- Navigieren zu _Project Settings_ → _JWT Keys_ → _JWT Signing Keys_
+- Neuen Key Standby Key erstellen mit `Create Standby Key`-Button
+- Im Dialog `ES256 (ECC)` wählen und Haken bei `Import an existing private key` setzen
+- In das Textfeld den JSON-String aus dem `supabase gen`- Befehl von oben einfügen und auf `Create standby key` klicken
+- Mit Klick auf `Rotate keys`-Button wird der eben erstellte Key als Current Key aktiviert.
+
+Das JWK-JSON vollständig als `SUPABASE_JWT_JWK` in `.env.local` ablegen:
 
 ```
 SUPABASE_JWT_JWK='{"kty":"EC","kid":"1234ABC…", …Rest des JWK-JSONs…}'
