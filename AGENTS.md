@@ -44,7 +44,6 @@ IMPORTANT: Stop after each step and wait for my “OK” before committing or mo
 
 ## Configuration, Secrets, and Data
 
-- Copy `env.example` → `.env.local` and set `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_JWT_SECRET`, and `SQLITE_DB_PATH` (default: `.data/local-users.db`). Optionally set `SUPABASE_URL` as a server-side override.
 - Never commit `.env*.local` or `*.db` (both are gitignored).
 - Database changes should be reflected in `supabase/schema.sql` and applied via the Supabase SQL editor (see `README.md`).
 
