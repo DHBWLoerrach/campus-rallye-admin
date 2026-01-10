@@ -1,10 +1,11 @@
 // @vitest-environment node
-import { SignJWT, exportJWK, generateKeyPair } from 'jose';
+import { SignJWT, decodeProtectedHeader, exportJWK, generateKeyPair } from 'jose';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
 const AUDIENCE = 'campusrallye';
 const KEY_ID = 'test-key';
+const SUPABASE_KEY_ID = 'supabase-key';
 
 const { mockHeaders } = vi.hoisted(() => ({
   mockHeaders: vi.fn(),
@@ -21,7 +22,12 @@ let getSupabaseJwt: typeof import('./user-context').getSupabaseJwt;
 beforeAll(async () => {
   process.env.KEYCLOAK_ISSUER = ISSUER;
   process.env.KEYCLOAK_AUDIENCE = AUDIENCE;
-  process.env.SUPABASE_JWT_SECRET = 'test-secret';
+  const { privateKey: supabasePrivateKey } = await generateKeyPair('ES256', {
+    extractable: true,
+  });
+  const supabaseJwk = await exportJWK(supabasePrivateKey);
+  supabaseJwk.kid = SUPABASE_KEY_ID;
+  process.env.SUPABASE_JWT_JWK = JSON.stringify(supabaseJwk);
 
   const { publicKey, privateKey: pk } = await generateKeyPair('RS256');
   privateKey = pk;
@@ -45,7 +51,7 @@ afterAll(() => {
   vi.unstubAllGlobals();
   delete process.env.KEYCLOAK_ISSUER;
   delete process.env.KEYCLOAK_AUDIENCE;
-  delete process.env.SUPABASE_JWT_SECRET;
+  delete process.env.SUPABASE_JWT_JWK;
 });
 
 beforeEach(() => {
@@ -126,6 +132,9 @@ describe('getSupabaseJwt', () => {
 
     const jwt = await getSupabaseJwt();
     expect(jwt.split('.')).toHaveLength(3);
+    const header = decodeProtectedHeader(jwt);
+    expect(header.alg).toBe('ES256');
+    expect(header.kid).toBe(SUPABASE_KEY_ID);
   });
 
   it('rejects non-staff users', async () => {

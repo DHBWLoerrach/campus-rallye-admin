@@ -47,7 +47,7 @@ im Projektverzeichnis zu erstellen. In `.env.local` müssen drei Einträge vorge
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 SUPABASE_ANON_KEY=
-SUPABASE_JWT_SECRET=
+SUPABASE_JWT_JWK=
 ```
 
 Optional kann zusätzlich `SUPABASE_URL` gesetzt werden (server-seitiger Override). Wenn es nicht gesetzt ist, wird server-seitig `NEXT_PUBLIC_SUPABASE_URL` verwendet.
@@ -58,7 +58,18 @@ Im Webinterface von Supabase oben auf _Connect_ klicken und für `NEXT_PUBLIC_SU
 Wenn `SUPABASE_URL` gesetzt wird, sollte es in der Regel denselben Wert haben.
 
 Der benötigte API-Key für `SUPABASE_ANON_KEY` ist unter _Project Settings_ (Zahnrad in der linken Seitenleiste) und dort unter _API Keys_ zu finden.
-Der Wert für `SUPABASE_JWT_SECRET` kann via _JWY Keys_ gefunden werden.
+
+`SUPABASE_JWT_JWK` ist ein privater JWK (Elliptic Curve, P-256) und muss selbst erzeugt und in Supabase importiert werden (dazu die Supabase-CLI installieren):
+
+```
+supabase gen signing-key --algorithm ES256
+```
+
+Das durch obigen Befehl generierte JWK-JSON (inkl. `d`) in Supabase unter _Project Settings_ → _JWT Signing Keys_ als Standby Key importieren und anschließend rotieren (`Rotate keys`-Button). Das JWK-JSON vollständig als `SUPABASE_JWT_JWK` in `.env.local` ablegen:
+
+```
+SUPABASE_JWT_JWK='{"kty":"EC","kid":"1234ABC…", …Rest des JWK-JSONs…}'
+```
 
 ## Lokale SQLite-DB für Nutzerdaten
 

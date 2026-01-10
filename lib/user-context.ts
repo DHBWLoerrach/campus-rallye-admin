@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import { SignJWT } from 'jose';
+import { SignJWT, importJWK, type JWK } from 'jose';
 import {
   extractKeycloakEmail,
   extractKeycloakRoles,
@@ -40,20 +40,50 @@ export async function getSupabaseJwt(): Promise<string> {
   }
   const now = Math.floor(Date.now() / 1000);
 
-  const secretStr = process.env.SUPABASE_JWT_SECRET;
-  if (!secretStr) throw new Error('Missing SUPABASE_JWT_SECRET');
-  const secret = new TextEncoder().encode(secretStr);
+  const jwkStr = process.env.SUPABASE_JWT_JWK;
+  if (!jwkStr) throw new Error('Missing SUPABASE_JWT_JWK');
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jwkStr);
+  } catch {
+    throw new Error('Invalid SUPABASE_JWT_JWK');
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Invalid SUPABASE_JWT_JWK');
+  }
+
+  const jwk = parsed as JWK;
+  const kid = typeof jwk.kid === 'string' ? jwk.kid : null;
+  if (!kid) throw new Error('Missing SUPABASE_JWT_JWK kid');
+  if (jwk.kty && jwk.kty !== 'EC') {
+    throw new Error('SUPABASE_JWT_JWK must be an EC key');
+  }
+  if (jwk.crv && jwk.crv !== 'P-256') {
+    throw new Error('SUPABASE_JWT_JWK must use P-256');
+  }
+  if (typeof (jwk as { d?: string }).d !== 'string') {
+    throw new Error('SUPABASE_JWT_JWK must be a private key');
+  }
+
+  const key = await importJWK(
+    {
+      ...jwk,
+      key_ops: ['sign'],
+    },
+    'ES256'
+  );
 
   const exp = now + 55 * 60;
 
   const jwt = await new SignJWT({ role: 'authenticated', uuid })
-    .setProtectedHeader({ alg: 'HS256' })
+    .setProtectedHeader({ alg: 'ES256', kid, typ: 'JWT' })
     .setSubject(uuid)
     .setIssuer('supabase')
     .setAudience('authenticated')
     .setIssuedAt(now)
     .setExpirationTime(exp)
-    .sign(secret);
+    .sign(key);
 
   return jwt;
 }
