@@ -1,8 +1,9 @@
-import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getSignOutUrl } from '@/lib/sign-out-url';
 
 export default function AccessDeniedPage() {
+  const signOutUrl = getSignOutUrl();
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-background px-6 py-12">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -28,8 +29,8 @@ export default function AccessDeniedPage() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button asChild variant="outline">
-            <Link href="/">Zurück zur Startseite</Link>
+          <Button asChild>
+            <a href={signOutUrl}>Abmelden</a>
           </Button>
           <span className="text-xs text-muted-foreground">
             Falls Sie Zugriff benötigen, wenden Sie sich an das Admin-Team.

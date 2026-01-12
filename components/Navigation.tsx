@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NavItems from '@/components/NavItems';
 import DarkModeToggle from '@/components/DarkModeToggle';
+import { getSignOutUrl } from '@/lib/sign-out-url';
 
 const routes: Route[] = [
   {
@@ -17,10 +18,7 @@ const routes: Route[] = [
 ];
 
 export default async function Nav() {
-  const isDev = process.env.NODE_ENV === 'development';
-  const signOutUrl = isDev
-    ? 'http://localhost:4181/oauth2/sign_out?rd=http%3A%2F%2Flocalhost%3A3000'
-    : '/oauth2/sign_out';
+  const signOutUrl = getSignOutUrl();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
