@@ -41,8 +41,16 @@ npm install
 
 ## Supabase in Webanwendung konfigurieren
 
-Zum Schluss muss noch die Konfiguration zu Supabase angepasst werden. Dazu ist zunächst die Datei `.env.local`
-im Projektverzeichnis zu erstellen. In `.env.local` müssen drei Einträge vorgenommen werden:
+Zum Schluss muss noch die Konfiguration zu Supabase angepasst werden.
+Im Projektverzeichnis wird eine Datei `.env.local` benötigt. Dafür kann
+die bestehende Datei `env.example` mit Defaultwerten in eine `.env.local`
+kopiert werden:
+
+```
+cp env.example .env.local
+```
+
+In `.env.local` müssen drei Einträge angepasst werden:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=
