@@ -30,19 +30,6 @@ function SaveButton({ disabled }: { disabled: boolean }) {
     >
       {pending ? 'Wird gesendet…' : 'Speichern'}
     </Button>
-    /*<button
--      type="submit"
--      className={clsx(
--        'bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mt-4',
--        {
--          'bg-gray-300': disabled,
--        }
--      )}
--      aria-disabled={pending || disabled}
--      disabled={pending || disabled}
--    >
--      {pending ? 'Wird gesendet…' : 'Speichern'}
--    </button>*/
   );
 }
 
