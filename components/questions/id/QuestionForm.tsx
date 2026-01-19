@@ -13,7 +13,6 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
-import { getCategories } from '@/actions/question';
 import QuestionImage from './QuestionImage';
 
 interface QuestionFormProps {
@@ -26,7 +25,6 @@ interface QuestionFormProps {
 interface FormErrors {
   content?: string;
   type?: string;
-  category?: string;
   points?: string;
   answers?: string;
 }
@@ -47,17 +45,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     answers: initialData?.answers || [{ id: 0, correct: true, text: '' }],
   });
 
-  const [categories, setCategories] = useState<string[]>([]);
-  const [isNewCategory, setIsNewCategory] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      const fetchedCategories = await getCategories();
-      setCategories(fetchedCategories);
-    };
-    loadCategories();
-  }, []);
 
   const handleFormChange = (field: keyof QuestionFormData, value: any) => {
     setFormData((prev) => ({
@@ -66,19 +54,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     }));
   };
 
-  const handleCategoryChange = (value: string) => {
-    if (value === 'new') {
-      setIsNewCategory(true);
-      setFormData((prev) => ({ ...prev, category: '' }));
-    } else if (value === 'none') {
-      // neue Bedingung für neutralen Zustand
-      setIsNewCategory(false);
-      setFormData((prev) => ({ ...prev, category: undefined }));
-    } else {
-      setIsNewCategory(false);
-      setFormData((prev) => ({ ...prev, category: value }));
-    }
-  };
 
   const handleAnswerChange = (index: number, field: string, value: any) => {
     const newAnswers = [...(formData.answers || [])];
@@ -155,11 +130,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
     if (!data.type) {
       newErrors.type = 'Bitte wählen Sie einen Fragetyp';
-    }
-
-    if (!data.category?.trim() && isNewCategory) {
-      newErrors.category =
-        'Bitte wählen Sie eine Kategorie oder geben Sie eine neue ein';
     }
 
     if ((data.points ?? 0) < 0) {
@@ -256,38 +226,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             placeholder="Geben Sie einen Hinweis ein"
             className="border p-2 w-full"
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="category">Kategorie</Label>
-          <Select
-            value={isNewCategory ? 'new' : formData.category || ''}
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Wählen Sie eine Kategorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Bitte auswählen</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-              <SelectItem value="new">+ Neue Kategorie</SelectItem>
-            </SelectContent>
-          </Select>
-          {isNewCategory && (
-            <Input
-              type="text"
-              value={formData.category}
-              placeholder="Neue Kategorie eingeben"
-              className="mt-2"
-              onChange={(e) => handleFormChange('category', e.target.value)}
-            />
-          )}
-          {errors.category && (
-            <span className="text-sm text-red-500">{errors.category}</span>
-          )}
         </div>
         {formData.type === 'picture' && (
           <QuestionImage

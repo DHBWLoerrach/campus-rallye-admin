@@ -14,6 +14,14 @@ const routes: Route[] = [
 		href: '/questions',
 		label: 'Fragenkatalog',
 	},
+	{
+		href: '/departments',
+		label: 'Studiengänge/Abteilungen',
+	},
+	{
+		href: '/organizations',
+		label: 'Organisationen',
+	},
 ];
 
 export default async function Nav() {

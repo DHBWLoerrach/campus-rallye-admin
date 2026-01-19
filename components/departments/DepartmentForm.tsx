@@ -2,9 +2,9 @@
 
 import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { de } from 'date-fns/locale';
 import { CircleX, Trash2 } from 'lucide-react';
-import { updateRallye, deleteRallye } from '@/actions/rallye';
+import { updateDepartment, deleteDepartment } from '@/actions/department';
+import { assignDepartmentToRallye, removeDepartmentFromRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -16,15 +16,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { Rallye, RallyeStatus } from '@/lib/types';
-import { getRallyeStatusLabel } from '@/lib/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { Department, Organization, Rallye } from '@/lib/types';
 
-interface RallyeFormProps {
-  rallye: Rallye;
+interface DepartmentFormProps {
+  department: Department;
+  organizations: Organization[];
+  rallyes: Rallye[];
   onCancel: () => void;
 }
 
@@ -43,37 +50,27 @@ function SaveButton() {
   );
 }
 
-export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
-  const [formState, formAction] = useActionState(updateRallye, {
+export default function DepartmentForm({ department, organizations, rallyes, onCancel }: DepartmentFormProps) {
+  const [formState, formAction] = useActionState(updateDepartment, {
     errors: { message: '' },
   });
-  const [name, setName] = useState<string>(rallye.name);
-  const [status, setStatus] = useState<RallyeStatus>(rallye.status);
-  const [date24, setDate24] = useState<Date | undefined>(
-    new Date(rallye.end_time)
+  const [name, setName] = useState<string>(department.name);
+  const [organizationId, setOrganizationId] = useState<string>(
+    department.organization_id.toString()
   );
-  const [password, setPassword] = useState<string>(rallye.password);
+  const [assignedRallyes, setAssignedRallyes] = useState<Set<number>>(
+    new Set(department.rallyes?.map(r => r.id) || [])
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  // Alle Status-Übergänge sind erlaubt
-  const allStatuses: RallyeStatus[] = [
-    'preparing',
-    'inactive',
-    'running',
-    'voting',
-    'ranking',
-    'ended',
-  ];
 
   async function handleDelete() {
     setIsDeleting(true);
     try {
-      const result = await deleteRallye(rallye.id.toString());
+      const result = await deleteDepartment(department.id);
       if (result.errors) {
         console.error(result.errors.message);
       } else {
-        // Nach erfolgreichem Löschen zurück zur Übersicht
         onCancel();
       }
     } catch (error) {
@@ -84,11 +81,25 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
     }
   }
 
+  async function handleRallyeToggle(rallyeId: number, checked: boolean) {
+    if (checked) {
+      await assignDepartmentToRallye(department.id, rallyeId);
+      setAssignedRallyes(prev => new Set([...prev, rallyeId]));
+    } else {
+      await removeDepartmentFromRallye(department.id, rallyeId);
+      setAssignedRallyes(prev => {
+        const next = new Set(prev);
+        next.delete(rallyeId);
+        return next;
+      });
+    }
+  }
+
   return (
     <Card className="w-full max-w-md shadow-md">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center text-xl ">
-          Rallye bearbeiten
+        <CardTitle className="flex justify-between items-center text-xl">
+          Studiengang bearbeiten
           <Button
             variant="ghost"
             size="icon"
@@ -101,65 +112,68 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
       </CardHeader>
       <CardContent>
         <form action={formAction}>
-          <input type="hidden" name="id" value={rallye.id} />
-          <input type="hidden" name="end_time" value={date24?.toISOString()} />
-          <Input
-            name="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-
+          <input type="hidden" name="id" value={department.id} />
+          
           <div className="flex items-center space-x-2 mt-2">
-            <Label htmlFor={`rallye-${rallye.id}-status`}>
-              Status der Rallye
-            </Label>
-            <RadioGroup
-              name="status"
-              value={status}
-              onValueChange={(value) => setStatus(value as RallyeStatus)}
-            >
-              {allStatuses.map((statusOption) => (
-                <div key={statusOption} className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={statusOption}
-                    id={`status-${statusOption}`}
-                  />
-                  <Label htmlFor={`status-${statusOption}`}>
-                    {getRallyeStatusLabel(statusOption)}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Label
-              htmlFor={`rallye-${rallye.id}-endtime`}
-              className="w-32 shrink-0"
-            >
-              Ende der Rallye
-            </Label>
-            <DateTimePicker
-              locale={de}
-              hourCycle={24}
-              value={date24}
-              onChange={setDate24}
-              className="flex-1 min-w-0 max-w-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Label
-              htmlFor={`rallye-${rallye.id}-password`}
-              className="w-32 shrink-0"
-            >
-              Passwort
+            <Label htmlFor="name" className="w-32 shrink-0">
+              Name
             </Label>
             <Input
-              name="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="flex-1 min-w-0 max-w-sm"
             />
+          </div>
+
+          <div className="flex items-center space-x-2 mt-2">
+            <Label htmlFor="organization_id" className="w-32 shrink-0">
+              Organisation
+            </Label>
+            <Select
+              value={organizationId}
+              onValueChange={setOrganizationId}
+            >
+              <SelectTrigger className="flex-1 min-w-0 max-w-sm">
+                <SelectValue placeholder="Organisation auswählen..." />
+              </SelectTrigger>
+              <SelectContent>
+                {organizations.map((org) => (
+                  <SelectItem key={org.id} value={org.id.toString()}>
+                    {org.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <input type="hidden" name="organization_id" value={organizationId} />
+          </div>
+
+          {/* Rallye-Zuordnungen */}
+          <div className="mt-4 pt-4 border-t">
+            <Label className="block mb-2">Rallye-Zuordnungen</Label>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {rallyes.length === 0 ? (
+                <p className="text-muted-foreground text-sm">Keine Rallyes vorhanden.</p>
+              ) : (
+                rallyes.map((rallye) => (
+                  <div key={rallye.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`rallye-${rallye.id}`}
+                      checked={assignedRallyes.has(rallye.id)}
+                      onCheckedChange={(checked) => 
+                        handleRallyeToggle(rallye.id, checked === true)
+                      }
+                    />
+                    <Label 
+                      htmlFor={`rallye-${rallye.id}`} 
+                      className="font-normal cursor-pointer"
+                    >
+                      {rallye.name}
+                    </Label>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Button-Bereich mit Speichern und Löschen */}
@@ -177,9 +191,9 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Rallye löschen</DialogTitle>
+                  <DialogTitle>Studiengang löschen</DialogTitle>
                   <DialogDescription>
-                    Sind Sie sicher, dass Sie die Rallye "{name}" löschen
+                    Sind Sie sicher, dass Sie den Studiengang "{name}" löschen
                     möchten? Diese Aktion kann nicht rückgängig gemacht werden.
                   </DialogDescription>
                 </DialogHeader>

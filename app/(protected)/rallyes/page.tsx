@@ -27,13 +27,37 @@ export default async function Home() {
       questionCounts.set(row.rallye_id, current + 1);
     });
   }
+
+  // Fetch department assignments for all rallyes
+  const departmentMap = new Map<number, { id: number; name: string; organization_id: number }[]>();
+  if (rallyes && rallyes.length > 0) {
+    const rallyeIds = rallyes.map((r) => r.id);
+    const { data: deptJoins } = await supabase
+      .from('join_department_rallye')
+      .select('rallye_id, department:department_id(id, name, organization_id)')
+      .in('rallye_id', rallyeIds);
+    deptJoins?.forEach((row) => {
+      if (row.department) {
+        const current = departmentMap.get(row.rallye_id) ?? [];
+        current.push(row.department as { id: number; name: string; organization_id: number });
+        departmentMap.set(row.rallye_id, current);
+      }
+    });
+  }
+
+  // Merge departments into rallyes
+  const rallyesWithDepartments = rallyes?.map((rallye) => ({
+    ...rallye,
+    departments: departmentMap.get(rallye.id) ?? [],
+  }));
+
   return (
     <main className="flex flex-col m-4">
       <div className="flex justify-end gap-4 mb-4">
         <RallyeDialog buttonStyle="mb-4 self-end" />
       </div>
       <section className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {rallyes?.map((rallye) => (
+        {rallyesWithDepartments?.map((rallye) => (
           <Rallye
             key={rallye.id}
             rallye={rallye}

@@ -10,7 +10,6 @@ import {
 import { Check, ChevronDown, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { questionTypes } from '../../helpers/questionTypes';
 import { Question } from '@/helpers/questions';
 
 interface QuestionsTableProps {
@@ -19,11 +18,6 @@ interface QuestionsTableProps {
 
 const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
-
-  const questionTypeLabels = questionTypes.reduce((acc, type) => {
-    acc[type.id] = type.name;
-    return acc;
-  }, {});
 
   const toggleRow = (questionId: number) => {
     setExpandedRows((current) =>
@@ -40,10 +34,9 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
             <TableRow>
               <TableHead className="w-8"></TableHead>
               <TableHead>Frage</TableHead>
-              <TableHead>Typ</TableHead>
               <TableHead className="w-20">Punkte</TableHead>
               <TableHead>Bild</TableHead>
-              <TableHead>Kategorie</TableHead>
+              <TableHead>Fragetyp</TableHead>
               <TableHead>Hinweis</TableHead>
               <TableHead>Aktionen</TableHead>
             </TableRow>
@@ -70,7 +63,6 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     <TableCell className="max-w-md truncate">
                       {question.content}
                     </TableCell>
-                    <TableCell>{questionTypeLabels[question.type]}</TableCell>
                     <TableCell>{question.points}</TableCell>
                     <TableCell>
                       {question.bucket_path ? (

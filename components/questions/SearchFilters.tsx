@@ -90,7 +90,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         </Select>
         <Select onValueChange={(value) => handleChange('category', value)}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Kategorie" />
+            <SelectValue placeholder="Fragetyp" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>

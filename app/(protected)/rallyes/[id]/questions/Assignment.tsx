@@ -20,7 +20,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Question } from '@/helpers/questions';
 import { getQuestions } from '@/actions/question';
-import { questionTypes } from '@/helpers/questionTypes';
 import {
   assignQuestionsToRallye,
   getRallyeQuestions,
@@ -78,11 +77,6 @@ export default function Assignment({
   const [savedVotingQuestions, setSavedVotingQuestions] = useState<number[]>(
     initialVotingQuestions || []
   );
-
-  const questionTypeLabels = questionTypes.reduce((acc, type) => {
-    acc[type.id] = type.name;
-    return acc;
-  }, {} as Record<string, string>);
 
   useEffect(() => {
     // If no initial data provided (edge case), fetch on mount
@@ -229,9 +223,8 @@ export default function Assignment({
                   <TableRow>
                     <TableHead className="w-12">Auswahl</TableHead>
                     <TableHead>Frage</TableHead>
-                    <TableHead>Typ</TableHead>
                     <TableHead className="w-20">Punkte</TableHead>
-                    <TableHead>Kategorie</TableHead>
+                    <TableHead>Fragetyp</TableHead>
                     <TableHead className="w-8">Abstimmung</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -266,9 +259,6 @@ export default function Assignment({
                         </TableCell>
                         <TableCell className="max-w-md truncate">
                           {question.content}
-                        </TableCell>
-                        <TableCell>
-                          {questionTypeLabels[question.type]}
                         </TableCell>
                         <TableCell>{question.points}</TableCell>
                         <TableCell>{question.category}</TableCell>

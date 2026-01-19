@@ -48,6 +48,9 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
     };
   }, [questionCountProp, rallye.id]);
 
+  // Zeige die verknüpften Departments an
+  const departmentNames = rallye.departments?.map(d => d.name).join(', ') || 'Keine Zuordnung';
+
   return (
     <Card
       className="w-full max-w-md shadow-md cursor-pointer"
@@ -86,7 +89,9 @@ export default function RallyeCard({ rallye, onEdit, questionCount: questionCoun
         </div>
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground">Studiengang:</div>
-          <div className="font-medium">{rallye.studiengang}</div>
+          <div className="font-medium text-right max-w-[200px] truncate" title={departmentNames}>
+            {departmentNames}
+          </div>
         </div>
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="text-muted-foreground">

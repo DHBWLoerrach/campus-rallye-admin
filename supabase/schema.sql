@@ -32,10 +32,11 @@ ALTER TYPE "public"."question_type" OWNER TO "postgres";
 
 CREATE TYPE "public"."rallye_status" AS ENUM (
     'preparing',
+    'inactive',
     'running',
-    'post_processing',
-    'ended',
-    'inactive'
+    'voting',
+    'ranking',
+    'ended'
 );
 
 
