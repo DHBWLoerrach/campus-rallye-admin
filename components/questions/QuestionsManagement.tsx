@@ -1,15 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { Plus, QrCode } from 'lucide-react';
 import { getQuestions } from '@/actions/question';
 import { Button } from '@/components/ui/button';
 import QuestionsTable from './QuestionsTable';
 import type { Question } from '@/helpers/questions';
 import SearchFilters from './SearchFilters';
+import BulkQRCodeGenerator from './BulkQRCodeGenerator';
 
 export default function QuestionManagement() {
   const [questions, setQuestions] = useState<Question[]>();
+  const [showBulkQRCode, setShowBulkQRCode] = useState(false);
 
   const handleFilterChange = async (filters: {
     question?: string;
@@ -41,14 +43,34 @@ export default function QuestionManagement() {
             onFilterChange={handleFilterChange}
             showAssignedToggle={false}
           />
-          <Link href="/questions/new">
-            <Button className="bg-dhbw">
-              <Plus className="w-4 h-4 mr-2" />
-              ERSTELLEN
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {questions && questions.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setShowBulkQRCode(true)}
+              >
+                <QrCode className="w-4 h-4 mr-2" />
+                QR-Codes ({questions.length})
+              </Button>
+            )}
+            <Link href="/questions/new">
+              <Button className="bg-dhbw">
+                <Plus className="w-4 h-4 mr-2" />
+                ERSTELLEN
+              </Button>
+            </Link>
+          </div>
         </div>
         <QuestionsTable questions={questions} />
+        
+        {/* Bulk QR Code Generator */}
+        {questions && (
+          <BulkQRCodeGenerator
+            questions={questions}
+            isOpen={showBulkQRCode}
+            onClose={() => setShowBulkQRCode(false)}
+          />
+        )}
       </div>
     </div>
   );

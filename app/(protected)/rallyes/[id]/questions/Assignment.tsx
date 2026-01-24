@@ -261,7 +261,6 @@ export default function Assignment({
                           {question.content}
                         </TableCell>
                         <TableCell>{question.points}</TableCell>
-                        <TableCell>{question.category}</TableCell>
                         <TableCell>
                           <div className="justify-center flex">
                             <Checkbox

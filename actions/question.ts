@@ -4,25 +4,8 @@ import { requireProfile } from '@/lib/require-profile';
 import type { Question } from '@/helpers/questions';
 
 export async function getCategories(): Promise<string[]> {
-  await requireProfile();
-  const supabase = await createClient();
-
-  let { data: categories, error: categoriesError } = await supabase
-    .from('questions')
-    .select('category')
-    .not('category', 'is', null);
-
-  if (categoriesError) {
-    console.error('Error fetching categories:', categoriesError);
-    // todo return error message
-  }
-
-  if (!categories || categories.length === 0) {
-    console.error('No questions found');
-    return [];
-  }
-
-  return [...new Set(categories.map((item) => item.category as string))];
+  // Categories are not used in this system
+  return [];
 }
 
 export async function getQuestionById(id: number): Promise<Question | null> {
@@ -31,7 +14,7 @@ export async function getQuestionById(id: number): Promise<Question | null> {
   const { data, error } = await supabase
     .from('questions')
     .select(
-      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, points, hint, bucket_path, answers(id, correct, text)'
     )
     .eq('id', id)
     .maybeSingle();
@@ -56,7 +39,7 @@ export async function getQuestions(filters: {
   let query = supabase
     .from('questions')
     .select(
-      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, points, hint, bucket_path, answers(id, correct, text)'
     );
 
   if (filters.question && filters.question.trim().length > 0) {
@@ -67,9 +50,7 @@ export async function getQuestions(filters: {
     query = query.eq('type', filters.type);
   }
 
-  if (filters.category && filters.category !== 'all') {
-    query = query.eq('category', filters.category);
-  }
+  // Category filter is ignored since categories are not used
 
   // If filtering by answer text, narrow by question IDs that match
   if (filters.answer && filters.answer.trim().length > 0) {
@@ -116,18 +97,17 @@ export async function createQuestion(data: {
   try {
     const supabase = await createClient();
 
+    const insertData = {
+      content: data.content,
+      type: data.type,
+      points: data.points,
+      hint: data.hint,
+      bucket_path: data.bucket_path,
+    };
+
     const { data: questionData, error: questionError } = await supabase
       .from('questions')
-      .insert([
-        {
-          content: data.content,
-          type: data.type,
-          points: data.points,
-          hint: data.hint,
-          category: data.category,
-          bucket_path: data.bucket_path,
-        },
-      ])
+      .insert([insertData])
       .select();
 
     if (questionError) {
@@ -185,18 +165,17 @@ export async function updateQuestion(
   try {
     const supabase = await createClient();
 
+    const updateData = {
+      content: data.content,
+      type: data.type,
+      points: data.points,
+      hint: data.hint,
+      bucket_path: data.bucket_path || null,
+    };
+
     const { error: questionError } = await supabase
       .from('questions')
-      // category muss mit null gespeichert werden, um sicherzustellen,
-      // dass die Kategorie gelöscht wird, wenn sie leer ist
-      .update({
-        content: data.content,
-        type: data.type,
-        points: data.points,
-        hint: data.hint,
-        category: data.category || null,
-        bucket_path: data.bucket_path || null,
-      })
+      .update(updateData)
       .eq('id', id);
 
     if (questionError) {

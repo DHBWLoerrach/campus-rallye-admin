@@ -9,11 +9,15 @@ import {
 } from '@/actions/question';
 import { Question, QuestionFormData } from '@/helpers/questions';
 import QuestionForm from '@/components/questions/id/QuestionForm';
+import { Button } from '@/components/ui/button';
+import { QrCode } from 'lucide-react';
+import QRCodeGenerator from '../QRCodeGenerator';
 
 const QuestionPage: React.FC = () => {
   const { id } = useParams();
   const router = useRouter();
   const [initialData, setInitialData] = useState<Question | null>(null);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   useEffect(() => {
     if (id === 'new') {
@@ -65,15 +69,36 @@ const QuestionPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl mb-4">
-        {id === 'new' ? 'Neue Frage erstellen' : 'Frage bearbeiten'}
-      </h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl">
+          {id === 'new' ? 'Neue Frage erstellen' : 'Frage bearbeiten'}
+        </h1>
+        {id !== 'new' && initialData && (
+          <Button
+            variant="outline"
+            onClick={() => setShowQRCode(true)}
+          >
+            <QrCode className="w-4 h-4 mr-2" />
+            QR-Code generieren
+          </Button>
+        )}
+      </div>
       <QuestionForm
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         onDelete={id !== 'new' ? handleDelete : undefined}
         initialData={initialData}
       />
+      
+      {/* QR Code Generator */}
+      {initialData && (
+        <QRCodeGenerator
+          questionId={initialData.id}
+          questionContent={initialData.content}
+          isOpen={showQRCode}
+          onClose={() => setShowQRCode(false)}
+        />
+      )}
     </div>
   );
 };

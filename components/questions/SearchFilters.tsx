@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { getCategories } from '@/actions/question';
+import React, { useState } from 'react';
 import { questionTypes } from '../../helpers/questionTypes';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,26 +15,21 @@ interface SearchFiltersProps {
     question?: string;
     answer?: string;
     type?: string;
-    category?: string;
     assigned?: boolean;
   }) => void;
-  categories?: string[];
   showAssignedToggle?: boolean;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
   onFilterChange,
-  categories: categoriesProp,
   showAssignedToggle = true,
 }) => {
   const [filters, setFilters] = useState({
     question: '',
     answer: '',
     type: '',
-    category: '',
     assigned: undefined,
   });
-  const [categories, setCategories] = useState<string[]>(categoriesProp || []);
 
   const handleChange = (field: string, value: string | boolean | undefined) => {
     const newFilters = { ...filters, [field]: value };
@@ -43,25 +37,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     onFilterChange(newFilters);
   };
 
-  useEffect(() => {
-    // Use provided categories if available; otherwise fetch
-    if (categoriesProp && categoriesProp.length > 0) {
-      setCategories(categoriesProp);
-      return;
-    }
-    const fetchCategories = async () => {
-      try {
-        let data: Array<string> = [];
-        data = await getCategories();
-        setCategories(data);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        // todo return error message
-      }
-    };
-
-    fetchCategories();
-  }, [categoriesProp]);
   return (
     <>
       <div className="flex flex-wrap gap-4 flex-1">
@@ -84,19 +59,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             {questionTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select onValueChange={(value) => handleChange('category', value)}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Fragetyp" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
               </SelectItem>
             ))}
           </SelectContent>

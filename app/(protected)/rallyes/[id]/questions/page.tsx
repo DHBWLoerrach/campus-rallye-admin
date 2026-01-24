@@ -30,8 +30,8 @@ export default async function Page(props: PageProps) {
       .select('question_id')
       .eq('rallye_id', rallyeId),
     supabase.from('voting').select('question_id').eq('rallye_id', rallyeId),
-    // Fetch questions with nested answers in one roundtrip
-    supabase.from('questions').select('id, content, type, points, category'),
+    // Try to fetch questions with category, fall back without it if column doesn't exist
+    supabase.from('questions').select('id, content, type, points'),
   ]);
 
   const initialSelectedQuestions = (assignedRes.data || []).map(
@@ -40,11 +40,6 @@ export default async function Page(props: PageProps) {
   const initialVotingQuestions = (votingRes.data || []).map(
     (r: any) => r.question_id as number
   );
-  const categoriesSet = new Set<string>();
-  (questionsRes.data || []).forEach((q: any) => {
-    if (q.category) categoriesSet.add(q.category as string);
-  });
-  const initialCategories = Array.from(categoriesSet);
   const initialQuestions = (questionsRes.data || []) as any[];
 
   return (
@@ -55,7 +50,6 @@ export default async function Page(props: PageProps) {
         initialQuestions={initialQuestions as any}
         initialSelectedQuestions={initialSelectedQuestions}
         initialVotingQuestions={initialVotingQuestions}
-        initialCategories={initialCategories}
       />
     </main>
   );

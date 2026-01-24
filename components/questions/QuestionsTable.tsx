@@ -7,10 +7,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Check, ChevronDown, X } from 'lucide-react';
+import { Check, ChevronDown, X, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Question } from '@/helpers/questions';
+import QRCodeGenerator from './QRCodeGenerator';
 
 interface QuestionsTableProps {
   questions: Question[];
@@ -18,6 +19,7 @@ interface QuestionsTableProps {
 
 const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
+  const [qrCodeQuestion, setQrCodeQuestion] = useState<Question | null>(null);
 
   const toggleRow = (questionId: number) => {
     setExpandedRows((current) =>
@@ -38,13 +40,14 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
               <TableHead>Bild</TableHead>
               <TableHead>Fragetyp</TableHead>
               <TableHead>Hinweis</TableHead>
+              <TableHead>QR-Code</TableHead>
               <TableHead>Aktionen</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {questions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center">
+                <TableCell colSpan={9} className="text-center">
                   Keine Einträge
                 </TableCell>
               </TableRow>
@@ -79,8 +82,18 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>{question.category}</TableCell>
+                    <TableCell>{question.type}</TableCell>
                     <TableCell>{question.hint}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQrCodeQuestion(question)}
+                      >
+                        <QrCode className="w-4 h-4 mr-1" />
+                        QR
+                      </Button>
+                    </TableCell>
                     <TableCell>
                       <Link href={`/questions/${question.id}`}>
                         <Button className="bg-dhbw">
@@ -93,7 +106,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
                     question.answers?.map((answer) => (
                       <TableRow key={answer.id} className="bg-muted/50">
                         <TableCell />
-                        <TableCell colSpan={6}>
+                        <TableCell colSpan={7}>
                           <div className="pl-6 flex items-center gap-2">
                             {answer.correct ? (
                               <Check className="h-4 w-4 text-green-500" />
@@ -111,6 +124,16 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({ questions }) => {
           </TableBody>
         </Table>
       </div>
+      
+      {/* QR Code Generator Modal */}
+      {qrCodeQuestion && (
+        <QRCodeGenerator
+          questionId={qrCodeQuestion.id}
+          questionContent={qrCodeQuestion.content}
+          isOpen={!!qrCodeQuestion}
+          onClose={() => setQrCodeQuestion(null)}
+        />
+      )}
     </>
   );
 };
