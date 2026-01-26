@@ -91,13 +91,13 @@ SUPABASE_JWT_JWK='{"kty":"EC","kid":"1234ABC…", …Rest des JWK-JSONs…}'
 
 Jeder Nutzer dieser Webanwendung wird zusätzlich lokal in einer SQLite-DB gespeichert. Dafür SQLite installieren: https://sqlite.org
 
-Folgendes zusätzlich zur Supabase-Config (s.o.) in `.env.local` eintragen:
+Wenn `.env.local` aus `env.example` kopiert wurde, dann gibt es dort bereits folgenden Eintrag:
 
 ```
 SQLITE_DB_PATH=local-users.db
 ```
 
-Dann das CLI von SQLite im Terminal starten mit (ggf. mit `sqlite3.exe` o.ä. unter Windows):
+Um die benötigte Tabelle zu erstellen, das CLI von SQLite im Terminal starten mit (ggf. mit `sqlite3.exe` o.ä. unter Windows):
 
 ```
 sqlite3 local-users.db
