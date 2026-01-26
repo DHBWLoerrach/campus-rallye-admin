@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAuthorizedUser } from '@/lib/auth';
 import {
+  extractKeycloakEmail,
   extractKeycloakRoles,
   extractKeycloakUuid,
   getKeycloakConfig,
@@ -18,6 +20,7 @@ export async function proxy(req: NextRequest) {
   // extract access token (set by Traefik / oauth2-proxy)
   const token = req.headers.get('x-forwarded-access-token');
   let uuid: string | null = null;
+  let email: string | null = null;
   let roles: string[] = [];
 
   const keycloakConfig = getKeycloakConfig();
@@ -31,12 +34,13 @@ export async function proxy(req: NextRequest) {
       const payload = await verifyKeycloakToken(token, keycloakConfig);
       // Normalized extraction to support dev/prod differences
       uuid = extractKeycloakUuid(payload);
+      email = extractKeycloakEmail(payload);
       roles = extractKeycloakRoles(payload);
     } catch {
       console.warn('Invalid token');
     }
   }
-  const isStaff = roles.includes('staff');
+  const isAuthorized = isAuthorizedUser(roles, email);
   const isDev = process.env.NODE_ENV === 'development';
 
   // 🔐 Not logged in → Redirect to login page with return-to parameter
@@ -50,7 +54,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // 🚫 Logged in but not authorized → Redirect to access denied page
-  if (!isStaff) {
+  if (!isAuthorized) {
     return NextResponse.redirect(new URL('/access-denied', req.url));
   }
 

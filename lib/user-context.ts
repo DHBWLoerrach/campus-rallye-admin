@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { SignJWT, importJWK, type JWK } from 'jose';
+import { isAuthorizedUser } from '@/lib/auth';
 import {
   extractKeycloakEmail,
   extractKeycloakRoles,
@@ -34,8 +35,8 @@ export async function getUserContext(): Promise<UserContext> {
 }
 
 export async function getSupabaseJwt(): Promise<string> {
-  const { uuid, roles } = await getUserContext();
-  if (!roles.includes('staff')) {
+  const { uuid, email, roles } = await getUserContext();
+  if (!isAuthorizedUser(roles, email)) {
     throw new Error('Zugriff verweigert');
   }
   const now = Math.floor(Date.now() / 1000);
