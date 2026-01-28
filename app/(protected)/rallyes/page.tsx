@@ -6,7 +6,7 @@ export default async function Home() {
   const supabase = await createClient();
   const { data: rallyes } = await supabase
     .from('rallye')
-    .select()
+    .select('id, name, status, end_time, password, created_at')
     .order('name');
   // supabase can't sort ignoring case, so we do it manually
   if (rallyes) {

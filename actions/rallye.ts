@@ -125,7 +125,7 @@ export async function getRallyes(): Promise<ActionResult<Rallye[]>> {
 
   const { data, error } = await supabase
     .from('rallye')
-    .select('*')
+    .select('id, name, status, end_time, password, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
