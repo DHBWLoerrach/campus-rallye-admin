@@ -23,7 +23,6 @@ describe('RallyeCard', () => {
           name: 'Rallye 12',
           status: 'running',
           end_time: '2024-01-01',
-          studiengang: 'Test',
           password: '',
           created_at: '2024-01-01',
         }}
@@ -53,7 +52,6 @@ describe('RallyeCard', () => {
           name: 'Rallye 7',
           status: 'running',
           end_time: '2024-01-01',
-          studiengang: 'Test',
           password: '',
           created_at: '2024-01-01',
         }}
@@ -78,7 +76,6 @@ describe('RallyeCard', () => {
             name: 'Rallye 5',
             status,
             end_time: '2024-01-01',
-            studiengang: 'Test',
             password: '',
             created_at: '2024-01-01',
           }}

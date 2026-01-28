@@ -20,7 +20,6 @@ export interface Rallye {
   name: string;
   status: RallyeStatus;
   end_time: string;
-  studiengang: string;
   password: string;
   created_at: string;
 }

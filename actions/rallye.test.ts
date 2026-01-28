@@ -29,7 +29,6 @@ describe('updateRallye', () => {
   type UpdatePayload = {
     name: string;
     status: string;
-    studiengang: string;
     password: string;
     end_time?: Date;
   };
@@ -65,14 +64,12 @@ describe('updateRallye', () => {
       name: 'Test',
       status: 'running',
       end_time: '',
-      studiengang: 'Informatik',
       password: 'secret',
     }));
 
     expect(update).toHaveBeenCalledWith({
       name: 'Test',
       status: 'running',
-      studiengang: 'Informatik',
       password: 'secret',
     });
   });
@@ -87,7 +84,6 @@ describe('updateRallye', () => {
       name: 'Test',
       status: 'running',
       end_time: 'not-a-date',
-      studiengang: 'Informatik',
       password: 'secret',
     }));
 
@@ -105,7 +101,6 @@ describe('updateRallye', () => {
       name: 'Test',
       status: 'running',
       end_time: '2024-02-10T10:11:12.000Z',
-      studiengang: 'Informatik',
       password: 'secret',
     }));
 
@@ -114,7 +109,6 @@ describe('updateRallye', () => {
     expect(payload).toMatchObject({
       name: 'Test',
       status: 'running',
-      studiengang: 'Informatik',
       password: 'secret',
     });
     const endTime = payload.end_time;

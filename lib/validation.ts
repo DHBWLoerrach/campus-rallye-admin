@@ -33,7 +33,6 @@ export const rallyeUpdateSchema = z.object({
   id: idSchema,
   name: z.string().trim().min(1, 'Name ist erforderlich'),
   status: rallyeStatusSchema,
-  studiengang: z.string().trim().min(1, 'Studiengang ist erforderlich'),
   password: z.string().optional().default(''),
   end_time: z.string().optional(),
 });

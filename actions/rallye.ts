@@ -28,7 +28,6 @@ export async function createRallye(state: FormState, formData: FormData) {
       name: data.name,
       status: 'inactive' as RallyeStatus,
       end_time: new Date(),
-      studiengang: 'Kein Studiengang',
       password: '',
     })
     .select('id')
@@ -54,7 +53,6 @@ export async function updateRallye(state: FormState, formData: FormData) {
     id: formData.get('id'),
     name: formData.get('name'),
     status: formData.get('status'),
-    studiengang: formData.get('studiengang'),
     password: formData.get('password') ?? '',
     end_time: formData.get('end_time'),
   });
@@ -93,13 +91,11 @@ export async function updateRallye(state: FormState, formData: FormData) {
   const updatePayload: {
     name: string;
     status: RallyeStatus;
-    studiengang: string;
     password: string;
     end_time?: Date;
   } = {
     name: data.name,
     status: data.status,
-    studiengang: data.studiengang,
     password: data.password,
   };
 

@@ -51,7 +51,6 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   const [date24, setDate24] = useState<Date | undefined>(
     new Date(rallye.end_time)
   );
-  const [studiengang, setStudiengang] = useState<string>(rallye.studiengang);
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -143,20 +142,6 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
               onChange={setDate24}
               startMonth={calendarStartMonth}
               endMonth={calendarEndMonth}
-              className="flex-1 min-w-0 max-w-sm"
-            />
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Label
-              htmlFor={`rallye-${rallye.id}-studiengang`}
-              className="w-32 shrink-0"
-            >
-              Studiengang
-            </Label>
-            <Input
-              name="studiengang"
-              value={studiengang}
-              onChange={(e) => setStudiengang(e.target.value)}
               className="flex-1 min-w-0 max-w-sm"
             />
           </div>

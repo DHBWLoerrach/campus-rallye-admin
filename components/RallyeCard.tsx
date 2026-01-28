@@ -102,14 +102,6 @@ export default function RallyeCard({
               <FormattedEndTime value={rallye.end_time} />
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Studiengang
-            </span>
-            <span className="font-medium text-foreground">
-              {rallye.studiengang}
-            </span>
-          </div>
         </div>
         <div className="flex items-center justify-between text-sm">
           <div className="text-muted-foreground">
