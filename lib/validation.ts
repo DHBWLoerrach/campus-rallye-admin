@@ -1,15 +1,9 @@
 import { z } from 'zod';
 import { questionTypes } from '@/helpers/questionTypes';
+import { RALLYE_STATUSES } from '@/lib/types';
 
-export const rallyeStatusValues = [
-  'preparing',
-  'running',
-  'post_processing',
-  'ended',
-  'inactive',
-] as const;
-
-export const rallyeStatusSchema = z.enum(rallyeStatusValues);
+export const rallyeStatusValues = RALLYE_STATUSES;
+export const rallyeStatusSchema = z.enum(RALLYE_STATUSES);
 
 const questionTypeIds = questionTypes.map((type) => type.id) as [
   string,

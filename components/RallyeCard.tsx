@@ -146,7 +146,7 @@ export default function RallyeCard({
                 />
               </Link>
             )}
-            {rallye.status === 'ended' && (
+            {(rallye.status === 'ended' || rallye.status === 'ranking') && (
               <Link
                 href={`/rallyes/${rallye.id}/results`}
                 className="group flex items-center gap-1 text-xs font-semibold text-primary/80 hover:text-primary hover:underline"

@@ -4,6 +4,7 @@ import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, idSchema } from '@/lib/validation';
+import type { RallyeStatus } from '@/lib/types';
 
 export type RallyeResultRow = {
   rank: number;
@@ -16,7 +17,7 @@ export type RallyeResultRow = {
 
 type RallyeRow = {
   id: number;
-  status: string;
+  status: RallyeStatus;
 };
 
 type TeamRow = {
@@ -69,7 +70,8 @@ export async function getRallyeResults(
     return fail('Rallye nicht gefunden');
   }
 
-  if ((rallye as RallyeRow).status !== 'ended') {
+  const status = (rallye as RallyeRow).status;
+  if (status !== 'ended' && status !== 'ranking') {
     return fail('Rallye ist nicht beendet');
   }
 

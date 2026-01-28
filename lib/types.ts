@@ -4,7 +4,16 @@ export interface Route {
 }
 
 // Rallye Status - Single State Pattern
-export type RallyeStatus = 'preparing' | 'running' | 'post_processing' | 'ended' | 'inactive';
+export const RALLYE_STATUSES = [
+  'preparing',
+  'inactive',
+  'running',
+  'voting',
+  'ranking',
+  'ended',
+] as const;
+
+export type RallyeStatus = (typeof RALLYE_STATUSES)[number];
 
 export interface Rallye {
   id: number;
@@ -25,8 +34,10 @@ export const getRallyeStatusLabel = (status: RallyeStatus): string => {
       return 'Vorbereitung';
     case 'running':
       return 'Gestartet';
-    case 'post_processing':
+    case 'voting':
       return 'Abstimmung';
+    case 'ranking':
+      return 'Ranking';
     case 'ended':
       return 'Beendet';
     case 'inactive':

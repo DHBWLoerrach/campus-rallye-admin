@@ -68,26 +68,29 @@ describe('RallyeCard', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('shows the results link when the rallye is ended', () => {
-    render(
-      <RallyeCard
-        rallye={{
-          id: 5,
-          name: 'Rallye 5',
-          status: 'ended',
-          end_time: '2024-01-01',
-          studiengang: 'Test',
-          password: '',
-          created_at: '2024-01-01',
-        }}
-        questionCount={0}
-        uploadQuestionCount={0}
-        onEdit={vi.fn()}
-      />
-    );
+  it.each(['ranking', 'ended'] as const)(
+    'shows the results link when the rallye is %s',
+    (status) => {
+      render(
+        <RallyeCard
+          rallye={{
+            id: 5,
+            name: 'Rallye 5',
+            status,
+            end_time: '2024-01-01',
+            studiengang: 'Test',
+            password: '',
+            created_at: '2024-01-01',
+          }}
+          questionCount={0}
+          uploadQuestionCount={0}
+          onEdit={vi.fn()}
+        />
+      );
 
-    expect(
-      screen.getByRole('link', { name: 'Endstand anzeigen' })
-    ).toHaveAttribute('href', '/rallyes/5/results');
-  });
+      expect(
+        screen.getByRole('link', { name: 'Endstand anzeigen' })
+      ).toHaveAttribute('href', '/rallyes/5/results');
+    }
+  );
 });

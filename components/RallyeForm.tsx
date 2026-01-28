@@ -20,8 +20,8 @@ import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { RALLYE_STATUSES, getRallyeStatusLabel } from '@/lib/types';
 import type { Rallye, RallyeStatus } from '@/lib/types';
-import { getRallyeStatusLabel } from '@/lib/types';
 
 interface RallyeFormProps {
   rallye: Rallye;
@@ -63,13 +63,7 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   const calendarEndMonth = new Date(currentYear + 5, 11, 31);
 
   // Alle Status-Übergänge sind erlaubt
-  const allStatuses: RallyeStatus[] = [
-    'preparing',
-    'running',
-    'post_processing',
-    'ended',
-    'inactive',
-  ];
+  const allStatuses = RALLYE_STATUSES;
 
   async function handleDelete() {
     setIsDeleting(true);
