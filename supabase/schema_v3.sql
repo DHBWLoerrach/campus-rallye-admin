@@ -592,49 +592,44 @@ GRANT ALL ON FUNCTION "public"."increment_team_question_points"("target_answer_i
 
 
 
-GRANT ALL ON TABLE "public"."answers" TO "anon";
+GRANT SELECT ON TABLE "public"."answers" TO "anon";
 GRANT ALL ON TABLE "public"."answers" TO "authenticated";
 GRANT ALL ON TABLE "public"."answers" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."answers_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."join_rallye_questions" TO "anon";
+GRANT SELECT ON TABLE "public"."join_rallye_questions" TO "anon";
 GRANT ALL ON TABLE "public"."join_rallye_questions" TO "authenticated";
 GRANT ALL ON TABLE "public"."join_rallye_questions" TO "service_role";
 
-
-
-GRANT ALL ON TABLE "public"."profiles" TO "anon";
 GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
 GRANT ALL ON TABLE "public"."profiles" TO "service_role";
 
-
-
-GRANT ALL ON TABLE "public"."questions" TO "anon";
+GRANT SELECT ON TABLE "public"."questions" TO "anon";
 GRANT ALL ON TABLE "public"."questions" TO "authenticated";
 GRANT ALL ON TABLE "public"."questions" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."questions_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."questions_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."questions_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."questions_id_seq" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."rallye" TO "anon";
+GRANT SELECT ON TABLE "public"."rallye" TO "anon";
 GRANT ALL ON TABLE "public"."rallye" TO "authenticated";
 GRANT ALL ON TABLE "public"."rallye" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."rallye_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "service_role";
 
@@ -663,32 +658,32 @@ GRANT ALL ON TABLE "public"."voting" TO "authenticated";
 GRANT ALL ON TABLE "public"."voting" TO "service_role";
 
 
-GRANT ALL ON TABLE "public"."organization" TO "anon";
+GRANT SELECT ON TABLE "public"."organization" TO "anon";
 GRANT ALL ON TABLE "public"."organization" TO "authenticated";
 GRANT ALL ON TABLE "public"."organization" TO "service_role";
 
 
-GRANT ALL ON SEQUENCE "public"."organization_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."organization_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."organization_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."organization_id_seq" TO "service_role";
 
 
-GRANT ALL ON TABLE "public"."department" TO "anon";
+GRANT SELECT ON TABLE "public"."department" TO "anon";
 GRANT ALL ON TABLE "public"."department" TO "authenticated";
 GRANT ALL ON TABLE "public"."department" TO "service_role";
 
 
-GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."department_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "service_role";
 
 
-GRANT ALL ON TABLE "public"."join_department_rallye" TO "anon";
+GRANT SELECT ON TABLE "public"."join_department_rallye" TO "anon";
 GRANT ALL ON TABLE "public"."join_department_rallye" TO "authenticated";
 GRANT ALL ON TABLE "public"."join_department_rallye" TO "service_role";
 
 
-GRANT ALL ON SEQUENCE "public"."join_department_rallye_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."join_department_rallye_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."join_department_rallye_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."join_department_rallye_id_seq" TO "service_role";
 

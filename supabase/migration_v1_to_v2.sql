@@ -179,27 +179,27 @@ CREATE POLICY "Enable write for authenticated users only" ON "public"."join_depa
 -- 7. Grants für neue Tabellen
 -- ============================================================================
 
-GRANT ALL ON TABLE "public"."organization" TO "anon";
+GRANT SELECT ON TABLE "public"."organization" TO "anon";
 GRANT ALL ON TABLE "public"."organization" TO "authenticated";
 GRANT ALL ON TABLE "public"."organization" TO "service_role";
 
-GRANT ALL ON SEQUENCE "public"."organization_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."organization_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."organization_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."organization_id_seq" TO "service_role";
 
-GRANT ALL ON TABLE "public"."department" TO "anon";
+GRANT SELECT ON TABLE "public"."department" TO "anon";
 GRANT ALL ON TABLE "public"."department" TO "authenticated";
 GRANT ALL ON TABLE "public"."department" TO "service_role";
 
-GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."department_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "service_role";
 
-GRANT ALL ON TABLE "public"."join_department_rallye" TO "anon";
+GRANT SELECT ON TABLE "public"."join_department_rallye" TO "anon";
 GRANT ALL ON TABLE "public"."join_department_rallye" TO "authenticated";
 GRANT ALL ON TABLE "public"."join_department_rallye" TO "service_role";
 
-GRANT ALL ON SEQUENCE "public"."join_department_rallye_id_seq" TO "anon";
+GRANT SELECT ON SEQUENCE "public"."join_department_rallye_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."join_department_rallye_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."join_department_rallye_id_seq" TO "service_role";
 
