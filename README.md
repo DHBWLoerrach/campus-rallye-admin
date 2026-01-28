@@ -19,6 +19,12 @@ Supabase-Owner können einen SQL-Dump des Schemas (Tabellen, Funktionen, usw.) o
 supabase db dump --db-url "postgresql://postgres:<password>@<serverurl>/postgres" -f schema.sql --schema public
 ```
 
+### Hinweis zum Datenmodell
+
+- `studiengang` wurde durch Departments ersetzt (Tabelle `department` + Verknüpfung über `join_department_rallye`).
+- `tour_mode` existiert nicht mehr in `rallye`. Tour-Mode wird über `organization.default_rallye_id` abgebildet.
+- Rallye-Statuswerte: `preparing`, `inactive`, `running`, `voting`, `ranking`, `ended`.
+
 ## KeyCloak für Authentifizierung
 
 Die Authentifizierung der Nutzer in dieser Webanwendung erfolgt über KeyCloak. Dazu muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu das Repository und die zugehörige Anleitung im Readme: https://github.com/DHBWLoerrach/keycloak-test-server
