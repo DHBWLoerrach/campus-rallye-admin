@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorizedUser } from '@/lib/auth';
+import { getDevBypassContext } from '@/lib/user-context';
 import {
   extractKeycloakEmail,
   extractKeycloakRoles,
@@ -23,29 +24,38 @@ export async function proxy(req: NextRequest) {
   let email: string | null = null;
   let roles: string[] = [];
 
-  const keycloakConfig = getKeycloakConfig();
-  if (!keycloakConfig) {
-    console.error('Missing KEYCLOAK_ISSUER or KEYCLOAK_AUDIENCE');
-    return NextResponse.redirect(new URL('/access-denied', req.url));
-  }
+  // Check dev bypass first
+  const devBypass = getDevBypassContext();
+  if (devBypass) {
+    uuid = devBypass.uuid;
+    email = devBypass.email;
+    roles = devBypass.roles;
+  } else {
+    const keycloakConfig = getKeycloakConfig();
+    if (!keycloakConfig) {
+      console.error('Missing KEYCLOAK_ISSUER or KEYCLOAK_AUDIENCE');
+      return NextResponse.redirect(new URL('/access-denied', req.url));
+    }
 
-  if (token) {
-    try {
-      const payload = await verifyKeycloakToken(token, keycloakConfig);
-      // Normalized extraction to support dev/prod differences
-      uuid = extractKeycloakUuid(payload);
-      email = extractKeycloakEmail(payload);
-      roles = extractKeycloakRoles(payload);
-    } catch {
-      console.warn('Invalid token');
+    if (token) {
+      try {
+        const payload = await verifyKeycloakToken(token, keycloakConfig);
+        // Normalized extraction to support dev/prod differences
+        uuid = extractKeycloakUuid(payload);
+        email = extractKeycloakEmail(payload);
+        roles = extractKeycloakRoles(payload);
+      } catch {
+        console.warn('Invalid token');
+      }
     }
   }
+
   const isAuthorized = isAuthorizedUser(roles, email);
-  const isDev = process.env.NODE_ENV === 'development';
 
   // 🔐 Not logged in → Redirect to login page with return-to parameter
   if (!uuid) {
-    const authUrl = isDev
+    // Use local oauth2-proxy endpoint in development, absolute path in production
+    const authUrl = process.env.NODE_ENV === 'development'
       ? 'http://localhost:4181/oauth2/start'
       : '/oauth2/start';
     const loginUrl = new URL(authUrl, req.url);

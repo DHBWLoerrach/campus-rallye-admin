@@ -14,7 +14,21 @@ type UserContext = {
   roles: string[];
 };
 
+export function getDevBypassContext(): UserContext | null {
+  if (process.env.NODE_ENV !== 'development') return null;
+  if (process.env.DEV_AUTH_BYPASS !== 'true') return null;
+
+  const uuid = process.env.DEV_AUTH_USER_ID ?? '550e8400-e29b-41d4-a716-446655440000';
+  const email = process.env.DEV_AUTH_EMAIL ?? 'dev@example.test';
+  const roles = ['staff'];
+
+  return { uuid, email, roles };
+}
+
 export async function getUserContext(): Promise<UserContext> {
+  const devContext = getDevBypassContext();
+  if (devContext) return devContext;
+
   const h = await headers();
   const token = h.get('x-forwarded-access-token');
   if (!token) throw new Error('Missing access token header');

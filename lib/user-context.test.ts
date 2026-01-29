@@ -19,15 +19,29 @@ let privateKey: Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
 let getUserContext: typeof import('./user-context').getUserContext;
 let getSupabaseJwt: typeof import('./user-context').getSupabaseJwt;
 
+const env = process.env as Record<string, string | undefined>;
+const ORIGINAL_NODE_ENV = env.NODE_ENV;
+const ORIGINAL_DEV_AUTH_BYPASS = env.DEV_AUTH_BYPASS;
+const ORIGINAL_DEV_AUTH_USER_ID = env.DEV_AUTH_USER_ID;
+const ORIGINAL_DEV_AUTH_EMAIL = env.DEV_AUTH_EMAIL;
+
+const restoreEnvVar = (key: string, value: string | undefined) => {
+  if (value === undefined) {
+    delete env[key];
+    return;
+  }
+  env[key] = value;
+};
+
 beforeAll(async () => {
-  process.env.KEYCLOAK_ISSUER = ISSUER;
-  process.env.KEYCLOAK_AUDIENCE = AUDIENCE;
+  env.KEYCLOAK_ISSUER = ISSUER;
+  env.KEYCLOAK_AUDIENCE = AUDIENCE;
   const { privateKey: supabasePrivateKey } = await generateKeyPair('ES256', {
     extractable: true,
   });
   const supabaseJwk = await exportJWK(supabasePrivateKey);
   supabaseJwk.kid = SUPABASE_KEY_ID;
-  process.env.SUPABASE_JWT_JWK = JSON.stringify(supabaseJwk);
+  env.SUPABASE_JWT_JWK = JSON.stringify(supabaseJwk);
 
   const { publicKey, privateKey: pk } = await generateKeyPair('RS256');
   privateKey = pk;
@@ -49,9 +63,13 @@ beforeAll(async () => {
 
 afterAll(() => {
   vi.unstubAllGlobals();
-  delete process.env.KEYCLOAK_ISSUER;
-  delete process.env.KEYCLOAK_AUDIENCE;
-  delete process.env.SUPABASE_JWT_JWK;
+  delete env.KEYCLOAK_ISSUER;
+  delete env.KEYCLOAK_AUDIENCE;
+  delete env.SUPABASE_JWT_JWK;
+  restoreEnvVar('NODE_ENV', ORIGINAL_NODE_ENV);
+  restoreEnvVar('DEV_AUTH_BYPASS', ORIGINAL_DEV_AUTH_BYPASS);
+  restoreEnvVar('DEV_AUTH_USER_ID', ORIGINAL_DEV_AUTH_USER_ID);
+  restoreEnvVar('DEV_AUTH_EMAIL', ORIGINAL_DEV_AUTH_EMAIL);
 });
 
 beforeEach(() => {
@@ -119,6 +137,53 @@ describe('getUserContext', () => {
 
   it('rejects when the token header is missing', async () => {
     setTokenHeader();
+    await expect(getUserContext()).rejects.toThrow(
+      'Missing access token header'
+    );
+  });
+});
+
+describe('getUserContext (dev bypass)', () => {
+  beforeEach(() => {
+    env.NODE_ENV = 'development';
+    env.DEV_AUTH_BYPASS = 'true';
+    delete env.DEV_AUTH_USER_ID;
+    delete env.DEV_AUTH_EMAIL;
+  });
+
+  afterEach(() => {
+    restoreEnvVar('NODE_ENV', ORIGINAL_NODE_ENV);
+    restoreEnvVar('DEV_AUTH_BYPASS', ORIGINAL_DEV_AUTH_BYPASS);
+    restoreEnvVar('DEV_AUTH_USER_ID', ORIGINAL_DEV_AUTH_USER_ID);
+    restoreEnvVar('DEV_AUTH_EMAIL', ORIGINAL_DEV_AUTH_EMAIL);
+  });
+
+  it('returns default dev user context without configuration', async () => {
+    setTokenHeader();
+    await expect(getUserContext()).resolves.toEqual({
+      uuid: '550e8400-e29b-41d4-a716-446655440000',
+      email: 'dev@example.test',
+      roles: ['staff'],
+    });
+  });
+
+  it('returns dev user context with custom values', async () => {
+    env.DEV_AUTH_USER_ID = 'dev-123-uuid-456';
+    env.DEV_AUTH_EMAIL = 'custom@example.test';
+
+    setTokenHeader();
+    await expect(getUserContext()).resolves.toEqual({
+      uuid: 'dev-123-uuid-456',
+      email: 'custom@example.test',
+      roles: ['staff'],
+    });
+  });
+
+  it('ignores bypass when not in development', async () => {
+    env.NODE_ENV = 'test';
+    env.DEV_AUTH_BYPASS = 'true';
+    setTokenHeader();
+
     await expect(getUserContext()).rejects.toThrow(
       'Missing access token header'
     );
