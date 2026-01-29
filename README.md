@@ -27,9 +27,30 @@ supabase db dump --db-url "postgresql://postgres:<password>@<serverurl>/postgres
 
 ## KeyCloak für Authentifizierung
 
-Die Authentifizierung der Nutzer in dieser Webanwendung erfolgt über KeyCloak. Dazu muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu das Repository und die zugehörige Anleitung im Readme: https://github.com/DHBWLoerrach/keycloak-test-server
+Die Authentifizierung der Nutzer in dieser Webanwendung erfolgt über KeyCloak.
 
 **Achtung:** Benutzer dieser Webanwendung müssen Mitarbeiter der DHBW Lörrach sein, d.h. die KeyCloak-User müssen in der Rolle `staff` sein, um Zugriff auf die Webanwendung zu erhalten.
+
+### Option A: Dev-Auth-Bypass (empfohlen für lokale Entwicklung)
+
+Für die lokale Entwicklung kann KeyCloak übersprungen werden. Dazu in `.env.local` folgende Variable setzen:
+
+```
+DEV_AUTH_BYPASS=true
+```
+
+Der Bypass ist nur aktiv, wenn `NODE_ENV=development` (Standard bei `npm run dev`). Es wird ein Mock-User mit der Rolle `staff` verwendet.
+
+Optional können UUID und E-Mail des Mock-Users angepasst werden:
+
+```
+DEV_AUTH_USER_ID=550e8400-e29b-41d4-a716-446655440000
+DEV_AUTH_EMAIL=dev@example.test
+```
+
+### Option B: Lokaler KeyCloak-Server
+
+Für Tests mit echtem KeyCloak muss ein KeyCloak-Test-Server lokal als Docker-Container installiert werden. Siehe dazu das Repository und die zugehörige Anleitung im Readme: https://github.com/DHBWLoerrach/keycloak-test-server
 
 ## Node.js installieren
 
@@ -129,4 +150,6 @@ Im Projektverzeichnis ausführen:
 npm run dev
 ```
 
-Campus Rallye Admin Webapp im Browser öffnen: http://localhost:3000. Mit einem in KeyCloak erstellten User anmelden.
+Campus Rallye Admin Webapp im Browser öffnen: http://localhost:3000
+
+Bei aktiviertem `DEV_AUTH_BYPASS` ist man direkt als Mock-User eingeloggt. Andernfalls mit einem in KeyCloak erstellten User anmelden.
