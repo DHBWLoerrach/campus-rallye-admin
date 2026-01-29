@@ -29,7 +29,20 @@ supabase db dump --db-url "postgresql://postgres:<password>@<serverurl>/postgres
 
 Die Authentifizierung der Nutzer in dieser Webanwendung erfolgt über KeyCloak.
 
-**Achtung:** Benutzer dieser Webanwendung müssen Mitarbeiter der DHBW Lörrach sein, d.h. die KeyCloak-User müssen in der Rolle `staff` sein, um Zugriff auf die Webanwendung zu erhalten.
+### Autorisierung (Defense in Depth)
+
+Der Zugriff wird auf **zwei Ebenen** geprüft:
+
+1. **KeyCloak**: User müssen die Rolle `staff` haben ODER in der KeyCloak-Whitelist stehen
+2. **Code**: User müssen die Rolle `staff` haben ODER ihre E-Mail in `ALLOWED_EMAILS` stehen
+
+Im produktiven System beschränkt die `staff`-Rolle den Zugriff auf **Mitarbeitende der DHBW Lörrach**. Über die E-Mail-Whitelist kann zusätzlich einzelnen **Studierenden** Zugriff gewährt werden (z.B. für Projekte und Studienarbeiten).
+
+**Wichtig:** Beide Listen müssen synchron gehalten werden. Ein User, der in KeyCloak gewhitelistet ist aber nicht die `staff`-Rolle hat, muss auch in `ALLOWED_EMAILS` eingetragen werden:
+
+```
+ALLOWED_EMAILS=student1@example.com,student2@example.com
+```
 
 ### Option A: Dev-Auth-Bypass (empfohlen für lokale Entwicklung)
 
