@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockGetUserContext, mockCreateClient, mockInsertLocalUser } = vi.hoisted(
   () => ({
@@ -21,9 +21,16 @@ vi.mock('./db/insert-local-user', () => ({
 }));
 
 describe('requireProfile', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   it('rejects non-staff users before querying Supabase', async () => {
@@ -61,5 +68,30 @@ describe('requireProfile', () => {
 
     await expect(requireProfile()).resolves.toEqual(profileData);
     expect(mockInsertLocalUser).not.toHaveBeenCalled();
+  });
+
+  it('accepts non-staff users whose email is in ALLOWED_EMAILS', async () => {
+    process.env.ALLOWED_EMAILS = 'allowed@example.test';
+
+    mockGetUserContext.mockResolvedValue({
+      uuid: 'user-3',
+      email: 'allowed@example.test',
+      roles: ['student'],
+    });
+
+    const profileData = { user_id: 'user-3', admin: false };
+
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: profileData, error: null });
+    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq });
+    const from = vi.fn().mockReturnValue({ select });
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { requireProfile } = await import('./require-profile');
+
+    await expect(requireProfile()).resolves.toEqual(profileData);
   });
 });

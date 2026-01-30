@@ -18,7 +18,8 @@ export function getDevBypassContext(): UserContext | null {
   if (process.env.NODE_ENV !== 'development') return null;
   if (process.env.DEV_AUTH_BYPASS !== 'true') return null;
 
-  const uuid = process.env.DEV_AUTH_USER_ID ?? '550e8400-e29b-41d4-a716-446655440000';
+  const uuid =
+    process.env.DEV_AUTH_USER_ID ?? '550e8400-e29b-41d4-a716-446655440000';
   const email = process.env.DEV_AUTH_EMAIL ?? 'dev@example.test';
   const roles = ['staff'];
 
@@ -51,6 +52,11 @@ export async function getUserContext(): Promise<UserContext> {
 export async function getSupabaseJwt(): Promise<string> {
   const { uuid, email, roles } = await getUserContext();
   if (!isAuthorizedUser(roles, email)) {
+    console.warn('Access denied', {
+      uuid,
+      email,
+      roles,
+    });
     throw new Error('Zugriff verweigert');
   }
   const now = Math.floor(Date.now() / 1000);

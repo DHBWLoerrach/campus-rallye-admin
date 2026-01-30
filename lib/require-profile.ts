@@ -1,3 +1,4 @@
+import { isAuthorizedUser } from './auth';
 import createClient from './supabase';
 import { getUserContext } from './user-context';
 import { insertLocalUser } from './db/insert-local-user';
@@ -11,7 +12,12 @@ type Profile = {
 export async function requireProfile(createProfile = false): Promise<Profile> {
   const { uuid, email, roles } = await getUserContext();
 
-  if (!roles.includes('staff')) {
+  if (!isAuthorizedUser(roles, email)) {
+    console.warn('Access denied', {
+      uuid,
+      email,
+      roles,
+    });
     throw new Error('Zugriff verweigert');
   }
 

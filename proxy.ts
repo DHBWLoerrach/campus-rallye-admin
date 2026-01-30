@@ -65,6 +65,7 @@ export async function proxy(req: NextRequest) {
 
   // 🚫 Logged in but not authorized → Redirect to access denied page
   if (!isAuthorized) {
+    console.warn('Access denied', { uuid, email, roles, path: req.nextUrl.pathname });
     return NextResponse.redirect(new URL('/access-denied', req.url));
   }
 
