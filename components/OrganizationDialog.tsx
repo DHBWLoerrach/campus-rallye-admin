@@ -14,8 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { RallyeOption } from '@/lib/types';
 
 function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
@@ -35,13 +33,10 @@ function SaveButton({ disabled }: { disabled: boolean }) {
 
 export default function OrganizationDialog({ 
   buttonStyle, 
-  rallyeOptions 
 }: { 
   buttonStyle: string;
-  rallyeOptions: RallyeOption[];
 }) {
   const [name, setName] = useState('');
-  const [defaultRallyeId, setDefaultRallyeId] = useState('none');
   const [open, setOpen] = useState(false);
   
   const handleCreate = async (
@@ -52,7 +47,6 @@ export default function OrganizationDialog({
     if (result?.success && result.data?.organizationId) {
       setOpen(false);
       setName('');
-      setDefaultRallyeId('none');
     }
     return result;
   };
@@ -62,7 +56,6 @@ export default function OrganizationDialog({
     setOpen(nextOpen);
     if (!nextOpen) {
       setName('');
-      setDefaultRallyeId('none');
     }
   };
 
@@ -115,27 +108,6 @@ export default function OrganizationDialog({
                   {formState.issues.name}
                 </div>
               )}
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="create-default-rallye">Campus-Tour (optional)</Label>
-              <Select
-                name="default_rallye_id"
-                value={defaultRallyeId}
-                onValueChange={setDefaultRallyeId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Keine Campus-Tour" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Keine Campus-Tour</SelectItem>
-                  {rallyeOptions.map((rallye) => (
-                    <SelectItem key={rallye.id} value={rallye.id.toString()}>
-                      {rallye.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
           

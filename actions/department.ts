@@ -53,6 +53,28 @@ export async function createDepartment(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
+  // Save rallye assignments
+  const rallyeIds = formData
+    .getAll('rallye_ids')
+    .map(Number)
+    .filter((id) => !isNaN(id) && id > 0);
+
+  if (rallyeIds.length > 0) {
+    const { error: joinError } = await supabase
+      .from('join_department_rallye')
+      .insert(
+        rallyeIds.map((rallyeId) => ({
+          department_id: createdDepartment.id,
+          rallye_id: rallyeId,
+        }))
+      );
+
+    if (joinError) {
+      console.error('Error saving rallye assignments:', joinError);
+      // Department was created, but assignments failed — don't fail entirely
+    }
+  }
+
   revalidatePath('/');
   return ok({
     message: 'Abteilung erfolgreich gespeichert',
@@ -121,6 +143,36 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   if (error) {
     console.error('Error updating department:', error);
     return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  // Sync rallye assignments: delete all existing, then insert new ones
+  const rallyeIds = formData
+    .getAll('rallye_ids')
+    .map(Number)
+    .filter((id) => !isNaN(id) && id > 0);
+
+  const { error: deleteError } = await supabase
+    .from('join_department_rallye')
+    .delete()
+    .eq('department_id', data.id);
+
+  if (deleteError) {
+    console.error('Error deleting rallye assignments:', deleteError);
+  }
+
+  if (rallyeIds.length > 0) {
+    const { error: insertError } = await supabase
+      .from('join_department_rallye')
+      .insert(
+        rallyeIds.map((rallyeId) => ({
+          department_id: data.id,
+          rallye_id: rallyeId,
+        }))
+      );
+
+    if (insertError) {
+      console.error('Error saving rallye assignments:', insertError);
+    }
   }
 
   revalidatePath('/');
@@ -200,4 +252,23 @@ export async function deleteDepartment(
 
   revalidatePath('/');
   return ok({ message: 'Abteilung erfolgreich gelöscht' });
+}
+
+export async function getRallyeAssignmentsByDepartment(
+  departmentId: number
+): Promise<ActionResult<number[]>> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('join_department_rallye')
+    .select('rallye_id')
+    .eq('department_id', departmentId);
+
+  if (error) {
+    console.error('Error fetching rallye assignments:', error);
+    return fail('Fehler beim Laden der Rallye-Zuordnungen');
+  }
+
+  return ok((data || []).map((row) => row.rallye_id));
 }

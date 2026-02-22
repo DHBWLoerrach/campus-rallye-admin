@@ -5,6 +5,7 @@ import { requireProfile } from '@/lib/require-profile';
 import { Organization, OrganizationOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, organizationCreateSchema, organizationUpdateSchema } from '@/lib/validation';
+import type { RallyeOption } from '@/lib/types';
 
 type FormState = ActionResult<{ message: string; organizationId?: number }> | null;
 
@@ -169,4 +170,44 @@ export async function deleteOrganization(
 
   revalidatePath('/');
   return ok({ message: 'Organisation erfolgreich gelöscht' });
+}
+
+export async function getRallyeOptionsByOrganization(
+  organizationId: number
+): Promise<ActionResult<RallyeOption[]>> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('department')
+    .select('join_department_rallye(rallye(id, name))')
+    .eq('organization_id', organizationId);
+
+  if (error) {
+    console.error('Error fetching rallye options for organization:', error);
+    return fail('Fehler beim Laden der Rallye-Optionen');
+  }
+
+  // Flatten nested join results and deduplicate by rallye id
+  const rallyeMap = new Map<number, string>();
+  for (const dept of data || []) {
+    const joins = (dept as Record<string, unknown>).join_department_rallye;
+    if (Array.isArray(joins)) {
+      for (const join of joins) {
+        const rallye = (join as Record<string, unknown>).rallye as {
+          id: number;
+          name: string;
+        } | null;
+        if (rallye) {
+          rallyeMap.set(rallye.id, rallye.name);
+        }
+      }
+    }
+  }
+
+  const options: RallyeOption[] = Array.from(rallyeMap.entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+
+  return ok(options);
 }

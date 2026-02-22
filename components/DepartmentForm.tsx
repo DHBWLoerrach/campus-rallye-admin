@@ -6,6 +6,7 @@ import { CircleX, Trash2 } from 'lucide-react';
 import { updateDepartment, deleteDepartment } from '@/actions/department';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -18,12 +19,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Department, OrganizationOption } from '@/lib/types';
+import type { Department, OrganizationOption, RallyeOption } from '@/lib/types';
 
 interface DepartmentFormProps {
   department: Department;
   onCancel: () => void;
   organizationOptions: OrganizationOption[];
+  rallyeOptions: RallyeOption[];
+  assignedRallyeIds: number[];
 }
 
 function SaveButton() {
@@ -42,14 +45,26 @@ function SaveButton() {
   );
 }
 
-export default function DepartmentForm({ department, onCancel, organizationOptions }: DepartmentFormProps) {
+export default function DepartmentForm({ department, onCancel, organizationOptions, rallyeOptions, assignedRallyeIds }: DepartmentFormProps) {
   const [formState, formAction] = useActionState(updateDepartment, null);
   const [name, setName] = useState<string>(department.name);
   const [organizationId, setOrganizationId] = useState<string>(
     department.organization_id.toString()
   );
+  const [selectedRallyeIds, setSelectedRallyeIds] = useState<Set<number>>(
+    new Set(assignedRallyeIds)
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleRallyeToggle = (rallyeId: number, isChecked: boolean) => {
+    setSelectedRallyeIds((prev) => {
+      const next = new Set(prev);
+      if (isChecked) next.add(rallyeId);
+      else next.delete(rallyeId);
+      return next;
+    });
+  };
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -154,6 +169,33 @@ export default function DepartmentForm({ department, onCancel, organizationOptio
                 {formState.issues.organization_id}
               </div>
             )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Rallyes zuordnen</Label>
+            <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
+              {rallyeOptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Keine Rallyes vorhanden</p>
+              ) : (
+                rallyeOptions.map((rallye) => (
+                  <div key={rallye.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`edit-rallye-${rallye.id}`}
+                      checked={selectedRallyeIds.has(rallye.id)}
+                      onCheckedChange={(checked) =>
+                        handleRallyeToggle(rallye.id, checked === true)
+                      }
+                    />
+                    <Label htmlFor={`edit-rallye-${rallye.id}`} className="text-sm">
+                      {rallye.name}
+                    </Label>
+                  </div>
+                ))
+              )}
+            </div>
+            {Array.from(selectedRallyeIds).map((id) => (
+              <input key={id} type="hidden" name="rallye_ids" value={id} />
+            ))}
           </div>
 
           <div className="flex justify-between pt-4">

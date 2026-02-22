@@ -1,6 +1,7 @@
 import createClient from '@/lib/supabase';
 import Organization from '@/components/Organization';
 import OrganizationDialog from '@/components/OrganizationDialog';
+import { getRallyeOptionsByOrganization } from '@/actions/organization';
 
 export default async function OrganizationsPage() {
   const supabase = await createClient();
@@ -10,20 +11,27 @@ export default async function OrganizationsPage() {
     .from('organization')
     .select('id, name, created_at, default_rallye_id')
     .order('name');
-  
-  // Load rallye options for the dropdown
-  const { data: rallyeOptions } = await supabase
-    .from('rallye')
-    .select('id, name')
-    .order('name');
 
-  // Create a map of default rallye names
+  // Load rallye options per organization (filtered by department assignments)
+  const rallyeOptionsMap = new Map<number, { id: number; name: string }[]>();
   const defaultRallyeNames = new Map<number, string>();
-  if (rallyeOptions && organizations) {
-    const rallyeMap = new Map(rallyeOptions.map(r => [r.id, r.name]));
-    organizations.forEach(org => {
-      if (org.default_rallye_id && rallyeMap.has(org.default_rallye_id)) {
-        defaultRallyeNames.set(org.id, rallyeMap.get(org.default_rallye_id)!);
+
+  if (organizations) {
+    const results = await Promise.all(
+      organizations.map((org) => getRallyeOptionsByOrganization(org.id))
+    );
+
+    organizations.forEach((org, index) => {
+      const result = results[index];
+      const options = result.success && result.data ? result.data : [];
+      rallyeOptionsMap.set(org.id, options);
+
+      // Determine default rallye name from filtered options
+      if (org.default_rallye_id) {
+        const match = options.find((r) => r.id === org.default_rallye_id);
+        if (match) {
+          defaultRallyeNames.set(org.id, match.name);
+        }
       }
     });
   }
@@ -44,10 +52,7 @@ export default async function OrganizationsPage() {
             Verwalten Sie Ihre Organisationen und deren Campus-Touren.
           </p>
         </div>
-        <OrganizationDialog 
-          buttonStyle="ml-auto"
-          rallyeOptions={rallyeOptions || []}
-        />
+        <OrganizationDialog buttonStyle="ml-auto" />
       </div>
 
       {!organizations || organizations.length === 0 ? (
@@ -63,7 +68,7 @@ export default async function OrganizationsPage() {
             <Organization
               key={organization.id}
               organization={organization}
-              rallyeOptions={rallyeOptions || []}
+              rallyeOptions={rallyeOptionsMap.get(organization.id) || []}
               defaultRallyeName={defaultRallyeNames.get(organization.id)}
             />
           ))}

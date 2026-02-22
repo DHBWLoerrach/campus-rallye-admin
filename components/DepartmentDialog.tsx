@@ -3,6 +3,7 @@ import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { createDepartment } from '@/actions/department';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { OrganizationOption } from '@/lib/types';
+import type { OrganizationOption, RallyeOption } from '@/lib/types';
 
 function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
@@ -35,13 +36,16 @@ function SaveButton({ disabled }: { disabled: boolean }) {
 
 export default function DepartmentDialog({ 
   buttonStyle, 
-  organizationOptions 
+  organizationOptions,
+  rallyeOptions,
 }: { 
   buttonStyle: string;
   organizationOptions: OrganizationOption[];
+  rallyeOptions: RallyeOption[];
 }) {
   const [name, setName] = useState('');
   const [organizationId, setOrganizationId] = useState('');
+  const [selectedRallyeIds, setSelectedRallyeIds] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState(false);
   
   const handleCreate = async (
@@ -53,6 +57,7 @@ export default function DepartmentDialog({
       setOpen(false);
       setName('');
       setOrganizationId('');
+      setSelectedRallyeIds(new Set());
     }
     return result;
   };
@@ -63,12 +68,22 @@ export default function DepartmentDialog({
     if (!nextOpen) {
       setName('');
       setOrganizationId('');
+      setSelectedRallyeIds(new Set());
     }
   };
 
   const isNameEmpty = name.trim().length === 0;
   const isOrganizationEmpty = organizationId.length === 0;
   const isFormInvalid = isNameEmpty || isOrganizationEmpty;
+
+  const handleRallyeToggle = (rallyeId: number, isChecked: boolean) => {
+    setSelectedRallyeIds((prev) => {
+      const next = new Set(prev);
+      if (isChecked) next.add(rallyeId);
+      else next.delete(rallyeId);
+      return next;
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -143,6 +158,33 @@ export default function DepartmentDialog({
                   {formState.issues.organization_id}
                 </div>
               )}
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Rallyes zuordnen (optional)</Label>
+              <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
+                {rallyeOptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Keine Rallyes vorhanden</p>
+                ) : (
+                  rallyeOptions.map((rallye) => (
+                    <div key={rallye.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`create-rallye-${rallye.id}`}
+                        checked={selectedRallyeIds.has(rallye.id)}
+                        onCheckedChange={(checked) =>
+                          handleRallyeToggle(rallye.id, checked === true)
+                        }
+                      />
+                      <Label htmlFor={`create-rallye-${rallye.id}`} className="text-sm">
+                        {rallye.name}
+                      </Label>
+                    </div>
+                  ))
+                )}
+              </div>
+              {Array.from(selectedRallyeIds).map((id) => (
+                <input key={id} type="hidden" name="rallye_ids" value={id} />
+              ))}
             </div>
           </div>
           

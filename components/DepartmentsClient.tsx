@@ -5,18 +5,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Department from '@/components/Department';
 import DepartmentDialog from '@/components/DepartmentDialog';
 import { Label } from '@/components/ui/label';
-import type { Department as DepartmentType, OrganizationOption } from '@/lib/types';
+import type { Department as DepartmentType, OrganizationOption, RallyeOption } from '@/lib/types';
 
 interface DepartmentsClientProps {
   departments: DepartmentType[];
   organizationOptions: OrganizationOption[];
   organizationNames: Map<number, string>;
+  rallyeOptions: RallyeOption[];
+  rallyeAssignmentsMap: Map<number, number[]>;
 }
 
 export default function DepartmentsClient({ 
   departments, 
   organizationOptions,
-  organizationNames
+  organizationNames,
+  rallyeOptions,
+  rallyeAssignmentsMap,
 }: DepartmentsClientProps) {
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('all');
 
@@ -36,6 +40,7 @@ export default function DepartmentsClient({
         <DepartmentDialog 
           buttonStyle="ml-auto"
           organizationOptions={organizationOptions}
+          rallyeOptions={rallyeOptions}
         />
       </div>
 
@@ -85,6 +90,8 @@ export default function DepartmentsClient({
               department={department}
               organizationOptions={organizationOptions}
               organizationName={organizationNames.get(department.organization_id) || 'Unbekannt'}
+              rallyeOptions={rallyeOptions}
+              assignedRallyeIds={rallyeAssignmentsMap.get(department.id) || []}
             />
           ))}
         </div>
