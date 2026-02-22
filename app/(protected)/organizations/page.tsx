@@ -41,7 +41,7 @@ export default async function OrganizationsPage() {
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">Organisationen</h1>
           <p className="text-muted-foreground">
-            Verwalten Sie Ihre Organisationen und deren Standard-Rallyes.
+            Verwalten Sie Ihre Organisationen und deren Campus-Touren.
           </p>
         </div>
         <OrganizationDialog 

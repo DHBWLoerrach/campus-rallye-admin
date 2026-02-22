@@ -138,7 +138,7 @@ export default function OrganizationForm({ organization, onCancel, rallyeOptions
               onValueChange={setDefaultRallyeId}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Keine Standard-Rallye" />
+                <SelectValue placeholder="Keine Campus-Tour" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Keine Campus-Tour</SelectItem>
