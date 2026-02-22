@@ -39,7 +39,7 @@ export async function createOrganization(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  revalidatePath('/');
+  revalidatePath('/organizations');
   return ok({
     message: 'Organisation erfolgreich gespeichert',
     organizationId: createdOrganization.id,
@@ -93,7 +93,7 @@ export async function updateOrganization(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  revalidatePath('/');
+  revalidatePath('/organizations');
   return ok({ message: 'Organisation erfolgreich gespeichert' });
 }
 
@@ -168,7 +168,7 @@ export async function deleteOrganization(
     return fail('Fehler beim Löschen der Organisation');
   }
 
-  revalidatePath('/');
+  revalidatePath('/organizations');
   return ok({ message: 'Organisation erfolgreich gelöscht' });
 }
 
