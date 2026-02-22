@@ -131,7 +131,7 @@ export default function OrganizationForm({ organization, onCancel, rallyeOptions
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="default_rallye_id">Standard-Rallye (optional)</Label>
+            <Label htmlFor="default_rallye_id">Campus-Tour (optional)</Label>
             <Select
               name="default_rallye_id"
               value={defaultRallyeId}
@@ -141,7 +141,7 @@ export default function OrganizationForm({ organization, onCancel, rallyeOptions
                 <SelectValue placeholder="Keine Standard-Rallye" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Keine Standard-Rallye</SelectItem>
+                <SelectItem value="none">Keine Campus-Tour</SelectItem>
                 {rallyeOptions.map((rallye) => (
                   <SelectItem key={rallye.id} value={rallye.id.toString()}>
                     {rallye.name}

@@ -49,7 +49,7 @@ export default function OrganizationCard({
           {defaultRallyeName ? (
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-xs">
-                Standard-Rallye
+                Campus-Tour
               </Badge>
               <span className="truncate text-sm text-muted-foreground">
                 {defaultRallyeName}
@@ -57,7 +57,7 @@ export default function OrganizationCard({
             </div>
           ) : (
             <div className="text-sm text-muted-foreground">
-              Keine Standard-Rallye
+              Keine Campus-Tour
             </div>
           )}
           <div className="text-xs text-muted-foreground">

@@ -118,7 +118,7 @@ export default function OrganizationDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="create-default-rallye">Standard-Rallye (optional)</Label>
+              <Label htmlFor="create-default-rallye">Campus-Tour (optional)</Label>
               <Select
                 name="default_rallye_id"
                 value={defaultRallyeId}
@@ -128,7 +128,7 @@ export default function OrganizationDialog({
                   <SelectValue placeholder="Keine Standard-Rallye" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Keine Standard-Rallye</SelectItem>
+                  <SelectItem value="none">Keine Campus-Tour</SelectItem>
                   {rallyeOptions.map((rallye) => (
                     <SelectItem key={rallye.id} value={rallye.id.toString()}>
                       {rallye.name}
