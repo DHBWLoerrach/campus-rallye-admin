@@ -37,6 +37,28 @@ export const rallyeUpdateSchema = z.object({
   end_time: z.string().optional(),
 });
 
+export const organizationCreateSchema = z.object({
+  name: z.string().trim().min(1, 'Name ist erforderlich'),
+  default_rallye_id: idSchema.optional(),
+});
+
+export const organizationUpdateSchema = z.object({
+  id: idSchema,
+  name: z.string().trim().min(1, 'Name ist erforderlich'),
+  default_rallye_id: idSchema.optional(),
+});
+
+export const departmentCreateSchema = z.object({
+  name: z.string().trim().min(1, 'Name ist erforderlich'),
+  organization_id: idSchema,
+});
+
+export const departmentUpdateSchema = z.object({
+  id: idSchema,
+  name: z.string().trim().min(1, 'Name ist erforderlich'),
+  organization_id: idSchema,
+});
+
 const answerSchema = z.object({
   correct: z.boolean(),
   text: z.string().optional(),

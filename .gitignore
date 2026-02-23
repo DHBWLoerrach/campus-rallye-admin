@@ -37,3 +37,6 @@ next-env.d.ts
 
 # local sqlite db
 *.db
+
+# supabase
+supabase/.temp

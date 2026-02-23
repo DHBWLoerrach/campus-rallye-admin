@@ -15,6 +15,14 @@ const routes: Route[] = [
     href: '/questions',
     label: 'Fragenkatalog',
   },
+  {
+    href: '/organizations',
+    label: 'Organisationen',
+  },
+  {
+    href: '/departments',
+    label: 'Abteilungen',
+  },
 ];
 
 export default async function Nav() {
