@@ -11,6 +11,7 @@ interface RallyeProps {
   uploadQuestionCount?: number;
   departmentOptions: DepartmentOption[];
   assignedDepartmentIds: number[];
+  departmentAssignmentsLoaded: boolean;
 }
 
 export default function Rallye({
@@ -19,6 +20,7 @@ export default function Rallye({
   uploadQuestionCount,
   departmentOptions,
   assignedDepartmentIds,
+  departmentAssignmentsLoaded,
 }: RallyeProps) {
   const [editMode, setEditMode] = useState<boolean>(false);
 
@@ -28,6 +30,7 @@ export default function Rallye({
       onCancel={() => setEditMode(false)}
       departmentOptions={departmentOptions}
       assignedDepartmentIds={assignedDepartmentIds}
+      departmentAssignmentsLoaded={departmentAssignmentsLoaded}
     />
   ) : (
     <RallyeCard

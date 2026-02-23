@@ -24,6 +24,7 @@ export default async function Home() {
   const questionCounts = new Map<number, number>();
   const uploadQuestionCounts = new Map<number, number>();
   const departmentAssignmentsMap = new Map<number, number[]>();
+  let departmentAssignmentsLoaded = true;
   if (rallyes && rallyes.length > 0) {
     const rallyeIds = rallyes.map((r) => r.id);
     const { data: joins } = await supabase
@@ -48,18 +49,24 @@ export default async function Home() {
     rallyes.forEach((r) => {
       departmentAssignmentsMap.set(r.id, []);
     });
-    const { data: deptAssignmentRows } = await supabase
+    const { data: deptAssignmentRows, error: deptAssignmentError } = await supabase
       .from('join_department_rallye')
       .select('department_id, rallye_id')
       .in('rallye_id', rallyeIds);
-    for (const row of deptAssignmentRows || []) {
-      const rallyeId = (row as { rallye_id: number }).rallye_id;
-      const departmentId = (row as { department_id: number }).department_id;
-      const existing = departmentAssignmentsMap.get(rallyeId);
-      if (existing) {
-        existing.push(departmentId);
-      } else {
-        departmentAssignmentsMap.set(rallyeId, [departmentId]);
+
+    if (deptAssignmentError) {
+      departmentAssignmentsLoaded = false;
+      console.error('Error loading department assignments:', deptAssignmentError);
+    } else {
+      for (const row of deptAssignmentRows || []) {
+        const rallyeId = (row as { rallye_id: number }).rallye_id;
+        const departmentId = (row as { department_id: number }).department_id;
+        const existing = departmentAssignmentsMap.get(rallyeId);
+        if (existing) {
+          existing.push(departmentId);
+        } else {
+          departmentAssignmentsMap.set(rallyeId, [departmentId]);
+        }
       }
     }
   }
@@ -91,6 +98,7 @@ export default async function Home() {
             uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
             departmentOptions={departmentOptions || []}
             assignedDepartmentIds={departmentAssignmentsMap.get(rallye.id) ?? []}
+            departmentAssignmentsLoaded={departmentAssignmentsLoaded}
           />
         ))}
       </section>
