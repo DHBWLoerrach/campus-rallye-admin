@@ -1,6 +1,7 @@
 import createClient from '@/lib/supabase';
 import Rallye from '@/components/Rallye';
 import RallyeDialog from '@/components/RallyeDialog';
+import ExplorationRow from '@/components/rallyes/ExplorationRow';
 import {
   classifyRallyesByType,
   getRallyeUiTypeLabel,
@@ -227,22 +228,37 @@ export default async function Home() {
               <p className="rounded-lg border border-dashed border-border/60 bg-background/30 px-3 py-2 text-sm text-muted-foreground">
                 Keine Rallyes in diesem Bereich.
               </p>
+            ) : section.type === 'exploration' ? (
+              <div className="space-y-2">
+                {sectionRallyes.map((rallye) => {
+                  const meta = rallyeDisplayMeta.get(rallye.id);
+                  return (
+                    <ExplorationRow
+                      key={rallye.id}
+                      rallyeId={rallye.id}
+                      name={rallye.name}
+                      organizationLabel={meta?.contextLabel}
+                      questionCount={questionCounts.get(rallye.id)}
+                    />
+                  );
+                })}
+              </div>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {sectionRallyes.map((rallye) => {
                   const meta = rallyeDisplayMeta.get(rallye.id);
                   return (
-                  <Rallye
-                    key={rallye.id}
-                    rallye={rallye}
-                    questionCount={questionCounts.get(rallye.id) ?? 0}
-                    uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
-                    departmentOptions={departmentOptions}
-                    assignedDepartmentIds={departmentAssignmentsMap.get(rallye.id) ?? []}
-                    departmentAssignmentsLoaded={departmentAssignmentsLoaded}
-                    typeLabel={meta?.typeLabel}
-                    contextLabel={meta?.contextLabel}
-                  />
+                    <Rallye
+                      key={rallye.id}
+                      rallye={rallye}
+                      questionCount={questionCounts.get(rallye.id) ?? 0}
+                      uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
+                      departmentOptions={departmentOptions}
+                      assignedDepartmentIds={departmentAssignmentsMap.get(rallye.id) ?? []}
+                      departmentAssignmentsLoaded={departmentAssignmentsLoaded}
+                      typeLabel={meta?.typeLabel}
+                      contextLabel={meta?.contextLabel}
+                    />
                   );
                 })}
               </div>

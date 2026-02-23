@@ -17,8 +17,23 @@ vi.mock('@/components/RallyeDialog', () => ({
 
 vi.mock('@/components/Rallye', () => ({
   __esModule: true,
-  default: ({ rallye }: { rallye: { name: string } }) => (
-    <article data-testid="rallye-item">{rallye.name}</article>
+  default: ({
+    rallye,
+    uploadQuestionCount,
+  }: {
+    rallye: { id: number; name: string };
+    uploadQuestionCount?: number;
+  }) => (
+    <article data-testid="rallye-item">
+      <p>{rallye.name}</p>
+      <button type="button">Bearbeiten</button>
+      <span>Status</span>
+      <span>Ende</span>
+      <a href={`/rallyes/${rallye.id}/questions`}>Fragen zuordnen</a>
+      {uploadQuestionCount && uploadQuestionCount > 0 ? (
+        <span>Upload-Fotos anzeigen</span>
+      ) : null}
+    </article>
   ),
 }));
 
@@ -149,5 +164,29 @@ describe('/rallyes page', () => {
     expect(within(eventSection).getByText('Event A')).toBeInTheDocument();
     expect(within(programSection).getByText('Informatik 1')).toBeInTheDocument();
     expect(within(otherSection).getByText('Freie Rallye')).toBeInTheDocument();
+  });
+
+  it('renders exploration rallyes as read-only rows', async () => {
+    render(await Home());
+
+    const explorationSection = getSectionByTitle('Erkundungsmodus');
+    const eventSection = getSectionByTitle('Events');
+
+    expect(within(explorationSection).getByText('Campus Tour A')).toBeInTheDocument();
+    expect(within(explorationSection).getByText('Organisation: Org A')).toBeInTheDocument();
+    expect(
+      within(explorationSection).getByRole('link', { name: 'Fragen zuordnen' })
+    ).toHaveAttribute('href', '/rallyes/1/questions');
+
+    expect(within(explorationSection).queryByText('Bearbeiten')).not.toBeInTheDocument();
+    expect(
+      within(explorationSection).queryByText('Upload-Fotos anzeigen')
+    ).not.toBeInTheDocument();
+    expect(within(explorationSection).queryByText('Status')).not.toBeInTheDocument();
+    expect(within(explorationSection).queryByText('Ende')).not.toBeInTheDocument();
+
+    expect(within(eventSection).getByText('Bearbeiten')).toBeInTheDocument();
+    expect(within(eventSection).getByText('Upload-Fotos anzeigen')).toBeInTheDocument();
+    expect(screen.getAllByTestId('rallye-item')).toHaveLength(3);
   });
 });
