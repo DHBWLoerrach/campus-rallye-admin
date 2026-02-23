@@ -78,6 +78,18 @@ const getContextLabel = (classification?: RallyeUiClassification): string | unde
   }
 };
 
+const getProgramGroupLabel = (classification?: RallyeUiClassification): string => {
+  if (!classification || classification.departmentNames.length === 0) {
+    return 'Ohne Studiengang';
+  }
+
+  if (classification.departmentNames.length === 1) {
+    return classification.departmentNames[0];
+  }
+
+  return classification.departmentNames.join(' / ');
+};
+
 export default async function Home() {
   const supabase = await createClient();
   const { data: rallyes } = await supabase
@@ -190,6 +202,38 @@ export default async function Home() {
     });
   }
 
+  const programGroups = new Map<string, RallyeRow[]>();
+  for (const rallye of rallyesByType.get('program') || []) {
+    const groupLabel = getProgramGroupLabel(rallyeTypeById.get(rallye.id));
+    const group = programGroups.get(groupLabel);
+    if (group) {
+      group.push(rallye);
+    } else {
+      programGroups.set(groupLabel, [rallye]);
+    }
+  }
+
+  const sortedProgramGroups = Array.from(programGroups.entries()).sort(([a], [b]) =>
+    a.localeCompare(b, 'de', { sensitivity: 'base' })
+  );
+
+  const renderRallyeCard = (rallye: RallyeRow) => {
+    const meta = rallyeDisplayMeta.get(rallye.id);
+    return (
+      <Rallye
+        key={rallye.id}
+        rallye={rallye}
+        questionCount={questionCounts.get(rallye.id) ?? 0}
+        uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
+        departmentOptions={departmentOptions}
+        assignedDepartmentIds={departmentAssignmentsMap.get(rallye.id) ?? []}
+        departmentAssignmentsLoaded={departmentAssignmentsLoaded}
+        typeLabel={meta?.typeLabel}
+        contextLabel={meta?.contextLabel}
+      />
+    );
+  };
+
   return (
     <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -243,24 +287,22 @@ export default async function Home() {
                   );
                 })}
               </div>
+            ) : section.type === 'program' ? (
+              <div className="space-y-4">
+                {sortedProgramGroups.map(([groupLabel, rallyes]) => (
+                  <div key={groupLabel} className="space-y-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground">
+                      {groupLabel}
+                    </h3>
+                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {rallyes.map((rallye) => renderRallyeCard(rallye))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {sectionRallyes.map((rallye) => {
-                  const meta = rallyeDisplayMeta.get(rallye.id);
-                  return (
-                    <Rallye
-                      key={rallye.id}
-                      rallye={rallye}
-                      questionCount={questionCounts.get(rallye.id) ?? 0}
-                      uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
-                      departmentOptions={departmentOptions}
-                      assignedDepartmentIds={departmentAssignmentsMap.get(rallye.id) ?? []}
-                      departmentAssignmentsLoaded={departmentAssignmentsLoaded}
-                      typeLabel={meta?.typeLabel}
-                      contextLabel={meta?.contextLabel}
-                    />
-                  );
-                })}
+                {sectionRallyes.map((rallye) => renderRallyeCard(rallye))}
               </div>
             )}
           </section>

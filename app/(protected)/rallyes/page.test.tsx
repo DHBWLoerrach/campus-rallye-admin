@@ -73,22 +73,33 @@ function createSupabaseMock() {
       password: '',
       created_at: '2026-01-01T00:00:00.000Z',
     },
+    {
+      id: 5,
+      name: 'BWL 1',
+      status: 'inactive',
+      end_time: '2026-01-01T00:00:00.000Z',
+      password: '',
+      created_at: '2026-01-01T00:00:00.000Z',
+    },
   ];
 
   const organizations = [{ id: 10, name: 'Org A', default_rallye_id: 1 }];
   const departments = [
     { id: 100, name: 'Org A', organization_id: 10 },
     { id: 101, name: 'Informatik', organization_id: 10 },
+    { id: 102, name: 'BWL', organization_id: 10 },
   ];
   const departmentAssignments = [
     { rallye_id: 1, department_id: 101 },
     { rallye_id: 2, department_id: 100 },
     { rallye_id: 3, department_id: 101 },
+    { rallye_id: 5, department_id: 102 },
   ];
   const questionAssignments = [
     { rallye_id: 1, question_id: 1 },
     { rallye_id: 2, question_id: 2 },
     { rallye_id: 3, question_id: 3 },
+    { rallye_id: 5, question_id: 4 },
   ];
   const uploadQuestionAssignments = [{ rallye_id: 2, questions: { type: 'upload' } }];
 
@@ -163,6 +174,7 @@ describe('/rallyes page', () => {
     expect(within(explorationSection).getByText('Campus Tour A')).toBeInTheDocument();
     expect(within(eventSection).getByText('Event A')).toBeInTheDocument();
     expect(within(programSection).getByText('Informatik 1')).toBeInTheDocument();
+    expect(within(programSection).getByText('BWL 1')).toBeInTheDocument();
     expect(within(otherSection).getByText('Freie Rallye')).toBeInTheDocument();
   });
 
@@ -187,6 +199,21 @@ describe('/rallyes page', () => {
 
     expect(within(eventSection).getByText('Bearbeiten')).toBeInTheDocument();
     expect(within(eventSection).getByText('Upload-Fotos anzeigen')).toBeInTheDocument();
-    expect(screen.getAllByTestId('rallye-item')).toHaveLength(3);
+    expect(screen.getAllByTestId('rallye-item')).toHaveLength(4);
+  });
+
+  it('groups program rallyes by department', async () => {
+    render(await Home());
+
+    const programSection = getSectionByTitle('Studiengänge');
+
+    expect(
+      within(programSection).getByRole('heading', { level: 3, name: 'BWL' })
+    ).toBeInTheDocument();
+    expect(
+      within(programSection).getByRole('heading', { level: 3, name: 'Informatik' })
+    ).toBeInTheDocument();
+    expect(within(programSection).getByText('BWL 1')).toBeInTheDocument();
+    expect(within(programSection).getByText('Informatik 1')).toBeInTheDocument();
   });
 });
