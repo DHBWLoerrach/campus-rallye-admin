@@ -90,4 +90,29 @@ describe('RallyeCard', () => {
       ).toHaveAttribute('href', '/rallyes/5/results');
     }
   );
+
+  it('renders optional type badge and context label', () => {
+    render(
+      <RallyeCard
+        rallye={{
+          id: 8,
+          name: 'Studiengang BWL',
+          status: 'inactive',
+          end_time: '2024-01-01',
+          password: '',
+          created_at: '2024-01-01',
+        }}
+        questionCount={0}
+        uploadQuestionCount={0}
+        typeLabel="Studiengang"
+        contextLabel="Abteilung: BWL"
+        onEdit={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Studiengang')).toBeInTheDocument();
+    expect(screen.getByLabelText('Rallye-Kontext')).toHaveTextContent(
+      'Abteilung: BWL'
+    );
+  });
 });

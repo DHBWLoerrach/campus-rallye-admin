@@ -12,6 +12,8 @@ interface RallyeProps {
   departmentOptions: DepartmentOption[];
   assignedDepartmentIds: number[];
   departmentAssignmentsLoaded: boolean;
+  typeLabel?: string;
+  contextLabel?: string;
 }
 
 export default function Rallye({
@@ -21,6 +23,8 @@ export default function Rallye({
   departmentOptions,
   assignedDepartmentIds,
   departmentAssignmentsLoaded,
+  typeLabel,
+  contextLabel,
 }: RallyeProps) {
   const [editMode, setEditMode] = useState<boolean>(false);
 
@@ -37,6 +41,8 @@ export default function Rallye({
       rallye={rallye}
       questionCount={questionCount}
       uploadQuestionCount={uploadQuestionCount}
+      typeLabel={typeLabel}
+      contextLabel={contextLabel}
       onEdit={() => setEditMode(true)}
     />
   );

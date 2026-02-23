@@ -13,6 +13,8 @@ interface RallyeCardProps {
   onEdit: () => void;
   questionCount?: number;
   uploadQuestionCount?: number;
+  typeLabel?: string;
+  contextLabel?: string;
 }
 
 export default function RallyeCard({
@@ -20,6 +22,8 @@ export default function RallyeCard({
   onEdit,
   questionCount: questionCountProp,
   uploadQuestionCount: uploadQuestionCountProp,
+  typeLabel,
+  contextLabel,
 }: RallyeCardProps) {
   const statusLabel = getRallyeStatusLabel(rallye.status);
   const isActive = isRallyeActive(rallye.status);
@@ -90,9 +94,19 @@ export default function RallyeCard({
           <Badge variant={isActive ? 'default' : 'secondary'}>
             {statusLabel}
           </Badge>
+          {typeLabel && (
+            <Badge variant="outline" className="text-[0.7rem] uppercase">
+              {typeLabel}
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
+        {contextLabel && (
+          <p className="text-xs text-muted-foreground" aria-label="Rallye-Kontext">
+            {contextLabel}
+          </p>
+        )}
         <div className="grid gap-3 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
