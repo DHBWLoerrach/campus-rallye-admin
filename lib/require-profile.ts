@@ -59,3 +59,13 @@ export async function requireProfile(createProfile = false): Promise<Profile> {
   insertLocalUser(uuid, email);
   return newProfile;
 }
+
+export async function requireAdmin(): Promise<Profile> {
+  const profile = await requireProfile();
+
+  if (profile.admin !== true) {
+    throw new Error('Admin-Berechtigung erforderlich');
+  }
+
+  return profile;
+}
