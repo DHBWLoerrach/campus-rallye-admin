@@ -170,6 +170,53 @@ describe('createDepartment', () => {
     expect(result?.success).toBe(true);
     expect(joinInsert).not.toHaveBeenCalled();
   });
+
+  it('returns an error when rallye assignment insert fails and rolls back department', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const orgMaybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
+    const orgSelectEq = vi.fn(() => ({ maybeSingle: orgMaybeSingle }));
+    const orgSelect = vi.fn(() => ({ eq: orgSelectEq }));
+
+    const deptSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 42 }, error: null });
+    const deptSelect = vi.fn(() => ({ single: deptSingle }));
+    const deptInsert = vi.fn(() => ({ select: deptSelect }));
+    const deptDeleteEq = vi.fn().mockResolvedValue({ error: null });
+    const deptDelete = vi.fn(() => ({ eq: deptDeleteEq }));
+
+    const joinInsert = vi
+      .fn()
+      .mockResolvedValue({ error: { message: 'insert failed' } });
+
+    const from = vi.fn((table: string) => {
+      if (table === 'organization') return { select: orgSelect };
+      if (table === 'department') {
+        return { insert: deptInsert, delete: deptDelete, select: orgSelect };
+      }
+      if (table === 'join_department_rallye') return { insert: joinInsert };
+      return {};
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { createDepartment } = await import('./department');
+    const result = await createDepartment(
+      null,
+      makeFormData(
+        { name: 'IT', organization_id: '1' },
+        { rallye_ids: ['10', '20'] }
+      )
+    );
+
+    expect(result?.success).toBe(false);
+    if (result?.success !== false) throw new Error('Expected failure');
+    expect(result.error).toBe('Es ist ein Fehler aufgetreten');
+    expect(joinInsert).toHaveBeenCalled();
+    expect(deptDeleteEq).toHaveBeenCalledWith('id', 42);
+  });
 });
 
 describe('updateDepartment', () => {

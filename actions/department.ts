@@ -71,7 +71,19 @@ export async function createDepartment(state: FormState, formData: FormData) {
 
     if (joinError) {
       console.error('Error saving rallye assignments:', joinError);
-      // Department was created, but assignments failed — don't fail entirely
+      const { error: rollbackError } = await supabase
+        .from('department')
+        .delete()
+        .eq('id', createdDepartment.id);
+
+      if (rollbackError) {
+        console.error(
+          'Error rolling back department creation after assignment failure:',
+          rollbackError
+        );
+      }
+
+      return fail('Es ist ein Fehler aufgetreten');
     }
   }
 
