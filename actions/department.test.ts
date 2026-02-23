@@ -213,7 +213,7 @@ describe('updateDepartment', () => {
     expect(result.error).toBe('Abteilung nicht gefunden');
   });
 
-  it('syncs rallye assignments on update', async () => {
+  it('syncs rallye assignments on update with delta changes', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     // dept check
@@ -234,24 +234,24 @@ describe('updateDepartment', () => {
     const updateEq = vi.fn().mockResolvedValue({ error: null });
     const update = vi.fn(() => ({ eq: updateEq }));
 
-    // join delete + insert
-    const joinDeleteEq = vi.fn().mockResolvedValue({ error: null });
-    const joinDelete = vi.fn(() => ({ eq: joinDeleteEq }));
+    // load current assignments + delta sync
+    const joinSelectEq = vi.fn().mockResolvedValue({
+      data: [{ rallye_id: 10 }, { rallye_id: 20 }],
+      error: null,
+    });
+    const joinSelect = vi.fn(() => ({ eq: joinSelectEq }));
     const joinInsert = vi.fn().mockResolvedValue({ error: null });
+    const joinDeleteIn = vi.fn().mockResolvedValue({ error: null });
+    const joinDeleteEq = vi.fn(() => ({ in: joinDeleteIn }));
+    const joinDelete = vi.fn(() => ({ eq: joinDeleteEq }));
 
-    let selectCallCount = 0;
     const from = vi.fn((table: string) => {
       if (table === 'department') {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          // First select call = dept check
-          return { select: deptSelect, update };
-        }
         return { select: deptSelect, update };
       }
       if (table === 'organization') return { select: orgSelect };
       if (table === 'join_department_rallye') {
-        return { delete: joinDelete, insert: joinInsert };
+        return { select: joinSelect, insert: joinInsert, delete: joinDelete };
       }
       return {};
     });
@@ -262,19 +262,120 @@ describe('updateDepartment', () => {
       null,
       makeFormData(
         { id: '5', name: 'IT', organization_id: '1' },
-        { rallye_ids: ['10', '30'] }
+        { rallye_ids: ['20', '30'] }
       )
     );
 
     expect(result?.success).toBe(true);
-    // Should delete existing assignments
-    expect(joinDelete).toHaveBeenCalled();
-    expect(joinDeleteEq).toHaveBeenCalledWith('department_id', 5);
-    // Should insert new assignments
+    expect(joinSelectEq).toHaveBeenCalledWith('department_id', 5);
     expect(joinInsert).toHaveBeenCalledWith([
-      { department_id: 5, rallye_id: 10 },
       { department_id: 5, rallye_id: 30 },
     ]);
+    expect(joinDeleteEq).toHaveBeenCalledWith('department_id', 5);
+    expect(joinDeleteIn).toHaveBeenCalledWith('rallye_id', [10]);
+  });
+
+  it('returns an error and keeps existing links when insert fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const deptMaybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 5 }, error: null });
+    const deptSelectEq = vi.fn(() => ({ maybeSingle: deptMaybeSingle }));
+    const deptSelect = vi.fn(() => ({ eq: deptSelectEq }));
+
+    const orgMaybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
+    const orgSelectEq = vi.fn(() => ({ maybeSingle: orgMaybeSingle }));
+    const orgSelect = vi.fn(() => ({ eq: orgSelectEq }));
+
+    const updateEq = vi.fn().mockResolvedValue({ error: null });
+    const update = vi.fn(() => ({ eq: updateEq }));
+
+    const joinSelectEq = vi
+      .fn()
+      .mockResolvedValue({ data: [{ rallye_id: 10 }], error: null });
+    const joinSelect = vi.fn(() => ({ eq: joinSelectEq }));
+    const joinInsert = vi
+      .fn()
+      .mockResolvedValue({ error: { message: 'insert failed' } });
+    const joinDelete = vi.fn();
+
+    const from = vi.fn((table: string) => {
+      if (table === 'department') return { select: deptSelect, update };
+      if (table === 'organization') return { select: orgSelect };
+      if (table === 'join_department_rallye') {
+        return { select: joinSelect, insert: joinInsert, delete: joinDelete };
+      }
+      return {};
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateDepartment } = await import('./department');
+    const result = await updateDepartment(
+      null,
+      makeFormData(
+        { id: '5', name: 'IT', organization_id: '1' },
+        { rallye_ids: ['20'] }
+      )
+    );
+
+    expect(result?.success).toBe(false);
+    if (result?.success !== false) throw new Error('Expected failure');
+    expect(result.error).toBe('Es ist ein Fehler aufgetreten');
+    expect(joinDelete).not.toHaveBeenCalled();
+  });
+
+  it('returns an error when removing stale rallye links fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const deptMaybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 5 }, error: null });
+    const deptSelectEq = vi.fn(() => ({ maybeSingle: deptMaybeSingle }));
+    const deptSelect = vi.fn(() => ({ eq: deptSelectEq }));
+
+    const orgMaybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
+    const orgSelectEq = vi.fn(() => ({ maybeSingle: orgMaybeSingle }));
+    const orgSelect = vi.fn(() => ({ eq: orgSelectEq }));
+
+    const updateEq = vi.fn().mockResolvedValue({ error: null });
+    const update = vi.fn(() => ({ eq: updateEq }));
+
+    const joinSelectEq = vi
+      .fn()
+      .mockResolvedValue({ data: [{ rallye_id: 10 }], error: null });
+    const joinSelect = vi.fn(() => ({ eq: joinSelectEq }));
+    const joinDeleteIn = vi
+      .fn()
+      .mockResolvedValue({ error: { message: 'delete failed' } });
+    const joinDeleteEq = vi.fn(() => ({ in: joinDeleteIn }));
+    const joinDelete = vi.fn(() => ({ eq: joinDeleteEq }));
+
+    const from = vi.fn((table: string) => {
+      if (table === 'department') return { select: deptSelect, update };
+      if (table === 'organization') return { select: orgSelect };
+      if (table === 'join_department_rallye') {
+        return { select: joinSelect, delete: joinDelete, insert: vi.fn() };
+      }
+      return {};
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateDepartment } = await import('./department');
+    const result = await updateDepartment(
+      null,
+      makeFormData({ id: '5', name: 'IT', organization_id: '1' })
+    );
+
+    expect(result?.success).toBe(false);
+    if (result?.success !== false) throw new Error('Expected failure');
+    expect(result.error).toBe('Es ist ein Fehler aufgetreten');
+    expect(joinDeleteEq).toHaveBeenCalledWith('department_id', 5);
+    expect(joinDeleteIn).toHaveBeenCalledWith('rallye_id', [10]);
   });
 });
 

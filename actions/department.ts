@@ -146,26 +146,39 @@ export async function updateDepartment(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  // Sync rallye assignments: delete all existing, then insert new ones
-  const rallyeIds = formData
-    .getAll('rallye_ids')
-    .map(Number)
-    .filter((id) => !isNaN(id) && id > 0);
+  // Sync rallye assignments by delta to avoid deleting all links on partial failures.
+  const selectedRallyeIds = Array.from(
+    new Set(
+      formData
+        .getAll('rallye_ids')
+        .map(Number)
+        .filter((id) => !isNaN(id) && id > 0)
+    )
+  );
 
-  const { error: deleteError } = await supabase
+  const { data: existingAssignments, error: existingAssignmentsError } = await supabase
     .from('join_department_rallye')
-    .delete()
+    .select('rallye_id')
     .eq('department_id', data.id);
 
-  if (deleteError) {
-    console.error('Error deleting rallye assignments:', deleteError);
+  if (existingAssignmentsError) {
+    console.error('Error loading existing rallye assignments:', existingAssignmentsError);
+    return fail('Es ist ein Fehler aufgetreten');
   }
 
-  if (rallyeIds.length > 0) {
+  const existingRallyeIds = new Set((existingAssignments || []).map((row) => row.rallye_id));
+  const selectedRallyeIdSet = new Set(selectedRallyeIds);
+
+  const rallyeIdsToInsert = selectedRallyeIds.filter((rallyeId) => !existingRallyeIds.has(rallyeId));
+  const rallyeIdsToDelete = Array.from(existingRallyeIds).filter(
+    (rallyeId) => !selectedRallyeIdSet.has(rallyeId)
+  );
+
+  if (rallyeIdsToInsert.length > 0) {
     const { error: insertError } = await supabase
       .from('join_department_rallye')
       .insert(
-        rallyeIds.map((rallyeId) => ({
+        rallyeIdsToInsert.map((rallyeId) => ({
           department_id: data.id,
           rallye_id: rallyeId,
         }))
@@ -173,6 +186,20 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
     if (insertError) {
       console.error('Error saving rallye assignments:', insertError);
+      return fail('Es ist ein Fehler aufgetreten');
+    }
+  }
+
+  if (rallyeIdsToDelete.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('join_department_rallye')
+      .delete()
+      .eq('department_id', data.id)
+      .in('rallye_id', rallyeIdsToDelete);
+
+    if (deleteError) {
+      console.error('Error deleting rallye assignments:', deleteError);
+      return fail('Es ist ein Fehler aufgetreten');
     }
   }
 
