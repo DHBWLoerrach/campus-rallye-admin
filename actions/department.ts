@@ -1,7 +1,7 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
-import { requireProfile } from '@/lib/require-profile';
+import { requireAdmin } from '@/lib/require-profile';
 import { Department, DepartmentOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, departmentCreateSchema, departmentUpdateSchema } from '@/lib/validation';
@@ -9,7 +9,7 @@ import { formatZodError, departmentCreateSchema, departmentUpdateSchema } from '
 type FormState = ActionResult<{ message: string; departmentId?: number }> | null;
 
 export async function createDepartment(state: FormState, formData: FormData) {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const parsed = departmentCreateSchema.safeParse({
@@ -96,7 +96,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
 }
 
 export async function updateDepartment(state: FormState, formData: FormData) {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const parsed = departmentUpdateSchema.safeParse({
@@ -221,7 +221,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 }
 
 export async function getDepartments(): Promise<ActionResult<Department[]>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -238,7 +238,7 @@ export async function getDepartments(): Promise<ActionResult<Department[]>> {
 }
 
 export async function getDepartmentOptions(): Promise<ActionResult<DepartmentOption[]>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const { data, error } = await supabase.from('department').select('id, name');
@@ -258,7 +258,7 @@ export async function getDepartmentOptions(): Promise<ActionResult<DepartmentOpt
 export async function deleteDepartment(
   departmentId: string
 ): Promise<ActionResult<{ message: string }>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const idResult = departmentUpdateSchema.shape.id.safeParse(departmentId);
@@ -299,7 +299,7 @@ export async function deleteDepartment(
 export async function getRallyeAssignmentsByDepartment(
   departmentId: number
 ): Promise<ActionResult<number[]>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const { data, error } = await supabase

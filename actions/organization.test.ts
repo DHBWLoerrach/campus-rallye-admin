@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockRequireProfile, mockCreateClient, mockRevalidatePath } = vi.hoisted(
+const { mockRequireAdmin, mockCreateClient, mockRevalidatePath } = vi.hoisted(
   () => ({
-    mockRequireProfile: vi.fn(),
+    mockRequireAdmin: vi.fn(),
     mockCreateClient: vi.fn(),
     mockRevalidatePath: vi.fn(),
   })
 );
 
 vi.mock('@/lib/require-profile', () => ({
-  requireProfile: mockRequireProfile,
+  requireAdmin: mockRequireAdmin,
 }));
 
 vi.mock('@/lib/supabase', () => ({
@@ -35,7 +35,7 @@ describe('createOrganization', () => {
   });
 
   it('returns validation errors before touching Supabase', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
     const { createOrganization } = await import('./organization');
     const result = await createOrganization(null, makeFormData({ name: '' }));
@@ -46,8 +46,8 @@ describe('createOrganization', () => {
     expect(result.issues?.name).toBe('Name ist erforderlich');
   });
 
-  it('requires a profile before touching Supabase', async () => {
-    mockRequireProfile.mockRejectedValue(new Error('Denied'));
+  it('requires admin before touching Supabase', async () => {
+    mockRequireAdmin.mockRejectedValue(new Error('Denied'));
 
     const { createOrganization } = await import('./organization');
 
@@ -59,7 +59,7 @@ describe('createOrganization', () => {
   });
 
   it('treats "none" default_rallye_id as null', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const single = vi.fn().mockResolvedValue({ data: { id: 1 }, error: null });
     const select = vi.fn(() => ({ single }));
     const insert = vi.fn(() => ({ select }));
@@ -86,7 +86,7 @@ describe('updateOrganization', () => {
   });
 
   it('returns validation errors before touching Supabase', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
     const { updateOrganization } = await import('./organization');
     const result = await updateOrganization(
@@ -100,7 +100,7 @@ describe('updateOrganization', () => {
   });
 
   it('returns error when organization not found', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq: selectEq }));
@@ -126,7 +126,7 @@ describe('deleteOrganization', () => {
   });
 
   it('returns error for invalid id', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
     const { deleteOrganization } = await import('./organization');
     const result = await deleteOrganization('abc');
@@ -137,7 +137,7 @@ describe('deleteOrganization', () => {
   });
 
   it('returns error when organization not found', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq: selectEq }));
@@ -159,8 +159,8 @@ describe('getRallyeOptionsByOrganization', () => {
     vi.resetModules();
   });
 
-  it('requires a profile', async () => {
-    mockRequireProfile.mockRejectedValue(new Error('Denied'));
+  it('requires admin', async () => {
+    mockRequireAdmin.mockRejectedValue(new Error('Denied'));
 
     const { getRallyeOptionsByOrganization } = await import('./organization');
 
@@ -169,7 +169,7 @@ describe('getRallyeOptionsByOrganization', () => {
   });
 
   it('returns an error when supabase query fails', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const eq = vi
       .fn()
       .mockResolvedValue({ data: null, error: { message: 'DB error' } });
@@ -186,7 +186,7 @@ describe('getRallyeOptionsByOrganization', () => {
   });
 
   it('deduplicates and sorts rallye options', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
     // Simulate two departments, each with overlapping rallye assignments
     const data = [
@@ -223,7 +223,7 @@ describe('getRallyeOptionsByOrganization', () => {
   });
 
   it('returns empty array when no departments have rallyes', async () => {
-    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
     const data = [
       { join_department_rallye: [] },

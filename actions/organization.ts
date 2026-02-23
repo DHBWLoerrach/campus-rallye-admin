@@ -1,7 +1,7 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
-import { requireProfile } from '@/lib/require-profile';
+import { requireAdmin } from '@/lib/require-profile';
 import { Organization, OrganizationOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, organizationCreateSchema, organizationUpdateSchema } from '@/lib/validation';
@@ -10,7 +10,7 @@ import type { RallyeOption } from '@/lib/types';
 type FormState = ActionResult<{ message: string; organizationId?: number }> | null;
 
 export async function createOrganization(state: FormState, formData: FormData) {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const rawRallyeId = formData.get('default_rallye_id');
@@ -47,7 +47,7 @@ export async function createOrganization(state: FormState, formData: FormData) {
 }
 
 export async function updateOrganization(state: FormState, formData: FormData) {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const rawRallyeId = formData.get('default_rallye_id');
@@ -98,7 +98,7 @@ export async function updateOrganization(state: FormState, formData: FormData) {
 }
 
 export async function getOrganizations(): Promise<ActionResult<Organization[]>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -115,7 +115,7 @@ export async function getOrganizations(): Promise<ActionResult<Organization[]>> 
 }
 
 export async function getOrganizationOptions(): Promise<ActionResult<OrganizationOption[]>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const { data, error } = await supabase.from('organization').select('id, name');
@@ -135,7 +135,7 @@ export async function getOrganizationOptions(): Promise<ActionResult<Organizatio
 export async function deleteOrganization(
   organizationId: string
 ): Promise<ActionResult<{ message: string }>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const idResult = organizationUpdateSchema.shape.id.safeParse(organizationId);
@@ -175,7 +175,7 @@ export async function deleteOrganization(
 export async function getRallyeOptionsByOrganization(
   organizationId: number
 ): Promise<ActionResult<RallyeOption[]>> {
-  await requireProfile();
+  await requireAdmin();
   const supabase = await createClient();
 
   const { data, error } = await supabase
