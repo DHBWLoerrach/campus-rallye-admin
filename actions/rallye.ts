@@ -38,6 +38,40 @@ export async function createRallye(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
+  // Save department assignments
+  const departmentIds = formData
+    .getAll('department_ids')
+    .map(Number)
+    .filter((id) => !isNaN(id) && id > 0);
+
+  if (departmentIds.length > 0) {
+    const { error: joinError } = await supabase
+      .from('join_department_rallye')
+      .insert(
+        departmentIds.map((departmentId) => ({
+          department_id: departmentId,
+          rallye_id: createdRallye.id,
+        }))
+      );
+
+    if (joinError) {
+      console.error('Error saving department assignments:', joinError);
+      const { error: rollbackError } = await supabase
+        .from('rallye')
+        .delete()
+        .eq('id', createdRallye.id);
+
+      if (rollbackError) {
+        console.error(
+          'Error rolling back rallye creation after assignment failure:',
+          rollbackError
+        );
+      }
+
+      return fail('Es ist ein Fehler aufgetreten');
+    }
+  }
+
   revalidatePath('/');
   return ok({
     message: 'Rallye erfolgreich gespeichert',
