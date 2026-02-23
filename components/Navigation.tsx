@@ -6,7 +6,7 @@ import NavItems from '@/components/NavItems';
 import DarkModeToggle from '@/components/DarkModeToggle';
 import { getSignOutUrl } from '@/lib/sign-out-url';
 
-const routes: Route[] = [
+const allRoutes: Route[] = [
   {
     href: '/rallyes',
     label: 'Rallyes',
@@ -25,8 +25,13 @@ const routes: Route[] = [
   },
 ];
 
-export default async function Nav() {
+const adminOnlyRoutes = new Set(['/organizations', '/departments']);
+
+export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
   const signOutUrl = getSignOutUrl();
+  const routes = isAdmin
+    ? allRoutes
+    : allRoutes.filter((r) => !adminOnlyRoutes.has(r.href));
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">

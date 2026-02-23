@@ -7,7 +7,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await requireProfile(true);
+  const profile = await requireProfile(true);
   return (
     <ThemeProvider
       attribute="class"
@@ -15,7 +15,7 @@ export default async function RootLayout({
       enableSystem
       disableTransitionOnChange
     >
-      <Navigation />
+      <Navigation isAdmin={profile.admin === true} />
       {children}
     </ThemeProvider>
   );
