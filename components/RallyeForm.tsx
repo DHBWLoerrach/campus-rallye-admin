@@ -7,6 +7,7 @@ import { CircleX, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { updateRallye, deleteRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -21,11 +22,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RALLYE_STATUSES, getRallyeStatusLabel } from '@/lib/types';
-import type { Rallye, RallyeStatus } from '@/lib/types';
+import type { DepartmentOption, Rallye, RallyeStatus } from '@/lib/types';
 
 interface RallyeFormProps {
   rallye: Rallye;
   onCancel: () => void;
+  departmentOptions: DepartmentOption[];
+  assignedDepartmentIds: number[];
 }
 
 function SaveButton() {
@@ -44,7 +47,7 @@ function SaveButton() {
   );
 }
 
-export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
+export default function RallyeCardForm({ rallye, onCancel, departmentOptions, assignedDepartmentIds }: RallyeFormProps) {
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
@@ -53,6 +56,9 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<Set<number>>(
+    new Set(assignedDepartmentIds)
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -176,6 +182,38 @@ export default function RallyeCardForm({ rallye, onCancel }: RallyeFormProps) {
                 )}
               </Button>
             </div>
+          </div>
+
+          <div className="grid gap-2 mt-2">
+            <Label>Abteilungen zuordnen</Label>
+            <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
+              {departmentOptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Keine Abteilungen vorhanden</p>
+              ) : (
+                departmentOptions.map((dept) => (
+                  <div key={dept.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`edit-dept-${dept.id}`}
+                      checked={selectedDepartmentIds.has(dept.id)}
+                      onCheckedChange={(checked) => {
+                        setSelectedDepartmentIds((prev) => {
+                          const next = new Set(prev);
+                          if (checked === true) next.add(dept.id);
+                          else next.delete(dept.id);
+                          return next;
+                        });
+                      }}
+                    />
+                    <Label htmlFor={`edit-dept-${dept.id}`} className="text-sm">
+                      {dept.name}
+                    </Label>
+                  </div>
+                ))
+              )}
+            </div>
+            {Array.from(selectedDepartmentIds).map((id) => (
+              <input key={id} type="hidden" name="department_ids" value={id} />
+            ))}
           </div>
 
           {/* Button-Bereich mit Speichern und Löschen */}

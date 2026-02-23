@@ -13,8 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { DepartmentOption } from '@/lib/types';
 
 // TODO: in RallyeForm we basically have the same button…
 function SaveButton({ disabled }: { disabled: boolean }) {
@@ -33,8 +35,15 @@ function SaveButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
+export default function RallyeDialog({
+  buttonStyle,
+  departmentOptions,
+}: {
+  buttonStyle: string;
+  departmentOptions: DepartmentOption[];
+}) {
   const [name, setName] = useState('');
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState(false);
   const [createdRallyeId, setCreatedRallyeId] = useState<number | null>(null);
   const [createdRallyeName, setCreatedRallyeName] = useState('');
@@ -55,6 +64,7 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
     setOpen(nextOpen);
     if (!nextOpen) {
       setName('');
+      setSelectedDepartmentIds(new Set());
       setCreatedRallyeId(null);
       setCreatedRallyeName('');
     }
@@ -115,6 +125,37 @@ export default function RallyeDialog({ buttonStyle }: { buttonStyle: string }) {
                   onChange={(e) => setName(e.target.value)}
                   className="col-span-3"
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label>Abteilungen zuordnen (optional)</Label>
+                <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
+                  {departmentOptions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Keine Abteilungen vorhanden</p>
+                  ) : (
+                    departmentOptions.map((dept) => (
+                      <div key={dept.id} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`create-dept-${dept.id}`}
+                          checked={selectedDepartmentIds.has(dept.id)}
+                          onCheckedChange={(checked) => {
+                            setSelectedDepartmentIds((prev) => {
+                              const next = new Set(prev);
+                              if (checked === true) next.add(dept.id);
+                              else next.delete(dept.id);
+                              return next;
+                            });
+                          }}
+                        />
+                        <Label htmlFor={`create-dept-${dept.id}`} className="text-sm">
+                          {dept.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {Array.from(selectedDepartmentIds).map((id) => (
+                  <input key={id} type="hidden" name="department_ids" value={id} />
+                ))}
               </div>
             </div>
             <DialogFooter>

@@ -21,7 +21,7 @@ describe('RallyeDialog', () => {
       data: { message: 'Rallye erfolgreich gespeichert', rallyeId: 42 },
     });
 
-    render(<RallyeDialog buttonStyle="" />);
+    render(<RallyeDialog buttonStyle="" departmentOptions={[]} />);
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Rallye erstellen' })
