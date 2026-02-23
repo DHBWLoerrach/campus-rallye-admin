@@ -149,6 +149,63 @@ export async function updateRallye(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
+  // Sync department assignments by delta to avoid deleting all links on partial failures.
+  const selectedDepartmentIds = Array.from(
+    new Set(
+      formData
+        .getAll('department_ids')
+        .map(Number)
+        .filter((id) => !isNaN(id) && id > 0)
+    )
+  );
+
+  const { data: existingAssignments, error: existingAssignmentsError } = await supabase
+    .from('join_department_rallye')
+    .select('department_id')
+    .eq('rallye_id', data.id);
+
+  if (existingAssignmentsError) {
+    console.error('Error loading existing department assignments:', existingAssignmentsError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  const existingDepartmentIds = new Set((existingAssignments || []).map((row) => row.department_id));
+  const selectedDepartmentIdSet = new Set(selectedDepartmentIds);
+
+  const departmentIdsToInsert = selectedDepartmentIds.filter((id) => !existingDepartmentIds.has(id));
+  const departmentIdsToDelete = Array.from(existingDepartmentIds).filter(
+    (id) => !selectedDepartmentIdSet.has(id)
+  );
+
+  if (departmentIdsToInsert.length > 0) {
+    const { error: insertError } = await supabase
+      .from('join_department_rallye')
+      .insert(
+        departmentIdsToInsert.map((departmentId) => ({
+          department_id: departmentId,
+          rallye_id: data.id,
+        }))
+      );
+
+    if (insertError) {
+      console.error('Error saving department assignments:', insertError);
+      return fail('Es ist ein Fehler aufgetreten');
+    }
+  }
+
+  if (departmentIdsToDelete.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('join_department_rallye')
+      .delete()
+      .eq('rallye_id', data.id)
+      .in('department_id', departmentIdsToDelete);
+
+    if (deleteError) {
+      console.error('Error deleting department assignments:', deleteError);
+      return fail('Es ist ein Fehler aufgetreten');
+    }
+  }
+
   revalidatePath('/');
   return ok({ message: 'Rallye erfolgreich gespeichert' });
 }
