@@ -1,4 +1,4 @@
-import { Check, X } from 'lucide-react';
+import { Check, QrCode, X } from 'lucide-react';
 import type { Question } from '@/helpers/questions';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +22,7 @@ const QuestionDetailsRows = ({
   const hasHint = Boolean(question.hint?.trim());
   const hasRallyes = rallyeNames.length > 0;
   const answers = question.answers ?? [];
+  const isQRCode = question.type === 'qr_code';
   const hasAnswers = answers.length > 0;
   const answersLabel = answers.length === 1 ? 'Antwort' : 'Antworten';
   const answersTitle = answers
@@ -64,7 +65,24 @@ const QuestionDetailsRows = ({
           </div>
         </div>
       )}
-      {hasAnswers && (
+      {isQRCode && hasAnswers ? (
+        <div className="flex flex-col gap-1">
+          <div className="pl-3 border-l-2 border-violet-500/20 text-xs flex items-center gap-2">
+            <QrCode className="h-3.5 w-3.5 text-violet-600" />
+            <span className="font-medium text-foreground/80">QR-Code</span>
+            {answers[0]?.qr_generated_at && (
+              <span className="text-muted-foreground">
+                (generiert:{' '}
+                {new Date(answers[0].qr_generated_at).toLocaleString(
+                  'de-DE',
+                  { dateStyle: 'medium', timeStyle: 'short' }
+                )}
+                )
+              </span>
+            )}
+          </div>
+        </div>
+      ) : hasAnswers ? (
         <div className="flex flex-col gap-1">
           <div className="pl-3 border-l-2 border-emerald-500/20 text-xs flex flex-wrap items-center gap-2">
             <span className="font-medium text-foreground/80 whitespace-nowrap">
@@ -89,7 +107,7 @@ const QuestionDetailsRows = ({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

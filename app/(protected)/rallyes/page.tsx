@@ -17,6 +17,7 @@ export default async function Home() {
   // Fetch question counts for all rallyes in a single query
   const questionCounts = new Map<number, number>();
   const uploadQuestionCounts = new Map<number, number>();
+  const qrCodeQuestionCounts = new Map<number, number>();
   if (rallyes && rallyes.length > 0) {
     const rallyeIds = rallyes.map((r) => r.id);
     const { data: joins } = await supabase
@@ -35,6 +36,15 @@ export default async function Home() {
     uploadJoins?.forEach((row) => {
       const current = uploadQuestionCounts.get(row.rallye_id) ?? 0;
       uploadQuestionCounts.set(row.rallye_id, current + 1);
+    });
+    const { data: qrJoins } = await supabase
+      .from('join_rallye_questions')
+      .select('rallye_id, questions!inner(type)')
+      .in('rallye_id', rallyeIds)
+      .eq('questions.type', 'qr_code');
+    qrJoins?.forEach((row) => {
+      const current = qrCodeQuestionCounts.get(row.rallye_id) ?? 0;
+      qrCodeQuestionCounts.set(row.rallye_id, current + 1);
     });
   }
   return (
@@ -60,6 +70,7 @@ export default async function Home() {
             rallye={rallye}
             questionCount={questionCounts.get(rallye.id) ?? 0}
             uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
+            qrCodeQuestionCount={qrCodeQuestionCounts.get(rallye.id) ?? 0}
           />
         ))}
       </section>

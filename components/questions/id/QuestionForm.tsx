@@ -16,6 +16,7 @@ import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
 import type { RallyeOption } from '@/lib/types';
 import QuestionImage from './QuestionImage';
+import QRCodeDisplay from '@/components/questions/QRCodeDisplay';
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -268,7 +269,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           newErrors.answers = 'Antworten müssen unterschiedlich sein';
         }
       }
-    } else if (data.type !== 'upload' && validAnswers.length === 0) {
+    } else if (data.type !== 'upload' && data.type !== 'qr_code' && validAnswers.length === 0) {
       newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
     }
     setErrors(newErrors);
@@ -300,7 +301,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const isMultipleChoice = formData.type === 'multiple_choice';
   const isUpload = formData.type === 'upload';
   const isPicture = formData.type === 'picture';
-  const showAnswers = hasType && !isUpload;
+  const isQRCode = formData.type === 'qr_code';
+  const showAnswers = hasType && !isUpload && !isQRCode;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -459,6 +461,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <span className="text-sm text-destructive">{errors.answers}</span>
             )}
           </div>
+        )}
+
+        {/* QR code display for existing qr_code questions */}
+        {isQRCode && initialData?.id && initialData.answers?.[0]?.text && (
+          <QRCodeDisplay
+            questionId={initialData.id}
+            answer={initialData.answers[0]}
+            questionText={formData.content}
+          />
         )}
 
         <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">

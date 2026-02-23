@@ -72,7 +72,7 @@ const validateAnswers = (
         message: 'Antworten müssen unterschiedlich sein',
       });
     }
-  } else if (data.type !== 'upload' && normalizedAnswers.length < 1) {
+  } else if (data.type !== 'upload' && data.type !== 'qr_code' && normalizedAnswers.length < 1) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['answers'],

@@ -1,4 +1,5 @@
 'use server';
+import crypto from 'crypto';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
 import type { Question } from '@/helpers/questions';
@@ -49,7 +50,7 @@ export async function getQuestionById(
   const { data, error } = await supabase
     .from('questions')
     .select(
-      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text, qr_generated_at)'
     )
     .eq('id', idResult.data)
     .maybeSingle();
@@ -202,6 +203,25 @@ export async function createQuestion(data: {
     }
 
     const questionId = questionData[0].id;
+
+    // Auto-generate QR code for qr_code questions
+    if (parsed.data.type === 'qr_code') {
+      const qrContent = JSON.stringify({
+        type: 'campus-rallye-qr',
+        question_id: questionId,
+        code: crypto.randomUUID(),
+      });
+      const { error: qrError } = await supabase.from('answers').insert({
+        question_id: questionId,
+        correct: true,
+        text: qrContent,
+        qr_generated_at: new Date().toISOString(),
+      });
+      if (qrError) {
+        console.error('Error generating QR code:', qrError);
+        return fail('QR-Code konnte nicht generiert werden');
+      }
+    }
 
     type AnswerInsert = {
       correct: boolean;
@@ -460,5 +480,119 @@ export async function deleteQuestion(
   } catch (err) {
     console.error('Error processing request:', err);
     return fail('Frage konnte nicht gelöscht werden');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// QR-Code specific actions
+// ---------------------------------------------------------------------------
+
+export async function regenerateQRCode(
+  questionId: number
+): Promise<ActionResult<{ message: string }>> {
+  await requireProfile();
+  const idResult = idSchema.safeParse(questionId);
+  if (!idResult.success) {
+    return fail('Ungültige Frage-ID', formatZodError(idResult.error));
+  }
+
+  try {
+    const supabase = await createClient();
+
+    // Verify the question is a qr_code question
+    const { data: question, error: questionError } = await supabase
+      .from('questions')
+      .select('id, type')
+      .eq('id', idResult.data)
+      .eq('type', 'qr_code')
+      .maybeSingle();
+
+    if (questionError || !question) {
+      return fail('QR-Code-Frage nicht gefunden');
+    }
+
+    const qrContent = JSON.stringify({
+      type: 'campus-rallye-qr',
+      question_id: idResult.data,
+      code: crypto.randomUUID(),
+    });
+
+    // Delete old answer and insert new one
+    const { error: deleteError } = await supabase
+      .from('answers')
+      .delete()
+      .eq('question_id', idResult.data);
+
+    if (deleteError) {
+      console.error('Error deleting old QR code:', deleteError);
+      return fail('QR-Code konnte nicht neu generiert werden');
+    }
+
+    const { error: insertError } = await supabase.from('answers').insert({
+      question_id: idResult.data,
+      correct: true,
+      text: qrContent,
+      qr_generated_at: new Date().toISOString(),
+    });
+
+    if (insertError) {
+      console.error('Error inserting new QR code:', insertError);
+      return fail('QR-Code konnte nicht neu generiert werden');
+    }
+
+    return ok({ message: 'QR-Code erfolgreich neu generiert' });
+  } catch (err) {
+    console.error('Error regenerating QR code:', err);
+    return fail('QR-Code konnte nicht neu generiert werden');
+  }
+}
+
+export async function getQRCodeQuestionsForRallye(
+  rallyeId: number
+): Promise<ActionResult<Question[]>> {
+  await requireProfile();
+  const idResult = idSchema.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  try {
+    const supabase = await createClient();
+
+    // Get question IDs for this rallye that are qr_code type
+    const { data: joins, error: joinError } = await supabase
+      .from('join_rallye_questions')
+      .select('question_id, questions!inner(type)')
+      .eq('rallye_id', idResult.data)
+      .eq('questions.type', 'qr_code');
+
+    if (joinError) {
+      console.error('Error fetching QR code questions:', joinError);
+      return fail('QR-Code-Fragen konnten nicht geladen werden');
+    }
+
+    if (!joins || joins.length === 0) {
+      return ok([]);
+    }
+
+    const questionIds = joins.map((row) => row.question_id);
+
+    const { data: questions, error: questionsError } = await supabase
+      .from('questions')
+      .select(
+        'id, content, type, points, hint, category, bucket_path, answers(id, correct, text, qr_generated_at)'
+      )
+      .in('id', questionIds)
+      .order('content');
+
+    if (questionsError) {
+      console.error('Error fetching QR code questions:', questionsError);
+      return fail('QR-Code-Fragen konnten nicht geladen werden');
+    }
+
+    return ok((questions || []) as Question[]);
+  } catch (err) {
+    console.error('Error fetching QR code questions:', err);
+    return fail('QR-Code-Fragen konnten nicht geladen werden');
   }
 }

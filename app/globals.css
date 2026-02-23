@@ -197,3 +197,32 @@
 .text-dhbw {
   color: var(--dhbw-500) !important;
 }
+
+/* Print styles for QR codes */
+@media print {
+  nav,
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .qr-print-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .qr-print-view svg {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  @page {
+    margin: 1.5cm;
+  }
+}

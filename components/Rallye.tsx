@@ -9,12 +9,14 @@ interface RallyeProps {
   rallye: Rallye;
   questionCount?: number;
   uploadQuestionCount?: number;
+  qrCodeQuestionCount?: number;
 }
 
 export default function Rallye({
   rallye,
   questionCount,
   uploadQuestionCount,
+  qrCodeQuestionCount,
 }: RallyeProps) {
   const [editMode, setEditMode] = useState<boolean>(false);
 
@@ -25,6 +27,7 @@ export default function Rallye({
       rallye={rallye}
       questionCount={questionCount}
       uploadQuestionCount={uploadQuestionCount}
+      qrCodeQuestionCount={qrCodeQuestionCount}
       onEdit={() => setEditMode(true)}
     />
   );

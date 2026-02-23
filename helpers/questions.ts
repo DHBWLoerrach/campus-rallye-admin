@@ -3,6 +3,7 @@ export interface Answer {
   correct: boolean;
   text?: string;
   question_id?: number;
+  qr_generated_at?: string;
 }
 
 export interface Question {
