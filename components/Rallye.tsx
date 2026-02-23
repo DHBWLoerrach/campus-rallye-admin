@@ -4,6 +4,7 @@ import { useState } from 'react';
 import RallyeCard from '@/components/RallyeCard';
 import RallyeForm from '@/components/RallyeForm';
 import type { DepartmentOption, Rallye } from '@/lib/types';
+import type { RallyeUiType } from '@/lib/rallye-ui-type';
 
 interface RallyeProps {
   rallye: Rallye;
@@ -14,6 +15,7 @@ interface RallyeProps {
   departmentAssignmentsLoaded: boolean;
   typeLabel?: string;
   contextLabel?: string;
+  rallyeUiType?: RallyeUiType;
 }
 
 export default function Rallye({
@@ -25,6 +27,7 @@ export default function Rallye({
   departmentAssignmentsLoaded,
   typeLabel,
   contextLabel,
+  rallyeUiType,
 }: RallyeProps) {
   const [editMode, setEditMode] = useState<boolean>(false);
 
@@ -35,6 +38,7 @@ export default function Rallye({
       departmentOptions={departmentOptions}
       assignedDepartmentIds={assignedDepartmentIds}
       departmentAssignmentsLoaded={departmentAssignmentsLoaded}
+      allowDepartmentAssignments={rallyeUiType !== 'event'}
     />
   ) : (
     <RallyeCard

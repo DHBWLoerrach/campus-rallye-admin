@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   classifyRallyesByType,
+  getEventDepartmentIds,
   getRallyeUiTypeLabel,
+  getEventDepartmentIdByOrganization,
+  isEventDepartmentForOrganization,
   type RallyeUiDepartment,
   type RallyeUiDepartmentAssignment,
   type RallyeUiOrganization,
@@ -107,5 +110,44 @@ describe('getRallyeUiTypeLabel', () => {
     expect(getRallyeUiTypeLabel('event')).toBe('Event');
     expect(getRallyeUiTypeLabel('program')).toBe('Studiengang');
     expect(getRallyeUiTypeLabel('other')).toBe('Weitere');
+  });
+});
+
+describe('isEventDepartmentForOrganization', () => {
+  it('matches names with trimming and case-insensitive comparison', () => {
+    expect(
+      isEventDepartmentForOrganization(' DHBW LÖRRACH ', 'dhbw lörrach')
+    ).toBe(true);
+    expect(
+      isEventDepartmentForOrganization('Informatik', 'DHBW Lörrach')
+    ).toBe(false);
+  });
+});
+
+describe('getEventDepartmentIdByOrganization', () => {
+  it('returns one deterministic event department per organization', () => {
+    const eventDepartmentMap = getEventDepartmentIdByOrganization(
+      organizations,
+      [
+        ...departments,
+        { id: 5, name: 'DHBW Lörrach', organization_id: 1 },
+        { id: 6, name: 'dhbw lörrach', organization_id: 1 },
+      ]
+    );
+
+    expect(eventDepartmentMap.get(1)).toBe(5);
+    expect(eventDepartmentMap.get(2)).toBe(20);
+  });
+});
+
+describe('getEventDepartmentIds', () => {
+  it('returns all departments that match the event naming convention', () => {
+    const ids = getEventDepartmentIds(organizations, [
+      ...departments,
+      { id: 5, name: 'DHBW Lörrach', organization_id: 1 },
+      { id: 6, name: 'Informatik', organization_id: 1 },
+    ]);
+
+    expect(Array.from(ids).sort((a, b) => a - b)).toEqual([5, 10, 20]);
   });
 });

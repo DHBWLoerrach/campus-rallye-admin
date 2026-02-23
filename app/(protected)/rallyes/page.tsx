@@ -1,13 +1,17 @@
 import createClient from '@/lib/supabase';
 import Rallye from '@/components/Rallye';
-import RallyeDialog from '@/components/RallyeDialog';
+import EventRallyeDialog from '@/components/rallyes/EventRallyeDialog';
 import ExplorationRow from '@/components/rallyes/ExplorationRow';
+import ProgramRallyeDialog from '@/components/rallyes/ProgramRallyeDialog';
 import {
   classifyRallyesByType,
+  getEventDepartmentIds,
+  getEventDepartmentIdByOrganization,
   getRallyeUiTypeLabel,
   type RallyeUiClassification,
   type RallyeUiType,
 } from '@/lib/rallye-ui-type';
+import type { DepartmentOption } from '@/lib/types';
 
 type RallyeRow = {
   id: number;
@@ -108,6 +112,9 @@ export default async function Home() {
   const { data: organizations } = await supabase
     .from('organization')
     .select('id, name, default_rallye_id');
+  const typedOrganizations = ((organizations || []) as OrganizationRow[]).sort(
+    (a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+  );
 
   const { data: departmentRows } = await supabase
     .from('department')
@@ -118,6 +125,29 @@ export default async function Home() {
     id,
     name,
   }));
+
+  const eventDepartmentIdByOrganizationMap = getEventDepartmentIdByOrganization(
+    typedOrganizations,
+    typedDepartmentRows
+  );
+  const eventDepartmentIds = getEventDepartmentIds(
+    typedOrganizations,
+    typedDepartmentRows
+  );
+  const eventDepartmentIdByOrganizationId = Object.fromEntries(
+    Array.from(eventDepartmentIdByOrganizationMap.entries()).map(([orgId, deptId]) => [
+      String(orgId),
+      deptId,
+    ])
+  );
+  const eventOrganizationOptions = typedOrganizations.map((organization) => ({
+    id: organization.id,
+    name: organization.name,
+    hasEventDepartment: eventDepartmentIdByOrganizationMap.has(organization.id),
+  }));
+  const programDepartmentOptions: DepartmentOption[] = departmentOptions.filter(
+    (department) => !eventDepartmentIds.has(department.id)
+  );
 
   // Fetch question counts for all rallyes in a single query
   const questionCounts = new Map<number, number>();
@@ -184,7 +214,7 @@ export default async function Home() {
   );
   const rallyeDisplayMeta = new Map<
     number,
-    { typeLabel?: string; contextLabel?: string }
+    { typeLabel?: string; contextLabel?: string; rallyeUiType: RallyeUiType }
   >();
   for (const rallye of typedRallyes) {
     const classification = rallyeTypeById.get(rallye.id);
@@ -199,6 +229,7 @@ export default async function Home() {
         ? getRallyeUiTypeLabel(classification.type)
         : undefined,
       contextLabel: getContextLabel(classification),
+      rallyeUiType: type,
     });
   }
 
@@ -230,13 +261,14 @@ export default async function Home() {
         departmentAssignmentsLoaded={departmentAssignmentsLoaded}
         typeLabel={meta?.typeLabel}
         contextLabel={meta?.contextLabel}
+        rallyeUiType={meta?.rallyeUiType}
       />
     );
   };
 
   return (
     <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
-      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="space-y-1 text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Rallyes
@@ -251,10 +283,6 @@ export default async function Home() {
             Typen werden vorübergehend aus bestehenden Zuordnungen abgeleitet.
           </p>
         </div>
-        <RallyeDialog
-          buttonStyle="w-full sm:w-auto cursor-pointer"
-          departmentOptions={departmentOptions}
-        />
       </section>
       {rallyeSections.map((section) => {
         const sectionRallyes = rallyesByType.get(section.type) ?? [];
@@ -263,9 +291,23 @@ export default async function Home() {
             key={section.type}
             className="space-y-3 rounded-2xl border border-border/60 bg-card/60 p-4"
           >
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">{section.title}</h2>
-              <p className="text-xs text-muted-foreground">{section.description}</p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold text-foreground">{section.title}</h2>
+                <p className="text-xs text-muted-foreground">{section.description}</p>
+              </div>
+              {section.type === 'event' ? (
+                <EventRallyeDialog
+                  buttonStyle="w-full sm:w-auto cursor-pointer"
+                  organizations={eventOrganizationOptions}
+                  eventDepartmentIdByOrganizationId={eventDepartmentIdByOrganizationId}
+                />
+              ) : section.type === 'program' ? (
+                <ProgramRallyeDialog
+                  buttonStyle="w-full sm:w-auto cursor-pointer"
+                  departments={programDepartmentOptions}
+                />
+              ) : null}
             </div>
 
             {sectionRallyes.length === 0 ? (

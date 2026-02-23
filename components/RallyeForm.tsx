@@ -30,6 +30,7 @@ interface RallyeFormProps {
   departmentOptions: DepartmentOption[];
   assignedDepartmentIds: number[];
   departmentAssignmentsLoaded: boolean;
+  allowDepartmentAssignments?: boolean;
 }
 
 function SaveButton() {
@@ -54,6 +55,7 @@ export default function RallyeCardForm({
   departmentOptions,
   assignedDepartmentIds,
   departmentAssignmentsLoaded,
+  allowDepartmentAssignments = true,
 }: RallyeFormProps) {
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
@@ -114,7 +116,7 @@ export default function RallyeCardForm({
         <form action={formAction}>
           <input type="hidden" name="id" value={rallye.id} />
           <input type="hidden" name="end_time" value={date24?.toISOString()} />
-          {departmentAssignmentsLoaded && (
+          {allowDepartmentAssignments && departmentAssignmentsLoaded && (
             <input type="hidden" name="department_sync" value="1" />
           )}
           <Input
@@ -194,45 +196,47 @@ export default function RallyeCardForm({
             </div>
           </div>
 
-          <div className="grid gap-2 mt-2">
-            <Label>Abteilungen zuordnen</Label>
-            {!departmentAssignmentsLoaded ? (
-              <p className="text-sm text-muted-foreground">
-                Abteilungszuordnungen konnten nicht geladen werden. Beim Speichern
-                bleiben bestehende Zuordnungen unverändert.
-              </p>
-            ) : (
-              <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
-                {departmentOptions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Keine Abteilungen vorhanden</p>
-                ) : (
-                  departmentOptions.map((dept) => (
-                    <div key={dept.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`edit-dept-${dept.id}`}
-                        checked={selectedDepartmentIds.has(dept.id)}
-                        onCheckedChange={(checked) => {
-                          setSelectedDepartmentIds((prev) => {
-                            const next = new Set(prev);
-                            if (checked === true) next.add(dept.id);
-                            else next.delete(dept.id);
-                            return next;
-                          });
-                        }}
-                      />
-                      <Label htmlFor={`edit-dept-${dept.id}`} className="text-sm">
-                        {dept.name}
-                      </Label>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-            {departmentAssignmentsLoaded &&
-              Array.from(selectedDepartmentIds).map((id) => (
-                <input key={id} type="hidden" name="department_ids" value={id} />
-              ))}
-          </div>
+          {allowDepartmentAssignments && (
+            <div className="grid gap-2 mt-2">
+              <Label>Abteilungen zuordnen</Label>
+              {!departmentAssignmentsLoaded ? (
+                <p className="text-sm text-muted-foreground">
+                  Abteilungszuordnungen konnten nicht geladen werden. Beim Speichern
+                  bleiben bestehende Zuordnungen unverändert.
+                </p>
+              ) : (
+                <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
+                  {departmentOptions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Keine Abteilungen vorhanden</p>
+                  ) : (
+                    departmentOptions.map((dept) => (
+                      <div key={dept.id} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`edit-dept-${dept.id}`}
+                          checked={selectedDepartmentIds.has(dept.id)}
+                          onCheckedChange={(checked) => {
+                            setSelectedDepartmentIds((prev) => {
+                              const next = new Set(prev);
+                              if (checked === true) next.add(dept.id);
+                              else next.delete(dept.id);
+                              return next;
+                            });
+                          }}
+                        />
+                        <Label htmlFor={`edit-dept-${dept.id}`} className="text-sm">
+                          {dept.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+              {departmentAssignmentsLoaded &&
+                Array.from(selectedDepartmentIds).map((id) => (
+                  <input key={id} type="hidden" name="department_ids" value={id} />
+                ))}
+            </div>
+          )}
 
           {/* Button-Bereich mit Speichern und Löschen */}
           <div className="flex justify-between items-center mt-4">

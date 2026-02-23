@@ -30,8 +30,60 @@ interface ClassifyRallyesParams {
   assignments: RallyeUiDepartmentAssignment[];
 }
 
-const normalizeName = (value: string): string =>
+export const normalizeComparisonName = (value: string): string =>
   value.trim().toLocaleLowerCase('de-DE');
+
+export const isEventDepartmentForOrganization = (
+  departmentName: string,
+  organizationName: string
+): boolean =>
+  normalizeComparisonName(departmentName) ===
+  normalizeComparisonName(organizationName);
+
+export function getEventDepartmentIds(
+  organizations: RallyeUiOrganization[],
+  departments: RallyeUiDepartment[]
+): Set<number> {
+  const organizationNameById = new Map(
+    organizations.map((organization) => [organization.id, organization.name])
+  );
+  const eventDepartmentIds = new Set<number>();
+
+  for (const department of departments) {
+    const organizationName = organizationNameById.get(department.organization_id);
+    if (!organizationName) continue;
+
+    if (isEventDepartmentForOrganization(department.name, organizationName)) {
+      eventDepartmentIds.add(department.id);
+    }
+  }
+
+  return eventDepartmentIds;
+}
+
+export function getEventDepartmentIdByOrganization(
+  organizations: RallyeUiOrganization[],
+  departments: RallyeUiDepartment[]
+): Map<number, number> {
+  const result = new Map<number, number>();
+
+  for (const organization of organizations) {
+    const matchingDepartmentIds = departments
+      .filter(
+        (department) =>
+          department.organization_id === organization.id &&
+          isEventDepartmentForOrganization(department.name, organization.name)
+      )
+      .map((department) => department.id)
+      .sort((a, b) => a - b);
+
+    if (matchingDepartmentIds.length > 0) {
+      result.set(organization.id, matchingDepartmentIds[0]);
+    }
+  }
+
+  return result;
+}
 
 const uniqueSorted = (values: string[]): string[] =>
   Array.from(new Set(values)).sort((a, b) =>
@@ -121,7 +173,7 @@ export function classifyRallyesByType({
 
       organizationNames.push(organization.name);
 
-      if (normalizeName(department.name) === normalizeName(organization.name)) {
+      if (isEventDepartmentForOrganization(department.name, organization.name)) {
         hasEventDepartment = true;
       } else {
         hasProgramDepartment = true;
