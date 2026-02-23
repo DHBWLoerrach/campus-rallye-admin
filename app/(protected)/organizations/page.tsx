@@ -1,36 +1,78 @@
+import { redirect } from 'next/navigation';
 import createClient from '@/lib/supabase';
+import { requireAdmin } from '@/lib/require-profile';
 import Organization from '@/components/Organization';
 import OrganizationDialog from '@/components/OrganizationDialog';
-import { getRallyeOptionsByOrganization } from '@/actions/organization';
+import type { RallyeOption } from '@/lib/types';
 
 export default async function OrganizationsPage() {
+  try {
+    await requireAdmin();
+  } catch {
+    redirect('/rallyes');
+  }
+
   const supabase = await createClient();
-  
+
   // Load organizations
   const { data: organizations } = await supabase
     .from('organization')
     .select('id, name, created_at, default_rallye_id')
     .order('name');
 
-  // Load rallye options per organization (filtered by department assignments)
-  const rallyeOptionsMap = new Map<number, { id: number; name: string }[]>();
+  // Load all department-rallye links in one query and group by organization.
+  const { data: departmentRallyeRows } = await supabase
+    .from('department')
+    .select('organization_id, join_department_rallye(rallye(id, name))');
+
+  const rallyeOptionsMap = new Map<number, RallyeOption[]>();
   const defaultRallyeNames = new Map<number, string>();
+  const rallyeMapByOrganization = new Map<number, Map<number, string>>();
+  const emptyRallyeMap = new Map<number, string>();
+
+  for (const row of departmentRallyeRows || []) {
+    const organizationId = (row as { organization_id: number }).organization_id;
+    const joins = (row as Record<string, unknown>).join_department_rallye;
+
+    let organizationRallyes = rallyeMapByOrganization.get(organizationId);
+    if (!organizationRallyes) {
+      organizationRallyes = new Map<number, string>();
+      rallyeMapByOrganization.set(organizationId, organizationRallyes);
+    }
+
+    if (!Array.isArray(joins)) {
+      continue;
+    }
+
+    for (const join of joins) {
+      const rallyeValue = (join as Record<string, unknown>).rallye;
+      const rallye = Array.isArray(rallyeValue) ? rallyeValue[0] : rallyeValue;
+      if (
+        rallye &&
+        typeof rallye === 'object' &&
+        'id' in rallye &&
+        'name' in rallye &&
+        typeof rallye.id === 'number' &&
+        typeof rallye.name === 'string'
+      ) {
+        organizationRallyes.set(rallye.id, rallye.name);
+      }
+    }
+  }
 
   if (organizations) {
-    const results = await Promise.all(
-      organizations.map((org) => getRallyeOptionsByOrganization(org.id))
-    );
+    organizations.forEach((org) => {
+      const rallyesForOrganization = rallyeMapByOrganization.get(org.id) || emptyRallyeMap;
+      const options = Array.from(rallyesForOrganization.entries())
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
 
-    organizations.forEach((org, index) => {
-      const result = results[index];
-      const options = result.success && result.data ? result.data : [];
       rallyeOptionsMap.set(org.id, options);
 
-      // Determine default rallye name from filtered options
       if (org.default_rallye_id) {
-        const match = options.find((r) => r.id === org.default_rallye_id);
-        if (match) {
-          defaultRallyeNames.set(org.id, match.name);
+        const defaultRallyeName = rallyesForOrganization.get(org.default_rallye_id);
+        if (defaultRallyeName) {
+          defaultRallyeNames.set(org.id, defaultRallyeName);
         }
       }
     });
