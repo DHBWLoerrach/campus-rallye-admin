@@ -22,7 +22,7 @@ describe('EventRallyeDialog', () => {
     vi.clearAllMocks();
   });
 
-  it('submits with automatically assigned event department and refreshes the page', async () => {
+  it('preselects the only organization and submits with automatically assigned event department', async () => {
     mockCreateRallye.mockResolvedValue({
       success: true,
       data: { message: 'Rallye erfolgreich gespeichert', rallyeId: 42 },
@@ -37,12 +37,12 @@ describe('EventRallyeDialog', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Event erstellen' }));
+    expect(screen.getByRole('combobox', { name: 'Organisation' })).toHaveTextContent(
+      'Org A'
+    );
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'Girls Day' },
     });
-    const orgTrigger = screen.getByRole('combobox', { name: 'Organisation' });
-    fireEvent.click(orgTrigger);
-    fireEvent.click(screen.getByRole('option', { name: 'Org A' }));
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
     await waitFor(() => {

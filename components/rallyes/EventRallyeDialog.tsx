@@ -59,8 +59,10 @@ export default function EventRallyeDialog({
   eventDepartmentIdByOrganizationId,
 }: EventRallyeDialogProps) {
   const router = useRouter();
+  const defaultOrganizationId =
+    organizations.length === 1 ? String(organizations[0].id) : '';
   const [name, setName] = useState('');
-  const [organizationId, setOrganizationId] = useState('');
+  const [organizationId, setOrganizationId] = useState(defaultOrganizationId);
   const [open, setOpen] = useState(false);
   const [createdRallyeId, setCreatedRallyeId] = useState<number | null>(null);
   const [createdRallyeName, setCreatedRallyeName] = useState('');
@@ -87,7 +89,7 @@ export default function EventRallyeDialog({
     setOpen(nextOpen);
     if (!nextOpen) {
       setName('');
-      setOrganizationId('');
+      setOrganizationId(defaultOrganizationId);
       setCreatedRallyeId(null);
       setCreatedRallyeName('');
     }
