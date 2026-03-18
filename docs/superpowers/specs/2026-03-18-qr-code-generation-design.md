@@ -17,22 +17,26 @@ Bei Fragen vom Typ `qr_code` soll im Fragen-Formular (Erstellen/Bearbeiten) ein 
 
 - **Sichtbarkeit:** QR-Bereich nur wenn `formData.type === 'qr_code'`
 - **Platzierung:** Direkt unter dem Antwortfeld (analog zu `QuestionImage` bei `picture`)
+- **Antwortquelle:** Die erste Antwort (`formData.answers?.[0]?.text`) – bei `qr_code` gibt es nur ein Antwortfeld
 - **Inhalt:**
   - Button „QR-Code generieren“ (disabled wenn Antwort leer)
-  - Nach Klick: Vorschau des QR-Codes (z.B. 200×200 px)
+  - Nach Klick: Vorschau des QR-Codes (200×200 px)
   - Button „PNG herunterladen“ (nur sichtbar wenn QR-Code bereits generiert)
+- **Auflösung:** Vorschau 200×200 px; Download 400×400 px (für Druck). Beide über Props konfigurierbar (`previewSize`, `downloadSize`, jeweils default 200 bzw. 400)
 - **Reset:** Änderung des Antworttexts setzt die Vorschau zurück (QR-Code muss neu generiert werden)
 
 ### 2. Technische Umsetzung
 
 - **Bibliothek:** `qrcode.react` (npm)
 - **Komponente:** `QuestionQRCode.tsx` – Client Component (`"use client"`)
-  - Props: `answerText: string`, optional `size?: number`
+  - Props: `answerText: string`, optional `questionContent?: string` (für Dateiname), optional `previewSize?: number` (default 200), optional `downloadSize?: number` (default 400), optional `questionId?: number` (Fallback für Dateiname)
 - **Implementierung:**
-  - `QRCodeCanvas` für Vorschau und PNG-Download
+  - `QRCodeCanvas` für Vorschau (previewSize) und PNG-Download (downloadSize)
   - `canvas.toDataURL('image/png')` für Download
+  - **Error Correction Level:** `M` (Medium) – robuster für gedruckte QR-Codes bei Campus-Rallye (draußen, Abnutzung)
+  - **Encoding:** UTF-8 – qrcode.react kodiert Sonderzeichen/Umlaute korrekt, keine Sonderbehandlung nötig
   - Struktur so, dass später `QRCodeSVG` für SVG-Download ergänzt werden kann
-- **Dateiname:** z.B. `qr-code-{questionId oder timestamp}.png`
+- **Dateiname:** Benutzerfreundlich aus dem Fragetext ableiten (z.B. slugify der ersten ~50 Zeichen von `content`), Fallback: `questionId`, sonst Timestamp. Beispiel: `qr-code-campus-bibliothek-eingang.png` statt `qr-code-174231...png`
 
 ### 3. Validierung
 
@@ -42,7 +46,7 @@ Bei Fragen vom Typ `qr_code` soll im Fragen-Formular (Erstellen/Bearbeiten) ein 
 ### 4. Fehlerbehandlung
 
 - Leerer Text: Button „QR-Code generieren“ disabled
-- Sehr langer Text (> 2.9 KB): Fehlermeldung „Text zu lang für QR-Code“ anzeigen
+- Keine hart codierte Längengrenze: Generierung versuchen; bei Fehlschlag (z.B. Kapazitätsüberschreitung) Fehlermeldung „Text zu lang für QR-Code“ anzeigen. Die tatsächliche QR-Kapazität hängt von Inhalt und Fehlerkorrektur ab
 
 ### 5. Dateistruktur
 
