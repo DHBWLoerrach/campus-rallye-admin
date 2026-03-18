@@ -16,6 +16,7 @@ import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
 import type { RallyeOption } from '@/lib/types';
 import QuestionImage from './QuestionImage';
+import QuestionQRCode from './QuestionQRCode';
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -300,6 +301,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const isMultipleChoice = formData.type === 'multiple_choice';
   const isUpload = formData.type === 'upload';
   const isPicture = formData.type === 'picture';
+  const isQRCode = formData.type === 'qr_code';
   const showAnswers = hasType && !isUpload;
 
   return (
@@ -457,6 +459,17 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             )}
             {errors.answers && (
               <span className="text-sm text-destructive">{errors.answers}</span>
+            )}
+            {isQRCode && (
+              <div className="mt-4">
+                <QuestionQRCode
+                  answerText={formData.answers?.[0]?.text ?? ''}
+                  questionContent={formData.content}
+                  questionId={initialData?.id}
+                  previewSize={200}
+                  downloadSize={400}
+                />
+              </div>
             )}
           </div>
         )}
