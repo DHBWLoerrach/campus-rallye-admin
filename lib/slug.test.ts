@@ -14,6 +14,15 @@ describe('slugify', () => {
     expect(slugify('A'.repeat(100), 50)).toHaveLength(50);
   });
 
+  it('replaces uppercase umlauts with ASCII equivalents', () => {
+    expect(slugify('Übersicht Ärger Öffnung')).toBe('uebersicht-aerger-oeffnung');
+  });
+
+  it('returns fallback for only special characters', () => {
+    expect(slugify('---')).toBe('qr-code');
+    expect(slugify('!@#$%')).toBe('qr-code');
+  });
+
   it('returns fallback for empty or whitespace-only input', () => {
     expect(slugify('')).toBe('qr-code');
     expect(slugify('   ')).toBe('qr-code');
