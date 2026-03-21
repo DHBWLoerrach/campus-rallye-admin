@@ -9,7 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Project Structure & Module Organization
 
 - `app/`: Next.js App Router pages/layouts (protected routes live under `app/(protected)/`).
-- `middleware.ts`: Auth/authorization gate; expects `x-forwarded-access-token` and enforces the `staff` role for `/questions`, `/rallyes`, and `/api`.
+- `proxy.ts`: Next.js **Proxy** (replaces the old root `middleware.ts` in this stack); auth/authorization gate. Expects `x-forwarded-access-token` (Traefik/oauth2-proxy), verifies Keycloak (or dev bypass), and applies `lib/auth.ts` (`staff` role or `ALLOWED_EMAILS`). Matcher covers essentially all routes except `/`, `/access-denied`, static assets, and `assets` — see `config.matcher` in that file.
 - `actions/`: Server actions for data mutations/queries (Supabase + app logic).
 - `components/`: Shared React components; `components/ui/` contains shadcn/ui primitives.
 - `lib/`: Shared utilities (Supabase client in `lib/supabase.ts`, SQLite helpers in `lib/db/`).
@@ -55,7 +55,7 @@ IMPORTANT: Stop after each step and wait for my “OK” before committing or mo
 
 ## Coding Style & Naming Conventions
 
-- TypeScript + React (Next.js 15); Tailwind styles live in `app/globals.css`.
+- TypeScript + React (Next.js 16); Tailwind styles live in `app/globals.css`.
 - Formatting follows `.prettierrc` (2-space indent, single quotes, semicolons).
 - Naming: `PascalCase.tsx` for components (e.g., `components/RallyeForm.tsx`); `kebab-case` for utilities and shadcn files (e.g., `lib/user-context.ts`, `components/ui/datetime-picker.tsx`). Keep folder conventions consistent.
 - Prefer path aliases like `@/components` and `@/lib/utils`.
