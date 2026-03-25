@@ -33,7 +33,7 @@ describe('getRallyeResults', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
-  it('fails when the rallye is in voting', async () => {
+  it('rejects rallye results when status is "voting"', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const rallyeQuery = {
@@ -59,10 +59,12 @@ describe('getRallyeResults', () => {
     if (result.success) {
       throw new Error('Expected status check to fail');
     }
-    expect(result.error).toBe('Rallye ist nicht beendet');
+    expect(result.error).toBe(
+      'Rallye-Ergebnisse sind für diesen Status nicht verfügbar'
+    );
   });
 
-  it('fails when the rallye is in planned', async () => {
+  it('rejects rallye results when status is "planned"', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const rallyeQuery = {
@@ -88,10 +90,43 @@ describe('getRallyeResults', () => {
     if (result.success) {
       throw new Error('Expected status check to fail');
     }
-    expect(result.error).toBe('Rallye ist nicht beendet');
+    expect(result.error).toBe(
+      'Rallye-Ergebnisse sind für diesen Status nicht verfügbar'
+    );
   });
 
-  it('accepts running rallyes and returns results', async () => {
+  it('rejects rallye results when status is "preparing"', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const rallyeQuery = {
+      select: vi.fn(() => rallyeQuery),
+      eq: vi.fn(() => ({
+        maybeSingle: vi
+          .fn()
+          .mockResolvedValue({
+            data: { id: 1, status: 'preparing' },
+            error: null,
+          }),
+      })),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn(() => rallyeQuery),
+    });
+
+    const { getRallyeResults } = await import('./rallye-results');
+    const result = await getRallyeResults(1);
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('Expected status check to fail');
+    }
+    expect(result.error).toBe(
+      'Rallye-Ergebnisse sind für diesen Status nicht verfügbar'
+    );
+  });
+
+  it('returns results when rallye status is "running"', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const rallyeQuery = {

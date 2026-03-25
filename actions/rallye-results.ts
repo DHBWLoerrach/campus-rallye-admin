@@ -73,7 +73,7 @@ export async function getRallyeResults(
   const status = (rallye as RallyeRow).status;
   const allowedStatuses: RallyeStatus[] = ['running', 'ranking', 'ended'];
   if (!allowedStatuses.includes(status)) {
-    return fail('Rallye ist nicht beendet');
+    return fail('Rallye-Ergebnisse sind für diesen Status nicht verfügbar');
   }
 
   const { data: teamRows, error: teamError } = await supabase
