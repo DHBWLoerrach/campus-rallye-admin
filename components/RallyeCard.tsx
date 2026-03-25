@@ -33,6 +33,11 @@ export default function RallyeCard({
   const questionCount =
     questionCountProp !== undefined ? questionCountProp : fetchedQuestionCount;
   const uploadQuestionCount = uploadQuestionCountProp ?? 0;
+  const isResultsVisible =
+    rallye.status === 'running' ||
+    rallye.status === 'ranking' ||
+    rallye.status === 'ended';
+  const resultsLabel = rallye.status === 'running' ? 'Zwischenstand' : 'Endstand';
 
   // Fallback: only fetch on client if no count was provided from server
   useEffect(() => {
@@ -152,14 +157,14 @@ export default function RallyeCard({
                 />
               </Link>
             )}
-            {(rallye.status === 'ended' || rallye.status === 'ranking') && (
+            {isResultsVisible && (
               <Link
                 href={`/rallyes/${rallye.id}/results`}
                 className="group flex items-center gap-1 text-xs font-semibold text-primary/80 hover:text-primary hover:underline"
                 onClick={(e) => e.stopPropagation()}
-                aria-label="Endstand anzeigen"
+                aria-label={`${resultsLabel} anzeigen`}
               >
-                Endstand
+                {resultsLabel}
                 <Trophy
                   className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5"
                   aria-hidden="true"

@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Star, Timer } from 'lucide-react';
-import { getRallyeResults, getRallyeMaxPoints } from '@/actions/rallye-results';
+import { getRallyeMaxPoints, getRallyeResults } from '@/actions/rallye-results';
 import { Button } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
 
@@ -10,7 +10,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-type RallyeRow = { id: number; name: string };
+type RallyeRow = { id: number; name: string; status: 'running' | 'ranking' | 'ended' };
 
 function formatDuration(ms?: number | null) {
   if (ms == null) return '-';
@@ -38,13 +38,14 @@ export default async function Page(props: PageProps) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('rallye')
-    .select('id,name')
+    .select('id,name,status')
     .eq('id', rallyeId)
     .maybeSingle();
   if (error || !data) {
     notFound();
   }
   const rallye = data as RallyeRow;
+  const resultsLabel = rallye.status === 'running' ? 'Zwischenstand' : 'Endstand';
 
   const results = await getRallyeResults(rallyeId);
   const maxPointsResult = await getRallyeMaxPoints(rallyeId);
@@ -67,7 +68,7 @@ export default async function Page(props: PageProps) {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Rallye
           </p>
-          <h1 className="text-xl font-semibold text-foreground">Endstand</h1>
+          <h1 className="text-xl font-semibold text-foreground">{resultsLabel}</h1>
           <p className="text-sm text-muted-foreground">
             Rallye „{rallye.name}“ · Maximale Punktzahl: {maxPoints}
           </p>

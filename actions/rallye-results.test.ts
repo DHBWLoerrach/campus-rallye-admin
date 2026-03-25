@@ -33,7 +33,7 @@ describe('getRallyeResults', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
-  it('fails when the rallye is not in ranking or ended', async () => {
+  it('fails when the rallye is not in running, ranking or ended', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const rallyeQuery = {
@@ -60,6 +60,84 @@ describe('getRallyeResults', () => {
       throw new Error('Expected status check to fail');
     }
     expect(result.error).toBe('Rallye ist nicht beendet');
+  });
+
+  it('accepts running rallyes and returns results', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const rallyeQuery = {
+      select: vi.fn(() => rallyeQuery),
+      eq: vi.fn(() => ({
+        maybeSingle: vi
+          .fn()
+          .mockResolvedValue({ data: { id: 1, status: 'running' }, error: null }),
+      })),
+    };
+
+    const teamQuery = {
+      select: vi.fn(() => teamQuery),
+      eq: vi.fn(() =>
+        Promise.resolve({
+          data: [
+            {
+              id: 10,
+              name: 'Team Alpha',
+              created_at: '2024-01-01T00:00:00.000Z',
+              time_played: null,
+            },
+          ],
+          error: null,
+        })
+      ),
+    };
+
+    const teamQuestionQuery = {
+      select: vi.fn(() => teamQuestionQuery),
+      in: vi.fn(() =>
+        Promise.resolve({
+          data: [{ team_id: 10, points: 2 }],
+          error: null,
+        })
+      ),
+    };
+
+    const uploadQuery = {
+      select: vi.fn(() => uploadQuery),
+      in: vi.fn(() => ({
+        eq: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+    };
+
+    const teamQuestionsRouter = {
+      select: vi.fn((fields: string) => {
+        if (fields.includes('team_answer')) return uploadQuery;
+        return teamQuestionQuery;
+      }),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === 'rallye') return rallyeQuery;
+        if (table === 'rallye_team') return teamQuery;
+        if (table === 'team_questions') return teamQuestionsRouter;
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: { from: vi.fn(() => ({ createSignedUrl: vi.fn() })) },
+    });
+
+    const { getRallyeResults } = await import('./rallye-results');
+    const result = await getRallyeResults(1);
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected success');
+    expect(result.data).toHaveLength(1);
+    expect(result.data?.[0]).toMatchObject({
+      teamId: 10,
+      teamName: 'Team Alpha',
+      points: 2,
+      durationMs: null,
+      rank: 1,
+    });
   });
 
   it('orders by points desc then duration asc and assigns ranks', async () => {

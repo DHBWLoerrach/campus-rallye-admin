@@ -91,6 +91,31 @@ describe('RallyeCard', () => {
     }
   );
 
+  it('shows the Zwischenstand link when the rallye is running', () => {
+    render(
+      <RallyeCard
+        rallye={{
+          id: 6,
+          name: 'Rallye 6',
+          status: 'running',
+          end_time: '2024-01-01',
+          password: '',
+          created_at: '2024-01-01',
+        }}
+        questionCount={0}
+        uploadQuestionCount={0}
+        onEdit={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByRole('link', { name: 'Zwischenstand anzeigen' })
+    ).toHaveAttribute('href', '/rallyes/6/results');
+    expect(
+      screen.queryByRole('link', { name: 'Endstand anzeigen' })
+    ).not.toBeInTheDocument();
+  });
+
   it('renders optional type badge and context label', () => {
     render(
       <RallyeCard
