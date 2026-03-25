@@ -293,3 +293,85 @@ export async function deleteRallye(
   revalidatePath('/');
   return ok({ message: 'Rallye erfolgreich gelöscht' });
 }
+
+export async function resetRallye(
+  rallyeId: string
+): Promise<ActionResult<{ message: string }>> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const idResult = rallyeUpdateSchema.shape.id.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  const { data: existingRallye, error: existingError } = await supabase
+    .from('rallye')
+    .select('id, status, end_time')
+    .eq('id', idResult.data)
+    .maybeSingle();
+
+  if (existingError) {
+    console.error('Error checking rallye:', existingError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  if (!existingRallye) {
+    return fail('Rallye nicht gefunden');
+  }
+  const previousState: Pick<Rallye, 'status' | 'end_time'> = {
+    status: existingRallye.status as RallyeStatus,
+    end_time: existingRallye.end_time as string | null,
+  };
+
+  const rollbackRallyeState = async () => {
+    const { error: rollbackError } = await supabase
+      .from('rallye')
+      .update({
+        status: previousState.status,
+        end_time: previousState.end_time,
+      })
+      .eq('id', idResult.data);
+    if (rollbackError) {
+      console.error('Error rolling back rallye reset:', rollbackError);
+    }
+  };
+
+  const { error: rallyeUpdateError } = await supabase
+    .from('rallye')
+    .update({
+      status: 'preparing',
+      end_time: null,
+    })
+    .eq('id', idResult.data);
+
+  if (rallyeUpdateError) {
+    console.error('Error resetting rallye:', rallyeUpdateError);
+    return fail('Fehler beim Zurücksetzen der Rallye');
+  }
+
+  const { error: votingDeleteError } = await supabase
+    .from('voting')
+    .delete()
+    .eq('rallye_id', idResult.data);
+
+  if (votingDeleteError) {
+    console.error('Error deleting rallye voting:', votingDeleteError);
+    await rollbackRallyeState();
+    return fail('Fehler beim Zurücksetzen der Rallye');
+  }
+
+  const { error: teamDeleteError } = await supabase
+    .from('rallye_team')
+    .delete()
+    .eq('rallye_id', idResult.data);
+
+  if (teamDeleteError) {
+    console.error('Error deleting rallye teams:', teamDeleteError);
+    await rollbackRallyeState();
+    return fail('Fehler beim Zurücksetzen der Rallye');
+  }
+
+  revalidatePath('/');
+  return ok({ message: 'Rallye erfolgreich zurückgesetzt' });
+}

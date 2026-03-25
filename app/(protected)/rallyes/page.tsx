@@ -17,7 +17,7 @@ type RallyeRow = {
   id: number;
   name: string;
   status: 'preparing' | 'inactive' | 'running' | 'voting' | 'ranking' | 'ended';
-  end_time: string;
+  end_time: string | null;
   password: string;
   created_at: string;
 };
