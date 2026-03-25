@@ -1,15 +1,17 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RallyeForm from './RallyeForm';
 
-const { mockUpdateRallye, mockDeleteRallye } = vi.hoisted(() => ({
+const { mockUpdateRallye, mockDeleteRallye, mockResetRallye } = vi.hoisted(() => ({
   mockUpdateRallye: vi.fn(),
   mockDeleteRallye: vi.fn(),
+  mockResetRallye: vi.fn(),
 }));
 
 vi.mock('@/actions/rallye', () => ({
   updateRallye: mockUpdateRallye,
   deleteRallye: mockDeleteRallye,
+  resetRallye: mockResetRallye,
 }));
 
 const baseRallye = {
@@ -22,6 +24,10 @@ const baseRallye = {
 };
 
 describe('RallyeForm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('hides department assignment fields when allowDepartmentAssignments is false', () => {
     const { container } = render(
       <RallyeForm
@@ -56,5 +62,38 @@ describe('RallyeForm', () => {
     expect(
       container.querySelector('input[name="department_ids"][value="10"]')
     ).not.toBeNull();
+  });
+
+  it('confirms and triggers rallye reset', async () => {
+    mockResetRallye.mockResolvedValue({
+      success: true,
+      data: { message: 'Rallye erfolgreich zurückgesetzt' },
+    });
+    const onCancel = vi.fn();
+
+    render(
+      <RallyeForm
+        rallye={baseRallye}
+        onCancel={onCancel}
+        departmentOptions={[]}
+        assignedDepartmentIds={[]}
+        departmentAssignmentsLoaded={true}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }));
+    expect(screen.getByText('Rallye zurücksetzen')).toBeInTheDocument();
+    expect(
+      screen.getByText('Soll die Rallye „Test Rallye“ wirklich zurückgesetzt werden?')
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zurücksetzen' }));
+
+    await waitFor(() => {
+      expect(mockResetRallye).toHaveBeenCalledWith('1');
+    });
+    await waitFor(() => {
+      expect(onCancel).toHaveBeenCalledTimes(1);
+    });
   });
 });

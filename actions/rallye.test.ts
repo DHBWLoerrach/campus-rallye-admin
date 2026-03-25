@@ -223,3 +223,74 @@ describe('updateRallye', () => {
     expect(joinDeleteIn).toHaveBeenCalledWith('department_id', [10]);
   });
 });
+
+describe('resetRallye', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  it('resets rallye status and clears related entries', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const rallyeMaybeSingle = vi.fn().mockResolvedValue({ data: { id: 1 }, error: null });
+    const rallyeSelectEq = vi.fn(() => ({ maybeSingle: rallyeMaybeSingle }));
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const rallyeUpdateEq = vi.fn().mockResolvedValue({ error: null });
+    const rallyeUpdate = vi.fn(() => ({ eq: rallyeUpdateEq }));
+
+    const votingDeleteEq = vi.fn().mockResolvedValue({ error: null });
+    const votingDelete = vi.fn(() => ({ eq: votingDeleteEq }));
+
+    const teamDeleteEq = vi.fn().mockResolvedValue({ error: null });
+    const teamDelete = vi.fn(() => ({ eq: teamDeleteEq }));
+
+    const from = vi.fn((table: string) => {
+      if (table === 'rallye') return { select: rallyeSelect, update: rallyeUpdate };
+      if (table === 'voting') return { delete: votingDelete };
+      if (table === 'rallye_team') return { delete: teamDelete };
+      return {};
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { resetRallye } = await import('./rallye');
+    const result = await resetRallye('1');
+
+    expect(result).toEqual({
+      success: true,
+      data: { message: 'Rallye erfolgreich zurückgesetzt' },
+    });
+    expect(votingDeleteEq).toHaveBeenCalledWith('rallye_id', 1);
+    expect(teamDeleteEq).toHaveBeenCalledWith('rallye_id', 1);
+    expect(rallyeUpdate).toHaveBeenCalledWith({
+      status: 'preparing',
+      end_time: null,
+    });
+    expect(rallyeUpdateEq).toHaveBeenCalledWith('id', 1);
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/');
+  });
+
+  it('returns not found when rallye does not exist', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const rallyeMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const rallyeSelectEq = vi.fn(() => ({ maybeSingle: rallyeMaybeSingle }));
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const rallyeUpdate = vi.fn();
+
+    const from = vi.fn((table: string) => {
+      if (table === 'rallye') return { select: rallyeSelect, update: rallyeUpdate };
+      if (table === 'voting') return { delete: vi.fn() };
+      if (table === 'rallye_team') return { delete: vi.fn() };
+      return {};
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { resetRallye } = await import('./rallye');
+    const result = await resetRallye('1');
+
+    expect(result).toEqual({ success: false, error: 'Rallye nicht gefunden' });
+    expect(rallyeUpdate).not.toHaveBeenCalled();
+    expect(mockRevalidatePath).not.toHaveBeenCalled();
+  });
+});

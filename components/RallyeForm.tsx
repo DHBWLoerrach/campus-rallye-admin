@@ -3,8 +3,8 @@
 import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { de } from 'date-fns/locale';
-import { CircleX, Eye, EyeOff, Trash2 } from 'lucide-react';
-import { updateRallye, deleteRallye } from '@/actions/rallye';
+import { CircleX, Eye, EyeOff, RotateCcw, Trash2 } from 'lucide-react';
+import { updateRallye, deleteRallye, resetRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,6 +31,12 @@ interface RallyeFormProps {
   assignedDepartmentIds: number[];
   departmentAssignmentsLoaded: boolean;
   allowDepartmentAssignments?: boolean;
+}
+
+function parseOptionalDate(value: string | null): Date | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
 function SaveButton() {
@@ -60,8 +66,8 @@ export default function RallyeCardForm({
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
-  const [date24, setDate24] = useState<Date | undefined>(
-    new Date(rallye.end_time)
+  const [date24, setDate24] = useState<Date | undefined>(() =>
+    parseOptionalDate(rallye.end_time)
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
@@ -70,6 +76,8 @@ export default function RallyeCardForm({
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const statusLabelId = `rallye-${rallye.id}-status-label`;
@@ -94,6 +102,23 @@ export default function RallyeCardForm({
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
+    }
+  }
+
+  async function handleReset() {
+    setIsResetting(true);
+    try {
+      const result = await resetRallye(rallye.id.toString());
+      if (!result.success) {
+        console.error(result.error);
+      } else {
+        onCancel();
+      }
+    } catch (error) {
+      console.error('Fehler beim Zurücksetzen:', error);
+    } finally {
+      setIsResetting(false);
+      setShowResetDialog(false);
     }
   }
 
@@ -157,7 +182,9 @@ export default function RallyeCardForm({
               locale={de}
               hourCycle={24}
               value={date24}
-              onChange={setDate24}
+              onChange={(next) =>
+                setDate24(next && !Number.isNaN(next.getTime()) ? next : undefined)
+              }
               startMonth={calendarStartMonth}
               endMonth={calendarEndMonth}
               className="flex-1 min-w-0 max-w-sm"
@@ -240,6 +267,43 @@ export default function RallyeCardForm({
 
           {/* Button-Bereich mit Speichern und Löschen */}
           <div className="flex justify-between items-center mt-4">
+            <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+              <DialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-muted-foreground border-border hover:bg-muted hover:text-foreground cursor-pointer"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Zurücksetzen
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Rallye zurücksetzen</DialogTitle>
+                  <DialogDescription>
+                    Soll die Rallye „{name}“ wirklich zurückgesetzt werden?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    className="cursor-pointer"
+                    onClick={() => setShowResetDialog(false)}
+                  >
+                    Abbrechen
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={handleReset}
+                    disabled={isResetting}
+                  >
+                    {isResetting ? 'Wird zurückgesetzt...' : 'Zurücksetzen'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
               <DialogTrigger asChild>
                 <Button
