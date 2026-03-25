@@ -62,6 +62,35 @@ describe('getRallyeResults', () => {
     expect(result.error).toBe('Rallye ist nicht beendet');
   });
 
+  it('fails when the rallye is in planned', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const rallyeQuery = {
+      select: vi.fn(() => rallyeQuery),
+      eq: vi.fn(() => ({
+        maybeSingle: vi
+          .fn()
+          .mockResolvedValue({
+            data: { id: 1, status: 'planned' },
+            error: null,
+          }),
+      })),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn(() => rallyeQuery),
+    });
+
+    const { getRallyeResults } = await import('./rallye-results');
+    const result = await getRallyeResults(1);
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('Expected status check to fail');
+    }
+    expect(result.error).toBe('Rallye ist nicht beendet');
+  });
+
   it('accepts running rallyes and returns results', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
