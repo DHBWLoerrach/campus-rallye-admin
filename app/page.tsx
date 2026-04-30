@@ -1,7 +1,20 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import {
+  AUTH_SESSION_COOKIE,
+  AUTH_SESSION_COOKIE_VALUE,
+} from '@/lib/auth-session-cookie';
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const cookieStore = await cookies();
+  if (
+    cookieStore.get(AUTH_SESSION_COOKIE)?.value === AUTH_SESSION_COOKIE_VALUE
+  ) {
+    redirect('/rallyes');
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-background px-6 py-12">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
