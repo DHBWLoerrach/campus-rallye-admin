@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorizedUser } from '@/lib/auth';
+import {
+  AUTH_SESSION_COOKIE,
+  AUTH_SESSION_COOKIE_VALUE,
+} from '@/lib/auth-session-cookie';
 import { getDevBypassContext } from '@/lib/user-context';
 import {
   extractKeycloakEmail,
@@ -70,7 +74,20 @@ export async function proxy(req: NextRequest) {
   }
 
   // ✅ Logged in and authorized → Allow request to proceed
-  return NextResponse.next();
+  const response = NextResponse.next();
+  if (
+    req.cookies.get(AUTH_SESSION_COOKIE)?.value !== AUTH_SESSION_COOKIE_VALUE
+  ) {
+    response.cookies.set({
+      name: AUTH_SESSION_COOKIE,
+      value: AUTH_SESSION_COOKIE_VALUE,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV !== 'development',
+      path: '/',
+    });
+  }
+  return response;
 }
 
 // Middleware configuration: Protects all routes except explicitly defined exceptions.

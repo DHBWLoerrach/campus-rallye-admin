@@ -2,6 +2,10 @@
 import { NextRequest } from 'next/server';
 import { SignJWT, exportJWK, generateKeyPair } from 'jose';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import {
+  AUTH_SESSION_COOKIE,
+  AUTH_SESSION_COOKIE_VALUE,
+} from './lib/auth-session-cookie';
 
 const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
 const AUDIENCE = 'campusrallye';
@@ -76,12 +80,26 @@ function buildRequest(path: string, token?: string) {
 }
 
 describe('proxy', () => {
-  it('allows staff with a valid token', async () => {
+  it('allows staff with a valid token and sets the auth marker', async () => {
     const token = await signToken({ roles: ['staff'] });
     const response = await proxy(buildRequest('/questions', token));
 
     expect(response.headers.get('x-middleware-next')).toBe('1');
     expect(response.headers.get('location')).toBeNull();
+    expect(response.headers.get('set-cookie')).toContain(
+      `${AUTH_SESSION_COOKIE}=${AUTH_SESSION_COOKIE_VALUE}`
+    );
+  });
+
+  it('does not reset the auth marker when it already exists', async () => {
+    const token = await signToken({ roles: ['staff'] });
+    const request = buildRequest('/questions', token);
+    request.cookies.set(AUTH_SESSION_COOKIE, AUTH_SESSION_COOKIE_VALUE);
+
+    const response = await proxy(request);
+
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+    expect(response.headers.get('set-cookie')).toBeNull();
   });
 
   it('redirects non-staff to access denied', async () => {
@@ -91,6 +109,7 @@ describe('proxy', () => {
     const location = response.headers.get('location');
     expect(location).not.toBeNull();
     expect(new URL(location as string).pathname).toBe('/access-denied');
+    expect(response.headers.get('set-cookie')).toBeNull();
   });
 
   it('redirects invalid tokens to login', async () => {
@@ -103,5 +122,6 @@ describe('proxy', () => {
     const loginUrl = new URL(location as string);
     expect(loginUrl.pathname).toBe('/oauth2/start');
     expect(loginUrl.searchParams.get('rd')).toBe('/questions?tab=1');
+    expect(response.headers.get('set-cookie')).toBeNull();
   });
 });
