@@ -8,7 +8,7 @@ describe('AccessDeniedPage', () => {
 
     expect(screen.getByRole('link', { name: 'Abmelden' })).toHaveAttribute(
       'href',
-      '/oauth2/sign_out'
+      '/sign-out'
     );
   });
 });
