@@ -2,22 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_SESSION_COOKIE } from '@/lib/auth-session-cookie';
 import { getDevBypassContext } from '@/lib/user-context';
 
-function getOauthSignOutUrl(req: NextRequest) {
+function getSignOutLocation(req: NextRequest) {
   if (getDevBypassContext()) {
-    return new URL('/', req.url);
+    return '/';
   }
 
   if (process.env.NODE_ENV === 'development') {
     const signOutUrl = new URL('http://localhost:4181/oauth2/sign_out');
     signOutUrl.searchParams.set('rd', req.nextUrl.origin);
-    return signOutUrl;
+    return signOutUrl.toString();
   }
 
-  return new URL('/oauth2/sign_out', req.url);
+  return '/oauth2/sign_out';
 }
 
 export function GET(req: NextRequest) {
-  const response = NextResponse.redirect(getOauthSignOutUrl(req));
+  // Construct manually so production can emit a relative Location header.
+  // NextResponse.redirect() requires an absolute URL, but behind Traefik
+  // req.url may contain the internal Next origin instead of the public origin.
+  const response = new NextResponse(null, {
+    status: 307,
+    headers: {
+      Location: getSignOutLocation(req),
+    },
+  });
   response.cookies.delete(AUTH_SESSION_COOKIE);
   return response;
 }

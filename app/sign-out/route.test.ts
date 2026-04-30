@@ -9,13 +9,13 @@ describe('sign-out route', () => {
     vi.unstubAllEnvs();
   });
 
-  it('clears the auth marker before redirecting to oauth2-proxy sign out', () => {
-    const response = GET(new NextRequest('https://example.com/sign-out'));
+  it('uses a relative production sign-out redirect behind proxies', () => {
+    const response = GET(
+      new NextRequest('https://127.0.0.1:3000/sign-out')
+    );
 
     expect(response.status).toBe(307);
-    expect(response.headers.get('location')).toBe(
-      'https://example.com/oauth2/sign_out'
-    );
+    expect(response.headers.get('location')).toBe('/oauth2/sign_out');
     expect(response.headers.get('set-cookie')).toContain(
       `${AUTH_SESSION_COOKIE}=`
     );
@@ -42,7 +42,7 @@ describe('sign-out route', () => {
     const response = GET(new NextRequest('http://localhost:3000/sign-out'));
 
     expect(response.status).toBe(307);
-    expect(response.headers.get('location')).toBe('http://localhost:3000/');
+    expect(response.headers.get('location')).toBe('/');
     expect(response.headers.get('set-cookie')).toContain(
       `${AUTH_SESSION_COOKIE}=`
     );
