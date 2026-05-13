@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { IBM_Plex_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
+import Footer from '@/components/Footer';
 
 const fontSans = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -24,11 +25,12 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning>
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
+          'flex min-h-screen flex-col bg-background font-sans antialiased',
           fontSans.variable
         )}
       >
-        {children}
+        <div className="flex flex-1 flex-col">{children}</div>
+        <Footer />
       </body>
     </html>
   );

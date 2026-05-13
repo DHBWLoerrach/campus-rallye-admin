@@ -11,6 +11,7 @@ const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
 const AUDIENCE = 'campusrallye';
 const KEY_ID = 'test-key';
 
+let config: { matcher: string[] };
 let proxy: (req: NextRequest) => Promise<Response>;
 let privateKey: Awaited<ReturnType<typeof generateKeyPair>>['privateKey'];
 
@@ -33,7 +34,9 @@ beforeAll(async () => {
     })
   );
 
-  proxy = (await import('./proxy')).proxy;
+  const proxyModule = await import('./proxy');
+  config = proxyModule.config;
+  proxy = proxyModule.proxy;
 });
 
 afterAll(() => {
@@ -124,4 +127,13 @@ describe('proxy', () => {
     expect(loginUrl.searchParams.get('rd')).toBe('/questions?tab=1');
     expect(response.headers.get('set-cookie')).toBeNull();
   });
+
+  it.each(['/impressum', '/datenschutz', '/nutzungsordnung'])(
+    'keeps %s public',
+    (path) => {
+      const matcher = new RegExp(config.matcher[0]);
+
+      expect(matcher.test(path)).toBe(false);
+    }
+  );
 });

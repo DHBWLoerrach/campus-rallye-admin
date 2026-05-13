@@ -91,9 +91,9 @@ export async function proxy(req: NextRequest) {
 }
 
 // Middleware configuration: Protects all routes except explicitly defined exceptions.
-// Exceptions: root, sign-out, the access-denied page, favicon, Next.js static assets, and the `assets` path.
+// Exceptions: root, sign-out, legal pages, the access-denied page, favicon, Next.js static assets, and the `assets` path.
 export const config = {
   matcher: [
-    '/((?!$|sign-out|access-denied|favicon\\.ico|_next/static|_next/image|assets).*)',
+    '/((?!$|sign-out|impressum|datenschutz|nutzungsordnung|access-denied|favicon\\.ico|_next/static|_next/image|assets).*)',
   ],
 };

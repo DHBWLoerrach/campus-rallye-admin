@@ -16,7 +16,7 @@ export default async function LandingPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-background px-6 py-12">
+    <main className="relative flex flex-1 items-center justify-center bg-background px-6 py-12">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-80 w-80 translate-x-1/3 translate-y-1/3 rounded-full bg-primary/10 blur-3xl" />
