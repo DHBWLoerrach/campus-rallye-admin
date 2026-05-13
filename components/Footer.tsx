@@ -10,7 +10,12 @@ export default function Footer() {
   return (
     <footer className="border-t border-border/60 bg-background/95">
       <div className="mx-auto flex w-full max-w-350 flex-col gap-3 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <span>Campus Rallye Admin</span>
+        <Link
+          href="/"
+          className="transition-colors hover:text-foreground hover:no-underline"
+        >
+          Campus Rallye Admin
+        </Link>
         <nav aria-label="Rechtliches">
           <ul className="flex flex-wrap items-center gap-y-2 divide-x divide-border/60">
             {legalLinks.map((link) => (

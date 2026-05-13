@@ -3,6 +3,14 @@ import { describe, expect, it } from 'vitest';
 import Footer from './Footer';
 
 describe('Footer', () => {
+  it('links the brand back to the landing page', () => {
+    render(<Footer />);
+
+    expect(
+      screen.getByRole('link', { name: 'Campus Rallye Admin' })
+    ).toHaveAttribute('href', '/');
+  });
+
   it('links to all public legal pages', () => {
     render(<Footer />);
 
