@@ -26,7 +26,9 @@ beforeAll(async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => {
-      const jwks = { keys: [{ ...jwk, kid: KEY_ID, use: 'sig', alg: 'RS256' }] };
+      const jwks = {
+        keys: [{ ...jwk, kid: KEY_ID, use: 'sig', alg: 'RS256' }],
+      };
       return new Response(JSON.stringify(jwks), {
         status: 200,
         headers: { 'content-type': 'application/json' },

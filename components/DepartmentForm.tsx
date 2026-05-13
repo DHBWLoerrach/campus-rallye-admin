@@ -18,7 +18,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { Department, OrganizationOption, RallyeOption } from '@/lib/types';
 
 interface DepartmentFormProps {
@@ -45,7 +51,13 @@ function SaveButton() {
   );
 }
 
-export default function DepartmentForm({ department, onCancel, organizationOptions, rallyeOptions, assignedRallyeIds }: DepartmentFormProps) {
+export default function DepartmentForm({
+  department,
+  onCancel,
+  organizationOptions,
+  rallyeOptions,
+  assignedRallyeIds,
+}: DepartmentFormProps) {
   const [formState, formAction] = useActionState(updateDepartment, null);
   const [name, setName] = useState<string>(department.name);
   const [organizationId, setOrganizationId] = useState<string>(
@@ -101,7 +113,7 @@ export default function DepartmentForm({ department, onCancel, organizationOptio
       <CardContent>
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="id" value={department.id} />
-          
+
           {formState?.success === false && (
             <div
               className="rounded-md border border-red-500/60 bg-red-50/60 px-3 py-2 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-200"
@@ -111,7 +123,7 @@ export default function DepartmentForm({ department, onCancel, organizationOptio
               {formState.error}
             </div>
           )}
-          
+
           {formState?.success === true && (
             <div
               className="rounded-md border border-green-500/60 bg-green-50/60 px-3 py-2 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-200"
@@ -133,13 +145,16 @@ export default function DepartmentForm({ department, onCancel, organizationOptio
               placeholder="Abteilungsname"
               required
               aria-describedby={
-                formState?.success === false && formState.issues?.name 
-                  ? 'name-error' 
+                formState?.success === false && formState.issues?.name
+                  ? 'name-error'
                   : undefined
               }
             />
             {formState?.success === false && formState.issues?.name && (
-              <div id="name-error" className="text-sm text-red-600 dark:text-red-400">
+              <div
+                id="name-error"
+                className="text-sm text-red-600 dark:text-red-400"
+              >
                 {formState.issues.name}
               </div>
             )}
@@ -164,18 +179,21 @@ export default function DepartmentForm({ department, onCancel, organizationOptio
                 ))}
               </SelectContent>
             </Select>
-            {formState?.success === false && formState.issues?.organization_id && (
-              <div className="text-sm text-red-600 dark:text-red-400">
-                {formState.issues.organization_id}
-              </div>
-            )}
+            {formState?.success === false &&
+              formState.issues?.organization_id && (
+                <div className="text-sm text-red-600 dark:text-red-400">
+                  {formState.issues.organization_id}
+                </div>
+              )}
           </div>
 
           <div className="grid gap-2">
             <Label>Rallyes zuordnen</Label>
             <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
               {rallyeOptions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Keine Rallyes vorhanden</p>
+                <p className="text-sm text-muted-foreground">
+                  Keine Rallyes vorhanden
+                </p>
               ) : (
                 rallyeOptions.map((rallye) => (
                   <div key={rallye.id} className="flex items-center gap-2">
@@ -186,7 +204,10 @@ export default function DepartmentForm({ department, onCancel, organizationOptio
                         handleRallyeToggle(rallye.id, checked === true)
                       }
                     />
-                    <Label htmlFor={`edit-rallye-${rallye.id}`} className="text-sm">
+                    <Label
+                      htmlFor={`edit-rallye-${rallye.id}`}
+                      className="text-sm"
+                    >
                       {rallye.name}
                     </Label>
                   </div>
@@ -210,8 +231,9 @@ export default function DepartmentForm({ department, onCancel, organizationOptio
                 <DialogHeader>
                   <DialogTitle>Abteilung löschen</DialogTitle>
                   <DialogDescription>
-                    Möchten Sie die Abteilung &quot;{department.name}&quot; wirklich löschen?
-                    Diese Aktion kann nicht rückgängig gemacht werden.
+                    Möchten Sie die Abteilung &quot;{department.name}&quot;
+                    wirklich löschen? Diese Aktion kann nicht rückgängig gemacht
+                    werden.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

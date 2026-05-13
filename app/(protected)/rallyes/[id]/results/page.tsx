@@ -48,7 +48,7 @@ export default async function Page(props: PageProps) {
 
   const results = await getRallyeResults(rallyeId);
   const maxPointsResult = await getRallyeMaxPoints(rallyeId);
-  const maxPoints = maxPointsResult.success ? maxPointsResult.data ?? 0 : 0;
+  const maxPoints = maxPointsResult.success ? (maxPointsResult.data ?? 0) : 0;
 
   return (
     <main className="mx-auto flex w-full max-w-450 flex-col gap-4 px-4 py-4">
@@ -91,10 +91,10 @@ export default async function Page(props: PageProps) {
               row.rank === 1
                 ? '1 🥇'
                 : row.rank === 2
-                ? '2 🥈'
-                : row.rank === 3
-                ? '3 🥉'
-                : '';
+                  ? '2 🥈'
+                  : row.rank === 3
+                    ? '3 🥉'
+                    : '';
             return (
               <article
                 key={row.teamId}

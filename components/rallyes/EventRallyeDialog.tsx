@@ -162,17 +162,29 @@ export default function EventRallyeDialog({
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="event-rallye-organization" className="text-right">
+                <Label
+                  htmlFor="event-rallye-organization"
+                  className="text-right"
+                >
                   Organisation
                 </Label>
                 <div className="col-span-3">
-                  <Select value={organizationId} onValueChange={setOrganizationId}>
-                    <SelectTrigger id="event-rallye-organization" aria-label="Organisation">
+                  <Select
+                    value={organizationId}
+                    onValueChange={setOrganizationId}
+                  >
+                    <SelectTrigger
+                      id="event-rallye-organization"
+                      aria-label="Organisation"
+                    >
                       <SelectValue placeholder="Organisation auswählen" />
                     </SelectTrigger>
                     <SelectContent>
                       {organizations.map((organization) => (
-                        <SelectItem key={organization.id} value={String(organization.id)}>
+                        <SelectItem
+                          key={organization.id}
+                          value={String(organization.id)}
+                        >
                           {organization.name}
                         </SelectItem>
                       ))}
@@ -187,11 +199,16 @@ export default function EventRallyeDialog({
               )}
               {!isOrganizationEmpty && !hasSelectedEventDepartment && (
                 <p className="text-sm text-muted-foreground">
-                  Für diese Organisation wurde keine passende Event-Abteilung gefunden.
+                  Für diese Organisation wurde keine passende Event-Abteilung
+                  gefunden.
                 </p>
               )}
               {organizationId.length > 0 && (
-                <input type="hidden" name="organization_id" value={organizationId} />
+                <input
+                  type="hidden"
+                  name="organization_id"
+                  value={organizationId}
+                />
               )}
               {hasSelectedEventDepartment && (
                 <input
@@ -205,7 +222,9 @@ export default function EventRallyeDialog({
               <SaveButton disabled={isSaveDisabled} />
             </DialogFooter>
             {formState?.success === false && (
-              <span className="text-sm text-red-500 ml-2">{formState.error}</span>
+              <span className="text-sm text-red-500 ml-2">
+                {formState.error}
+              </span>
             )}
           </form>
         )}

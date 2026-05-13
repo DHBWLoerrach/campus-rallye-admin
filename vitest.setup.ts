@@ -7,9 +7,11 @@ if (!('ResizeObserver' in globalThis)) {
     disconnect() {}
   }
 
-  (globalThis as typeof globalThis & {
-    ResizeObserver: typeof ResizeObserver;
-  }).ResizeObserver = ResizeObserver;
+  (
+    globalThis as typeof globalThis & {
+      ResizeObserver: typeof ResizeObserver;
+    }
+  ).ResizeObserver = ResizeObserver;
 }
 
 if (typeof window !== 'undefined' && !window.matchMedia) {

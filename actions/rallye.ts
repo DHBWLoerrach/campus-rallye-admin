@@ -4,7 +4,11 @@ import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
 import { Rallye, RallyeOption, RallyeStatus } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
-import { formatZodError, rallyeCreateSchema, rallyeUpdateSchema } from '@/lib/validation';
+import {
+  formatZodError,
+  rallyeCreateSchema,
+  rallyeUpdateSchema,
+} from '@/lib/validation';
 
 type FormState = ActionResult<{ message: string; rallyeId?: number }> | null;
 
@@ -163,13 +167,17 @@ export async function updateRallye(state: FormState, formData: FormData) {
       )
     );
 
-    const { data: existingAssignments, error: existingAssignmentsError } = await supabase
-      .from('join_department_rallye')
-      .select('department_id')
-      .eq('rallye_id', data.id);
+    const { data: existingAssignments, error: existingAssignmentsError } =
+      await supabase
+        .from('join_department_rallye')
+        .select('department_id')
+        .eq('rallye_id', data.id);
 
     if (existingAssignmentsError) {
-      console.error('Error loading existing department assignments:', existingAssignmentsError);
+      console.error(
+        'Error loading existing department assignments:',
+        existingAssignmentsError
+      );
       return fail('Es ist ein Fehler aufgetreten');
     }
 
@@ -236,7 +244,9 @@ export async function getRallyes(): Promise<ActionResult<Rallye[]>> {
   return ok(data || []);
 }
 
-export async function getRallyeOptions(): Promise<ActionResult<RallyeOption[]>> {
+export async function getRallyeOptions(): Promise<
+  ActionResult<RallyeOption[]>
+> {
   await requireProfile();
   const supabase = await createClient();
 

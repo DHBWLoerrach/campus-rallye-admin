@@ -61,7 +61,9 @@ const rallyeSections: {
   },
 ];
 
-const getContextLabel = (classification?: RallyeUiClassification): string | undefined => {
+const getContextLabel = (
+  classification?: RallyeUiClassification
+): string | undefined => {
   if (!classification) return undefined;
   switch (classification.type) {
     case 'exploration':
@@ -82,7 +84,9 @@ const getContextLabel = (classification?: RallyeUiClassification): string | unde
   }
 };
 
-const getProgramGroupLabel = (classification?: RallyeUiClassification): string => {
+const getProgramGroupLabel = (
+  classification?: RallyeUiClassification
+): string => {
   if (!classification || classification.departmentNames.length === 0) {
     return 'Ohne Studiengang';
   }
@@ -135,10 +139,9 @@ export default async function Home() {
     typedDepartmentRows
   );
   const eventDepartmentIdByOrganizationId = Object.fromEntries(
-    Array.from(eventDepartmentIdByOrganizationMap.entries()).map(([orgId, deptId]) => [
-      String(orgId),
-      deptId,
-    ])
+    Array.from(eventDepartmentIdByOrganizationMap.entries()).map(
+      ([orgId, deptId]) => [String(orgId), deptId]
+    )
   );
   const eventOrganizationOptions = typedOrganizations.map((organization) => ({
     id: organization.id,
@@ -153,7 +156,10 @@ export default async function Home() {
   const questionCounts = new Map<number, number>();
   const uploadQuestionCounts = new Map<number, number>();
   const departmentAssignmentsMap = new Map<number, number[]>();
-  const classificationAssignments: { department_id: number; rallye_id: number }[] = [];
+  const classificationAssignments: {
+    department_id: number;
+    rallye_id: number;
+  }[] = [];
   let departmentAssignmentsLoaded = true;
   if (typedRallyes.length > 0) {
     const rallyeIds = typedRallyes.map((r) => r.id);
@@ -179,19 +185,26 @@ export default async function Home() {
     typedRallyes.forEach((r) => {
       departmentAssignmentsMap.set(r.id, []);
     });
-    const { data: deptAssignmentRows, error: deptAssignmentError } = await supabase
-      .from('join_department_rallye')
-      .select('department_id, rallye_id')
-      .in('rallye_id', rallyeIds);
+    const { data: deptAssignmentRows, error: deptAssignmentError } =
+      await supabase
+        .from('join_department_rallye')
+        .select('department_id, rallye_id')
+        .in('rallye_id', rallyeIds);
 
     if (deptAssignmentError) {
       departmentAssignmentsLoaded = false;
-      console.error('Error loading department assignments:', deptAssignmentError);
+      console.error(
+        'Error loading department assignments:',
+        deptAssignmentError
+      );
     } else {
       for (const row of deptAssignmentRows || []) {
         const rallyeId = (row as { rallye_id: number }).rallye_id;
         const departmentId = (row as { department_id: number }).department_id;
-        classificationAssignments.push({ rallye_id: rallyeId, department_id: departmentId });
+        classificationAssignments.push({
+          rallye_id: rallyeId,
+          department_id: departmentId,
+        });
         const existing = departmentAssignmentsMap.get(rallyeId);
         if (existing) {
           existing.push(departmentId);
@@ -244,8 +257,8 @@ export default async function Home() {
     }
   }
 
-  const sortedProgramGroups = Array.from(programGroups.entries()).sort(([a], [b]) =>
-    a.localeCompare(b, 'de', { sensitivity: 'base' })
+  const sortedProgramGroups = Array.from(programGroups.entries()).sort(
+    ([a], [b]) => a.localeCompare(b, 'de', { sensitivity: 'base' })
   );
 
   const renderRallyeCard = (rallye: RallyeRow) => {
@@ -293,14 +306,20 @@ export default async function Home() {
           >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-foreground">{section.title}</h2>
-                <p className="text-xs text-muted-foreground">{section.description}</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  {section.title}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {section.description}
+                </p>
               </div>
               {section.type === 'event' ? (
                 <EventRallyeDialog
                   buttonStyle="w-full sm:w-auto cursor-pointer"
                   organizations={eventOrganizationOptions}
-                  eventDepartmentIdByOrganizationId={eventDepartmentIdByOrganizationId}
+                  eventDepartmentIdByOrganizationId={
+                    eventDepartmentIdByOrganizationId
+                  }
                 />
               ) : section.type === 'program' ? (
                 <ProgramRallyeDialog

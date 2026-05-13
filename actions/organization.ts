@@ -4,10 +4,17 @@ import createClient from '@/lib/supabase';
 import { requireAdmin } from '@/lib/require-profile';
 import { Organization, OrganizationOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
-import { formatZodError, organizationCreateSchema, organizationUpdateSchema } from '@/lib/validation';
+import {
+  formatZodError,
+  organizationCreateSchema,
+  organizationUpdateSchema,
+} from '@/lib/validation';
 import type { RallyeOption } from '@/lib/types';
 
-type FormState = ActionResult<{ message: string; organizationId?: number }> | null;
+type FormState = ActionResult<{
+  message: string;
+  organizationId?: number;
+}> | null;
 
 export async function createOrganization(state: FormState, formData: FormData) {
   await requireAdmin();
@@ -16,7 +23,8 @@ export async function createOrganization(state: FormState, formData: FormData) {
   const rawRallyeId = formData.get('default_rallye_id');
   const parsed = organizationCreateSchema.safeParse({
     name: formData.get('name'),
-    default_rallye_id: rawRallyeId === 'none' || !rawRallyeId ? undefined : rawRallyeId,
+    default_rallye_id:
+      rawRallyeId === 'none' || !rawRallyeId ? undefined : rawRallyeId,
   });
 
   if (!parsed.success) {
@@ -54,7 +62,8 @@ export async function updateOrganization(state: FormState, formData: FormData) {
   const parsed = organizationUpdateSchema.safeParse({
     id: formData.get('id'),
     name: formData.get('name'),
-    default_rallye_id: rawRallyeId === 'none' || !rawRallyeId ? undefined : rawRallyeId,
+    default_rallye_id:
+      rawRallyeId === 'none' || !rawRallyeId ? undefined : rawRallyeId,
   });
 
   if (!parsed.success) {
@@ -97,7 +106,9 @@ export async function updateOrganization(state: FormState, formData: FormData) {
   return ok({ message: 'Organisation erfolgreich gespeichert' });
 }
 
-export async function getOrganizations(): Promise<ActionResult<Organization[]>> {
+export async function getOrganizations(): Promise<
+  ActionResult<Organization[]>
+> {
   await requireAdmin();
   const supabase = await createClient();
 
@@ -114,11 +125,15 @@ export async function getOrganizations(): Promise<ActionResult<Organization[]>> 
   return ok(data || []);
 }
 
-export async function getOrganizationOptions(): Promise<ActionResult<OrganizationOption[]>> {
+export async function getOrganizationOptions(): Promise<
+  ActionResult<OrganizationOption[]>
+> {
   await requireAdmin();
   const supabase = await createClient();
 
-  const { data, error } = await supabase.from('organization').select('id, name');
+  const { data, error } = await supabase
+    .from('organization')
+    .select('id, name');
 
   if (error) {
     console.error('Error fetching organization options:', error);
@@ -207,7 +222,9 @@ export async function getRallyeOptionsByOrganization(
 
   const options: RallyeOption[] = Array.from(rallyeMap.entries())
     .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+    );
 
   return ok(options);
 }

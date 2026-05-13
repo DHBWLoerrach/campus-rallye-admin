@@ -31,14 +31,14 @@ function SaveButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export default function OrganizationDialog({ 
-  buttonStyle, 
-}: { 
+export default function OrganizationDialog({
+  buttonStyle,
+}: {
   buttonStyle: string;
 }) {
   const [name, setName] = useState('');
   const [open, setOpen] = useState(false);
-  
+
   const handleCreate = async (
     state: Parameters<typeof createOrganization>[0],
     formData: FormData
@@ -85,7 +85,7 @@ export default function OrganizationDialog({
               {formState.error}
             </div>
           )}
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="create-name">Name</Label>
@@ -98,19 +98,22 @@ export default function OrganizationDialog({
                 placeholder="Organisationsname"
                 required
                 aria-describedby={
-                  formState?.success === false && formState.issues?.name 
-                    ? 'create-name-error' 
+                  formState?.success === false && formState.issues?.name
+                    ? 'create-name-error'
                     : undefined
                 }
               />
               {formState?.success === false && formState.issues?.name && (
-                <div id="create-name-error" className="text-sm text-red-600 dark:text-red-400">
+                <div
+                  id="create-name-error"
+                  className="text-sm text-red-600 dark:text-red-400"
+                >
                   {formState.issues.name}
                 </div>
               )}
             </div>
           </div>
-          
+
           <DialogFooter>
             <SaveButton disabled={isNameEmpty} />
           </DialogFooter>

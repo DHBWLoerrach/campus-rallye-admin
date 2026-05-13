@@ -50,7 +50,9 @@ export function getEventDepartmentIds(
   const eventDepartmentIds = new Set<number>();
 
   for (const department of departments) {
-    const organizationName = organizationNameById.get(department.organization_id);
+    const organizationName = organizationNameById.get(
+      department.organization_id
+    );
     if (!organizationName) continue;
 
     if (isEventDepartmentForOrganization(department.name, organizationName)) {
@@ -111,7 +113,9 @@ export function classifyRallyesByType({
 }: ClassifyRallyesParams): Map<number, RallyeUiClassification> {
   const defaultOrgNamesByRallyeId = new Map<number, string[]>();
   const orgById = new Map(organizations.map((org) => [org.id, org]));
-  const departmentById = new Map(departments.map((department) => [department.id, department]));
+  const departmentById = new Map(
+    departments.map((department) => [department.id, department])
+  );
   const departmentIdsByRallyeId = new Map<number, number[]>();
 
   for (const org of organizations) {
@@ -173,7 +177,9 @@ export function classifyRallyesByType({
 
       organizationNames.push(organization.name);
 
-      if (isEventDepartmentForOrganization(department.name, organization.name)) {
+      if (
+        isEventDepartmentForOrganization(department.name, organization.name)
+      ) {
         hasEventDepartment = true;
       } else {
         hasProgramDepartment = true;

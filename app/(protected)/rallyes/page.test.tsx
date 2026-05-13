@@ -2,15 +2,16 @@ import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Home from './page';
 
-const {
-  mockCreateClient,
-  mockEventDialogProps,
-  mockProgramDialogProps,
-} = vi.hoisted(() => ({
-  mockCreateClient: vi.fn(),
-  mockEventDialogProps: [] as Array<{ organizations: { id: number; name: string }[] }>,
-  mockProgramDialogProps: [] as Array<{ departments: { id: number; name: string }[] }>,
-}));
+const { mockCreateClient, mockEventDialogProps, mockProgramDialogProps } =
+  vi.hoisted(() => ({
+    mockCreateClient: vi.fn(),
+    mockEventDialogProps: [] as Array<{
+      organizations: { id: number; name: string }[];
+    }>,
+    mockProgramDialogProps: [] as Array<{
+      departments: { id: number; name: string }[];
+    }>,
+  }));
 
 vi.mock('@/lib/supabase', () => ({
   default: mockCreateClient,
@@ -130,9 +131,8 @@ function buildDefaultFixture(): SupabaseFixture {
     { rallye_id: 3, question_id: 3 },
     { rallye_id: 5, question_id: 4 },
   ];
-  const uploadQuestionAssignments: SupabaseFixture['uploadQuestionAssignments'] = [
-    { rallye_id: 2, questions: { type: 'upload' } },
-  ];
+  const uploadQuestionAssignments: SupabaseFixture['uploadQuestionAssignments'] =
+    [{ rallye_id: 2, questions: { type: 'upload' } }];
 
   return {
     rallyes,
@@ -225,19 +225,22 @@ describe('/rallyes page', () => {
     const programSection = getSectionByTitle('Studiengänge');
     const otherSection = getSectionByTitle('Weitere Rallyes');
 
-    expect(within(explorationSection).getByText('Campus Tour A')).toBeInTheDocument();
+    expect(
+      within(explorationSection).getByText('Campus Tour A')
+    ).toBeInTheDocument();
     expect(within(eventSection).getByText('Event A')).toBeInTheDocument();
-    expect(within(programSection).getByText('Informatik 1')).toBeInTheDocument();
+    expect(
+      within(programSection).getByText('Informatik 1')
+    ).toBeInTheDocument();
     expect(within(programSection).getByText('BWL 1')).toBeInTheDocument();
     expect(within(otherSection).getByText('Freie Rallye')).toBeInTheDocument();
 
-    expect(mockEventDialogProps[0]?.organizations.map((org) => org.name)).toEqual([
-      'Org A',
-    ]);
-    expect(mockProgramDialogProps[0]?.departments.map((dept) => dept.name)).toEqual([
-      'Informatik',
-      'BWL',
-    ]);
+    expect(
+      mockEventDialogProps[0]?.organizations.map((org) => org.name)
+    ).toEqual(['Org A']);
+    expect(
+      mockProgramDialogProps[0]?.departments.map((dept) => dept.name)
+    ).toEqual(['Informatik', 'BWL']);
   });
 
   it('renders exploration rallyes as read-only rows', async () => {
@@ -246,21 +249,33 @@ describe('/rallyes page', () => {
     const explorationSection = getSectionByTitle('Erkundungsmodus');
     const eventSection = getSectionByTitle('Events');
 
-    expect(within(explorationSection).getByText('Campus Tour A')).toBeInTheDocument();
-    expect(within(explorationSection).getByText('Organisation: Org A')).toBeInTheDocument();
+    expect(
+      within(explorationSection).getByText('Campus Tour A')
+    ).toBeInTheDocument();
+    expect(
+      within(explorationSection).getByText('Organisation: Org A')
+    ).toBeInTheDocument();
     expect(
       within(explorationSection).getByRole('link', { name: 'Fragen zuordnen' })
     ).toHaveAttribute('href', '/rallyes/1/questions');
 
-    expect(within(explorationSection).queryByText('Bearbeiten')).not.toBeInTheDocument();
+    expect(
+      within(explorationSection).queryByText('Bearbeiten')
+    ).not.toBeInTheDocument();
     expect(
       within(explorationSection).queryByText('Upload-Fotos anzeigen')
     ).not.toBeInTheDocument();
-    expect(within(explorationSection).queryByText('Status')).not.toBeInTheDocument();
-    expect(within(explorationSection).queryByText('Ende')).not.toBeInTheDocument();
+    expect(
+      within(explorationSection).queryByText('Status')
+    ).not.toBeInTheDocument();
+    expect(
+      within(explorationSection).queryByText('Ende')
+    ).not.toBeInTheDocument();
 
     expect(within(eventSection).getByText('Bearbeiten')).toBeInTheDocument();
-    expect(within(eventSection).getByText('Upload-Fotos anzeigen')).toBeInTheDocument();
+    expect(
+      within(eventSection).getByText('Upload-Fotos anzeigen')
+    ).toBeInTheDocument();
     expect(screen.getAllByTestId('rallye-item')).toHaveLength(4);
   });
 
@@ -273,10 +288,15 @@ describe('/rallyes page', () => {
       within(programSection).getByRole('heading', { level: 3, name: 'BWL' })
     ).toBeInTheDocument();
     expect(
-      within(programSection).getByRole('heading', { level: 3, name: 'Informatik' })
+      within(programSection).getByRole('heading', {
+        level: 3,
+        name: 'Informatik',
+      })
     ).toBeInTheDocument();
     expect(within(programSection).getByText('BWL 1')).toBeInTheDocument();
-    expect(within(programSection).getByText('Informatik 1')).toBeInTheDocument();
+    expect(
+      within(programSection).getByText('Informatik 1')
+    ).toBeInTheDocument();
   });
 
   it('shows section-level create buttons and no global create button in header', async () => {
@@ -291,8 +311,12 @@ describe('/rallyes page', () => {
     const eventSection = getSectionByTitle('Events');
     const programSection = getSectionByTitle('Studiengänge');
 
-    expect(within(pageHeader).queryByRole('button', { name: 'Rallye erstellen' })).toBeNull();
-    expect(within(eventSection).getByRole('button', { name: 'Event erstellen' })).toBeInTheDocument();
+    expect(
+      within(pageHeader).queryByRole('button', { name: 'Rallye erstellen' })
+    ).toBeNull();
+    expect(
+      within(eventSection).getByRole('button', { name: 'Event erstellen' })
+    ).toBeInTheDocument();
     expect(
       within(programSection).getByRole('button', { name: 'Rallye erstellen' })
     ).toBeInTheDocument();
@@ -322,7 +346,9 @@ describe('/rallyes page', () => {
     const eventSection = getSectionByTitle('Events');
     const programSection = getSectionByTitle('Studiengänge');
 
-    expect(within(eventSection).getByRole('button', { name: 'Event erstellen' })).toBeInTheDocument();
+    expect(
+      within(eventSection).getByRole('button', { name: 'Event erstellen' })
+    ).toBeInTheDocument();
     expect(
       within(programSection).getByRole('button', { name: 'Rallye erstellen' })
     ).toBeInTheDocument();

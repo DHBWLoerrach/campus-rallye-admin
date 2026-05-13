@@ -19,11 +19,11 @@ export default async function Questions() {
     console.error(rallyesResult.error);
   }
 
-  const questions = questionsResult.success ? questionsResult.data ?? [] : [];
+  const questions = questionsResult.success ? (questionsResult.data ?? []) : [];
   const categories = categoriesResult.success
-    ? categoriesResult.data ?? []
+    ? (categoriesResult.data ?? [])
     : [];
-  const rallyes = rallyesResult.success ? rallyesResult.data ?? [] : [];
+  const rallyes = rallyesResult.success ? (rallyesResult.data ?? []) : [];
   const initialRallyeMapResult = await getQuestionRallyeMap(
     questions.map((question) => question.id)
   );
@@ -31,7 +31,7 @@ export default async function Questions() {
     console.error(initialRallyeMapResult.error);
   }
   const initialRallyeMap = initialRallyeMapResult.success
-    ? initialRallyeMapResult.data ?? {}
+    ? (initialRallyeMapResult.data ?? {})
     : {};
   return (
     <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">

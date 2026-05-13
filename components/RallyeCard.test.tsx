@@ -32,10 +32,9 @@ describe('RallyeCard', () => {
       />
     );
 
-    expect(screen.getByRole('link', { name: 'Fragen zuordnen' })).toHaveAttribute(
-      'href',
-      '/rallyes/12/questions'
-    );
+    expect(
+      screen.getByRole('link', { name: 'Fragen zuordnen' })
+    ).toHaveAttribute('href', '/rallyes/12/questions');
     expect(
       screen.getByRole('link', { name: 'Upload-Fotos anzeigen' })
     ).toHaveAttribute('href', '/rallyes/12/uploads');

@@ -95,10 +95,13 @@ export default function Assignment({
   // Track last saved state to detect unsaved changes (list of IDs).
   const savedAssignedIdsRef = useRef<number[]>(initialSelectedQuestions || []);
 
-  const questionTypeLabels = questionTypes.reduce((acc, type) => {
-    acc[type.id] = type.name;
-    return acc;
-  }, {} as Record<string, string>);
+  const questionTypeLabels = questionTypes.reduce(
+    (acc, type) => {
+      acc[type.id] = type.name;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
 
   useEffect(() => {
     // Initialize assigned questions
@@ -449,7 +452,9 @@ export default function Assignment({
           </h1>
           <p className="text-sm text-muted-foreground">
             {assignedQuestions.length} Fragen zugeordnet{' · '}
-            <span className="font-medium text-primary">{maxPoints} Punkte gesamt</span>
+            <span className="font-medium text-primary">
+              {maxPoints} Punkte gesamt
+            </span>
           </p>
         </section>
 

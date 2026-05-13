@@ -86,9 +86,7 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Antwort entfernen' })
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Antwort entfernen' }));
 
     const radios = screen.getAllByRole('radio');
     expect(radios).toHaveLength(1);

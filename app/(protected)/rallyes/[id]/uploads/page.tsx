@@ -32,7 +32,7 @@ export default async function Page(props: PageProps) {
   const rallye = data as RallyeRow;
 
   const uploadResult = await getRallyeUploadAnswers(rallyeId);
-  const uploadQuestions = uploadResult.success ? uploadResult.data ?? [] : [];
+  const uploadQuestions = uploadResult.success ? (uploadResult.data ?? []) : [];
 
   return (
     <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">

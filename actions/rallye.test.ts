@@ -34,7 +34,9 @@ describe('updateRallye', () => {
   };
 
   const setupSupabaseUpdate = () => {
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: 1 }, error: null });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq: selectEq }));
     const eq = vi.fn().mockResolvedValue({ error: null });
@@ -67,13 +69,16 @@ describe('updateRallye', () => {
     const { update } = setupSupabaseUpdate();
 
     const { updateRallye } = await import('./rallye');
-    await updateRallye(null, makeFormData({
-      id: '1',
-      name: 'Test',
-      status: 'running',
-      end_time: '',
-      password: 'secret',
-    }));
+    await updateRallye(
+      null,
+      makeFormData({
+        id: '1',
+        name: 'Test',
+        status: 'running',
+        end_time: '',
+        password: 'secret',
+      })
+    );
 
     expect(update).toHaveBeenCalledWith({
       name: 'Test',
@@ -87,13 +92,16 @@ describe('updateRallye', () => {
     const { update } = setupSupabaseUpdate();
 
     const { updateRallye } = await import('./rallye');
-    const result = await updateRallye(null, makeFormData({
-      id: '1',
-      name: 'Test',
-      status: 'running',
-      end_time: 'not-a-date',
-      password: 'secret',
-    }));
+    const result = await updateRallye(
+      null,
+      makeFormData({
+        id: '1',
+        name: 'Test',
+        status: 'running',
+        end_time: 'not-a-date',
+        password: 'secret',
+      })
+    );
 
     expect(result).toEqual({ success: false, error: 'Ungültiges Datum' });
     expect(update).not.toHaveBeenCalled();
@@ -104,13 +112,16 @@ describe('updateRallye', () => {
     const { update } = setupSupabaseUpdate();
 
     const { updateRallye } = await import('./rallye');
-    await updateRallye(null, makeFormData({
-      id: '1',
-      name: 'Test',
-      status: 'running',
-      end_time: '2024-02-10T10:11:12.000Z',
-      password: 'secret',
-    }));
+    await updateRallye(
+      null,
+      makeFormData({
+        id: '1',
+        name: 'Test',
+        status: 'running',
+        end_time: '2024-02-10T10:11:12.000Z',
+        password: 'secret',
+      })
+    );
 
     expect(update).toHaveBeenCalledTimes(1);
     const payload = update.mock.calls[0][0];
@@ -130,7 +141,9 @@ describe('updateRallye', () => {
   it('does not sync department assignments without department_sync marker', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: 1 }, error: null });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
     const rallyeSelectEq = vi.fn(() => ({ maybeSingle }));
     const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
     const rallyeUpdateEq = vi.fn().mockResolvedValue({ error: null });
@@ -141,7 +154,8 @@ describe('updateRallye', () => {
     const joinDelete = vi.fn();
 
     const from = vi.fn((table: string) => {
-      if (table === 'rallye') return { select: rallyeSelect, update: rallyeUpdate };
+      if (table === 'rallye')
+        return { select: rallyeSelect, update: rallyeUpdate };
       if (table === 'join_department_rallye') {
         return { select: joinSelect, insert: joinInsert, delete: joinDelete };
       }
@@ -173,7 +187,9 @@ describe('updateRallye', () => {
   it('syncs department assignments when department_sync marker is present', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: 1 }, error: null });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
     const rallyeSelectEq = vi.fn(() => ({ maybeSingle }));
     const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
     const rallyeUpdateEq = vi.fn().mockResolvedValue({ error: null });
@@ -190,7 +206,8 @@ describe('updateRallye', () => {
     const joinDelete = vi.fn(() => ({ eq: joinDeleteEq }));
 
     const from = vi.fn((table: string) => {
-      if (table === 'rallye') return { select: rallyeSelect, update: rallyeUpdate };
+      if (table === 'rallye')
+        return { select: rallyeSelect, update: rallyeUpdate };
       if (table === 'join_department_rallye') {
         return { select: joinSelect, insert: joinInsert, delete: joinDelete };
       }

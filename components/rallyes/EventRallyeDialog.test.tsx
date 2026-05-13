@@ -37,9 +37,9 @@ describe('EventRallyeDialog', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Event erstellen' }));
-    expect(screen.getByRole('combobox', { name: 'Organisation' })).toHaveTextContent(
-      'Org A'
-    );
+    expect(
+      screen.getByRole('combobox', { name: 'Organisation' })
+    ).toHaveTextContent('Org A');
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'Girls Day' },
     });

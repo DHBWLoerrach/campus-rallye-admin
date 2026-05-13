@@ -17,7 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { Organization, RallyeOption } from '@/lib/types';
 
 interface OrganizationFormProps {
@@ -42,7 +48,11 @@ function SaveButton() {
   );
 }
 
-export default function OrganizationForm({ organization, onCancel, rallyeOptions }: OrganizationFormProps) {
+export default function OrganizationForm({
+  organization,
+  onCancel,
+  rallyeOptions,
+}: OrganizationFormProps) {
   const [formState, formAction] = useActionState(updateOrganization, null);
   const [name, setName] = useState<string>(organization.name);
   const [defaultRallyeId, setDefaultRallyeId] = useState<string>(
@@ -86,7 +96,7 @@ export default function OrganizationForm({ organization, onCancel, rallyeOptions
       <CardContent>
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="id" value={organization.id} />
-          
+
           {formState?.success === false && (
             <div
               className="rounded-md border border-red-500/60 bg-red-50/60 px-3 py-2 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-200"
@@ -96,7 +106,7 @@ export default function OrganizationForm({ organization, onCancel, rallyeOptions
               {formState.error}
             </div>
           )}
-          
+
           {formState?.success === true && (
             <div
               className="rounded-md border border-green-500/60 bg-green-50/60 px-3 py-2 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-200"
@@ -118,13 +128,16 @@ export default function OrganizationForm({ organization, onCancel, rallyeOptions
               placeholder="Organisationsname"
               required
               aria-describedby={
-                formState?.success === false && formState.issues?.name 
-                  ? 'name-error' 
+                formState?.success === false && formState.issues?.name
+                  ? 'name-error'
                   : undefined
               }
             />
             {formState?.success === false && formState.issues?.name && (
-              <div id="name-error" className="text-sm text-red-600 dark:text-red-400">
+              <div
+                id="name-error"
+                className="text-sm text-red-600 dark:text-red-400"
+              >
                 {formState.issues.name}
               </div>
             )}
@@ -163,8 +176,9 @@ export default function OrganizationForm({ organization, onCancel, rallyeOptions
                 <DialogHeader>
                   <DialogTitle>Organisation löschen</DialogTitle>
                   <DialogDescription>
-                    Möchten Sie die Organisation &quot;{organization.name}&quot; wirklich löschen?
-                    Diese Aktion kann nicht rückgängig gemacht werden.
+                    Möchten Sie die Organisation &quot;{organization.name}&quot;
+                    wirklich löschen? Diese Aktion kann nicht rückgängig gemacht
+                    werden.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

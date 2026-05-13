@@ -15,7 +15,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { OrganizationOption, RallyeOption } from '@/lib/types';
 
 function SaveButton({ disabled }: { disabled: boolean }) {
@@ -34,20 +40,22 @@ function SaveButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export default function DepartmentDialog({ 
-  buttonStyle, 
+export default function DepartmentDialog({
+  buttonStyle,
   organizationOptions,
   rallyeOptions,
-}: { 
+}: {
   buttonStyle: string;
   organizationOptions: OrganizationOption[];
   rallyeOptions: RallyeOption[];
 }) {
   const [name, setName] = useState('');
   const [organizationId, setOrganizationId] = useState('');
-  const [selectedRallyeIds, setSelectedRallyeIds] = useState<Set<number>>(new Set());
+  const [selectedRallyeIds, setSelectedRallyeIds] = useState<Set<number>>(
+    new Set()
+  );
   const [open, setOpen] = useState(false);
-  
+
   const handleCreate = async (
     state: Parameters<typeof createDepartment>[0],
     formData: FormData
@@ -109,7 +117,7 @@ export default function DepartmentDialog({
               {formState.error}
             </div>
           )}
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="create-name">Name</Label>
@@ -122,13 +130,16 @@ export default function DepartmentDialog({
                 placeholder="Abteilungsname"
                 required
                 aria-describedby={
-                  formState?.success === false && formState.issues?.name 
-                    ? 'create-name-error' 
+                  formState?.success === false && formState.issues?.name
+                    ? 'create-name-error'
                     : undefined
                 }
               />
               {formState?.success === false && formState.issues?.name && (
-                <div id="create-name-error" className="text-sm text-red-600 dark:text-red-400">
+                <div
+                  id="create-name-error"
+                  className="text-sm text-red-600 dark:text-red-400"
+                >
                   {formState.issues.name}
                 </div>
               )}
@@ -153,18 +164,21 @@ export default function DepartmentDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {formState?.success === false && formState.issues?.organization_id && (
-                <div className="text-sm text-red-600 dark:text-red-400">
-                  {formState.issues.organization_id}
-                </div>
-              )}
+              {formState?.success === false &&
+                formState.issues?.organization_id && (
+                  <div className="text-sm text-red-600 dark:text-red-400">
+                    {formState.issues.organization_id}
+                  </div>
+                )}
             </div>
 
             <div className="grid gap-2">
               <Label>Rallyes zuordnen (optional)</Label>
               <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
                 {rallyeOptions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Keine Rallyes vorhanden</p>
+                  <p className="text-sm text-muted-foreground">
+                    Keine Rallyes vorhanden
+                  </p>
                 ) : (
                   rallyeOptions.map((rallye) => (
                     <div key={rallye.id} className="flex items-center gap-2">
@@ -175,7 +189,10 @@ export default function DepartmentDialog({
                           handleRallyeToggle(rallye.id, checked === true)
                         }
                       />
-                      <Label htmlFor={`create-rallye-${rallye.id}`} className="text-sm">
+                      <Label
+                        htmlFor={`create-rallye-${rallye.id}`}
+                        className="text-sm"
+                      >
                         {rallye.name}
                       </Label>
                     </div>
@@ -187,7 +204,7 @@ export default function DepartmentDialog({
               ))}
             </div>
           </div>
-          
+
           <DialogFooter>
             <SaveButton disabled={isFormInvalid} />
           </DialogFooter>

@@ -39,12 +39,10 @@ describe('getRallyeResults', () => {
     const rallyeQuery = {
       select: vi.fn(() => rallyeQuery),
       eq: vi.fn(() => ({
-        maybeSingle: vi
-          .fn()
-          .mockResolvedValue({
-            data: { id: 1, status: 'running' },
-            error: null,
-          }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { id: 1, status: 'running' },
+          error: null,
+        }),
       })),
     };
 
@@ -68,12 +66,10 @@ describe('getRallyeResults', () => {
     const rallyeQuery = {
       select: vi.fn(() => rallyeQuery),
       eq: vi.fn(() => ({
-        maybeSingle: vi
-          .fn()
-          .mockResolvedValue({
-            data: { id: 1, status: 'ranking' },
-            error: null,
-          }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { id: 1, status: 'ranking' },
+          error: null,
+        }),
       })),
     };
 

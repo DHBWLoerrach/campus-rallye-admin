@@ -7,7 +7,10 @@ interface QuestionSummaryProps {
   rallyeNames?: string[];
 }
 
-const QuestionSummary = ({ question, rallyeNames = [] }: QuestionSummaryProps) => {
+const QuestionSummary = ({
+  question,
+  rallyeNames = [],
+}: QuestionSummaryProps) => {
   const hasPoints =
     typeof question.points === 'number' &&
     Number.isFinite(question.points) &&
@@ -39,7 +42,10 @@ const QuestionSummary = ({ question, rallyeNames = [] }: QuestionSummaryProps) =
             </span>
           )}
           {hasHint && (
-            <span className="inline-flex items-center" title="Hinweis vorhanden">
+            <span
+              className="inline-flex items-center"
+              title="Hinweis vorhanden"
+            >
               <Lightbulb className="h-3 w-3" aria-hidden="true" />
               <span className="sr-only">Hinweis vorhanden</span>
             </span>

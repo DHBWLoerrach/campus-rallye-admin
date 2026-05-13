@@ -46,7 +46,8 @@ export const getRallyeStatusLabel = (status: RallyeStatus): string => {
   }
 };
 
-export const isRallyeActive = (status: RallyeStatus): boolean => status === 'running';
+export const isRallyeActive = (status: RallyeStatus): boolean =>
+  status === 'running';
 
 export interface Organization {
   id: number;

@@ -62,15 +62,20 @@ export default async function OrganizationsPage() {
 
   if (organizations) {
     organizations.forEach((org) => {
-      const rallyesForOrganization = rallyeMapByOrganization.get(org.id) || emptyRallyeMap;
+      const rallyesForOrganization =
+        rallyeMapByOrganization.get(org.id) || emptyRallyeMap;
       const options = Array.from(rallyesForOrganization.entries())
         .map(([id, name]) => ({ id, name }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+        );
 
       rallyeOptionsMap.set(org.id, options);
 
       if (org.default_rallye_id) {
-        const defaultRallyeName = rallyesForOrganization.get(org.default_rallye_id);
+        const defaultRallyeName = rallyesForOrganization.get(
+          org.default_rallye_id
+        );
         if (defaultRallyeName) {
           defaultRallyeNames.set(org.id, defaultRallyeName);
         }
@@ -89,7 +94,9 @@ export default async function OrganizationsPage() {
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Organisationen</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Organisationen
+          </h1>
           <p className="text-muted-foreground">
             Verwalten Sie Ihre Organisationen und deren Campus-Touren.
           </p>
@@ -99,7 +106,9 @@ export default async function OrganizationsPage() {
 
       {!organizations || organizations.length === 0 ? (
         <div className="flex min-h-96 flex-col items-center justify-center space-y-2 rounded-md border border-dashed border-border/60 bg-muted/20 p-8 text-center">
-          <h2 className="text-lg font-medium text-foreground">Keine Organisationen</h2>
+          <h2 className="text-lg font-medium text-foreground">
+            Keine Organisationen
+          </h2>
           <p className="text-sm text-muted-foreground">
             Erstellen Sie Ihre erste Organisation, um zu beginnen.
           </p>

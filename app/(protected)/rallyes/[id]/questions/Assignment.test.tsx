@@ -153,9 +153,10 @@ describe('Assignment Component', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(assignActions.assignQuestionsToRallye).toHaveBeenCalledWith(123, [
-        1,
-      ]);
+      expect(assignActions.assignQuestionsToRallye).toHaveBeenCalledWith(
+        123,
+        [1]
+      );
     });
   });
 });

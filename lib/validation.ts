@@ -114,9 +114,8 @@ export const questionBaseSchema = z.object({
   rallyeIds: idArraySchema.optional(),
 });
 
-export const questionCreateSchema = questionBaseSchema.superRefine(
-  validateAnswers
-);
+export const questionCreateSchema =
+  questionBaseSchema.superRefine(validateAnswers);
 
 export const questionUpdateSchema = questionBaseSchema
   .extend({
@@ -130,9 +129,7 @@ export const questionUpdateSchema = questionBaseSchema
   })
   .superRefine(validateAnswers);
 
-export const formatZodError = (
-  error: z.ZodError
-): Record<string, string> => {
+export const formatZodError = (error: z.ZodError): Record<string, string> => {
   const issues: Record<string, string> = {};
   for (const issue of error.issues) {
     const key = issue.path.length > 0 ? issue.path.join('.') : 'form';

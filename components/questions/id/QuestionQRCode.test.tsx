@@ -36,24 +36,36 @@ describe('QuestionQRCode', () => {
 
   it('shows preview and download button after generate click', async () => {
     render(<QuestionQRCode answerText="test" />);
-    fireEvent.click(screen.getByRole('button', { name: /qr-code generieren/i }));
-    expect(await screen.findByRole('button', { name: /png herunterladen/i })).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: /qr-code generieren/i })
+    );
+    expect(
+      await screen.findByRole('button', { name: /png herunterladen/i })
+    ).toBeInTheDocument();
   });
 
   it('resets preview when answerText changes', async () => {
     const { rerender } = render(<QuestionQRCode answerText="test" />);
-    fireEvent.click(screen.getByRole('button', { name: /qr-code generieren/i }));
-    expect(await screen.findByRole('button', { name: /png herunterladen/i })).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: /qr-code generieren/i })
+    );
+    expect(
+      await screen.findByRole('button', { name: /png herunterladen/i })
+    ).toBeInTheDocument();
     rerender(<QuestionQRCode answerText="other" />);
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /png herunterladen/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /png herunterladen/i })
+      ).not.toBeInTheDocument();
     });
   });
 
   describe('download', () => {
     it('creates a link with correct href and filename from questionContent', async () => {
       const toDataURL = vi.fn().mockReturnValue('data:image/png;base64,abc');
-      vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockImplementation(toDataURL);
+      vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockImplementation(
+        toDataURL
+      );
 
       let downloadAttr = '';
       let hrefAttr = '';
@@ -61,10 +73,18 @@ describe('QuestionQRCode', () => {
       vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
         if (tag === 'a') {
           const anchor = {
-            set href(v: string) { hrefAttr = v; },
-            get href() { return hrefAttr; },
-            set download(v: string) { downloadAttr = v; },
-            get download() { return downloadAttr; },
+            set href(v: string) {
+              hrefAttr = v;
+            },
+            get href() {
+              return hrefAttr;
+            },
+            set download(v: string) {
+              downloadAttr = v;
+            },
+            get download() {
+              return downloadAttr;
+            },
             click: clickSpy,
           } as unknown as HTMLElement;
           return anchor;
@@ -72,10 +92,19 @@ describe('QuestionQRCode', () => {
         return document.createElementNS('http://www.w3.org/1999/xhtml', tag);
       });
 
-      render(<QuestionQRCode answerText="test" questionContent="Campus Bibliothek Eingang" />);
-      fireEvent.click(screen.getByRole('button', { name: /qr-code generieren/i }));
+      render(
+        <QuestionQRCode
+          answerText="test"
+          questionContent="Campus Bibliothek Eingang"
+        />
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: /qr-code generieren/i })
+      );
       await screen.findByRole('button', { name: /png herunterladen/i });
-      fireEvent.click(screen.getByRole('button', { name: /png herunterladen/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /png herunterladen/i })
+      );
 
       expect(toDataURL).toHaveBeenCalledWith('image/png');
       expect(hrefAttr).toBe('data:image/png;base64,abc');
@@ -84,15 +113,21 @@ describe('QuestionQRCode', () => {
     });
 
     it('uses questionId as filename fallback', async () => {
-      vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,abc');
+      vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue(
+        'data:image/png;base64,abc'
+      );
 
       let downloadAttr = '';
       vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
         if (tag === 'a') {
           const anchor = {
             href: '',
-            set download(v: string) { downloadAttr = v; },
-            get download() { return downloadAttr; },
+            set download(v: string) {
+              downloadAttr = v;
+            },
+            get download() {
+              return downloadAttr;
+            },
             click: vi.fn(),
           } as unknown as HTMLElement;
           return anchor;
@@ -101,23 +136,33 @@ describe('QuestionQRCode', () => {
       });
 
       render(<QuestionQRCode answerText="test" questionId={42} />);
-      fireEvent.click(screen.getByRole('button', { name: /qr-code generieren/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /qr-code generieren/i })
+      );
       await screen.findByRole('button', { name: /png herunterladen/i });
-      fireEvent.click(screen.getByRole('button', { name: /png herunterladen/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /png herunterladen/i })
+      );
 
       expect(downloadAttr).toBe('qr-code-42.png');
     });
 
     it('uses timestamp as filename when no questionContent or questionId', async () => {
-      vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,abc');
+      vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue(
+        'data:image/png;base64,abc'
+      );
 
       let downloadAttr = '';
       vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
         if (tag === 'a') {
           const anchor = {
             href: '',
-            set download(v: string) { downloadAttr = v; },
-            get download() { return downloadAttr; },
+            set download(v: string) {
+              downloadAttr = v;
+            },
+            get download() {
+              return downloadAttr;
+            },
             click: vi.fn(),
           } as unknown as HTMLElement;
           return anchor;
@@ -126,9 +171,13 @@ describe('QuestionQRCode', () => {
       });
 
       render(<QuestionQRCode answerText="test" />);
-      fireEvent.click(screen.getByRole('button', { name: /qr-code generieren/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /qr-code generieren/i })
+      );
       await screen.findByRole('button', { name: /png herunterladen/i });
-      fireEvent.click(screen.getByRole('button', { name: /png herunterladen/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /png herunterladen/i })
+      );
 
       expect(downloadAttr).toMatch(/^qr-code-\d+\.png$/);
     });
@@ -139,16 +188,22 @@ describe('QuestionQRCode', () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { rerender } = render(<QuestionQRCode answerText="test" />);
-      fireEvent.click(screen.getByRole('button', { name: /qr-code generieren/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /qr-code generieren/i })
+      );
       await screen.findByRole('button', { name: /png herunterladen/i });
 
       // Make QRCodeCanvas throw, then change text to remount via key
       shouldThrow = true;
       rerender(<QuestionQRCode answerText="trigger-error" />);
-      fireEvent.click(screen.getByRole('button', { name: /qr-code generieren/i }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /qr-code generieren/i })
+      );
 
       await waitFor(() => {
-        expect(screen.getByText(/text zu lang für qr-code/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/text zu lang für qr-code/i)
+        ).toBeInTheDocument();
       });
     });
   });

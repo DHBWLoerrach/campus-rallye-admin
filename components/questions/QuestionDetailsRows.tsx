@@ -38,24 +38,26 @@ const QuestionDetailsRows = ({
   }
 
   return (
-    <div className={cn("flex flex-col gap-2 text-sm text-muted-foreground relative pr-24 min-h-[28px]", className)}>
-      {action && (
-        <div className="absolute right-0 top-0">
-          {action}
-        </div>
+    <div
+      className={cn(
+        'flex flex-col gap-2 text-sm text-muted-foreground relative pr-24 min-h-[28px]',
+        className
       )}
+    >
+      {action && <div className="absolute right-0 top-0">{action}</div>}
       {hasHint && (
         <div className="flex flex-col gap-1">
           <div className="pl-3 border-l-2 border-primary/20 text-xs">
-            <span className="font-medium text-foreground/80">
-              Hinweis:
-            </span>{' '}
+            <span className="font-medium text-foreground/80">Hinweis:</span>{' '}
             {question.hint}
           </div>
         </div>
       )}
       {hasRallyes && (
-        <div className="flex flex-col gap-1" title={`${rallyeLabel}: ${rallyeNames.join(', ')}`}>
+        <div
+          className="flex flex-col gap-1"
+          title={`${rallyeLabel}: ${rallyeNames.join(', ')}`}
+        >
           <div className="pl-3 border-l-2 border-blue-500/20 text-xs">
             <span className="font-medium text-foreground/80">
               {rallyeLabel}:
@@ -70,7 +72,10 @@ const QuestionDetailsRows = ({
             <span className="font-medium text-foreground/80 whitespace-nowrap">
               {answersLabel}:
             </span>
-            <div className="flex flex-wrap gap-x-3 gap-y-1" title={answersTitle}>
+            <div
+              className="flex flex-wrap gap-x-3 gap-y-1"
+              title={answersTitle}
+            >
               {answers.map((answer, index) => (
                 <span
                   key={answer.id ?? `${question.id}-${index}`}
@@ -81,7 +86,11 @@ const QuestionDetailsRows = ({
                   ) : (
                     <X className="h-3.5 w-3.5 text-destructive/60" />
                   )}
-                  <span className={cn(answer.correct && "font-medium text-emerald-700")}>
+                  <span
+                    className={cn(
+                      answer.correct && 'font-medium text-emerald-700'
+                    )}
+                  >
                     {answer.text?.trim() || '-'}
                   </span>
                 </span>

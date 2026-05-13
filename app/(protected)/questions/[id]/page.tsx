@@ -38,15 +38,15 @@ export default async function Question({ params }: Props) {
 
   const question =
     questionResult && questionResult.success
-      ? questionResult.data ?? null
+      ? (questionResult.data ?? null)
       : null;
   const categories = categoriesResult.success
-    ? categoriesResult.data ?? []
+    ? (categoriesResult.data ?? [])
     : [];
-  const rallyes = rallyesResult.success ? rallyesResult.data ?? [] : [];
+  const rallyes = rallyesResult.success ? (rallyesResult.data ?? []) : [];
   const assignedRallyes =
     assignedRallyesResult && assignedRallyesResult.success
-      ? assignedRallyesResult.data ?? []
+      ? (assignedRallyesResult.data ?? [])
       : [];
 
   return (

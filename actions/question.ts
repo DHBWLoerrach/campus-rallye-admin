@@ -30,7 +30,9 @@ export async function getCategories(): Promise<ActionResult<string[]>> {
   }
 
   const normalizedCategories = categories
-    .map((item) => (typeof item.category === 'string' ? item.category.trim() : ''))
+    .map((item) =>
+      typeof item.category === 'string' ? item.category.trim() : ''
+    )
     .filter((category) => category.length > 0);
 
   return ok([...new Set(normalizedCategories)]);
@@ -136,9 +138,7 @@ export async function getQuestions(filters: {
       new Set(
         (answerRows || [])
           .map((row) => row.question_id)
-          .filter(
-            (id): id is number => typeof id === 'number'
-          )
+          .filter((id): id is number => typeof id === 'number')
       )
     );
 

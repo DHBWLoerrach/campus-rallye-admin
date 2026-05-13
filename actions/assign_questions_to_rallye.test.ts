@@ -22,7 +22,8 @@ describe('assignQuestionsToRallye', () => {
   it('validates rallye id before touching Supabase', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
-    const { assignQuestionsToRallye } = await import('./assign_questions_to_rallye');
+    const { assignQuestionsToRallye } =
+      await import('./assign_questions_to_rallye');
     const result = await assignQuestionsToRallye(0, []);
 
     expect(result.success).toBe(false);
@@ -36,7 +37,8 @@ describe('assignQuestionsToRallye', () => {
   it('validates question ids before touching Supabase', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
-    const { assignQuestionsToRallye } = await import('./assign_questions_to_rallye');
+    const { assignQuestionsToRallye } =
+      await import('./assign_questions_to_rallye');
     const result = await assignQuestionsToRallye(1, [-1]);
 
     expect(result.success).toBe(false);

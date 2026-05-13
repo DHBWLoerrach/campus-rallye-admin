@@ -4,9 +4,16 @@ import createClient from '@/lib/supabase';
 import { requireAdmin } from '@/lib/require-profile';
 import { Department, DepartmentOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
-import { formatZodError, departmentCreateSchema, departmentUpdateSchema } from '@/lib/validation';
+import {
+  formatZodError,
+  departmentCreateSchema,
+  departmentUpdateSchema,
+} from '@/lib/validation';
 
-type FormState = ActionResult<{ message: string; departmentId?: number }> | null;
+type FormState = ActionResult<{
+  message: string;
+  departmentId?: number;
+}> | null;
 
 export async function createDepartment(state: FormState, formData: FormData) {
   await requireAdmin();
@@ -168,20 +175,28 @@ export async function updateDepartment(state: FormState, formData: FormData) {
     )
   );
 
-  const { data: existingAssignments, error: existingAssignmentsError } = await supabase
-    .from('join_department_rallye')
-    .select('rallye_id')
-    .eq('department_id', data.id);
+  const { data: existingAssignments, error: existingAssignmentsError } =
+    await supabase
+      .from('join_department_rallye')
+      .select('rallye_id')
+      .eq('department_id', data.id);
 
   if (existingAssignmentsError) {
-    console.error('Error loading existing rallye assignments:', existingAssignmentsError);
+    console.error(
+      'Error loading existing rallye assignments:',
+      existingAssignmentsError
+    );
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  const existingRallyeIds = new Set((existingAssignments || []).map((row) => row.rallye_id));
+  const existingRallyeIds = new Set(
+    (existingAssignments || []).map((row) => row.rallye_id)
+  );
   const selectedRallyeIdSet = new Set(selectedRallyeIds);
 
-  const rallyeIdsToInsert = selectedRallyeIds.filter((rallyeId) => !existingRallyeIds.has(rallyeId));
+  const rallyeIdsToInsert = selectedRallyeIds.filter(
+    (rallyeId) => !existingRallyeIds.has(rallyeId)
+  );
   const rallyeIdsToDelete = Array.from(existingRallyeIds).filter(
     (rallyeId) => !selectedRallyeIdSet.has(rallyeId)
   );
@@ -237,7 +252,9 @@ export async function getDepartments(): Promise<ActionResult<Department[]>> {
   return ok(data || []);
 }
 
-export async function getDepartmentOptions(): Promise<ActionResult<DepartmentOption[]>> {
+export async function getDepartmentOptions(): Promise<
+  ActionResult<DepartmentOption[]>
+> {
   await requireAdmin();
   const supabase = await createClient();
 

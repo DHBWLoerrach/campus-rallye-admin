@@ -65,9 +65,9 @@ export default function RallyeCardForm({
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<Set<number>>(
-    new Set(assignedDepartmentIds)
-  );
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<
+    Set<number>
+  >(new Set(assignedDepartmentIds));
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -201,13 +201,15 @@ export default function RallyeCardForm({
               <Label>Abteilungen zuordnen</Label>
               {!departmentAssignmentsLoaded ? (
                 <p className="text-sm text-muted-foreground">
-                  Abteilungszuordnungen konnten nicht geladen werden. Beim Speichern
-                  bleiben bestehende Zuordnungen unverändert.
+                  Abteilungszuordnungen konnten nicht geladen werden. Beim
+                  Speichern bleiben bestehende Zuordnungen unverändert.
                 </p>
               ) : (
                 <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
                   {departmentOptions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Keine Abteilungen vorhanden</p>
+                    <p className="text-sm text-muted-foreground">
+                      Keine Abteilungen vorhanden
+                    </p>
                   ) : (
                     departmentOptions.map((dept) => (
                       <div key={dept.id} className="flex items-center gap-2">
@@ -223,7 +225,10 @@ export default function RallyeCardForm({
                             });
                           }}
                         />
-                        <Label htmlFor={`edit-dept-${dept.id}`} className="text-sm">
+                        <Label
+                          htmlFor={`edit-dept-${dept.id}`}
+                          className="text-sm"
+                        >
                           {dept.name}
                         </Label>
                       </div>
@@ -233,7 +238,12 @@ export default function RallyeCardForm({
               )}
               {departmentAssignmentsLoaded &&
                 Array.from(selectedDepartmentIds).map((id) => (
-                  <input key={id} type="hidden" name="department_ids" value={id} />
+                  <input
+                    key={id}
+                    type="hidden"
+                    name="department_ids"
+                    value={id}
+                  />
                 ))}
             </div>
           )}

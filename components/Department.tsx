@@ -13,7 +13,13 @@ interface DepartmentProps {
   assignedRallyeIds: number[];
 }
 
-export default function Department({ department, organizationOptions, organizationName, rallyeOptions, assignedRallyeIds }: DepartmentProps) {
+export default function Department({
+  department,
+  organizationOptions,
+  organizationName,
+  rallyeOptions,
+  assignedRallyeIds,
+}: DepartmentProps) {
   const [editMode, setEditMode] = useState(false);
 
   return editMode ? (

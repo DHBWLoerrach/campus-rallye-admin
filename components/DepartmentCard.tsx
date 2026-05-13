@@ -55,7 +55,8 @@ export default function DepartmentCard({
             </span>
           </div>
           <div className="text-xs text-muted-foreground">
-            Erstellt: {new Date(department.created_at).toLocaleDateString('de-DE')}
+            Erstellt:{' '}
+            {new Date(department.created_at).toLocaleDateString('de-DE')}
           </div>
         </div>
       </CardContent>

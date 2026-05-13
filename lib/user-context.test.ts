@@ -1,6 +1,19 @@
 // @vitest-environment node
-import { SignJWT, decodeProtectedHeader, exportJWK, generateKeyPair } from 'jose';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  SignJWT,
+  decodeProtectedHeader,
+  exportJWK,
+  generateKeyPair,
+} from 'jose';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
 const AUDIENCE = 'campusrallye';
@@ -50,7 +63,9 @@ beforeAll(async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => {
-      const jwks = { keys: [{ ...jwk, kid: KEY_ID, use: 'sig', alg: 'RS256' }] };
+      const jwks = {
+        keys: [{ ...jwk, kid: KEY_ID, use: 'sig', alg: 'RS256' }],
+      };
       return new Response(JSON.stringify(jwks), {
         status: 200,
         headers: { 'content-type': 'application/json' },

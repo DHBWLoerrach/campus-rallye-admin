@@ -260,7 +260,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     const validAnswers = data.answers?.filter((a) => a.text?.trim()) ?? [];
     if (data.type === 'multiple_choice') {
       if (validAnswers.length < 2) {
-        newErrors.answers = 'Mindestens zwei Antworten müssen eingegeben werden';
+        newErrors.answers =
+          'Mindestens zwei Antworten müssen eingegeben werden';
       } else {
         const normalizedAnswers = validAnswers.map(
           (answer) => answer.text?.trim().toLowerCase() ?? ''
@@ -306,10 +307,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <fieldset
-        disabled={isSubmitting}
-        className="space-y-6 border-0 p-0 m-0"
-      >
+      <fieldset disabled={isSubmitting} className="space-y-6 border-0 p-0 m-0">
         <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="question">Frage*</Label>
@@ -358,9 +356,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points">
-                Punkte
-              </Label>
+              <Label htmlFor="points">Punkte</Label>
               <Input
                 type="number"
                 id="points"
@@ -377,7 +373,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 }`}
               />
               {errors.points && (
-                <span className="text-sm text-destructive">{errors.points}</span>
+                <span className="text-sm text-destructive">
+                  {errors.points}
+                </span>
               )}
             </div>
           </div>
@@ -385,9 +383,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
         {showAnswers && (
           <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
-            <Label>
-              {isMultipleChoice ? 'Antworten*' : 'Antwort*'}
-            </Label>
+            <Label>{isMultipleChoice ? 'Antworten*' : 'Antwort*'}</Label>
             {isMultipleChoice ? (
               <RadioGroup
                 value={getCorrectAnswerIndex().toString()}

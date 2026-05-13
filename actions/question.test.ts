@@ -64,7 +64,9 @@ describe('question write actions', () => {
       throw new Error('Expected validation to fail');
     }
     expect(result.error).toBe('Ungültige Eingaben');
-    expect(result.issues?.points).toBe('Punkte müssen größer oder gleich 0 sein');
+    expect(result.issues?.points).toBe(
+      'Punkte müssen größer oder gleich 0 sein'
+    );
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
@@ -219,8 +221,10 @@ describe('getQuestions', () => {
       eq: vi.fn(() => query),
       in: vi.fn(() => query),
       order: vi.fn(() => query),
-      then: (resolve: (value: unknown) => unknown, reject: (reason?: unknown) => unknown) =>
-        Promise.resolve(response).then(resolve, reject),
+      then: (
+        resolve: (value: unknown) => unknown,
+        reject: (reason?: unknown) => unknown
+      ) => Promise.resolve(response).then(resolve, reject),
     };
 
     return query;
@@ -277,8 +281,10 @@ describe('getCategories', () => {
   const makeQuery = (response: { data: unknown; error: unknown }) => {
     const query = {
       select: vi.fn(() => query),
-      then: (resolve: (value: unknown) => unknown, reject: (reason?: unknown) => unknown) =>
-        Promise.resolve(response).then(resolve, reject),
+      then: (
+        resolve: (value: unknown) => unknown,
+        reject: (reason?: unknown) => unknown
+      ) => Promise.resolve(response).then(resolve, reject),
     };
 
     return query;

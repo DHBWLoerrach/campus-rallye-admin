@@ -14,8 +14,9 @@
 }
 
 @theme {
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans:
+    var(--font-sans), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -178,7 +179,7 @@
 }
 
 :root {
-  --dhbw-500: #E2001A; /* DHBW-Hauptfarbe */
+  --dhbw-500: #e2001a; /* DHBW-Hauptfarbe */
   --dhbw-600: #bf000f; /* dunklere Hover-Variante */
   /*--destructive: #E2001A;*/
 }

@@ -117,7 +117,9 @@ export default function QuestionQRCode({
         <QRCodeErrorBoundary
           key={trimmed}
           onError={handleQRError}
-          fallback={<p className="text-sm text-destructive">{QR_CAPACITY_ERROR}</p>}
+          fallback={
+            <p className="text-sm text-destructive">{QR_CAPACITY_ERROR}</p>
+          }
         >
           <div className="space-y-3">
             <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
@@ -137,7 +139,12 @@ export default function QuestionQRCode({
                 <QRCodeCanvas value={trimmed} size={downloadSize} level="M" />
               </div>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={handleDownload}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+            >
               PNG herunterladen
             </Button>
           </div>

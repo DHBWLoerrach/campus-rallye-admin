@@ -59,9 +59,10 @@ export async function proxy(req: NextRequest) {
   // 🔐 Not logged in → Redirect to login page with return-to parameter
   if (!uuid) {
     // Use local oauth2-proxy endpoint in development, absolute path in production
-    const authUrl = process.env.NODE_ENV === 'development'
-      ? 'http://localhost:4181/oauth2/start'
-      : '/oauth2/start';
+    const authUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:4181/oauth2/start'
+        : '/oauth2/start';
     const loginUrl = new URL(authUrl, req.url);
     loginUrl.searchParams.set('rd', safeReturnTo(req));
     return NextResponse.redirect(loginUrl);
@@ -69,7 +70,12 @@ export async function proxy(req: NextRequest) {
 
   // 🚫 Logged in but not authorized → Redirect to access denied page
   if (!isAuthorized) {
-    console.warn('Access denied', { uuid, email, roles, path: req.nextUrl.pathname });
+    console.warn('Access denied', {
+      uuid,
+      email,
+      roles,
+      path: req.nextUrl.pathname,
+    });
     return NextResponse.redirect(new URL('/access-denied', req.url));
   }
 

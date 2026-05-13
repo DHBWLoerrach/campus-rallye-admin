@@ -18,14 +18,16 @@ export default function ExplorationRow({
     questionCount === undefined
       ? 'Fragen: …'
       : questionCount === 0
-      ? 'Keine Fragen'
-      : `${questionCount} ${questionCount === 1 ? 'Frage' : 'Fragen'}`;
+        ? 'Keine Fragen'
+        : `${questionCount} ${questionCount === 1 ? 'Frage' : 'Fragen'}`;
 
   return (
     <div className="rounded-lg border border-border/60 bg-card px-4 py-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <p className="truncate text-base font-semibold text-foreground">{name}</p>
+          <p className="truncate text-base font-semibold text-foreground">
+            {name}
+          </p>
           {organizationLabel && (
             <p className="truncate text-xs text-muted-foreground">
               {organizationLabel}

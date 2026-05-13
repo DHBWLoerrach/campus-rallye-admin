@@ -61,10 +61,10 @@ export default async function Page(props: PageProps) {
     console.error(initialRallyeMapResult.error);
   }
   const initialRallyeMap = initialRallyeMapResult.success
-    ? initialRallyeMapResult.data ?? {}
+    ? (initialRallyeMapResult.data ?? {})
     : {};
 
-  const maxPoints = maxPointsRes.success ? maxPointsRes.data ?? 0 : 0;
+  const maxPoints = maxPointsRes.success ? (maxPointsRes.data ?? 0) : 0;
 
   return (
     <main className="w-full">

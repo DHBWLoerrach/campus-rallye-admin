@@ -3,7 +3,9 @@ import { slugify } from './slug';
 
 describe('slugify', () => {
   it('converts German text to lowercase slug', () => {
-    expect(slugify('Campus Bibliothek Eingang')).toBe('campus-bibliothek-eingang');
+    expect(slugify('Campus Bibliothek Eingang')).toBe(
+      'campus-bibliothek-eingang'
+    );
   });
 
   it('replaces umlauts with ASCII equivalents', () => {
@@ -15,7 +17,9 @@ describe('slugify', () => {
   });
 
   it('replaces uppercase umlauts with ASCII equivalents', () => {
-    expect(slugify('Übersicht Ärger Öffnung')).toBe('uebersicht-aerger-oeffnung');
+    expect(slugify('Übersicht Ärger Öffnung')).toBe(
+      'uebersicht-aerger-oeffnung'
+    );
   });
 
   it('returns fallback for only special characters', () => {

@@ -52,7 +52,9 @@ describe('RallyeForm', () => {
     );
 
     expect(screen.getByText('Abteilungen zuordnen')).toBeInTheDocument();
-    expect(container.querySelector('input[name="department_sync"]')).not.toBeNull();
+    expect(
+      container.querySelector('input[name="department_sync"]')
+    ).not.toBeNull();
     expect(
       container.querySelector('input[name="department_ids"][value="10"]')
     ).not.toBeNull();

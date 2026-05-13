@@ -11,7 +11,11 @@ interface OrganizationProps {
   defaultRallyeName?: string;
 }
 
-export default function Organization({ organization, rallyeOptions, defaultRallyeName }: OrganizationProps) {
+export default function Organization({
+  organization,
+  rallyeOptions,
+  defaultRallyeName,
+}: OrganizationProps) {
   const [editMode, setEditMode] = useState(false);
 
   return editMode ? (

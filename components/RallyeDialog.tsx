@@ -43,7 +43,9 @@ export default function RallyeDialog({
   departmentOptions: DepartmentOption[];
 }) {
   const [name, setName] = useState('');
-  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<Set<number>>(new Set());
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<
+    Set<number>
+  >(new Set());
   const [open, setOpen] = useState(false);
   const [createdRallyeId, setCreatedRallyeId] = useState<number | null>(null);
   const [createdRallyeName, setCreatedRallyeName] = useState('');
@@ -130,7 +132,9 @@ export default function RallyeDialog({
                 <Label>Abteilungen zuordnen (optional)</Label>
                 <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
                   {departmentOptions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Keine Abteilungen vorhanden</p>
+                    <p className="text-sm text-muted-foreground">
+                      Keine Abteilungen vorhanden
+                    </p>
                   ) : (
                     departmentOptions.map((dept) => (
                       <div key={dept.id} className="flex items-center gap-2">
@@ -146,7 +150,10 @@ export default function RallyeDialog({
                             });
                           }}
                         />
-                        <Label htmlFor={`create-dept-${dept.id}`} className="text-sm">
+                        <Label
+                          htmlFor={`create-dept-${dept.id}`}
+                          className="text-sm"
+                        >
                           {dept.name}
                         </Label>
                       </div>
@@ -154,7 +161,12 @@ export default function RallyeDialog({
                   )}
                 </div>
                 {Array.from(selectedDepartmentIds).map((id) => (
-                  <input key={id} type="hidden" name="department_ids" value={id} />
+                  <input
+                    key={id}
+                    type="hidden"
+                    name="department_ids"
+                    value={id}
+                  />
                 ))}
               </div>
             </div>

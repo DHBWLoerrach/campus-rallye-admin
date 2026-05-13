@@ -13,7 +13,10 @@ import { usePathname, useSearchParams } from 'next/navigation';
  * @param isDirty - Whether the form has unsaved changes
  * @param message - Confirmation message shown to the user
  */
-export function useUnsavedChangesGuard(isDirty: boolean, message: string): void {
+export function useUnsavedChangesGuard(
+  isDirty: boolean,
+  message: string
+): void {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 

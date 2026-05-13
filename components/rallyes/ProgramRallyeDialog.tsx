@@ -143,17 +143,26 @@ export default function ProgramRallyeDialog({
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="program-rallye-department" className="text-right">
+                <Label
+                  htmlFor="program-rallye-department"
+                  className="text-right"
+                >
                   Abteilung
                 </Label>
                 <div className="col-span-3">
                   <Select value={departmentId} onValueChange={setDepartmentId}>
-                    <SelectTrigger id="program-rallye-department" aria-label="Abteilung">
+                    <SelectTrigger
+                      id="program-rallye-department"
+                      aria-label="Abteilung"
+                    >
                       <SelectValue placeholder="Abteilung auswählen" />
                     </SelectTrigger>
                     <SelectContent>
                       {departments.map((department) => (
-                        <SelectItem key={department.id} value={String(department.id)}>
+                        <SelectItem
+                          key={department.id}
+                          value={String(department.id)}
+                        >
                           {department.name}
                         </SelectItem>
                       ))}
@@ -167,14 +176,20 @@ export default function ProgramRallyeDialog({
                 </p>
               )}
               {departmentId.length > 0 && (
-                <input type="hidden" name="department_ids" value={departmentId} />
+                <input
+                  type="hidden"
+                  name="department_ids"
+                  value={departmentId}
+                />
               )}
             </div>
             <DialogFooter>
               <SaveButton disabled={isSaveDisabled} />
             </DialogFooter>
             {formState?.success === false && (
-              <span className="text-sm text-red-500 ml-2">{formState.error}</span>
+              <span className="text-sm text-red-500 ml-2">
+                {formState.error}
+              </span>
             )}
           </form>
         )}

@@ -69,10 +69,11 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                     <TableRow>
                       <TableCell>
                         <ChevronDown
-                          className={`h-4 w-4 cursor-pointer text-muted-foreground transition-transform hover:text-foreground ${expandedRows.includes(question.id)
+                          className={`h-4 w-4 cursor-pointer text-muted-foreground transition-transform hover:text-foreground ${
+                            expandedRows.includes(question.id)
                               ? 'rotate-180'
                               : ''
-                            }`}
+                          }`}
                           onClick={() => toggleRow(question.id)}
                         />
                       </TableCell>

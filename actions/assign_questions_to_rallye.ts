@@ -220,8 +220,7 @@ export async function assignRallyesToQuestion(
     return fail('Frage konnte nicht aktualisiert werden');
   }
 
-  const existingRallyeIds =
-    existingAssignments?.map((a) => a.rallye_id) || [];
+  const existingRallyeIds = existingAssignments?.map((a) => a.rallye_id) || [];
 
   const rallyesToAdd = normalizedRallyeIds.filter(
     (id) => !existingRallyeIds.includes(id)

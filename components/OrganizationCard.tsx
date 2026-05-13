@@ -61,7 +61,8 @@ export default function OrganizationCard({
             </div>
           )}
           <div className="text-xs text-muted-foreground">
-            Erstellt: {new Date(organization.created_at).toLocaleDateString('de-DE')}
+            Erstellt:{' '}
+            {new Date(organization.created_at).toLocaleDateString('de-DE')}
           </div>
         </div>
       </CardContent>

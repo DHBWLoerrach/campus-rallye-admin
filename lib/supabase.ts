@@ -18,15 +18,11 @@ export default async function createClient() {
   const anonKey = process.env.SUPABASE_ANON_KEY;
   if (!anonKey) throw new Error('Missing SUPABASE_ANON_KEY');
 
-  return supabaseClient(
-    supabaseUrl,
-    anonKey,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
+  return supabaseClient(supabaseUrl, anonKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
       },
-    }
-  );
+    },
+  });
 }

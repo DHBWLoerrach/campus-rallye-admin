@@ -10,9 +10,7 @@ describe('sign-out route', () => {
   });
 
   it('uses a relative production sign-out redirect behind proxies', () => {
-    const response = GET(
-      new NextRequest('https://127.0.0.1:3000/sign-out')
-    );
+    const response = GET(new NextRequest('https://127.0.0.1:3000/sign-out'));
 
     expect(response.status).toBe(307);
     expect(response.headers.get('location')).toBe('/oauth2/sign_out');

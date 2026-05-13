@@ -19,10 +19,7 @@ export default function Footer() {
         <nav aria-label="Rechtliches">
           <ul className="flex flex-wrap items-center gap-y-2 divide-x divide-border/60">
             {legalLinks.map((link) => (
-              <li
-                key={link.href}
-                className="px-4 first:pl-0 last:pr-0"
-              >
+              <li key={link.href} className="px-4 first:pl-0 last:pr-0">
                 <Link
                   href={link.href}
                   className="transition-colors underline-offset-4 hover:text-foreground hover:underline"

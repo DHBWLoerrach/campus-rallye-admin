@@ -1,11 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import Department from '@/components/Department';
 import DepartmentDialog from '@/components/DepartmentDialog';
 import { Label } from '@/components/ui/label';
-import type { Department as DepartmentType, OrganizationOption, RallyeOption } from '@/lib/types';
+import type {
+  Department as DepartmentType,
+  OrganizationOption,
+  RallyeOption,
+} from '@/lib/types';
 
 interface DepartmentsClientProps {
   departments: DepartmentType[];
@@ -15,18 +25,22 @@ interface DepartmentsClientProps {
   rallyeAssignmentsMap: Map<number, number[]>;
 }
 
-export default function DepartmentsClient({ 
-  departments, 
+export default function DepartmentsClient({
+  departments,
   organizationOptions,
   organizationNames,
   rallyeOptions,
   rallyeAssignmentsMap,
 }: DepartmentsClientProps) {
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('all');
+  const [selectedOrganizationId, setSelectedOrganizationId] =
+    useState<string>('all');
 
-  const filteredDepartments = selectedOrganizationId === 'all' 
-    ? departments 
-    : departments.filter(dept => dept.organization_id.toString() === selectedOrganizationId);
+  const filteredDepartments =
+    selectedOrganizationId === 'all'
+      ? departments
+      : departments.filter(
+          (dept) => dept.organization_id.toString() === selectedOrganizationId
+        );
 
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
@@ -37,7 +51,7 @@ export default function DepartmentsClient({
             Verwalten Sie Ihre Abteilungen und deren Organisationszugehörigkeit.
           </p>
         </div>
-        <DepartmentDialog 
+        <DepartmentDialog
           buttonStyle="ml-auto"
           organizationOptions={organizationOptions}
           rallyeOptions={rallyeOptions}
@@ -70,14 +84,18 @@ export default function DepartmentsClient({
 
       {!departments || departments.length === 0 ? (
         <div className="flex min-h-96 flex-col items-center justify-center space-y-2 rounded-md border border-dashed border-border/60 bg-muted/20 p-8 text-center">
-          <h2 className="text-lg font-medium text-foreground">Keine Abteilungen</h2>
+          <h2 className="text-lg font-medium text-foreground">
+            Keine Abteilungen
+          </h2>
           <p className="text-sm text-muted-foreground">
             Erstellen Sie Ihre erste Abteilung, um zu beginnen.
           </p>
         </div>
       ) : filteredDepartments.length === 0 ? (
         <div className="flex min-h-96 flex-col items-center justify-center space-y-2 rounded-md border border-dashed border-border/60 bg-muted/20 p-8 text-center">
-          <h2 className="text-lg font-medium text-foreground">Keine Abteilungen gefunden</h2>
+          <h2 className="text-lg font-medium text-foreground">
+            Keine Abteilungen gefunden
+          </h2>
           <p className="text-sm text-muted-foreground">
             Für die ausgewählte Organisation wurden keine Abteilungen gefunden.
           </p>
@@ -89,7 +107,9 @@ export default function DepartmentsClient({
               key={department.id}
               department={department}
               organizationOptions={organizationOptions}
-              organizationName={organizationNames.get(department.organization_id) || 'Unbekannt'}
+              organizationName={
+                organizationNames.get(department.organization_id) || 'Unbekannt'
+              }
               rallyeOptions={rallyeOptions}
               assignedRallyeIds={rallyeAssignmentsMap.get(department.id) || []}
             />

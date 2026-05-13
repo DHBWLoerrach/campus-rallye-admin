@@ -1,12 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockGetUserContext, mockCreateClient, mockInsertLocalUser } = vi.hoisted(
-  () => ({
+const { mockGetUserContext, mockCreateClient, mockInsertLocalUser } =
+  vi.hoisted(() => ({
     mockGetUserContext: vi.fn(),
     mockCreateClient: vi.fn(),
     mockInsertLocalUser: vi.fn(),
-  })
-);
+  }));
 
 vi.mock('./user-context', () => ({
   getUserContext: mockGetUserContext,
@@ -77,9 +76,7 @@ describe('requireProfile', () => {
       roles: ['staff'],
     });
 
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: null, error: null });
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const eq = vi.fn().mockReturnValue({ maybeSingle });
     const select = vi.fn().mockReturnValue({ eq });
     const from = vi.fn().mockReturnValue({ select });
@@ -187,9 +184,7 @@ describe('requireAdmin', () => {
       roles: ['staff'],
     });
 
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: null, error: null });
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const eq = vi.fn().mockReturnValue({ maybeSingle });
     const select = vi.fn().mockReturnValue({ eq });
     const from = vi.fn().mockReturnValue({ select });

@@ -118,9 +118,9 @@ describe('isEventDepartmentForOrganization', () => {
     expect(
       isEventDepartmentForOrganization(' DHBW LÖRRACH ', 'dhbw lörrach')
     ).toBe(true);
-    expect(
-      isEventDepartmentForOrganization('Informatik', 'DHBW Lörrach')
-    ).toBe(false);
+    expect(isEventDepartmentForOrganization('Informatik', 'DHBW Lörrach')).toBe(
+      false
+    );
   });
 });
 

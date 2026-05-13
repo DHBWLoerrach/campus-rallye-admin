@@ -51,8 +51,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   const gridClassName = compact
     ? 'grid gap-2 grid-cols-1 sm:grid-cols-2'
     : rallyes?.length
-    ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px_220px]'
-    : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px]';
+      ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px_220px]'
+      : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px]';
 
   return (
     <div className="flex flex-col gap-3">

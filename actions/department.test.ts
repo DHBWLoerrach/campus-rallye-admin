@@ -60,10 +60,7 @@ describe('createDepartment', () => {
     const { createDepartment } = await import('./department');
 
     await expect(
-      createDepartment(
-        null,
-        makeFormData({ name: 'IT', organization_id: '1' })
-      )
+      createDepartment(null, makeFormData({ name: 'IT', organization_id: '1' }))
     ).rejects.toThrow('Denied');
 
     expect(mockCreateClient).not.toHaveBeenCalled();
@@ -71,9 +68,7 @@ describe('createDepartment', () => {
 
   it('returns error when organization not found', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: null, error: null });
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq: selectEq }));
     const from = vi.fn(() => ({ select }));
@@ -108,13 +103,12 @@ describe('createDepartment', () => {
     const deptInsert = vi.fn(() => ({ select: deptSelect }));
 
     // rallye assign insert
-    const joinInsert = vi
-      .fn()
-      .mockResolvedValue({ error: null });
+    const joinInsert = vi.fn().mockResolvedValue({ error: null });
 
     const from = vi.fn((table: string) => {
       if (table === 'organization') return { select: orgSelect };
-      if (table === 'department') return { insert: deptInsert, select: orgSelect };
+      if (table === 'department')
+        return { insert: deptInsert, select: orgSelect };
       if (table === 'join_department_rallye') return { insert: joinInsert };
       return {};
     });
@@ -155,7 +149,8 @@ describe('createDepartment', () => {
 
     const from = vi.fn((table: string) => {
       if (table === 'organization') return { select: orgSelect };
-      if (table === 'department') return { insert: deptInsert, select: orgSelect };
+      if (table === 'department')
+        return { insert: deptInsert, select: orgSelect };
       if (table === 'join_department_rallye') return { insert: joinInsert };
       return {};
     });
@@ -241,9 +236,7 @@ describe('updateDepartment', () => {
 
   it('returns error when department not found', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: null, error: null });
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq: selectEq }));
     const from = vi.fn(() => ({ select }));
@@ -445,9 +438,7 @@ describe('deleteDepartment', () => {
 
   it('returns error when department not found', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: null, error: null });
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq: selectEq }));
     const from = vi.fn(() => ({ select }));
@@ -473,9 +464,7 @@ describe('getRallyeAssignmentsByDepartment', () => {
 
     const { getRallyeAssignmentsByDepartment } = await import('./department');
 
-    await expect(getRallyeAssignmentsByDepartment(1)).rejects.toThrow(
-      'Denied'
-    );
+    await expect(getRallyeAssignmentsByDepartment(1)).rejects.toThrow('Denied');
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 

@@ -27,7 +27,11 @@ const getRequireProfileNames = (sourceFile: ts.SourceFile): Set<string> => {
     if (node.moduleSpecifier.text !== '@/lib/require-profile') return;
 
     const clause = node.importClause;
-    if (!clause || !clause.namedBindings || !ts.isNamedImports(clause.namedBindings)) {
+    if (
+      !clause ||
+      !clause.namedBindings ||
+      !ts.isNamedImports(clause.namedBindings)
+    ) {
       return;
     }
 
@@ -60,7 +64,10 @@ const getExportedActions = (sourceFile: ts.SourceFile): ActionEntry[] => {
           ts.isArrowFunction(declaration.initializer) ||
           ts.isFunctionExpression(declaration.initializer)
         ) {
-          actions.push({ name: declaration.name.text, node: declaration.initializer });
+          actions.push({
+            name: declaration.name.text,
+            node: declaration.initializer,
+          });
         }
       }
     }

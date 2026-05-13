@@ -103,7 +103,10 @@ export default function RallyeCard({
       </CardHeader>
       <CardContent className="grid gap-4">
         {contextLabel && (
-          <p className="text-xs text-muted-foreground" aria-label="Rallye-Kontext">
+          <p
+            className="text-xs text-muted-foreground"
+            aria-label="Rallye-Kontext"
+          >
             {contextLabel}
           </p>
         )}
@@ -122,8 +125,8 @@ export default function RallyeCard({
             {questionCount === undefined
               ? 'Fragen: …'
               : questionCount === 0
-              ? 'Keine Fragen'
-              : `${questionCount} ${questionCount === 1 ? 'Frage' : 'Fragen'}`}
+                ? 'Keine Fragen'
+                : `${questionCount} ${questionCount === 1 ? 'Frage' : 'Fragen'}`}
           </div>
           <div className="flex flex-col items-end gap-1">
             <Link

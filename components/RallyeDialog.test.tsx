@@ -23,9 +23,7 @@ describe('RallyeDialog', () => {
 
     render(<RallyeDialog buttonStyle="" departmentOptions={[]} />);
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Rallye erstellen' })
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Rallye erstellen' }));
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'Test Rallye' },
     });

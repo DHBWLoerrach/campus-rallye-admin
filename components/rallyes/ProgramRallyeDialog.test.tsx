@@ -42,7 +42,9 @@ describe('ProgramRallyeDialog', () => {
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'Informatik Semester 1' },
     });
-    const departmentTrigger = screen.getByRole('combobox', { name: 'Abteilung' });
+    const departmentTrigger = screen.getByRole('combobox', {
+      name: 'Abteilung',
+    });
     fireEvent.click(departmentTrigger);
     fireEvent.click(screen.getByRole('option', { name: 'Informatik' }));
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
