@@ -161,19 +161,15 @@ export default function DatenschutzPage() {
           7. Nutzer- und Profildaten der Mitarbeitenden
         </h2>
         <p className="mt-2">
-          Zur Berechtigungsverwaltung werden in der Datenbank der Admin App eine
-          technische Nutzerkennung, ein Admin-Kennzeichen und der
-          Erstellungszeitpunkt des Profils gespeichert.
+          Zur Berechtigungsverwaltung wird auf dem Server der DHBW Lörrach eine
+          lokale Datenbank für berechtigte Nutzerinnen und Nutzer geführt. Dort
+          werden eine technische Nutzerkennung, die E-Mail-Adresse, ein
+          Admin-Kennzeichen und der Zeitpunkt der erstmaligen Registrierung
+          gespeichert.
         </p>
         <p className="mt-2">
-          Zusätzlich wird auf dem Server der DHBW Lörrach eine lokale Datenbank
-          für berechtigte Nutzerinnen und Nutzer geführt. Dort werden die
-          technische Nutzerkennung, die E-Mail-Adresse und der Zeitpunkt der
-          erstmaligen Registrierung gespeichert.
-        </p>
-        <p className="mt-2">
-          Nach Ausscheiden aus der DHBW oder Wegfall der Berechtigung werden die
-          Nutzer- und Profildaten gelöscht.
+          Nach Ausscheiden aus der DHBW oder Wegfall der Berechtigung werden
+          diese Daten gelöscht.
         </p>
       </section>
 
@@ -229,20 +225,17 @@ export default function DatenschutzPage() {
         </h2>
         <p className="mt-2">
           Die Webanwendung selbst wird auf Servern der DHBW Lörrach betrieben.
-          Für Datenbank und Dateispeicher wird Supabase Cloud eingesetzt; die
-          Daten werden in der EU-Region Frankfurt am Main verarbeitet. Die
-          Authentifizierung erfolgt über Keycloak.
+          Für fachliche Rallye-Daten (Rallyes, Fragen, Antworten, Ergebnisse)
+          wird Supabase Cloud eingesetzt; die Daten werden in der EU-Region
+          Frankfurt am Main verarbeitet. In dieser Cloud-Datenbank werden keine
+          personenbezogenen Daten verarbeitet. Die Authentifizierung erfolgt
+          über Keycloak.
         </p>
         <p className="mt-2">
-          Supabase wird insoweit als Auftragsverarbeiter im Sinne von Art. 28
-          DSGVO eingesetzt. Die Nutzung erfolgt auf Grundlage eines
-          Auftragsverarbeitungsvertrags; soweit dieser noch nicht abgeschlossen
-          ist, wird er vor produktiver Verarbeitung personenbezogener Daten
-          geschlossen. Soweit erforderlich, werden Standardvertragsklauseln nach
-          Art. 46 DSGVO vereinbart. Empfänger personenbezogener Daten sind im
-          Übrigen nur berechtigte Nutzerinnen und Nutzer der Admin App, zentrale
-          IT- und Authentifizierungssysteme der DHBW sowie für Betrieb und
-          Wartung zuständige Stellen der DHBW Lörrach.
+          Empfänger personenbezogener Daten sind ausschließlich berechtigte
+          Nutzerinnen und Nutzer der Admin App, zentrale IT- und
+          Authentifizierungssysteme der DHBW sowie für Betrieb und Wartung
+          zuständige Stellen der DHBW Lörrach.
         </p>
       </section>
 
@@ -251,12 +244,8 @@ export default function DatenschutzPage() {
           11. Drittlandübermittlung, Tracking und Profiling
         </h2>
         <p className="mt-2">
-          Eine reguläre Übermittlung personenbezogener Daten in Staaten
-          außerhalb der EU oder des EWR findet nicht statt. Die Verarbeitung in
-          der Supabase-Cloud erfolgt in der EU-Region Frankfurt am Main. Soweit
-          im Einzelfall ein Zugriff oder eine Übermittlung in Drittstaaten nicht
-          ausgeschlossen werden kann, erfolgt dies auf Grundlage geeigneter
-          Garantien, insbesondere Standardvertragsklauseln nach Art. 46 DSGVO.
+          Eine Übermittlung personenbezogener Daten in Staaten außerhalb der EU
+          oder des EWR findet nicht statt.
         </p>
         <p className="mt-2">
           Externe Analyse-, Werbe- oder Trackingdienste werden nicht eingesetzt.
