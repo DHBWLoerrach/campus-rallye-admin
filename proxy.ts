@@ -100,6 +100,6 @@ export async function proxy(req: NextRequest) {
 // Exceptions: root, sign-out, legal pages, the access-denied page, favicon, Next.js static assets, and the `assets` path.
 export const config = {
   matcher: [
-    '/((?!$|sign-out|impressum|datenschutz|nutzungsordnung|access-denied|favicon\\.ico|_next/static|_next/image|assets).*)',
+    '/((?!$|sign-out|impressum|datenschutz|nutzungshinweise|access-denied|favicon\\.ico|_next/static|_next/image|assets).*)',
   ],
 };

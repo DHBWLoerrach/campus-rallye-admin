@@ -130,7 +130,7 @@ describe('proxy', () => {
     expect(response.headers.get('set-cookie')).toBeNull();
   });
 
-  it.each(['/impressum', '/datenschutz', '/nutzungsordnung'])(
+  it.each(['/impressum', '/datenschutz', '/nutzungshinweise'])(
     'keeps %s public',
     (path) => {
       const matcher = new RegExp(config.matcher[0]);
