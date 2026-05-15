@@ -21,11 +21,14 @@ export default function DatenschutzPage() {
           und Ergebnissen.
         </p>
         <p className="mt-2">
-          Die Admin App ist ausschließlich für berechtigte Mitarbeitende der
-          DHBW Lörrach bestimmt. Studierende, externe Teilnehmende und Teams
-          erhalten keinen Zugriff auf diese Verwaltungsanwendung. Sie können
-          jedoch über eine begleitende mobile Rallye-App Daten eingeben, die in
-          der Admin App für berechtigte Mitarbeitende sichtbar werden.
+          Die Admin App ist grundsätzlich für berechtigte Mitarbeitende der DHBW
+          Lörrach bestimmt. Darüber hinaus kann einzelnen weiteren berechtigten,
+          der DHBW angehörigen Personen, insbesondere im Rahmen von Projekten
+          und Studienarbeiten, über eine E-Mail-Whitelist Zugriff gewährt
+          werden. Nicht berechtigte Teilnehmende und Teams erhalten keinen
+          Zugriff auf diese Verwaltungsanwendung. Sie können jedoch über eine
+          begleitende mobile Rallye-App Daten eingeben, die in der Admin App für
+          berechtigte Nutzerinnen und Nutzer sichtbar werden.
         </p>
         <p className="mt-2">
           Für die begleitende mobile Rallye-App gelten ergänzende
@@ -49,8 +52,9 @@ export default function DatenschutzPage() {
           2. Betroffene Personengruppen
         </h2>
         <p className="mt-2">
-          Direkt betroffen sind berechtigte Mitarbeitende, die die Campus Rallye
-          Admin App dienstlich nutzen. Von ihnen werden insbesondere
+          Direkt betroffen sind berechtigte Mitarbeitende sowie weitere per
+          E-Mail-Whitelist freigeschaltete Nutzerinnen und Nutzer, die die
+          Campus Rallye Admin App nutzen. Von ihnen werden insbesondere
           Authentifizierungs-, Berechtigungs-, Profil- und technische Logdaten
           verarbeitet.
         </p>
@@ -156,7 +160,7 @@ export default function DatenschutzPage() {
 
       <section>
         <h2 className="text-base font-semibold text-foreground">
-          7. Nutzer- und Profildaten der Mitarbeitenden
+          7. Nutzer- und Profildaten berechtigter Nutzerinnen und Nutzer
         </h2>
         <p className="mt-2">
           Zur Berechtigungsverwaltung wird auf dem Server der DHBW Lörrach eine
@@ -286,9 +290,9 @@ export default function DatenschutzPage() {
           anonymisiert (siehe Abschnitt 5).
         </p>
         <p className="mt-2">
-          Nutzer- und Profildaten berechtigter Mitarbeitender werden gelöscht,
-          wenn die Zugriffsberechtigung entfällt und keine Gründe für eine
-          weitere Speicherung bestehen.
+          Nutzer- und Profildaten berechtigter Nutzerinnen und Nutzer der Admin
+          App werden gelöscht, wenn die Zugriffsberechtigung entfällt und keine
+          Gründe für eine weitere Speicherung bestehen.
         </p>
         <p className="mt-2">
           Rallye-, Team-, Antwort-, Ergebnis- und Upload-Daten werden gelöscht,
