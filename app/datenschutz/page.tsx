@@ -16,17 +16,18 @@ export default function DatenschutzPage() {
         <p className="mt-2">
           Die Campus Rallye Admin App ist eine webbasierte Verwaltungsanwendung
           der DHBW Lörrach zur Organisation, Durchführung und Nachbereitung von
-          Campus Rallyes. Sie dient insbesondere der Verwaltung von Rallyes,
-          Organisationen, Abteilungen, Fragen, Antwortmöglichkeiten,
-          Foto-Aufgaben, Teamantworten, Uploads, Ergebnissen und Rankings.
+          Campus Rallyes. Sie dient insbesondere der Verwaltung von
+          Rallye-Inhalten, Aufgaben, Antworten, Uploads, Informationen zu Teams
+          und Ergebnissen.
         </p>
         <p className="mt-2">
           Die Admin App ist ausschließlich für berechtigte Mitarbeitende der
           DHBW Lörrach bestimmt. Studierende, externe Teilnehmende und Teams
           erhalten keinen Zugriff auf diese Verwaltungsanwendung. Sie können
-          jedoch über eine begleitende mobile Rallye-App Daten eingeben oder
-          Fotos hochladen, die in der Admin App für berechtigte Mitarbeitende
-          sichtbar werden.
+          jedoch über eine begleitende mobile Rallye-App Daten eingeben, die in
+          der Admin App für berechtigte Mitarbeitende sichtbar werden. Soweit
+          Upload-Aufgaben angeboten werden, gelten die Einschränkungen aus
+          Abschnitt 8.
         </p>
         <p className="mt-2">
           Für die begleitende mobile Rallye-App gelten ergänzende
@@ -56,10 +57,13 @@ export default function DatenschutzPage() {
           verarbeitet.
         </p>
         <p className="mt-2">
-          Mittelbar betroffen können Studierende, Teammitglieder,
-          Rallye-Teilnehmende und auf Fotos erkennbare Personen sein. Dies gilt
-          insbesondere für Teamnamen, Antworten, Punkte, Bearbeitungszeiten und
-          Foto-Uploads aus der begleitenden mobilen Rallye-App.
+          Die in der Admin App sichtbaren Rallye-Daten Studierender oder
+          Rallye-Teilnehmender sind grundsätzlich nicht auf einzelne Personen
+          bezogen. Teamnamen werden in der Regel von der mobilen Rallye-App
+          vergeben, ohne personenidentifizierende Klarnamen zu enthalten;
+          Antworten zu Wissensfragen sind sachbezogen. Upload-Aufgaben sind so
+          konzipiert, dass keine Fotos mit erkennbaren Personen entstehen
+          sollen.
         </p>
       </section>
 
@@ -185,34 +189,23 @@ export default function DatenschutzPage() {
         <p className="mt-2">
           Für die Durchführung und Auswertung verarbeitet die App außerdem
           Teamnamen, Antworten, Uploads, Punkte, Bearbeitungszeiten, Ergebnisse
-          und Rankings.
+          und Rankings. Teamnamen werden in der Regel von der mobilen Rallye-App
+          vergeben, ohne personenidentifizierende Klarnamen zu enthalten;
+          Antworten zu Wissensfragen sind sachbezogen. Ein Personenbezug zu
+          einzelnen Teilnehmenden ist dadurch grundsätzlich nicht vorgesehen.
         </p>
         <p className="mt-2">
           Fragebilder werden im Dateispeicher der Anwendung gespeichert und für
           die Auslieferung der Frageinhalte öffentlich bereitgestellt.
         </p>
         <p className="mt-2">
-          Teilnehmende Studierende oder Teams können in der mobilen Rallye-App
-          Foto-Uploads zu Upload-Aufgaben einreichen. Foto-Uploads von Teams
-          werden im geschützten Dateispeicher der Anwendung gespeichert und sind
-          nur für berechtigte Nutzerinnen und Nutzer der Admin App sichtbar. Die
-          Anzeige erfolgt über zeitlich begrenzte Zugriffsmöglichkeiten.
-        </p>
-        <p className="mt-2">
-          Ergebnisse und Rankings können Teamnamen, Punkte, Bearbeitungsdauer
-          und ausgewählte Upload-Fotos enthalten. Fotos, auf denen Personen
-          erkennbar sind, können personenbezogene Daten der abgebildeten
-          Personen enthalten und unterliegen zusätzlich dem Recht am eigenen
-          Bild, wenn sie verbreitet oder öffentlich zur Schau gestellt werden.
-        </p>
-        <p className="mt-2">
-          In der begleitenden mobilen Rallye-App werden die Teilnehmenden vor
-          der Eingabe von Teamnamen, Antworten oder Foto-Uploads über die
-          möglichen personenbezogenen Daten und die Sichtbarkeit in der Admin
-          App informiert. Bei Foto-Uploads, auf denen Personen erkennbar sind,
-          ist vor dem Upload sicherzustellen, dass hierfür eine geeignete
-          Rechtsgrundlage besteht. Fotos sollen so erstellt werden, dass nur
-          Teammitglieder erkennbar sind, die dem Upload zugestimmt haben.
+          Upload-Aufgaben sind so konzipiert, dass keine Fotos mit erkennbaren
+          Personen entstehen sollen. Uploads werden im geschützten Dateispeicher
+          gespeichert und sind nur für berechtigte Nutzerinnen und Nutzer der
+          Admin App über zeitlich begrenzte Zugriffsmöglichkeiten sichtbar.
+          Sollten künftig Upload-Aufgaben mit erkennbaren Personen vorgesehen
+          werden, wird vorab eine geeignete Rechtsgrundlage festgelegt und diese
+          Datenschutzerklärung entsprechend aktualisiert.
         </p>
       </section>
 
@@ -235,15 +228,21 @@ export default function DatenschutzPage() {
           10. Eingesetzte Systeme und Empfänger
         </h2>
         <p className="mt-2">
-          Die Anwendung wird auf eigenen Servern der DHBW Lörrach am Standort
-          Lörrach betrieben.
+          Die Webanwendung selbst wird auf Servern der DHBW Lörrach betrieben.
+          Für Datenbank und Dateispeicher wird Supabase Cloud eingesetzt; die
+          Daten werden in der EU-Region Frankfurt am Main verarbeitet. Die
+          Authentifizierung erfolgt über Keycloak.
         </p>
         <p className="mt-2">
-          Personenbezogene Daten werden nur den Stellen zugänglich gemacht, die
-          sie für die genannten Zwecke benötigen. Dazu gehören insbesondere
-          berechtigte Nutzerinnen und Nutzer der Admin App, zentrale IT- und
-          Authentifizierungssysteme der DHBW sowie die für Betrieb und Wartung
-          zuständigen Stellen der DHBW Lörrach.
+          Supabase wird insoweit als Auftragsverarbeiter im Sinne von Art. 28
+          DSGVO eingesetzt. Die Nutzung erfolgt auf Grundlage eines
+          Auftragsverarbeitungsvertrags; soweit dieser noch nicht abgeschlossen
+          ist, wird er vor produktiver Verarbeitung personenbezogener Daten
+          geschlossen. Soweit erforderlich, werden Standardvertragsklauseln nach
+          Art. 46 DSGVO vereinbart. Empfänger personenbezogener Daten sind im
+          Übrigen nur berechtigte Nutzerinnen und Nutzer der Admin App, zentrale
+          IT- und Authentifizierungssysteme der DHBW sowie für Betrieb und
+          Wartung zuständige Stellen der DHBW Lörrach.
         </p>
       </section>
 
@@ -252,9 +251,12 @@ export default function DatenschutzPage() {
           11. Drittlandübermittlung, Tracking und Profiling
         </h2>
         <p className="mt-2">
-          Eine Übermittlung personenbezogener Daten in Staaten außerhalb der
-          Europäischen Union oder des Europäischen Wirtschaftsraums ist für den
-          Betrieb der Admin App nicht vorgesehen.
+          Eine reguläre Übermittlung personenbezogener Daten in Staaten
+          außerhalb der EU oder des EWR findet nicht statt. Die Verarbeitung in
+          der Supabase-Cloud erfolgt in der EU-Region Frankfurt am Main. Soweit
+          im Einzelfall ein Zugriff oder eine Übermittlung in Drittstaaten nicht
+          ausgeschlossen werden kann, erfolgt dies auf Grundlage geeigneter
+          Garantien, insbesondere Standardvertragsklauseln nach Art. 46 DSGVO.
         </p>
         <p className="mt-2">
           Externe Analyse-, Werbe- oder Trackingdienste werden nicht eingesetzt.
@@ -274,10 +276,9 @@ export default function DatenschutzPage() {
           Vorschriften des Landes Baden-Württemberg.
         </p>
         <p className="mt-2">
-          Soweit Foto-Uploads oder andere Inhalte erkennbare Personen betreffen,
-          wird vor der Nutzung entsprechender Aufgaben eine geeignete
-          Rechtsgrundlage festgelegt. Falls eine Einwilligung eingeholt wird,
-          erfolgt die Verarbeitung auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO.
+          Soweit künftig Uploads oder andere Inhalte erkennbare Personen
+          betreffen, wird vor der Nutzung entsprechender Aufgaben eine geeignete
+          Rechtsgrundlage festgelegt.
         </p>
       </section>
       <section>
@@ -300,11 +301,11 @@ export default function DatenschutzPage() {
           weitere Speicherung bestehen.
         </p>
         <p className="mt-2">
-          Rallye-, Team-, Antwort-, Ergebnis- und Upload-Daten werden nach
-          Abschluss und Nachbereitung der jeweiligen Rallye gelöscht oder
-          anonymisiert. Foto-Uploads werden spätestens 30 Tage nach Abschluss
-          der Rallye gelöscht, soweit keine rechtlichen oder organisatorischen
-          Gründe für eine längere Speicherung bestehen.
+          Rallye-, Team-, Antwort-, Ergebnis- und Upload-Daten werden gelöscht,
+          sobald sie für Durchführung, Bewertung, Präsentation und Nachbereitung
+          der jeweiligen Rallye nicht mehr erforderlich sind. Die Löschung
+          erfolgt organisatorisch durch die zuständigen Administratorinnen und
+          Administratoren.
         </p>
       </section>
 
