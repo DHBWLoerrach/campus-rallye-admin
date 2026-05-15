@@ -154,10 +154,10 @@ CREATE TABLE IF NOT EXISTS local_users (
 );
 ```
 
-Für bestehende Installationen die `admin`-Spalte nachträglich hinzufügen:
+Nach einem ersten Login kann man dem User Admin-Rechte geben:
 
 ```
-ALTER TABLE local_users ADD COLUMN admin INTEGER NOT NULL DEFAULT 0;
+UPDATE local_users SET admin=1 WHERE email="<hier email eintragen>";
 ```
 
 SQLite-Shell mit `.exit` verlassen.
