@@ -11,7 +11,7 @@ export default function ImpressumPage() {
           <br />
           Baden-Wuerttemberg Cooperative State University Lörrach
           <br />
-          Hangstraße 46-50
+          Hangstraße 46–50
           <br />
           D-79539 Lörrach
         </address>
@@ -21,7 +21,7 @@ export default function ImpressumPage() {
             className="underline-offset-4 hover:underline"
             href="tel:+49762120710"
           >
-            +49 7621 2071 0
+            +49 7621 2071-0
           </a>
           <br />
           E-Mail:{' '}
@@ -79,9 +79,9 @@ export default function ImpressumPage() {
           D-70173 Stuttgart
         </address>
         <p className="mt-2">
-          Telefon: +49 711 279 0
+          Telefon: +49 711 279-0
           <br />
-          Telefax: +49 711 279 3081
+          Telefax: +49 711 279-3081
           <br />
           E-Mail:{' '}
           <a

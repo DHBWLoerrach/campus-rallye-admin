@@ -75,8 +75,8 @@ export default function DatenschutzPage() {
           Verantwortliche im Sinne von Art. 4 Nr. 7 DSGVO ist die Duale
           Hochschule Baden-Württemberg, gesetzlich vertreten durch die
           Präsidentin der Dualen Hochschule Baden-Württemberg, Prof. Dr. Martina
-          Klärle, Friedrichstraße 14, 70174 Stuttgart, Telefon +49 711 320660 0,
-          Fax +49 711 320660 66, E-Mail{' '}
+          Klärle, Friedrichstraße 14, 70174 Stuttgart, Telefon +49 711 320660-0,
+          Fax +49 711 320660-66, E-Mail{' '}
           <a
             className="underline-offset-4 hover:underline"
             href="mailto:poststelle@dhbw.de"
@@ -86,7 +86,7 @@ export default function DatenschutzPage() {
           .
         </p>
         <p className="mt-2">
-          Die DHBW Lörrach, Hangstraße 46-50, 79539 Lörrach, ist organisatorisch
+          Die DHBW Lörrach, Hangstraße 46–50, 79539 Lörrach, ist organisatorisch
           für Betrieb, fachliche Betreuung und lokale Nutzung der Campus Rallye
           Admin App zuständig. Ansprechperson am Standort für Betrieb und
           Administration der Anwendung ist Prof. Dr. Erik Behrends. Die DHBW
@@ -225,11 +225,11 @@ export default function DatenschutzPage() {
         </h2>
         <p className="mt-2">
           Die Webanwendung selbst wird auf Servern der DHBW Lörrach betrieben.
-          Für fachliche Rallye-Daten (Rallyes, Fragen, Antworten, Ergebnisse)
-          wird Supabase Cloud eingesetzt; die Daten werden in der EU-Region
-          Frankfurt am Main verarbeitet. In dieser Cloud-Datenbank werden keine
-          personenbezogenen Daten verarbeitet. Die Authentifizierung erfolgt
-          über Keycloak.
+          Für fachliche Rallye-Daten wird Supabase Cloud eingesetzt; die Daten
+          werden in der EU-Region Frankfurt am Main verarbeitet. Die in Supabase
+          gespeicherten fachlichen Rallye-Daten sind nach der Konzeption der
+          Anwendung grundsätzlich nicht auf einzelne Personen bezogen. Die
+          Authentifizierung erfolgt über Keycloak.
         </p>
         <p className="mt-2">
           Empfänger personenbezogener Daten sind ausschließlich berechtigte
@@ -244,8 +244,11 @@ export default function DatenschutzPage() {
           11. Drittlandübermittlung, Tracking und Profiling
         </h2>
         <p className="mt-2">
-          Eine Übermittlung personenbezogener Daten in Staaten außerhalb der EU
-          oder des EWR findet nicht statt.
+          Eine reguläre Übermittlung personenbezogener Daten in Staaten
+          außerhalb der EU oder des EWR findet nicht statt. Soweit im Einzelfall
+          ein Zugriff oder eine Übermittlung in Drittstaaten nicht
+          ausgeschlossen werden kann, erfolgt dies nur auf Grundlage geeigneter
+          datenschutzrechtlicher Garantien nach Maßgabe der DSGVO.
         </p>
         <p className="mt-2">
           Externe Analyse-, Werbe- oder Trackingdienste werden nicht eingesetzt.
