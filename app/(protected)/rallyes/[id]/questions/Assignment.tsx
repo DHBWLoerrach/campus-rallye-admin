@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -67,8 +67,16 @@ export default function Assignment({
 }: Props) {
   const router = useRouter();
 
-  // "Assigned" Questions (Right Column) - The Source of Truth for the assignment
-  const [assignedQuestions, setAssignedQuestions] = useState<Question[]>([]);
+  // "Assigned" Questions (Right Column) - The Source of Truth for the assignment.
+  // Initialize from server data when all selected IDs are present in initialQuestions;
+  // otherwise start empty and let the effect lazy-load via loadExistingAssignments.
+  const [assignedQuestions, setAssignedQuestions] = useState<Question[]>(() => {
+    if (!initialQuestions || !initialSelectedQuestions) return [];
+    const assigned = initialQuestions.filter((q) =>
+      initialSelectedQuestions.includes(q.id)
+    );
+    return assigned.length === initialSelectedQuestions.length ? assigned : [];
+  });
 
   // "Available" Questions (Left Column) - Fetched from server based on filters
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>(
@@ -93,7 +101,9 @@ export default function Assignment({
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
   // Track last saved state to detect unsaved changes (list of IDs).
-  const savedAssignedIdsRef = useRef<number[]>(initialSelectedQuestions || []);
+  const [savedAssignedIds, setSavedAssignedIds] = useState<number[]>(
+    initialSelectedQuestions || []
+  );
 
   const questionTypeLabels = questionTypes.reduce(
     (acc, type) => {
@@ -103,63 +113,12 @@ export default function Assignment({
     {} as Record<string, string>
   );
 
-  useEffect(() => {
-    // Initialize assigned questions
-    if (initialQuestions && initialSelectedQuestions) {
-      const assigned = initialQuestions.filter((q) =>
-        initialSelectedQuestions.includes(q.id)
-      );
-      // If we miss some (e.g. search filter on initial load excluded them), we might need to fetch them?
-      // But typically initialQuestions on Page load is ALL questions.
-      // However, if assigned is less than initialSelectedQuestions, we should fetch specifically.
-      if (assigned.length < initialSelectedQuestions.length) {
-        loadExistingAssignments(rallyeId);
-      } else {
-        setAssignedQuestions(assigned);
-      }
-    } else {
-      loadExistingAssignments(rallyeId);
-    }
-
-    // Determine available questions (initially all)
-    if (!initialQuestions) {
-      fetchQuestions();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rallyeId]);
-
   const toggleRow = (questionId: number) => {
     setExpandedRows((current) =>
       current.includes(questionId)
         ? current.filter((id) => id !== questionId)
         : [...current, questionId]
     );
-  };
-
-  const loadExistingAssignments = async (targetRallyeId: number) => {
-    setIsLoadingAssignments(true);
-    try {
-      // Fetch specifically the questions assigned to this rallye
-      const assignedResult = await getQuestions({
-        rallyeId: String(targetRallyeId),
-      });
-      if (!assignedResult.success) {
-        console.error(assignedResult.error);
-        setAssignedQuestions([]);
-        savedAssignedIdsRef.current = [];
-      } else {
-        const questions = assignedResult.data ?? [];
-        setAssignedQuestions(questions);
-        savedAssignedIdsRef.current = questions.map((q) => q.id);
-
-        // Ensure we have rallye map for these
-        refreshRallyeMap(questions);
-      }
-    } catch (error) {
-      console.error('Error loading existing assignments:', error);
-    } finally {
-      setIsLoadingAssignments(false);
-    }
   };
 
   const refreshRallyeMap = async (nextQuestions: Question[]) => {
@@ -174,6 +133,32 @@ export default function Assignment({
       return;
     }
     setRallyeMap((prev) => ({ ...prev, ...(nextRallyeMapResult.data ?? {}) }));
+  };
+
+  const loadExistingAssignments = async (targetRallyeId: number) => {
+    setIsLoadingAssignments(true);
+    try {
+      // Fetch specifically the questions assigned to this rallye
+      const assignedResult = await getQuestions({
+        rallyeId: String(targetRallyeId),
+      });
+      if (!assignedResult.success) {
+        console.error(assignedResult.error);
+        setAssignedQuestions([]);
+        setSavedAssignedIds([]);
+      } else {
+        const questions = assignedResult.data ?? [];
+        setAssignedQuestions(questions);
+        setSavedAssignedIds(questions.map((q) => q.id));
+
+        // Ensure we have rallye map for these
+        refreshRallyeMap(questions);
+      }
+    } catch (error) {
+      console.error('Error loading existing assignments:', error);
+    } finally {
+      setIsLoadingAssignments(false);
+    }
   };
 
   const fetchQuestions = async () => {
@@ -193,6 +178,27 @@ export default function Assignment({
       setIsLoadingQuestions(false);
     }
   };
+
+  useEffect(() => {
+    // Initial server data may be incomplete (e.g. filtered list excluded some
+    // selected IDs). In that case fetch the assigned questions specifically.
+    const allPresent =
+      initialQuestions &&
+      initialSelectedQuestions &&
+      initialSelectedQuestions.every((id) =>
+        initialQuestions.some((q) => q.id === id)
+      );
+
+    if (!allPresent) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadExistingAssignments(rallyeId);
+    }
+
+    if (!initialQuestions) {
+      fetchQuestions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rallyeId]);
 
   const handleFilterChange = async (filters: {
     question?: string;
@@ -273,8 +279,7 @@ export default function Assignment({
       if (!assignResult.success) {
         throw new Error(assignResult.error);
       }
-      // Update ref to current state
-      savedAssignedIdsRef.current = currentIds;
+      setSavedAssignedIds(currentIds);
     } catch (error) {
       console.error('Error saving questions:', error);
     } finally {
@@ -291,7 +296,7 @@ export default function Assignment({
 
   const hasUnsavedChanges = !arraysEqualAsSets(
     assignedQuestions.map((q) => q.id),
-    savedAssignedIdsRef.current
+    savedAssignedIds
   );
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
