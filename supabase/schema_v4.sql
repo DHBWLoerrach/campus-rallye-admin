@@ -193,7 +193,7 @@ CREATE TABLE IF NOT EXISTS "public"."rallye" (
     "end_time" timestamp with time zone NOT NULL,
     "status" "public"."rallye_status" DEFAULT 'preparing'::"public"."rallye_status" NOT NULL,
     "name" "text" NOT NULL,
-    "password" "text",
+    "password" "text"
 );
 
 
