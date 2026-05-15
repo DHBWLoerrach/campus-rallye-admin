@@ -50,6 +50,30 @@ describe('local-user', () => {
     expect(getLocalUser('uuid-1')?.email).toBe('a@b.de');
   });
 
+  it('returns the stored user when another insert wins the create race', () => {
+    dbHolder.current?.exec(`
+      CREATE TRIGGER insert_racing_local_user
+      BEFORE INSERT ON local_users
+      WHEN NEW.user_id = 'race-uuid'
+      BEGIN
+        INSERT INTO local_users (user_id, email, registered_at, admin)
+        VALUES (
+          NEW.user_id,
+          'winner@example.de',
+          '2026-05-15T00:00:00.000Z',
+          1
+        );
+      END;
+    `);
+
+    expect(upsertLocalUser('race-uuid', 'created@example.de')).toEqual({
+      user_id: 'race-uuid',
+      email: 'winner@example.de',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: true,
+    });
+  });
+
   it('reads admin=true when stored as 1', () => {
     dbHolder.current
       ?.prepare(

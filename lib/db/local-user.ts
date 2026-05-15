@@ -34,21 +34,30 @@ export function getLocalUser(uuid: string): LocalUser | null {
 }
 
 export function upsertLocalUser(uuid: string, email: string | null): LocalUser {
-  const existing = getLocalUser(uuid);
-  if (existing) return existing;
-
   const db = getDb();
   const registeredAt = new Date().toISOString();
-  db.prepare(
-    'INSERT INTO local_users (user_id, email, registered_at) VALUES (?, ?, ?)'
-  ).run(uuid, email, registeredAt);
+  const result = db
+    .prepare(
+      'INSERT OR IGNORE INTO local_users (user_id, email, registered_at) VALUES (?, ?, ?)'
+    )
+    .run(uuid, email, registeredAt);
 
-  console.log('✔️ Neuer lokaler Benutzer registriert:', uuid, email);
+  if (result.changes > 0) {
+    console.log('✔️ Neuer lokaler Benutzer registriert:', uuid, email);
 
-  return {
-    user_id: uuid,
-    email,
-    registered_at: registeredAt,
-    admin: false,
-  };
+    return {
+      user_id: uuid,
+      email,
+      registered_at: registeredAt,
+      admin: false,
+    };
+  }
+
+  const existing = getLocalUser(uuid);
+  if (!existing) {
+    throw new Error(
+      'Lokaler Benutzer konnte nicht geladen oder erstellt werden'
+    );
+  }
+  return existing;
 }
