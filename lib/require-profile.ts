@@ -1,13 +1,20 @@
 import { isAuthorizedUser } from './auth';
-import createClient from './supabase';
 import { getUserContext } from './user-context';
-import { insertLocalUser } from './db/insert-local-user';
+import { getLocalUser, upsertLocalUser, type LocalUser } from './db/local-user';
 
 type Profile = {
   user_id: string;
   admin?: boolean | null;
   created_at?: string | null;
 };
+
+function toProfile(user: LocalUser): Profile {
+  return {
+    user_id: user.user_id,
+    admin: user.admin,
+    created_at: user.registered_at,
+  };
+}
 
 export async function requireProfile(createProfile = false): Promise<Profile> {
   const { uuid, email, roles } = await getUserContext();
@@ -21,43 +28,17 @@ export async function requireProfile(createProfile = false): Promise<Profile> {
     throw new Error('Zugriff verweigert');
   }
 
-  const supabase = await createClient();
-
-  const { data: profileData, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('user_id', uuid)
-    .maybeSingle(); // maybeSingle() returns at most one row and null if none found
-
-  if (error) {
-    console.error('Error fetching profile:', error);
-    throw new Error('Profil konnte nicht geladen werden');
-  }
-
-  const profile = profileData as Profile | null;
-  if (profile) {
-    return profile;
+  const existing = getLocalUser(uuid);
+  if (existing) {
+    return toProfile(existing);
   }
 
   if (!createProfile) {
     throw new Error('Profil nicht vorhanden – Zugriff verweigert');
   }
 
-  // Kein Profil vorhanden – Profil automatisch anlegen
-  const { data: newProfileData, error: insertError } = await supabase
-    .from('profiles')
-    .insert({ user_id: uuid })
-    .select()
-    .single();
-
-  if (insertError || !newProfileData) {
-    console.error('Error creating profile:', insertError);
-    throw new Error('Profil konnte nicht automatisch erstellt werden');
-  }
-
-  const newProfile = newProfileData as Profile;
-  insertLocalUser(uuid, email);
-  return newProfile;
+  const created = upsertLocalUser(uuid, email);
+  return toProfile(created);
 }
 
 export async function requireAdmin(): Promise<Profile> {
