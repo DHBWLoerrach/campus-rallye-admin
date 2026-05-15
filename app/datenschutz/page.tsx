@@ -25,9 +25,7 @@ export default function DatenschutzPage() {
           DHBW Lörrach bestimmt. Studierende, externe Teilnehmende und Teams
           erhalten keinen Zugriff auf diese Verwaltungsanwendung. Sie können
           jedoch über eine begleitende mobile Rallye-App Daten eingeben, die in
-          der Admin App für berechtigte Mitarbeitende sichtbar werden. Soweit
-          Upload-Aufgaben angeboten werden, gelten die Einschränkungen aus
-          Abschnitt 8.
+          der Admin App für berechtigte Mitarbeitende sichtbar werden.
         </p>
         <p className="mt-2">
           Für die begleitende mobile Rallye-App gelten ergänzende
@@ -212,10 +210,10 @@ export default function DatenschutzPage() {
         <p className="mt-2">
           Die Anwendung verwendet technisch notwendige Cookies des Login-Systems
           und der vorgeschalteten Infrastruktur. Die von der Admin App selbst
-          gesetzten Cookies enthalten keine personenbezogenen Inhaltsdaten,
-          sondern lediglich technische Markierungswerte. Cookies des
-          Login-Systems und der vorgeschalteten Infrastruktur dienen der
-          Authentifizierung und Sitzungsverwaltung.
+          gesetzten Cookies enthalten keine fachlichen Inhaltsdaten, sondern
+          lediglich technische Markierungswerte. Cookies des Login-Systems und
+          der vorgeschalteten Infrastruktur dienen der Authentifizierung und
+          Sitzungsverwaltung.
         </p>
       </section>
 
@@ -296,8 +294,7 @@ export default function DatenschutzPage() {
           Rallye-, Team-, Antwort-, Ergebnis- und Upload-Daten werden gelöscht,
           sobald sie für Durchführung, Bewertung, Präsentation und Nachbereitung
           der jeweiligen Rallye nicht mehr erforderlich sind. Die Löschung
-          erfolgt organisatorisch durch die zuständigen Administratorinnen und
-          Administratoren.
+          erfolgt durch die Administration der Anwendung.
         </p>
       </section>
 
