@@ -149,8 +149,15 @@ In der SQLite-Shell folgenden SQL-Befehl ausführen:
 CREATE TABLE IF NOT EXISTS local_users (
     user_id TEXT PRIMARY KEY,
     email TEXT,
-    registered_at TEXT
+    registered_at TEXT,
+    admin INTEGER NOT NULL DEFAULT 0
 );
+```
+
+Für bestehende Installationen die `admin`-Spalte nachträglich hinzufügen:
+
+```
+ALTER TABLE local_users ADD COLUMN admin INTEGER NOT NULL DEFAULT 0;
 ```
 
 SQLite-Shell mit `.exit` verlassen.
