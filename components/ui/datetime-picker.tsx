@@ -65,12 +65,14 @@ export function DateTimePicker({
   const [open, setOpen] = React.useState(false);
   const [datePart, setDatePart] = React.useState<Date | undefined>(value);
   const [timeStr, setTimeStr] = React.useState<string>(toTimeString(value));
+  const [prevValue, setPrevValue] = React.useState(value);
 
-  // Keep internal state in sync when parent value changes
-  React.useEffect(() => {
+  // Sync internal state when parent value changes (derived-state pattern).
+  if (value !== prevValue) {
+    setPrevValue(value);
     setDatePart(value);
     setTimeStr(toTimeString(value));
-  }, [value]);
+  }
 
   const display = React.useMemo(() => {
     if (!datePart) return 'Datum wählen';

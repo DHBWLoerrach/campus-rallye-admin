@@ -1,8 +1,9 @@
 type LegalPageProps = {
+  children?: React.ReactNode;
   title: string;
 };
 
-export default function LegalPage({ title }: LegalPageProps) {
+export default function LegalPage({ children, title }: LegalPageProps) {
   return (
     <main className="flex flex-1 items-center justify-center bg-background px-6 py-16">
       <section className="w-full max-w-3xl rounded-lg border border-border/60 bg-card p-8 text-left shadow-sm">
@@ -12,9 +13,9 @@ export default function LegalPage({ title }: LegalPageProps) {
         <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground">
           {title}
         </h1>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Die Inhalte dieser Seite werden später ergänzt.
-        </p>
+        <div className="mt-6 space-y-6 text-sm leading-6 text-muted-foreground">
+          {children ?? <p>Die Inhalte dieser Seite werden später ergänzt.</p>}
+        </div>
       </section>
     </main>
   );

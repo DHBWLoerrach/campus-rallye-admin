@@ -3,7 +3,7 @@ import Link from 'next/link';
 const legalLinks = [
   { href: '/impressum', label: 'Impressum' },
   { href: '/datenschutz', label: 'Datenschutzerklärung' },
-  { href: '/nutzungsordnung', label: 'Nutzungsordnung' },
+  { href: '/nutzungshinweise', label: 'Nutzungshinweise' },
 ];
 
 export default function Footer() {

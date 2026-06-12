@@ -22,7 +22,7 @@ describe('Footer', () => {
       screen.getByRole('link', { name: 'Datenschutzerklärung' })
     ).toHaveAttribute('href', '/datenschutz');
     expect(
-      screen.getByRole('link', { name: 'Nutzungsordnung' })
-    ).toHaveAttribute('href', '/nutzungsordnung');
+      screen.getByRole('link', { name: 'Nutzungshinweise' })
+    ).toHaveAttribute('href', '/nutzungshinweise');
   });
 });

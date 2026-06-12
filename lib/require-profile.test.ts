@@ -1,22 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockGetUserContext, mockCreateClient, mockInsertLocalUser } =
+const { mockGetUserContext, mockGetLocalUser, mockUpsertLocalUser } =
   vi.hoisted(() => ({
     mockGetUserContext: vi.fn(),
-    mockCreateClient: vi.fn(),
-    mockInsertLocalUser: vi.fn(),
+    mockGetLocalUser: vi.fn(),
+    mockUpsertLocalUser: vi.fn(),
   }));
 
 vi.mock('./user-context', () => ({
   getUserContext: mockGetUserContext,
 }));
 
-vi.mock('./supabase', () => ({
-  default: mockCreateClient,
-}));
-
-vi.mock('./db/insert-local-user', () => ({
-  insertLocalUser: mockInsertLocalUser,
+vi.mock('./db/local-user', () => ({
+  getLocalUser: mockGetLocalUser,
+  upsertLocalUser: mockUpsertLocalUser,
 }));
 
 describe('requireProfile', () => {
@@ -32,7 +29,7 @@ describe('requireProfile', () => {
     process.env = originalEnv;
   });
 
-  it('rejects non-staff users before querying Supabase', async () => {
+  it('rejects non-staff users before reading the local DB', async () => {
     mockGetUserContext.mockResolvedValue({
       uuid: 'user-1',
       email: null,
@@ -42,7 +39,8 @@ describe('requireProfile', () => {
     const { requireProfile } = await import('./require-profile');
 
     await expect(requireProfile()).rejects.toThrow('Zugriff verweigert');
-    expect(mockCreateClient).not.toHaveBeenCalled();
+    expect(mockGetLocalUser).not.toHaveBeenCalled();
+    expect(mockUpsertLocalUser).not.toHaveBeenCalled();
   });
 
   it('returns existing profile for staff users', async () => {
@@ -52,21 +50,21 @@ describe('requireProfile', () => {
       roles: ['staff'],
     });
 
-    const profileData = { user_id: 'user-2', admin: true };
-
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: profileData, error: null });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
-    const select = vi.fn().mockReturnValue({ eq });
-    const from = vi.fn().mockReturnValue({ select });
-
-    mockCreateClient.mockResolvedValue({ from });
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'user-2',
+      email: 'staff@example.test',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: true,
+    });
 
     const { requireProfile } = await import('./require-profile');
 
-    await expect(requireProfile()).resolves.toEqual(profileData);
-    expect(mockInsertLocalUser).not.toHaveBeenCalled();
+    await expect(requireProfile()).resolves.toEqual({
+      user_id: 'user-2',
+      admin: true,
+      created_at: '2026-05-15T00:00:00.000Z',
+    });
+    expect(mockUpsertLocalUser).not.toHaveBeenCalled();
   });
 
   it('throws when no profile exists and createProfile is false', async () => {
@@ -76,17 +74,41 @@ describe('requireProfile', () => {
       roles: ['staff'],
     });
 
-    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
-    const select = vi.fn().mockReturnValue({ eq });
-    const from = vi.fn().mockReturnValue({ select });
-
-    mockCreateClient.mockResolvedValue({ from });
+    mockGetLocalUser.mockReturnValue(null);
 
     const { requireProfile } = await import('./require-profile');
 
     await expect(requireProfile()).rejects.toThrow(
       'Profil nicht vorhanden – Zugriff verweigert'
+    );
+    expect(mockUpsertLocalUser).not.toHaveBeenCalled();
+  });
+
+  it('creates a profile when createProfile is true and none exists', async () => {
+    mockGetUserContext.mockResolvedValue({
+      uuid: 'new-user',
+      email: 'new@example.test',
+      roles: ['staff'],
+    });
+
+    mockGetLocalUser.mockReturnValue(null);
+    mockUpsertLocalUser.mockReturnValue({
+      user_id: 'new-user',
+      email: 'new@example.test',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: false,
+    });
+
+    const { requireProfile } = await import('./require-profile');
+
+    await expect(requireProfile(true)).resolves.toEqual({
+      user_id: 'new-user',
+      admin: false,
+      created_at: '2026-05-15T00:00:00.000Z',
+    });
+    expect(mockUpsertLocalUser).toHaveBeenCalledWith(
+      'new-user',
+      'new@example.test'
     );
   });
 
@@ -99,20 +121,20 @@ describe('requireProfile', () => {
       roles: ['student'],
     });
 
-    const profileData = { user_id: 'user-3', admin: false };
-
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: profileData, error: null });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
-    const select = vi.fn().mockReturnValue({ eq });
-    const from = vi.fn().mockReturnValue({ select });
-
-    mockCreateClient.mockResolvedValue({ from });
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'user-3',
+      email: 'allowed@example.test',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: false,
+    });
 
     const { requireProfile } = await import('./require-profile');
 
-    await expect(requireProfile()).resolves.toEqual(profileData);
+    await expect(requireProfile()).resolves.toEqual({
+      user_id: 'user-3',
+      admin: false,
+      created_at: '2026-05-15T00:00:00.000Z',
+    });
   });
 });
 
@@ -136,20 +158,20 @@ describe('requireAdmin', () => {
       roles: ['staff'],
     });
 
-    const profileData = { user_id: 'admin-1', admin: true };
-
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: profileData, error: null });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
-    const select = vi.fn().mockReturnValue({ eq });
-    const from = vi.fn().mockReturnValue({ select });
-
-    mockCreateClient.mockResolvedValue({ from });
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'admin-1',
+      email: 'admin@example.test',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: true,
+    });
 
     const { requireAdmin } = await import('./require-profile');
 
-    await expect(requireAdmin()).resolves.toEqual(profileData);
+    await expect(requireAdmin()).resolves.toEqual({
+      user_id: 'admin-1',
+      admin: true,
+      created_at: '2026-05-15T00:00:00.000Z',
+    });
   });
 
   it('rejects non-admin users', async () => {
@@ -159,16 +181,12 @@ describe('requireAdmin', () => {
       roles: ['staff'],
     });
 
-    const profileData = { user_id: 'user-4', admin: false };
-
-    const maybeSingle = vi
-      .fn()
-      .mockResolvedValue({ data: profileData, error: null });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
-    const select = vi.fn().mockReturnValue({ eq });
-    const from = vi.fn().mockReturnValue({ select });
-
-    mockCreateClient.mockResolvedValue({ from });
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'user-4',
+      email: 'staff@example.test',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: false,
+    });
 
     const { requireAdmin } = await import('./require-profile');
 
@@ -184,12 +202,7 @@ describe('requireAdmin', () => {
       roles: ['staff'],
     });
 
-    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
-    const eq = vi.fn().mockReturnValue({ maybeSingle });
-    const select = vi.fn().mockReturnValue({ eq });
-    const from = vi.fn().mockReturnValue({ select });
-
-    mockCreateClient.mockResolvedValue({ from });
+    mockGetLocalUser.mockReturnValue(null);
 
     const { requireAdmin } = await import('./require-profile');
 

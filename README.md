@@ -149,8 +149,15 @@ In der SQLite-Shell folgenden SQL-Befehl ausführen:
 CREATE TABLE IF NOT EXISTS local_users (
     user_id TEXT PRIMARY KEY,
     email TEXT,
-    registered_at TEXT
+    registered_at TEXT,
+    admin INTEGER NOT NULL DEFAULT 0
 );
+```
+
+Nach einem ersten Login kann man dem User Admin-Rechte geben:
+
+```
+UPDATE local_users SET admin=1 WHERE email="<hier email eintragen>";
 ```
 
 SQLite-Shell mit `.exit` verlassen.
