@@ -19,13 +19,14 @@ vi.mock('@/actions/question', () => ({
 vi.mock('@/actions/assign_questions_to_rallye', () => ({
   assignQuestionsToRallye: vi.fn(),
   getQuestionRallyeMap: vi.fn(),
+  getVotingQuestions: vi.fn(),
 }));
 
 // Mock Data
 const mockQuestions: Question[] = [
   { id: 1, content: 'Frage 1', type: 'multiple_choice' },
   { id: 2, content: 'Frage 2', type: 'qr_code' },
-  { id: 3, content: 'Frage 3', type: 'text' },
+  { id: 3, content: 'Frage 3', type: 'upload' },
 ];
 
 describe('Assignment Component', () => {
@@ -41,6 +42,10 @@ describe('Assignment Component', () => {
     });
     (assignActions.assignQuestionsToRallye as Mock).mockResolvedValue({
       success: true,
+    });
+    (assignActions.getVotingQuestions as Mock).mockResolvedValue({
+      success: true,
+      data: [],
     });
   });
 
@@ -155,7 +160,46 @@ describe('Assignment Component', () => {
     await waitFor(() => {
       expect(assignActions.assignQuestionsToRallye).toHaveBeenCalledWith(
         123,
-        [1]
+        [1],
+        []
+      );
+    });
+  });
+
+  it('shows voting controls only for assigned upload questions', async () => {
+    render(
+      <Assignment
+        rallyeId={1}
+        initialQuestions={mockQuestions}
+        initialSelectedQuestions={[1, 3]}
+        initialCategories={[]}
+      />
+    );
+
+    expect(screen.getByText('Abstimmung')).toBeDefined();
+    expect(screen.getByLabelText('voting-question-3')).toBeDefined();
+    expect(screen.queryByLabelText('voting-question-1')).toBeNull();
+  });
+
+  it('saves selected upload voting questions with the assignment', async () => {
+    render(
+      <Assignment
+        rallyeId={123}
+        initialQuestions={mockQuestions}
+        initialSelectedQuestions={[3]}
+        initialVotingQuestionIds={[]}
+        initialCategories={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText('voting-question-3'));
+    fireEvent.click(screen.getByText('Änderungen speichern'));
+
+    await waitFor(() => {
+      expect(assignActions.assignQuestionsToRallye).toHaveBeenCalledWith(
+        123,
+        [3],
+        [3]
       );
     });
   });

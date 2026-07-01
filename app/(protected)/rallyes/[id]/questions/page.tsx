@@ -10,7 +10,7 @@ interface PageProps {
 }
 
 type RallyeRow = { id: number; name: string };
-type QuestionIdRow = { question_id: number };
+type QuestionAssignmentRow = { question_id: number; is_voting: boolean };
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
@@ -34,7 +34,7 @@ export default async function Page(props: PageProps) {
   const [assignedRes, questionsRes, maxPointsRes] = await Promise.all([
     supabase
       .from('join_rallye_questions')
-      .select('question_id')
+      .select('question_id, is_voting')
       .eq('rallye_id', rallyeId),
     // Fetch questions with nested answers in one roundtrip
     supabase
@@ -45,9 +45,27 @@ export default async function Page(props: PageProps) {
     getRallyeMaxPoints(rallyeId),
   ]);
 
+  if (assignedRes.error) {
+    console.error(
+      'Error loading rallye question assignments:',
+      assignedRes.error
+    );
+    throw new Error('Fragen-Zuordnungen konnten nicht geladen werden');
+  }
+
+  if (questionsRes.error) {
+    console.error('Error loading questions:', questionsRes.error);
+    throw new Error('Fragen konnten nicht geladen werden');
+  }
+
   const initialSelectedQuestions = (
-    (assignedRes.data ?? []) as QuestionIdRow[]
+    (assignedRes.data ?? []) as QuestionAssignmentRow[]
   ).map((r) => r.question_id);
+  const initialVotingQuestionIds = (
+    (assignedRes.data ?? []) as QuestionAssignmentRow[]
+  )
+    .filter((row) => row.is_voting)
+    .map((row) => row.question_id);
   const categoriesSet = new Set<string>();
   const questions = (questionsRes.data ?? []) as Question[];
   questions.forEach((q) => {
@@ -73,6 +91,7 @@ export default async function Page(props: PageProps) {
         rallyeName={rallye.name}
         initialQuestions={questions}
         initialSelectedQuestions={initialSelectedQuestions}
+        initialVotingQuestionIds={initialVotingQuestionIds}
         initialCategories={initialCategories}
         initialRallyeMap={initialRallyeMap}
         maxPoints={maxPoints}

@@ -7,7 +7,8 @@ import { formatZodError, idArraySchema, idSchema } from '@/lib/validation';
 
 export async function assignQuestionsToRallye(
   rallyeId: number,
-  questionIds: number[]
+  questionIds: number[],
+  votingQuestionIds: number[] = []
 ): Promise<ActionResult<{ message: string }>> {
   await requireProfile();
   const rallyeIdResult = idSchema.safeParse(rallyeId);
@@ -18,8 +19,27 @@ export async function assignQuestionsToRallye(
   if (!questionIdsResult.success) {
     return fail('Ungültige Fragen', formatZodError(questionIdsResult.error));
   }
+  const votingQuestionIdsResult = idArraySchema.safeParse(votingQuestionIds);
+  if (!votingQuestionIdsResult.success) {
+    return fail(
+      'Ungültige Abstimmungsfragen',
+      formatZodError(votingQuestionIdsResult.error)
+    );
+  }
   const supabase = await createClient();
   const normalizedQuestionIds = Array.from(new Set(questionIdsResult.data));
+  const normalizedVotingQuestionIds = Array.from(
+    new Set(votingQuestionIdsResult.data)
+  );
+  const normalizedQuestionIdSet = new Set(normalizedQuestionIds);
+
+  if (
+    normalizedVotingQuestionIds.some(
+      (questionId) => !normalizedQuestionIdSet.has(questionId)
+    )
+  ) {
+    return fail('Abstimmung nur für zugeordnete Upload-Fragen möglich');
+  }
 
   const { data: existingRallye, error: rallyeError } = await supabase
     .from('rallye')
@@ -39,7 +59,7 @@ export async function assignQuestionsToRallye(
   if (normalizedQuestionIds.length > 0) {
     const { data: questionRows, error: questionError } = await supabase
       .from('questions')
-      .select('id')
+      .select('id, type')
       .in('id', normalizedQuestionIds);
 
     if (questionError) {
@@ -58,11 +78,21 @@ export async function assignQuestionsToRallye(
     if (missing.length > 0) {
       return fail('Fragen nicht gefunden');
     }
+
+    const questionTypeById = new Map(
+      (questionRows || []).map((row) => [row.id, row.type])
+    );
+    const invalidVotingQuestion = normalizedVotingQuestionIds.some(
+      (questionId) => questionTypeById.get(questionId) !== 'upload'
+    );
+    if (invalidVotingQuestion) {
+      return fail('Abstimmung nur für Upload-Fragen möglich');
+    }
   }
 
   const { data: existingAssignments, error: existingError } = await supabase
     .from('join_rallye_questions')
-    .select('question_id')
+    .select('question_id, is_voting')
     .eq('rallye_id', rallyeIdResult.data);
 
   if (existingError) {
@@ -72,12 +102,23 @@ export async function assignQuestionsToRallye(
 
   const existingQuestionIds =
     existingAssignments?.map((a) => a.question_id) || [];
+  const existingQuestionIdSet = new Set(existingQuestionIds);
+  const existingVotingByQuestionId = new Map(
+    (existingAssignments || []).map((assignment) => [
+      assignment.question_id,
+      assignment.is_voting === true,
+    ])
+  );
+  const normalizedVotingQuestionIdSet = new Set(normalizedVotingQuestionIds);
 
   const questionsToAdd = normalizedQuestionIds.filter(
-    (id) => !existingQuestionIds.includes(id)
+    (id) => !existingQuestionIdSet.has(id)
   );
   const questionsToRemove = existingQuestionIds.filter(
-    (id) => !normalizedQuestionIds.includes(id)
+    (id) => !normalizedQuestionIdSet.has(id)
+  );
+  const questionsToKeep = normalizedQuestionIds.filter((id) =>
+    existingQuestionIdSet.has(id)
   );
 
   // Remove unselected
@@ -99,6 +140,7 @@ export async function assignQuestionsToRallye(
     const newAssignments = questionsToAdd.map((questionId) => ({
       rallye_id: rallyeId,
       question_id: questionId,
+      is_voting: normalizedVotingQuestionIdSet.has(questionId),
     }));
 
     const { error: insertError } = await supabase
@@ -107,6 +149,43 @@ export async function assignQuestionsToRallye(
 
     if (insertError) {
       console.error('Error adding questions to rallye:', insertError);
+      return fail('Rallye konnte nicht aktualisiert werden');
+    }
+  }
+
+  const votingQuestionsToEnable = questionsToKeep.filter(
+    (questionId) =>
+      normalizedVotingQuestionIdSet.has(questionId) &&
+      !existingVotingByQuestionId.get(questionId)
+  );
+  const votingQuestionsToDisable = questionsToKeep.filter(
+    (questionId) =>
+      !normalizedVotingQuestionIdSet.has(questionId) &&
+      existingVotingByQuestionId.get(questionId)
+  );
+
+  if (votingQuestionsToEnable.length > 0) {
+    const { error: updateError } = await supabase
+      .from('join_rallye_questions')
+      .update({ is_voting: true })
+      .eq('rallye_id', rallyeIdResult.data)
+      .in('question_id', votingQuestionsToEnable);
+
+    if (updateError) {
+      console.error('Error enabling voting questions:', updateError);
+      return fail('Rallye konnte nicht aktualisiert werden');
+    }
+  }
+
+  if (votingQuestionsToDisable.length > 0) {
+    const { error: updateError } = await supabase
+      .from('join_rallye_questions')
+      .update({ is_voting: false })
+      .eq('rallye_id', rallyeIdResult.data)
+      .in('question_id', votingQuestionsToDisable);
+
+    if (updateError) {
+      console.error('Error disabling voting questions:', updateError);
       return fail('Rallye konnte nicht aktualisiert werden');
     }
   }
@@ -153,6 +232,44 @@ export async function getRallyeQuestions(
   }
 
   return ok(data.map((row) => row.question_id));
+}
+
+export async function getVotingQuestions(
+  rallyeId: number
+): Promise<ActionResult<number[]>> {
+  await requireProfile();
+  const rallyeIdResult = idSchema.safeParse(rallyeId);
+  if (!rallyeIdResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(rallyeIdResult.error));
+  }
+  const supabase = await createClient();
+
+  const { data: existingRallye, error: rallyeError } = await supabase
+    .from('rallye')
+    .select('id')
+    .eq('id', rallyeIdResult.data)
+    .maybeSingle();
+
+  if (rallyeError) {
+    console.error('Error checking rallye:', rallyeError);
+    return fail('Abstimmung konnte nicht geladen werden');
+  }
+
+  if (!existingRallye) {
+    return fail('Rallye nicht gefunden');
+  }
+
+  const { data, error } = await supabase
+    .from('join_rallye_questions')
+    .select('question_id')
+    .eq('rallye_id', rallyeIdResult.data)
+    .eq('is_voting', true);
+
+  if (error) {
+    console.error('Error fetching voting questions:', error);
+    return fail('Abstimmung konnte nicht geladen werden');
+  }
+  return ok(data.map((item) => item.question_id));
 }
 
 export async function assignRallyesToQuestion(

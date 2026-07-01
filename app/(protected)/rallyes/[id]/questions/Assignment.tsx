@@ -20,12 +20,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Question } from '@/helpers/questions';
 import { getQuestions } from '@/actions/question';
 import { questionTypes } from '@/helpers/questionTypes';
 import {
   assignQuestionsToRallye,
   getQuestionRallyeMap,
+  getVotingQuestions,
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
 import {
@@ -51,6 +53,7 @@ interface Props {
   rallyeName?: string;
   initialQuestions?: Question[];
   initialSelectedQuestions?: number[];
+  initialVotingQuestionIds?: number[];
   initialCategories?: string[];
   initialRallyeMap?: Record<number, string[]>;
   maxPoints?: number;
@@ -61,6 +64,7 @@ export default function Assignment({
   rallyeName,
   initialQuestions,
   initialSelectedQuestions,
+  initialVotingQuestionIds,
   initialCategories,
   initialRallyeMap,
   maxPoints = 0,
@@ -86,6 +90,9 @@ export default function Assignment({
   const [rallyeMap, setRallyeMap] = useState<Record<number, string[]>>(
     initialRallyeMap || {}
   );
+  const [votingQuestionIds, setVotingQuestionIds] = useState<Set<number>>(
+    () => new Set(initialVotingQuestionIds || [])
+  );
 
   // Expanded rows state
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
@@ -104,6 +111,9 @@ export default function Assignment({
   const [savedAssignedIds, setSavedAssignedIds] = useState<number[]>(
     initialSelectedQuestions || []
   );
+  const [savedVotingQuestionIds, setSavedVotingQuestionIds] = useState<
+    number[]
+  >(initialVotingQuestionIds || []);
 
   const questionTypeLabels = questionTypes.reduce(
     (acc, type) => {
@@ -139,17 +149,30 @@ export default function Assignment({
     setIsLoadingAssignments(true);
     try {
       // Fetch specifically the questions assigned to this rallye
-      const assignedResult = await getQuestions({
-        rallyeId: String(targetRallyeId),
-      });
+      const [assignedResult, votingResult] = await Promise.all([
+        getQuestions({
+          rallyeId: String(targetRallyeId),
+        }),
+        getVotingQuestions(targetRallyeId),
+      ]);
       if (!assignedResult.success) {
         console.error(assignedResult.error);
         setAssignedQuestions([]);
         setSavedAssignedIds([]);
+        setVotingQuestionIds(new Set());
+        setSavedVotingQuestionIds([]);
       } else {
         const questions = assignedResult.data ?? [];
+        const nextVotingQuestionIds = votingResult.success
+          ? (votingResult.data ?? [])
+          : [];
+        if (!votingResult.success) {
+          console.error(votingResult.error);
+        }
         setAssignedQuestions(questions);
         setSavedAssignedIds(questions.map((q) => q.id));
+        setVotingQuestionIds(new Set(nextVotingQuestionIds));
+        setSavedVotingQuestionIds(nextVotingQuestionIds);
 
         // Ensure we have rallye map for these
         refreshRallyeMap(questions);
@@ -253,6 +276,11 @@ export default function Assignment({
     setRecentlyRemoved((prev) => new Set(prev).add(questionId));
     setTimeout(() => {
       setAssignedQuestions((prev) => prev.filter((q) => q.id !== questionId));
+      setVotingQuestionIds((prev) => {
+        const next = new Set(prev);
+        next.delete(questionId);
+        return next;
+      });
       setRecentlyRemoved((prev) => {
         const next = new Set(prev);
         next.delete(questionId);
@@ -275,11 +303,25 @@ export default function Assignment({
     setIsSubmitting(true);
     try {
       const currentIds = assignedQuestions.map((q) => q.id);
-      const assignResult = await assignQuestionsToRallye(rallyeId, currentIds);
+      const uploadQuestionIds = new Set(
+        assignedQuestions
+          .filter((question) => question.type === 'upload')
+          .map((question) => question.id)
+      );
+      const currentVotingQuestionIds = Array.from(votingQuestionIds).filter(
+        (questionId) =>
+          currentIds.includes(questionId) && uploadQuestionIds.has(questionId)
+      );
+      const assignResult = await assignQuestionsToRallye(
+        rallyeId,
+        currentIds,
+        currentVotingQuestionIds
+      );
       if (!assignResult.success) {
         throw new Error(assignResult.error);
       }
       setSavedAssignedIds(currentIds);
+      setSavedVotingQuestionIds(currentVotingQuestionIds);
     } catch (error) {
       console.error('Error saving questions:', error);
     } finally {
@@ -294,10 +336,12 @@ export default function Assignment({
     return true;
   };
 
-  const hasUnsavedChanges = !arraysEqualAsSets(
-    assignedQuestions.map((q) => q.id),
-    savedAssignedIds
-  );
+  const hasUnsavedChanges =
+    !arraysEqualAsSets(
+      assignedQuestions.map((q) => q.id),
+      savedAssignedIds
+    ) ||
+    !arraysEqualAsSets(Array.from(votingQuestionIds), savedVotingQuestionIds);
 
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
@@ -310,12 +354,28 @@ export default function Assignment({
       !assignedQuestions.some((assignedQ) => assignedQ.id === availQ.id)
   );
 
+  const handleVotingToggle = (questionId: number, checked: boolean) => {
+    setVotingQuestionIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(questionId);
+      } else {
+        next.delete(questionId);
+      }
+      return next;
+    });
+  };
+
   const QuestionRow = ({
     question,
     action,
+    votingCell,
+    columnCount = 3,
   }: {
     question: Question;
     action: React.ReactNode;
+    votingCell?: React.ReactNode;
+    columnCount?: number;
   }) => {
     const rallyeNames = rallyeMap[question.id] ?? [];
     const isExpanded = expandedRows.includes(question.id);
@@ -364,11 +424,14 @@ export default function Assignment({
               </div>
             </div>
           </TableCell>
+          {votingCell !== undefined && (
+            <TableCell className="w-28 p-2 text-center">{votingCell}</TableCell>
+          )}
           <TableCell className="w-10 p-2 text-right">{action}</TableCell>
         </TableRow>
         {isExpanded && (
           <TableRow className="bg-muted/30">
-            <TableCell colSpan={3} className="p-0">
+            <TableCell colSpan={columnCount} className="p-0">
               <div className="p-4 border-b">
                 <QuestionDetailsRows
                   question={question}
@@ -575,6 +638,9 @@ export default function Assignment({
                     <TableRow>
                       <TableHead className="w-7.5"></TableHead>
                       <TableHead>Zugeordnete Frage</TableHead>
+                      <TableHead className="w-28 text-center">
+                        Abstimmung
+                      </TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -582,7 +648,7 @@ export default function Assignment({
                     {isLoadingAssignments ? (
                       <TableRow>
                         <TableCell
-                          colSpan={3}
+                          colSpan={4}
                           className="text-center h-24 text-muted-foreground"
                         >
                           Lade Zuordnungen...
@@ -591,7 +657,7 @@ export default function Assignment({
                     ) : assignedQuestions.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={3}
+                          colSpan={4}
                           className="text-center h-24 text-muted-foreground"
                         >
                           Noch keine Fragen zugeordnet
@@ -602,6 +668,35 @@ export default function Assignment({
                         <QuestionRow
                           key={q.id}
                           question={q}
+                          columnCount={4}
+                          votingCell={
+                            q.type === 'upload' ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="inline-flex h-8 items-center justify-center">
+                                    <Checkbox
+                                      checked={votingQuestionIds.has(q.id)}
+                                      disabled={isSubmitting}
+                                      onCheckedChange={(checked) =>
+                                        handleVotingToggle(
+                                          q.id,
+                                          checked === true
+                                        )
+                                      }
+                                      aria-label={`voting-question-${q.id}`}
+                                    />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Für Abstimmung nutzen</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                -
+                              </span>
+                            )
+                          }
                           action={
                             <Tooltip>
                               <TooltipTrigger asChild>

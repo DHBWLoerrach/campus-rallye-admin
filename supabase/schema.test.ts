@@ -17,4 +17,17 @@ describe('Supabase schema files', () => {
 
     expect(tablesWithTrailingComma).toEqual([]);
   });
+
+  it('stores voting flags on rallye-question assignments', () => {
+    const schema = readFileSync(join(process.cwd(), 'supabase/schema_v4.sql'), {
+      encoding: 'utf8',
+    });
+
+    expect(schema).toContain('"is_voting" boolean DEFAULT false NOT NULL');
+    expect(schema).toContain('FROM join_rallye_questions AS rq');
+    expect(schema).toContain('AND rq.is_voting = true');
+    expect(schema).not.toContain(
+      'CREATE TABLE IF NOT EXISTS "public"."voting"'
+    );
+  });
 });
