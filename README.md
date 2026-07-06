@@ -12,18 +12,14 @@ an der [DHBW Lörrach](https://www.dhbw-loerrach.de).
 - Das neueste SQL-Schema aus dem Ordner [`supabase/`](supabase/) in die Zwischenablage kopieren
 - Das eben kopierte SQL-Schema im SQL-Editor einfügen und ausführen (grüner `Run`-Button).
 - Zusätzlich die "Buckets" für Dateiverwaltung erstellen, siehe [`supabase/buckets.md`](supabase/buckets.md).
+- Tabelle `location`: neuen Standort anlegen (`DHBW Lörrach`), da dies in der App als Default-Standort verwendet wird.
+- Rallyes, Fragen usw. können über die Webanwendung angelegt werden.
 
 Supabase-Owner können einen SQL-Dump des Schemas (Tabellen, Funktionen, usw.) ohne Daten wie folgt mit dem Supabase-CLI erstellen:
 
 ```
 supabase db dump --db-url "postgresql://postgres:<password>@<serverurl>/postgres" -f schema.sql --schema public
 ```
-
-### Hinweis zum Datenmodell
-
-- `studiengang` wurde durch Departments ersetzt (Tabelle `department` + Verknüpfung über `join_department_rallye`).
-- `tour_mode` existiert nicht mehr in `rallye`. Tour-Mode wird über `location.default_rallye_id` abgebildet.
-- Rallye-Statuswerte: `preparing`, `inactive`, `running`, `voting`, `ranking`, `ended`.
 
 ## KeyCloak für Authentifizierung
 
