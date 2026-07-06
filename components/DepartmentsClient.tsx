@@ -49,7 +49,9 @@ export default function DepartmentsClient({
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">Abteilungen</h1>
           <p className="text-muted-foreground">
-            Verwalten Sie Ihre Abteilungen am Standort {siteLabel}.
+            {isSingleSite
+              ? `Verwalten Sie Ihre Abteilungen für ${siteLabel}.`
+              : `Verwalten Sie Ihre Abteilungen am Standort ${siteLabel}.`}
           </p>
         </div>
         <DepartmentDialog

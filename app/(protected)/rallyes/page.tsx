@@ -42,7 +42,7 @@ const rallyeSections: {
   {
     type: 'exploration',
     title: 'Erkundungsmodus',
-    description: 'Campus-Touren am Standort',
+    description: 'Campus-Touren',
   },
   {
     type: 'event',

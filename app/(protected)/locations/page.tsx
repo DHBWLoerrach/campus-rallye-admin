@@ -90,6 +90,9 @@ export default async function LocationsPage() {
     );
   }
 
+  const isSingleSite = (locations?.length ?? 0) === 1;
+  const activeSiteName = locations?.[0]?.name ?? 'DHBW Lörrach';
+
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
@@ -101,6 +104,17 @@ export default async function LocationsPage() {
         </div>
         <LocationDialog buttonStyle="ml-auto" />
       </div>
+
+      {isSingleSite && (
+        <div
+          className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
+          role="status"
+        >
+          Aktuell läuft die Web-App im Single-Site-Betrieb für {activeSiteName}.
+          Die Standortverwaltung bleibt für einen späteren Multi-Site-Ausbau
+          sichtbar, wird derzeit aber nur informativ genutzt.
+        </div>
+      )}
 
       {!locations || locations.length === 0 ? (
         <div className="flex min-h-96 flex-col items-center justify-center space-y-2 rounded-md border border-dashed border-border/60 bg-muted/20 p-8 text-center">

@@ -59,8 +59,9 @@ export default function EventRallyeDialog({
   eventDepartmentIdByLocationId,
 }: EventRallyeDialogProps) {
   const router = useRouter();
-  const defaultLocationId =
-    locations.length === 1 ? String(locations[0].id) : '';
+  const isSingleSite = locations.length === 1;
+  const singleSiteLocationName = locations[0]?.name ?? 'DHBW Lörrach';
+  const defaultLocationId = isSingleSite ? String(locations[0].id) : '';
   const [name, setName] = useState('');
   const [locationId, setLocationId] = useState(defaultLocationId);
   const [open, setOpen] = useState(false);
@@ -166,24 +167,33 @@ export default function EventRallyeDialog({
                   Standort
                 </Label>
                 <div className="col-span-3">
-                  <Select value={locationId} onValueChange={setLocationId}>
-                    <SelectTrigger
+                  {isSingleSite ? (
+                    <p
                       id="event-rallye-location"
-                      aria-label="Standort"
+                      className="rounded-md border border-input bg-muted/40 px-3 py-2 text-sm"
                     >
-                      <SelectValue placeholder="Standort auswählen" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {locations.map((location) => (
-                        <SelectItem
-                          key={location.id}
-                          value={String(location.id)}
-                        >
-                          {location.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      {singleSiteLocationName}
+                    </p>
+                  ) : (
+                    <Select value={locationId} onValueChange={setLocationId}>
+                      <SelectTrigger
+                        id="event-rallye-location"
+                        aria-label="Standort"
+                      >
+                        <SelectValue placeholder="Standort auswählen" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map((location) => (
+                          <SelectItem
+                            key={location.id}
+                            value={String(location.id)}
+                          >
+                            {location.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
               {!hasLocations && (

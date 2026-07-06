@@ -37,9 +37,8 @@ describe('EventRallyeDialog', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Event erstellen' }));
-    expect(
-      screen.getByRole('combobox', { name: 'Standort' })
-    ).toHaveTextContent('Loc A');
+    expect(screen.getByText('Loc A')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Standort' })).toBeNull();
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'Girls Day' },
     });
@@ -75,9 +74,6 @@ describe('EventRallyeDialog', () => {
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'Open Day' },
     });
-    const orgTrigger = screen.getByRole('combobox', { name: 'Standort' });
-    fireEvent.click(orgTrigger);
-    fireEvent.click(screen.getByRole('option', { name: 'Loc B' }));
 
     expect(
       screen.getByText(
