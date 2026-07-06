@@ -95,7 +95,7 @@ export default function ProgramRallyeDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
-          <DialogTitle>Studiengangs-Rallye erstellen</DialogTitle>
+          <DialogTitle>Rallye erstellen</DialogTitle>
           <DialogDescription>
             {createdRallyeId
               ? 'Rallye erstellt. Sie können jetzt Fragen zuordnen.'
@@ -131,11 +131,11 @@ export default function ProgramRallyeDialog({
           <form action={formAction}>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="program-rallye-name" className="text-right">
+                <Label htmlFor="rallye-name" className="text-right">
                   Name
                 </Label>
                 <Input
-                  id="program-rallye-name"
+                  id="rallye-name"
                   name="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -143,18 +143,12 @@ export default function ProgramRallyeDialog({
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label
-                  htmlFor="program-rallye-department"
-                  className="text-right"
-                >
+                <Label htmlFor="rallye-department" className="text-right">
                   Bereich
                 </Label>
                 <div className="col-span-3">
                   <Select value={departmentId} onValueChange={setDepartmentId}>
-                    <SelectTrigger
-                      id="program-rallye-department"
-                      aria-label="Bereich"
-                    >
+                    <SelectTrigger id="rallye-department" aria-label="Bereich">
                       <SelectValue placeholder="Bereich auswählen" />
                     </SelectTrigger>
                     <SelectContent>
@@ -172,7 +166,7 @@ export default function ProgramRallyeDialog({
               </div>
               {!hasDepartments && (
                 <p className="text-sm text-muted-foreground">
-                  Keine geeigneten Studiengangsbereiche verfügbar.
+                  Keine Bereiche verfügbar.
                 </p>
               )}
               {departmentId.length > 0 && (

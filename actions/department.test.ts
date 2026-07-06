@@ -104,14 +104,15 @@ describe('createDepartment', () => {
     const deptSelect = vi.fn(() => ({ single: deptSingle }));
     const deptInsert = vi.fn(() => ({ select: deptSelect }));
 
-    // rallye assign insert
-    const joinInsert = vi.fn().mockResolvedValue({ error: null });
+    // rallye assign update
+    const rallyeUpdateIn = vi.fn().mockResolvedValue({ error: null });
+    const rallyeUpdate = vi.fn(() => ({ in: rallyeUpdateIn }));
 
     const from = vi.fn((table: string) => {
       if (table === 'location') return { select: locationSelect };
       if (table === 'department')
         return { insert: deptInsert, select: locationSelect };
-      if (table === 'join_department_rallye') return { insert: joinInsert };
+      if (table === 'rallye') return { update: rallyeUpdate };
       return {};
     });
     mockCreateClient.mockResolvedValue({ from });
@@ -126,10 +127,8 @@ describe('createDepartment', () => {
     );
 
     expect(result?.success).toBe(true);
-    expect(joinInsert).toHaveBeenCalledWith([
-      { department_id: 42, rallye_id: 10 },
-      { department_id: 42, rallye_id: 20 },
-    ]);
+    expect(rallyeUpdate).toHaveBeenCalledWith({ department_id: 42 });
+    expect(rallyeUpdateIn).toHaveBeenCalledWith('id', [10, 20]);
   });
 
   it('skips rallye insert when no rallye_ids provided', async () => {
@@ -149,13 +148,13 @@ describe('createDepartment', () => {
     const deptSelect = vi.fn(() => ({ single: deptSingle }));
     const deptInsert = vi.fn(() => ({ select: deptSelect }));
 
-    const joinInsert = vi.fn().mockResolvedValue({ error: null });
+    const rallyeUpdate = vi.fn();
 
     const from = vi.fn((table: string) => {
       if (table === 'location') return { select: locationSelect };
       if (table === 'department')
         return { insert: deptInsert, select: locationSelect };
-      if (table === 'join_department_rallye') return { insert: joinInsert };
+      if (table === 'rallye') return { update: rallyeUpdate };
       return {};
     });
     mockCreateClient.mockResolvedValue({ from });
@@ -167,10 +166,10 @@ describe('createDepartment', () => {
     );
 
     expect(result?.success).toBe(true);
-    expect(joinInsert).not.toHaveBeenCalled();
+    expect(rallyeUpdate).not.toHaveBeenCalled();
   });
 
-  it('returns an error when rallye assignment insert fails and rolls back department', async () => {
+  it('returns an error when rallye assignment update fails and rolls back department', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
     const locationMaybeSingle = vi
@@ -189,9 +188,10 @@ describe('createDepartment', () => {
     const deptDeleteEq = vi.fn().mockResolvedValue({ error: null });
     const deptDelete = vi.fn(() => ({ eq: deptDeleteEq }));
 
-    const joinInsert = vi
+    const rallyeUpdateIn = vi
       .fn()
-      .mockResolvedValue({ error: { message: 'insert failed' } });
+      .mockResolvedValue({ error: { message: 'update failed' } });
+    const rallyeUpdate = vi.fn(() => ({ in: rallyeUpdateIn }));
 
     const from = vi.fn((table: string) => {
       if (table === 'location') return { select: locationSelect };
@@ -202,7 +202,7 @@ describe('createDepartment', () => {
           select: locationSelect,
         };
       }
-      if (table === 'join_department_rallye') return { insert: joinInsert };
+      if (table === 'rallye') return { update: rallyeUpdate };
       return {};
     });
     mockCreateClient.mockResolvedValue({ from });
@@ -219,7 +219,7 @@ describe('createDepartment', () => {
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
     expect(result.error).toBe('Es ist ein Fehler aufgetreten');
-    expect(joinInsert).toHaveBeenCalled();
+    expect(rallyeUpdateIn).toHaveBeenCalled();
     expect(deptDeleteEq).toHaveBeenCalledWith('id', 42);
   });
 });
@@ -285,23 +285,30 @@ describe('updateDepartment', () => {
     const update = vi.fn(() => ({ eq: updateEq }));
 
     // load current assignments + delta sync
-    const joinSelectEq = vi.fn().mockResolvedValue({
-      data: [{ rallye_id: 10 }, { rallye_id: 20 }],
+    const rallyeSelectEq = vi.fn().mockResolvedValue({
+      data: [{ id: 10 }, { id: 20 }],
       error: null,
     });
-    const joinSelect = vi.fn(() => ({ eq: joinSelectEq }));
-    const joinInsert = vi.fn().mockResolvedValue({ error: null });
-    const joinDeleteIn = vi.fn().mockResolvedValue({ error: null });
-    const joinDeleteEq = vi.fn(() => ({ in: joinDeleteIn }));
-    const joinDelete = vi.fn(() => ({ eq: joinDeleteEq }));
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const rallyeAssignIn = vi.fn().mockResolvedValue({ error: null });
+    const rallyeAssignUpdate = vi.fn(() => ({ in: rallyeAssignIn }));
+    const rallyeUnassignIn = vi.fn().mockResolvedValue({ error: null });
+    const rallyeUnassignEq = vi.fn(() => ({ in: rallyeUnassignIn }));
+    const rallyeUnassignUpdate = vi.fn(() => ({ eq: rallyeUnassignEq }));
 
     const from = vi.fn((table: string) => {
       if (table === 'department') {
         return { select: deptSelect, update };
       }
       if (table === 'location') return { select: orgSelect };
-      if (table === 'join_department_rallye') {
-        return { select: joinSelect, insert: joinInsert, delete: joinDelete };
+      if (table === 'rallye') {
+        return {
+          select: rallyeSelect,
+          update: (payload: { department_id: number | null }) =>
+            payload.department_id === null
+              ? rallyeUnassignUpdate()
+              : rallyeAssignUpdate(),
+        };
       }
       return {};
     });
@@ -317,12 +324,10 @@ describe('updateDepartment', () => {
     );
 
     expect(result?.success).toBe(true);
-    expect(joinSelectEq).toHaveBeenCalledWith('department_id', 5);
-    expect(joinInsert).toHaveBeenCalledWith([
-      { department_id: 5, rallye_id: 30 },
-    ]);
-    expect(joinDeleteEq).toHaveBeenCalledWith('department_id', 5);
-    expect(joinDeleteIn).toHaveBeenCalledWith('rallye_id', [10]);
+    expect(rallyeSelectEq).toHaveBeenCalledWith('department_id', 5);
+    expect(rallyeAssignIn).toHaveBeenCalledWith('id', [30]);
+    expect(rallyeUnassignEq).toHaveBeenCalledWith('department_id', 5);
+    expect(rallyeUnassignIn).toHaveBeenCalledWith('id', [10]);
   });
 
   it('returns an error and keeps existing links when insert fails', async () => {
@@ -343,20 +348,27 @@ describe('updateDepartment', () => {
     const updateEq = vi.fn().mockResolvedValue({ error: null });
     const update = vi.fn(() => ({ eq: updateEq }));
 
-    const joinSelectEq = vi
+    const rallyeSelectEq = vi
       .fn()
-      .mockResolvedValue({ data: [{ rallye_id: 10 }], error: null });
-    const joinSelect = vi.fn(() => ({ eq: joinSelectEq }));
-    const joinInsert = vi
+      .mockResolvedValue({ data: [{ id: 10 }], error: null });
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const rallyeAssignIn = vi
       .fn()
       .mockResolvedValue({ error: { message: 'insert failed' } });
-    const joinDelete = vi.fn();
+    const rallyeAssignUpdate = vi.fn(() => ({ in: rallyeAssignIn }));
+    const rallyeUnassignUpdate = vi.fn();
 
     const from = vi.fn((table: string) => {
       if (table === 'department') return { select: deptSelect, update };
       if (table === 'location') return { select: orgSelect };
-      if (table === 'join_department_rallye') {
-        return { select: joinSelect, insert: joinInsert, delete: joinDelete };
+      if (table === 'rallye') {
+        return {
+          select: rallyeSelect,
+          update: (payload: { department_id: number | null }) =>
+            payload.department_id === null
+              ? rallyeUnassignUpdate()
+              : rallyeAssignUpdate(),
+        };
       }
       return {};
     });
@@ -374,7 +386,8 @@ describe('updateDepartment', () => {
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
     expect(result.error).toBe('Es ist ein Fehler aufgetreten');
-    expect(joinDelete).not.toHaveBeenCalled();
+    expect(rallyeAssignIn).toHaveBeenCalledWith('id', [20]);
+    expect(rallyeUnassignUpdate).not.toHaveBeenCalled();
   });
 
   it('returns an error when removing stale rallye links fails', async () => {
@@ -395,21 +408,28 @@ describe('updateDepartment', () => {
     const updateEq = vi.fn().mockResolvedValue({ error: null });
     const update = vi.fn(() => ({ eq: updateEq }));
 
-    const joinSelectEq = vi
+    const rallyeSelectEq = vi
       .fn()
-      .mockResolvedValue({ data: [{ rallye_id: 10 }], error: null });
-    const joinSelect = vi.fn(() => ({ eq: joinSelectEq }));
-    const joinDeleteIn = vi
+      .mockResolvedValue({ data: [{ id: 10 }], error: null });
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const rallyeUnassignIn = vi
       .fn()
       .mockResolvedValue({ error: { message: 'delete failed' } });
-    const joinDeleteEq = vi.fn(() => ({ in: joinDeleteIn }));
-    const joinDelete = vi.fn(() => ({ eq: joinDeleteEq }));
+    const rallyeUnassignEq = vi.fn(() => ({ in: rallyeUnassignIn }));
+    const rallyeUnassignUpdate = vi.fn(() => ({ eq: rallyeUnassignEq }));
+    const rallyeAssignUpdate = vi.fn();
 
     const from = vi.fn((table: string) => {
       if (table === 'department') return { select: deptSelect, update };
       if (table === 'location') return { select: orgSelect };
-      if (table === 'join_department_rallye') {
-        return { select: joinSelect, delete: joinDelete, insert: vi.fn() };
+      if (table === 'rallye') {
+        return {
+          select: rallyeSelect,
+          update: (payload: { department_id: number | null }) =>
+            payload.department_id === null
+              ? rallyeUnassignUpdate()
+              : rallyeAssignUpdate(),
+        };
       }
       return {};
     });
@@ -424,8 +444,8 @@ describe('updateDepartment', () => {
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
     expect(result.error).toBe('Es ist ein Fehler aufgetreten');
-    expect(joinDeleteEq).toHaveBeenCalledWith('department_id', 5);
-    expect(joinDeleteIn).toHaveBeenCalledWith('rallye_id', [10]);
+    expect(rallyeUnassignEq).toHaveBeenCalledWith('department_id', 5);
+    expect(rallyeUnassignIn).toHaveBeenCalledWith('id', [10]);
   });
 });
 
@@ -495,10 +515,10 @@ describe('getRallyeAssignmentsByDepartment', () => {
     expect(result.error).toBe('Fehler beim Laden der Rallye-Zuordnungen');
   });
 
-  it('returns rallye ids from join table', async () => {
+  it('returns rallye ids from rallye table', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    const data = [{ rallye_id: 10 }, { rallye_id: 20 }, { rallye_id: 30 }];
+    const data = [{ id: 10 }, { id: 20 }, { id: 30 }];
     const eq = vi.fn().mockResolvedValue({ data, error: null });
     const select = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ select }));
@@ -510,7 +530,7 @@ describe('getRallyeAssignmentsByDepartment', () => {
     expect(result.success).toBe(true);
     if (!result.success) throw new Error('Expected success');
     expect(result.data).toEqual([10, 20, 30]);
-    expect(from).toHaveBeenCalledWith('join_department_rallye');
+    expect(from).toHaveBeenCalledWith('rallye');
     expect(eq).toHaveBeenCalledWith('department_id', 5);
   });
 

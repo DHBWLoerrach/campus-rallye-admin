@@ -26,6 +26,18 @@ export async function createRallye(state: FormState, formData: FormData) {
 
   const data = { name: parsed.data.name };
 
+  const departmentIds = formData
+    .getAll('department_ids')
+    .map(Number)
+    .filter((id) => !isNaN(id) && id > 0);
+
+  const uniqueDepartmentIds = Array.from(new Set(departmentIds));
+  if (uniqueDepartmentIds.length !== 1) {
+    return fail('Genau ein Bereich muss zugeordnet werden');
+  }
+
+  const departmentId = uniqueDepartmentIds[0];
+
   const { data: createdRallye, error } = await supabase
     .from('rallye')
     .insert({
@@ -33,6 +45,7 @@ export async function createRallye(state: FormState, formData: FormData) {
       status: 'inactive' as RallyeStatus,
       end_time: new Date(),
       password: '',
+      department_id: departmentId,
     })
     .select('id')
     .single();
@@ -40,40 +53,6 @@ export async function createRallye(state: FormState, formData: FormData) {
   if (error || !createdRallye) {
     console.error('Error creating rallye:', error);
     return fail('Es ist ein Fehler aufgetreten');
-  }
-
-  // Save department assignments
-  const departmentIds = formData
-    .getAll('department_ids')
-    .map(Number)
-    .filter((id) => !isNaN(id) && id > 0);
-
-  if (departmentIds.length > 0) {
-    const { error: joinError } = await supabase
-      .from('join_department_rallye')
-      .insert(
-        departmentIds.map((departmentId) => ({
-          department_id: departmentId,
-          rallye_id: createdRallye.id,
-        }))
-      );
-
-    if (joinError) {
-      console.error('Error saving department assignments:', joinError);
-      const { error: rollbackError } = await supabase
-        .from('rallye')
-        .delete()
-        .eq('id', createdRallye.id);
-
-      if (rollbackError) {
-        console.error(
-          'Error rolling back rallye creation after assignment failure:',
-          rollbackError
-        );
-      }
-
-      return fail('Es ist ein Fehler aufgetreten');
-    }
   }
 
   revalidatePath('/');
@@ -131,6 +110,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
     status: RallyeStatus;
     password: string;
     end_time?: Date;
+    department_id?: number;
   } = {
     name: data.name,
     status: data.status,
@@ -139,6 +119,26 @@ export async function updateRallye(state: FormState, formData: FormData) {
 
   if (endTime) {
     updatePayload.end_time = endTime;
+  }
+
+  // Only sync department assignment when the form explicitly opts in.
+  // This prevents accidental assignment changes when options were not loaded client-side.
+  const shouldSyncDepartments = formData.get('department_sync') === '1';
+  if (shouldSyncDepartments) {
+    const selectedDepartmentIds = Array.from(
+      new Set(
+        formData
+          .getAll('department_ids')
+          .map(Number)
+          .filter((id) => !isNaN(id) && id > 0)
+      )
+    );
+
+    if (selectedDepartmentIds.length !== 1) {
+      return fail('Genau ein Bereich muss zugeordnet werden');
+    }
+
+    updatePayload.department_id = selectedDepartmentIds[0];
   }
 
   const { error } = await supabase
@@ -151,76 +151,6 @@ export async function updateRallye(state: FormState, formData: FormData) {
   if (error) {
     console.error('Error updating rallye:', error);
     return fail('Es ist ein Fehler aufgetreten');
-  }
-
-  // Only sync department links when the form explicitly opts in.
-  // This prevents accidental link removal if assignments were not loaded client-side.
-  const shouldSyncDepartments = formData.get('department_sync') === '1';
-  if (shouldSyncDepartments) {
-    // Sync department assignments by delta to avoid deleting all links on partial failures.
-    const selectedDepartmentIds = Array.from(
-      new Set(
-        formData
-          .getAll('department_ids')
-          .map(Number)
-          .filter((id) => !isNaN(id) && id > 0)
-      )
-    );
-
-    const { data: existingAssignments, error: existingAssignmentsError } =
-      await supabase
-        .from('join_department_rallye')
-        .select('department_id')
-        .eq('rallye_id', data.id);
-
-    if (existingAssignmentsError) {
-      console.error(
-        'Error loading existing department assignments:',
-        existingAssignmentsError
-      );
-      return fail('Es ist ein Fehler aufgetreten');
-    }
-
-    const existingDepartmentIds = new Set(
-      (existingAssignments || []).map((row) => row.department_id)
-    );
-    const selectedDepartmentIdSet = new Set(selectedDepartmentIds);
-
-    const departmentIdsToInsert = selectedDepartmentIds.filter(
-      (id) => !existingDepartmentIds.has(id)
-    );
-    const departmentIdsToDelete = Array.from(existingDepartmentIds).filter(
-      (id) => !selectedDepartmentIdSet.has(id)
-    );
-
-    if (departmentIdsToInsert.length > 0) {
-      const { error: insertError } = await supabase
-        .from('join_department_rallye')
-        .insert(
-          departmentIdsToInsert.map((departmentId) => ({
-            department_id: departmentId,
-            rallye_id: data.id,
-          }))
-        );
-
-      if (insertError) {
-        console.error('Error saving department assignments:', insertError);
-        return fail('Es ist ein Fehler aufgetreten');
-      }
-    }
-
-    if (departmentIdsToDelete.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('join_department_rallye')
-        .delete()
-        .eq('rallye_id', data.id)
-        .in('department_id', departmentIdsToDelete);
-
-      if (deleteError) {
-        console.error('Error deleting department assignments:', deleteError);
-        return fail('Es ist ein Fehler aufgetreten');
-      }
-    }
   }
 
   revalidatePath('/');

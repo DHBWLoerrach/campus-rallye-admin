@@ -20,43 +20,41 @@ export default async function LocationsPage() {
     .select('id, name, created_at, default_rallye_id')
     .order('name');
 
-  // Load all department-rallye links in one query and group by location.
-  const { data: departmentRallyeRows } = await supabase
-    .from('department')
-    .select('location_id, join_department_rallye(rallye(id, name))');
+  // Load rallyes with their department's location and group by location.
+  const { data: rallyeRows } = await supabase
+    .from('rallye')
+    .select('id, name, department:department_id(location_id)');
 
   const rallyeOptionsMap = new Map<number, RallyeOption[]>();
   const defaultRallyeNames = new Map<number, string>();
   const rallyeMapByLocation = new Map<number, Map<number, string>>();
   const emptyRallyeMap = new Map<number, string>();
 
-  for (const row of departmentRallyeRows || []) {
-    const locationId = (row as { location_id: number }).location_id;
-    const joins = (row as Record<string, unknown>).join_department_rallye;
+  for (const row of rallyeRows || []) {
+    const rallye = row as {
+      id: number;
+      name: string;
+      department?:
+        | { location_id: number }
+        | Array<{ location_id: number }>
+        | null;
+    };
 
-    let locationRallyes = rallyeMapByLocation.get(locationId);
-    if (!locationRallyes) {
-      locationRallyes = new Map<number, string>();
-      rallyeMapByLocation.set(locationId, locationRallyes);
-    }
-
-    if (!Array.isArray(joins)) {
+    const department = Array.isArray(rallye.department)
+      ? rallye.department[0]
+      : rallye.department;
+    if (!department || typeof department.location_id !== 'number') {
       continue;
     }
 
-    for (const join of joins) {
-      const rallyeValue = (join as Record<string, unknown>).rallye;
-      const rallye = Array.isArray(rallyeValue) ? rallyeValue[0] : rallyeValue;
-      if (
-        rallye &&
-        typeof rallye === 'object' &&
-        'id' in rallye &&
-        'name' in rallye &&
-        typeof rallye.id === 'number' &&
-        typeof rallye.name === 'string'
-      ) {
-        locationRallyes.set(rallye.id, rallye.name);
-      }
+    let locationRallyes = rallyeMapByLocation.get(department.location_id);
+    if (!locationRallyes) {
+      locationRallyes = new Map<number, string>();
+      rallyeMapByLocation.set(department.location_id, locationRallyes);
+    }
+
+    if (typeof rallye.id === 'number' && typeof rallye.name === 'string') {
+      locationRallyes.set(rallye.id, rallye.name);
     }
   }
 

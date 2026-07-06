@@ -188,19 +188,27 @@ describe('getRallyeOptionsByLocation', () => {
   it('deduplicates and sorts rallye options', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    // Simulate two departments, each with overlapping rallye assignments
+    // Simulate rallyes linked to the same location through different departments.
     const data = [
       {
-        join_department_rallye: [
-          { rallye: { id: 2, name: 'Zebra Tour' } },
-          { rallye: { id: 1, name: 'Alpha Tour' } },
-        ],
+        id: 2,
+        name: 'Zebra Tour',
+        department: { location_id: 5 },
       },
       {
-        join_department_rallye: [
-          { rallye: { id: 1, name: 'Alpha Tour' } }, // duplicate
-          { rallye: { id: 3, name: 'Beta Tour' } },
-        ],
+        id: 1,
+        name: 'Alpha Tour',
+        department: { location_id: 5 },
+      },
+      {
+        id: 1,
+        name: 'Alpha Tour',
+        department: { location_id: 5 },
+      },
+      {
+        id: 3,
+        name: 'Beta Tour',
+        department: { location_id: 5 },
       },
     ];
 
@@ -225,10 +233,7 @@ describe('getRallyeOptionsByLocation', () => {
   it('returns empty array when no departments have rallyes', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    const data = [
-      { join_department_rallye: [] },
-      { join_department_rallye: [] },
-    ];
+    const data: Array<Record<string, unknown>> = [];
 
     const eq = vi.fn().mockResolvedValue({ data, error: null });
     const select = vi.fn(() => ({ eq }));

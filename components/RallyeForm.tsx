@@ -7,7 +7,6 @@ import { CircleX, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { updateRallye, deleteRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +20,13 @@ import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { RALLYE_STATUSES, getRallyeStatusLabel } from '@/lib/types';
 import type { DepartmentOption, Rallye, RallyeStatus } from '@/lib/types';
 
@@ -33,7 +39,7 @@ interface RallyeFormProps {
   allowDepartmentAssignments?: boolean;
 }
 
-function SaveButton() {
+function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <Button
@@ -41,8 +47,8 @@ function SaveButton() {
       variant="dhbwStyle"
       size="default"
       className="cursor-pointer"
-      aria-disabled={pending}
-      disabled={pending}
+      aria-disabled={pending || disabled}
+      disabled={pending || disabled}
     >
       {pending ? 'Wird gesendet…' : 'Speichern'}
     </Button>
@@ -65,9 +71,14 @@ export default function RallyeCardForm({
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<
-    Set<number>
-  >(new Set(assignedDepartmentIds));
+  const normalizedAssignedDepartmentIds = Array.from(
+    new Set(assignedDepartmentIds)
+  );
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>(
+    normalizedAssignedDepartmentIds[0]
+      ? String(normalizedAssignedDepartmentIds[0])
+      : ''
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -75,6 +86,12 @@ export default function RallyeCardForm({
   const statusLabelId = `rallye-${rallye.id}-status-label`;
   const calendarStartMonth = new Date(currentYear, 0, 1);
   const calendarEndMonth = new Date(currentYear + 5, 11, 31);
+  const requiresDepartmentSelection =
+    allowDepartmentAssignments &&
+    departmentAssignmentsLoaded &&
+    departmentOptions.length > 0;
+  const isSaveDisabled =
+    requiresDepartmentSelection && selectedDepartmentId.length === 0;
 
   // Alle Status-Übergänge sind erlaubt
   const allStatuses = RALLYE_STATUSES;
@@ -198,53 +215,61 @@ export default function RallyeCardForm({
 
           {allowDepartmentAssignments && (
             <div className="grid gap-2 mt-2">
-              <Label>Bereiche zuordnen</Label>
+              <Label htmlFor={`rallye-${rallye.id}-department`}>
+                Bereich zuordnen
+              </Label>
               {!departmentAssignmentsLoaded ? (
                 <p className="text-sm text-muted-foreground">
                   Bereichszuordnungen konnten nicht geladen werden. Beim
                   Speichern bleiben bestehende Zuordnungen unverändert.
                 </p>
               ) : (
-                <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
+                <div className="space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3">
                   {departmentOptions.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                       Keine Bereiche vorhanden
                     </p>
                   ) : (
-                    departmentOptions.map((dept) => (
-                      <div key={dept.id} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`edit-dept-${dept.id}`}
-                          checked={selectedDepartmentIds.has(dept.id)}
-                          onCheckedChange={(checked) => {
-                            setSelectedDepartmentIds((prev) => {
-                              const next = new Set(prev);
-                              if (checked === true) next.add(dept.id);
-                              else next.delete(dept.id);
-                              return next;
-                            });
-                          }}
-                        />
-                        <Label
-                          htmlFor={`edit-dept-${dept.id}`}
-                          className="text-sm"
+                    <>
+                      <Select
+                        value={selectedDepartmentId}
+                        onValueChange={setSelectedDepartmentId}
+                      >
+                        <SelectTrigger
+                          id={`rallye-${rallye.id}-department`}
+                          aria-label="Bereich"
                         >
-                          {dept.name}
-                        </Label>
-                      </div>
-                    ))
+                          <SelectValue placeholder="Bereich auswählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departmentOptions.map((department) => (
+                            <SelectItem
+                              key={department.id}
+                              value={String(department.id)}
+                            >
+                              {department.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {normalizedAssignedDepartmentIds.length > 1 && (
+                        <p className="text-sm text-muted-foreground">
+                          Für diese Rallye waren mehrere Bereiche gespeichert.
+                          Beim Speichern bleibt nur der gewählte Bereich.
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               )}
               {departmentAssignmentsLoaded &&
-                Array.from(selectedDepartmentIds).map((id) => (
+                selectedDepartmentId.length > 0 && (
                   <input
-                    key={id}
                     type="hidden"
                     name="department_ids"
-                    value={id}
+                    value={selectedDepartmentId}
                   />
-                ))}
+                )}
             </div>
           )}
 
@@ -289,7 +314,7 @@ export default function RallyeCardForm({
               </DialogContent>
             </Dialog>
 
-            <SaveButton />
+            <SaveButton disabled={isSaveDisabled} />
           </div>
           {formState?.success === false && (
             <span className="text-sm text-destructive ml-2">

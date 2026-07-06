@@ -67,17 +67,13 @@ export async function createDepartment(state: FormState, formData: FormData) {
     .filter((id) => !isNaN(id) && id > 0);
 
   if (rallyeIds.length > 0) {
-    const { error: joinError } = await supabase
-      .from('join_department_rallye')
-      .insert(
-        rallyeIds.map((rallyeId) => ({
-          department_id: createdDepartment.id,
-          rallye_id: rallyeId,
-        }))
-      );
+    const { error: rallyeAssignError } = await supabase
+      .from('rallye')
+      .update({ department_id: createdDepartment.id })
+      .in('id', rallyeIds);
 
-    if (joinError) {
-      console.error('Error saving rallye assignments:', joinError);
+    if (rallyeAssignError) {
+      console.error('Error saving rallye assignments:', rallyeAssignError);
       const { error: rollbackError } = await supabase
         .from('department')
         .delete()
@@ -165,7 +161,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  // Sync rallye assignments by delta to avoid deleting all links on partial failures.
+  // Sync rallye assignments by delta on rallye.department_id.
   const selectedRallyeIds = Array.from(
     new Set(
       formData
@@ -176,10 +172,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   );
 
   const { data: existingAssignments, error: existingAssignmentsError } =
-    await supabase
-      .from('join_department_rallye')
-      .select('rallye_id')
-      .eq('department_id', data.id);
+    await supabase.from('rallye').select('id').eq('department_id', data.id);
 
   if (existingAssignmentsError) {
     console.error(
@@ -190,7 +183,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   }
 
   const existingRallyeIds = new Set(
-    (existingAssignments || []).map((row) => row.rallye_id)
+    (existingAssignments || []).map((row) => row.id)
   );
   const selectedRallyeIdSet = new Set(selectedRallyeIds);
 
@@ -203,13 +196,9 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
   if (rallyeIdsToInsert.length > 0) {
     const { error: insertError } = await supabase
-      .from('join_department_rallye')
-      .insert(
-        rallyeIdsToInsert.map((rallyeId) => ({
-          department_id: data.id,
-          rallye_id: rallyeId,
-        }))
-      );
+      .from('rallye')
+      .update({ department_id: data.id })
+      .in('id', rallyeIdsToInsert);
 
     if (insertError) {
       console.error('Error saving rallye assignments:', insertError);
@@ -219,10 +208,10 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
   if (rallyeIdsToDelete.length > 0) {
     const { error: deleteError } = await supabase
-      .from('join_department_rallye')
-      .delete()
+      .from('rallye')
+      .update({ department_id: null })
       .eq('department_id', data.id)
-      .in('rallye_id', rallyeIdsToDelete);
+      .in('id', rallyeIdsToDelete);
 
     if (deleteError) {
       console.error('Error deleting rallye assignments:', deleteError);
@@ -320,8 +309,8 @@ export async function getRallyeAssignmentsByDepartment(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('join_department_rallye')
-    .select('rallye_id')
+    .from('rallye')
+    .select('id')
     .eq('department_id', departmentId);
 
   if (error) {
@@ -329,5 +318,5 @@ export async function getRallyeAssignmentsByDepartment(
     return fail('Fehler beim Laden der Rallye-Zuordnungen');
   }
 
-  return ok((data || []).map((row) => row.rallye_id));
+  return ok((data || []).map((row) => row.id));
 }

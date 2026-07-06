@@ -34,7 +34,7 @@ describe('RallyeForm', () => {
       />
     );
 
-    expect(screen.queryByText('Bereiche zuordnen')).not.toBeInTheDocument();
+    expect(screen.queryByText('Bereich zuordnen')).not.toBeInTheDocument();
     expect(container.querySelector('input[name="department_sync"]')).toBeNull();
     expect(container.querySelector('input[name="department_ids"]')).toBeNull();
   });
@@ -51,7 +51,7 @@ describe('RallyeForm', () => {
       />
     );
 
-    expect(screen.getByText('Bereiche zuordnen')).toBeInTheDocument();
+    expect(screen.getByText('Bereich zuordnen')).toBeInTheDocument();
     expect(
       container.querySelector('input[name="department_sync"]')
     ).not.toBeNull();

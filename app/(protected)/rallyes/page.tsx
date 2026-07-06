@@ -1,16 +1,7 @@
 import createClient from '@/lib/supabase';
 import Rallye from '@/components/Rallye';
-import EventRallyeDialog from '@/components/rallyes/EventRallyeDialog';
 import ExplorationRow from '@/components/rallyes/ExplorationRow';
 import ProgramRallyeDialog from '@/components/rallyes/ProgramRallyeDialog';
-import {
-  classifyRallyesByType,
-  getEventDepartmentIds,
-  getEventDepartmentIdByLocation,
-  getRallyeUiTypeLabel,
-  type RallyeUiClassification,
-  type RallyeUiType,
-} from '@/lib/rallye-ui-type';
 import type { DepartmentOption } from '@/lib/types';
 
 type RallyeRow = {
@@ -20,6 +11,7 @@ type RallyeRow = {
   end_time: string;
   password: string;
   created_at: string;
+  department_id: number | null;
 };
 
 type DepartmentRow = {
@@ -35,7 +27,7 @@ type LocationRow = {
 };
 
 const rallyeSections: {
-  type: RallyeUiType;
+  type: 'exploration' | 'department';
   title: string;
   description: string;
 }[] = [
@@ -45,66 +37,34 @@ const rallyeSections: {
     description: 'Campus-Touren',
   },
   {
-    type: 'event',
-    title: 'Events',
-    description: 'Rallyes für Veranstaltungen',
-  },
-  {
-    type: 'program',
-    title: 'Studiengänge',
-    description: 'Reguläre Rallyes für Bereiche',
-  },
-  {
-    type: 'other',
-    title: 'Weitere Rallyes',
-    description: 'Nicht eindeutig zuordenbare Rallyes',
+    type: 'department',
+    title: 'Rallyes',
+    description: 'Team-Rallyes mit genau einem Bereich',
   },
 ];
 
-const getContextLabel = (
-  classification?: RallyeUiClassification,
-  isSingleSite = false
-): string | undefined => {
-  if (!classification) return undefined;
-  switch (classification.type) {
-    case 'exploration':
-    case 'event':
-      if (isSingleSite) return undefined;
-      if (classification.locationNames.length === 0) return undefined;
-      return `Standort: ${classification.locationNames.join(', ')}`;
-    case 'program':
-      if (classification.departmentNames.length === 0) return undefined;
-      return `Bereich: ${classification.departmentNames.join(', ')}`;
-    default:
-      if (classification.departmentNames.length > 0) {
-        return `Bereiche: ${classification.departmentNames.join(', ')}`;
-      }
-      if (classification.locationNames.length > 0) {
-        return `Standorte: ${classification.locationNames.join(', ')}`;
-      }
-      return undefined;
-  }
-};
+const uniqueSorted = (values: string[]): string[] =>
+  Array.from(new Set(values)).sort((a, b) =>
+    a.localeCompare(b, 'de', { sensitivity: 'base' })
+  );
 
-const getProgramGroupLabel = (
-  classification?: RallyeUiClassification
-): string => {
-  if (!classification || classification.departmentNames.length === 0) {
-    return 'Ohne Studiengang';
+const getDepartmentGroupLabel = (departmentNames: string[]): string => {
+  if (departmentNames.length === 0) {
+    return 'Ohne Bereich';
   }
 
-  if (classification.departmentNames.length === 1) {
-    return classification.departmentNames[0];
+  if (departmentNames.length === 1) {
+    return departmentNames[0];
   }
 
-  return classification.departmentNames.join(' / ');
+  return 'Mehrere Bereiche';
 };
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: rallyes } = await supabase
     .from('rallye')
-    .select('id, name, status, end_time, password, created_at')
+    .select('id, name, status, end_time, password, created_at, department_id')
     .order('name');
   const typedRallyes = (rallyes || []) as RallyeRow[];
   // supabase can't sort ignoring case, so we do it manually
@@ -121,7 +81,6 @@ export default async function Home() {
   const typedLocations = ((locations || []) as LocationRow[]).sort((a, b) =>
     a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
   );
-  const isSingleSite = typedLocations.length === 1;
 
   const { data: departmentRows } = await supabase
     .from('department')
@@ -132,38 +91,13 @@ export default async function Home() {
     id,
     name,
   }));
-
-  const eventDepartmentIdByLocationMap = getEventDepartmentIdByLocation(
-    typedLocations,
-    typedDepartmentRows
-  );
-  const eventDepartmentIds = getEventDepartmentIds(
-    typedLocations,
-    typedDepartmentRows
-  );
-  const eventDepartmentIdByLocationId = Object.fromEntries(
-    Array.from(eventDepartmentIdByLocationMap.entries()).map(
-      ([orgId, deptId]) => [String(orgId), deptId]
-    )
-  );
-  const eventLocationOptions = typedLocations.map((location) => ({
-    id: location.id,
-    name: location.name,
-    hasEventDepartment: eventDepartmentIdByLocationMap.has(location.id),
-  }));
-  const programDepartmentOptions: DepartmentOption[] = departmentOptions.filter(
-    (department) => !eventDepartmentIds.has(department.id)
-  );
+  const createDialogDepartmentOptions: DepartmentOption[] = departmentOptions;
 
   // Fetch question counts for all rallyes in a single query
   const questionCounts = new Map<number, number>();
   const uploadQuestionCounts = new Map<number, number>();
   const departmentAssignmentsMap = new Map<number, number[]>();
-  const classificationAssignments: {
-    department_id: number;
-    rallye_id: number;
-  }[] = [];
-  let departmentAssignmentsLoaded = true;
+  const departmentAssignmentsLoaded = true;
   if (typedRallyes.length > 0) {
     const rallyeIds = typedRallyes.map((r) => r.id);
     const { data: joins } = await supabase
@@ -183,75 +117,65 @@ export default async function Home() {
       const current = uploadQuestionCounts.get(row.rallye_id) ?? 0;
       uploadQuestionCounts.set(row.rallye_id, current + 1);
     });
-
-    // Load all department assignments in a single query and group by rallye.
-    typedRallyes.forEach((r) => {
-      departmentAssignmentsMap.set(r.id, []);
-    });
-    const { data: deptAssignmentRows, error: deptAssignmentError } =
-      await supabase
-        .from('join_department_rallye')
-        .select('department_id, rallye_id')
-        .in('rallye_id', rallyeIds);
-
-    if (deptAssignmentError) {
-      departmentAssignmentsLoaded = false;
-      console.error(
-        'Error loading department assignments:',
-        deptAssignmentError
+    typedRallyes.forEach((rallye) => {
+      departmentAssignmentsMap.set(
+        rallye.id,
+        rallye.department_id ? [rallye.department_id] : []
       );
-    } else {
-      for (const row of deptAssignmentRows || []) {
-        const rallyeId = (row as { rallye_id: number }).rallye_id;
-        const departmentId = (row as { department_id: number }).department_id;
-        classificationAssignments.push({
-          rallye_id: rallyeId,
-          department_id: departmentId,
-        });
-        const existing = departmentAssignmentsMap.get(rallyeId);
-        if (existing) {
-          existing.push(departmentId);
-        } else {
-          departmentAssignmentsMap.set(rallyeId, [departmentId]);
-        }
-      }
-    }
+    });
   }
 
-  const rallyeTypeById = classifyRallyesByType({
-    rallyeIds: typedRallyes.map((rallye) => rallye.id),
-    locations: (locations || []) as LocationRow[],
-    departments: typedDepartmentRows,
-    assignments: classificationAssignments,
-  });
+  const explorationRallyeIds = new Set(
+    typedLocations
+      .map((location) => location.default_rallye_id)
+      .filter((id): id is number => id !== null)
+  );
 
-  const rallyesByType = new Map<RallyeUiType, RallyeRow[]>(
+  const departmentById = new Map(
+    typedDepartmentRows.map((department) => [department.id, department])
+  );
+  const rallyesBySection = new Map<'exploration' | 'department', RallyeRow[]>(
     rallyeSections.map(({ type }) => [type, [] as RallyeRow[]])
   );
   const rallyeDisplayMeta = new Map<
     number,
-    { typeLabel?: string; contextLabel?: string; rallyeUiType: RallyeUiType }
+    { typeLabel?: string; contextLabel?: string; departmentNames: string[] }
   >();
   for (const rallye of typedRallyes) {
-    const classification = rallyeTypeById.get(rallye.id);
-    const type = classification?.type ?? 'other';
-    const section = rallyesByType.get(type);
+    const sectionType = explorationRallyeIds.has(rallye.id)
+      ? 'exploration'
+      : 'department';
+    const section = rallyesBySection.get(sectionType);
     if (section) {
       section.push(rallye);
     }
 
+    const assignedDepartmentIds = departmentAssignmentsMap.get(rallye.id) ?? [];
+    const assignedDepartmentNames = uniqueSorted(
+      assignedDepartmentIds
+        .map((id) => departmentById.get(id)?.name)
+        .filter((name): name is string => Boolean(name))
+    );
+
+    const contextLabel =
+      assignedDepartmentNames.length === 1
+        ? `Bereich: ${assignedDepartmentNames[0]}`
+        : assignedDepartmentNames.length > 1
+          ? `Bereiche: ${assignedDepartmentNames.join(', ')}`
+          : undefined;
+
     rallyeDisplayMeta.set(rallye.id, {
-      typeLabel: classification
-        ? getRallyeUiTypeLabel(classification.type)
-        : undefined,
-      contextLabel: getContextLabel(classification, isSingleSite),
-      rallyeUiType: type,
+      typeLabel: sectionType === 'department' ? 'Bereichs-Rallye' : undefined,
+      contextLabel,
+      departmentNames: assignedDepartmentNames,
     });
   }
 
   const programGroups = new Map<string, RallyeRow[]>();
-  for (const rallye of rallyesByType.get('program') || []) {
-    const groupLabel = getProgramGroupLabel(rallyeTypeById.get(rallye.id));
+  for (const rallye of rallyesBySection.get('department') || []) {
+    const groupLabel = getDepartmentGroupLabel(
+      rallyeDisplayMeta.get(rallye.id)?.departmentNames ?? []
+    );
     const group = programGroups.get(groupLabel);
     if (group) {
       group.push(rallye);
@@ -277,7 +201,6 @@ export default async function Home() {
         departmentAssignmentsLoaded={departmentAssignmentsLoaded}
         typeLabel={meta?.typeLabel}
         contextLabel={meta?.contextLabel}
-        rallyeUiType={meta?.rallyeUiType}
       />
     );
   };
@@ -295,13 +218,10 @@ export default async function Home() {
           <p className="text-sm text-muted-foreground">
             Erstellen, bearbeiten und Fragen zuordnen.
           </p>
-          <p className="text-xs text-muted-foreground">
-            Typen werden vorübergehend aus bestehenden Zuordnungen abgeleitet.
-          </p>
         </div>
       </section>
       {rallyeSections.map((section) => {
-        const sectionRallyes = rallyesByType.get(section.type) ?? [];
+        const sectionRallyes = rallyesBySection.get(section.type) ?? [];
         return (
           <section
             key={section.type}
@@ -316,16 +236,10 @@ export default async function Home() {
                   {section.description}
                 </p>
               </div>
-              {section.type === 'event' ? (
-                <EventRallyeDialog
-                  buttonStyle="w-full sm:w-auto cursor-pointer"
-                  locations={eventLocationOptions}
-                  eventDepartmentIdByLocationId={eventDepartmentIdByLocationId}
-                />
-              ) : section.type === 'program' ? (
+              {section.type === 'department' ? (
                 <ProgramRallyeDialog
                   buttonStyle="w-full sm:w-auto cursor-pointer"
-                  departments={programDepartmentOptions}
+                  departments={createDialogDepartmentOptions}
                 />
               ) : null}
             </div>
@@ -349,7 +263,7 @@ export default async function Home() {
                   );
                 })}
               </div>
-            ) : section.type === 'program' ? (
+            ) : section.type === 'department' ? (
               <div className="space-y-4">
                 {sortedProgramGroups.map(([groupLabel, rallyes]) => (
                   <div key={groupLabel} className="space-y-2">

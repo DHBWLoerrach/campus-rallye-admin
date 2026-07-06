@@ -43,8 +43,8 @@ export default async function DepartmentsPage() {
   if (departments && departments.length > 0) {
     const departmentIds = departments.map((dept) => dept.id);
     const { data: assignmentRows } = await supabase
-      .from('join_department_rallye')
-      .select('department_id, rallye_id')
+      .from('rallye')
+      .select('id, department_id')
       .in('department_id', departmentIds);
 
     departments.forEach((dept) => {
@@ -53,7 +53,7 @@ export default async function DepartmentsPage() {
 
     for (const row of assignmentRows || []) {
       const departmentId = (row as { department_id: number }).department_id;
-      const rallyeId = (row as { rallye_id: number }).rallye_id;
+      const rallyeId = (row as { id: number }).id;
       const existing = rallyeAssignmentsMap.get(departmentId);
       if (existing) {
         existing.push(rallyeId);

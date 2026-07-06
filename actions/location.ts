@@ -190,29 +190,21 @@ export async function getRallyeOptionsByLocation(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('department')
-    .select('join_department_rallye(rallye(id, name))')
-    .eq('location_id', locationId);
+    .from('rallye')
+    .select('id, name, department:department_id!inner(location_id)')
+    .eq('department.location_id', locationId);
 
   if (error) {
     console.error('Error fetching rallye options for location:', error);
     return fail('Fehler beim Laden der Rallye-Optionen');
   }
 
-  // Flatten nested join results and deduplicate by rallye id
+  // Deduplicate by rallye id.
   const rallyeMap = new Map<number, string>();
-  for (const dept of data || []) {
-    const joins = (dept as Record<string, unknown>).join_department_rallye;
-    if (Array.isArray(joins)) {
-      for (const join of joins) {
-        const rallye = (join as Record<string, unknown>).rallye as {
-          id: number;
-          name: string;
-        } | null;
-        if (rallye) {
-          rallyeMap.set(rallye.id, rallye.name);
-        }
-      }
+  for (const row of data || []) {
+    const rallye = row as { id: number; name: string };
+    if (typeof rallye.id === 'number' && typeof rallye.name === 'string') {
+      rallyeMap.set(rallye.id, rallye.name);
     }
   }
 

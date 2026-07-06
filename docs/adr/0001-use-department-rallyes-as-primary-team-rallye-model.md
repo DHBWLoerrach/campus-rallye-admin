@@ -1,3 +1,3 @@
-# Abteilungs-Rallyes als primäres Team-Rallye-Modell verwenden
+# Bereich-Rallyes als primäres Team-Rallye-Modell verwenden
 
-Team-Rallyes werden primär als Rallyes modelliert, die von genau einer Abteilung angeboten werden, nicht als getrennte Event- oder Studiengangs-Rallye-Typen. Eine Studiengangs-Rallye ist eine Abteilungs-Rallye, deren Abteilung ein Studiengang ist; ein Event-Kontext wird erst dann zu einem eigenen Konzept, wenn er eigene fachliche Daten oder Regeln bekommt.
+Team-Rallyes werden primär als Rallyes modelliert, die von genau einem Bereich angeboten werden, nicht als getrennte Event- oder Studiengangs-Rallye-Typen. Eine Studiengangs-Rallye ist eine Bereich-Rallye, deren Bereich ein Studiengang ist; andere Bereiche wie z.B. Marketing bieten ebenfalls Rallyes an (Beispiel: Rallyes am Studieninfotag oder Girl's day.). Events als Konzept sind hinfällig, da sie nur eine andere Art von Bereich darstellen. Die Rallye-Instanz ist das zentrale Modell, das alle Rallyes repräsentiert, unabhängig davon, ob sie von einem Studiengang oder einem anderen Bereich angeboten werden.

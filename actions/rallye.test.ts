@@ -149,16 +149,9 @@ describe('updateRallye', () => {
     const rallyeUpdateEq = vi.fn().mockResolvedValue({ error: null });
     const rallyeUpdate = vi.fn(() => ({ eq: rallyeUpdateEq }));
 
-    const joinSelect = vi.fn();
-    const joinInsert = vi.fn();
-    const joinDelete = vi.fn();
-
     const from = vi.fn((table: string) => {
       if (table === 'rallye')
         return { select: rallyeSelect, update: rallyeUpdate };
-      if (table === 'join_department_rallye') {
-        return { select: joinSelect, insert: joinInsert, delete: joinDelete };
-      }
       return {};
     });
     mockCreateClient.mockResolvedValue({ from });
@@ -179,9 +172,11 @@ describe('updateRallye', () => {
     );
 
     expect(result?.success).toBe(true);
-    expect(joinSelect).not.toHaveBeenCalled();
-    expect(joinInsert).not.toHaveBeenCalled();
-    expect(joinDelete).not.toHaveBeenCalled();
+    expect(rallyeUpdate).toHaveBeenCalledWith({
+      name: 'Test',
+      status: 'running',
+      password: 'secret',
+    });
   });
 
   it('syncs department assignments when department_sync marker is present', async () => {
@@ -195,21 +190,52 @@ describe('updateRallye', () => {
     const rallyeUpdateEq = vi.fn().mockResolvedValue({ error: null });
     const rallyeUpdate = vi.fn(() => ({ eq: rallyeUpdateEq }));
 
-    const joinSelectEq = vi.fn().mockResolvedValue({
-      data: [{ department_id: 10 }, { department_id: 20 }],
-      error: null,
-    });
-    const joinSelect = vi.fn(() => ({ eq: joinSelectEq }));
-    const joinInsert = vi.fn().mockResolvedValue({ error: null });
-    const joinDeleteIn = vi.fn().mockResolvedValue({ error: null });
-    const joinDeleteEq = vi.fn(() => ({ in: joinDeleteIn }));
-    const joinDelete = vi.fn(() => ({ eq: joinDeleteEq }));
-
     const from = vi.fn((table: string) => {
       if (table === 'rallye')
         return { select: rallyeSelect, update: rallyeUpdate };
-      if (table === 'join_department_rallye') {
-        return { select: joinSelect, insert: joinInsert, delete: joinDelete };
+      return {};
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateRallye } = await import('./rallye');
+    const result = await updateRallye(
+      null,
+      makeFormData(
+        {
+          id: '1',
+          name: 'Test',
+          status: 'running',
+          end_time: '',
+          password: 'secret',
+          department_sync: '1',
+        },
+        { department_ids: ['20'] }
+      )
+    );
+
+    expect(result?.success).toBe(true);
+    expect(rallyeUpdate).toHaveBeenCalledWith({
+      name: 'Test',
+      status: 'running',
+      password: 'secret',
+      department_id: 20,
+    });
+  });
+
+  it('rejects sync when zero or multiple departments are selected', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
+    const rallyeSelectEq = vi.fn(() => ({ maybeSingle }));
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const rallyeUpdateEq = vi.fn().mockResolvedValue({ error: null });
+    const rallyeUpdate = vi.fn(() => ({ eq: rallyeUpdateEq }));
+
+    const from = vi.fn((table: string) => {
+      if (table === 'rallye') {
+        return { select: rallyeSelect, update: rallyeUpdate };
       }
       return {};
     });
@@ -227,16 +253,14 @@ describe('updateRallye', () => {
           password: 'secret',
           department_sync: '1',
         },
-        { department_ids: ['20', '30'] }
+        { department_ids: ['10', '20'] }
       )
     );
 
-    expect(result?.success).toBe(true);
-    expect(joinSelectEq).toHaveBeenCalledWith('rallye_id', 1);
-    expect(joinInsert).toHaveBeenCalledWith([
-      { department_id: 30, rallye_id: 1 },
-    ]);
-    expect(joinDeleteEq).toHaveBeenCalledWith('rallye_id', 1);
-    expect(joinDeleteIn).toHaveBeenCalledWith('department_id', [10]);
+    expect(result).toEqual({
+      success: false,
+      error: 'Genau ein Bereich muss zugeordnet werden',
+    });
+    expect(rallyeUpdate).not.toHaveBeenCalled();
   });
 });

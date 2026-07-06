@@ -22,7 +22,7 @@ describe('ProgramRallyeDialog', () => {
     vi.clearAllMocks();
   });
 
-  it('submits with exactly one selected program department and refreshes the page', async () => {
+  it('submits with exactly one selected department and refreshes the page', async () => {
     mockCreateRallye.mockResolvedValue({
       success: true,
       data: { message: 'Rallye erfolgreich gespeichert', rallyeId: 77 },
@@ -65,7 +65,7 @@ describe('ProgramRallyeDialog', () => {
     });
   });
 
-  it('disables save when no program departments are available', () => {
+  it('disables save when no departments are available', () => {
     render(<ProgramRallyeDialog buttonStyle="" departments={[]} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Rallye erstellen' }));
@@ -73,9 +73,7 @@ describe('ProgramRallyeDialog', () => {
       target: { value: 'New Rallye' },
     });
 
-    expect(
-      screen.getByText('Keine geeigneten Studiengangsbereiche verfügbar.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Keine Bereiche verfügbar.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();
     expect(mockCreateRallye).not.toHaveBeenCalled();
   });
