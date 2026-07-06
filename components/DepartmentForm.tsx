@@ -60,6 +60,7 @@ export default function DepartmentForm({
 }: DepartmentFormProps) {
   const [formState, formAction] = useActionState(updateDepartment, null);
   const [name, setName] = useState<string>(department.name);
+  const isSingleSite = organizationOptions.length === 1;
   const [organizationId, setOrganizationId] = useState<string>(
     department.organization_id.toString()
   );
@@ -161,30 +162,40 @@ export default function DepartmentForm({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="organization_id">Organisation</Label>
-            <Select
-              name="organization_id"
-              value={organizationId}
-              onValueChange={setOrganizationId}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Organisation auswählen" />
-              </SelectTrigger>
-              <SelectContent>
-                {organizationOptions.map((org) => (
-                  <SelectItem key={org.id} value={org.id.toString()}>
-                    {org.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formState?.success === false &&
-              formState.issues?.organization_id && (
-                <div className="text-sm text-red-600 dark:text-red-400">
-                  {formState.issues.organization_id}
-                </div>
-              )}
+            {isSingleSite ? (
+              <input
+                type="hidden"
+                name="organization_id"
+                value={organizationId}
+              />
+            ) : (
+              <>
+                <Label htmlFor="organization_id">Standort</Label>
+                <Select
+                  name="organization_id"
+                  value={organizationId}
+                  onValueChange={setOrganizationId}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Standort auswählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizationOptions.map((org) => (
+                      <SelectItem key={org.id} value={org.id.toString()}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {formState?.success === false &&
+                  formState.issues?.organization_id && (
+                    <div className="text-sm text-red-600 dark:text-red-400">
+                      {formState.issues.organization_id}
+                    </div>
+                  )}
+              </>
+            )}
           </div>
 
           <div className="grid gap-2">

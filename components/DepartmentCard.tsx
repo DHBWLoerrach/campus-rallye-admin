@@ -46,14 +46,16 @@ export default function DepartmentCard({
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              Organisation
-            </Badge>
-            <span className="truncate text-sm text-muted-foreground">
-              {organizationName}
-            </span>
-          </div>
+          {organizationName ? (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                Standort
+              </Badge>
+              <span className="truncate text-sm text-muted-foreground">
+                {organizationName}
+              </span>
+            </div>
+          ) : null}
           <div className="text-xs text-muted-foreground">
             Erstellt:{' '}
             {new Date(department.created_at).toLocaleDateString('de-DE')}

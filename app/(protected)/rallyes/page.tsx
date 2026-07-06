@@ -42,7 +42,7 @@ const rallyeSections: {
   {
     type: 'exploration',
     title: 'Erkundungsmodus',
-    description: 'Campus-Touren pro Organisation',
+    description: 'Campus-Touren am Standort',
   },
   {
     type: 'event',
@@ -62,12 +62,14 @@ const rallyeSections: {
 ];
 
 const getContextLabel = (
-  classification?: RallyeUiClassification
+  classification?: RallyeUiClassification,
+  isSingleSite = false
 ): string | undefined => {
   if (!classification) return undefined;
   switch (classification.type) {
     case 'exploration':
     case 'event':
+      if (isSingleSite) return undefined;
       if (classification.organizationNames.length === 0) return undefined;
       return `Organisation: ${classification.organizationNames.join(', ')}`;
     case 'program':
@@ -119,6 +121,7 @@ export default async function Home() {
   const typedOrganizations = ((organizations || []) as OrganizationRow[]).sort(
     (a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
   );
+  const isSingleSite = typedOrganizations.length === 1;
 
   const { data: departmentRows } = await supabase
     .from('department')
@@ -241,7 +244,7 @@ export default async function Home() {
       typeLabel: classification
         ? getRallyeUiTypeLabel(classification.type)
         : undefined,
-      contextLabel: getContextLabel(classification),
+      contextLabel: getContextLabel(classification, isSingleSite),
       rallyeUiType: type,
     });
   }

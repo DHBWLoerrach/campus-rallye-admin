@@ -16,16 +16,12 @@ const allRoutes: Route[] = [
     label: 'Fragenkatalog',
   },
   {
-    href: '/organizations',
-    label: 'Organisationen',
-  },
-  {
     href: '/departments',
     label: 'Abteilungen',
   },
 ];
 
-const adminOnlyRoutes = new Set(['/organizations', '/departments']);
+const adminOnlyRoutes = new Set(['/departments']);
 
 export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
   const signOutUrl = getSignOutUrl();

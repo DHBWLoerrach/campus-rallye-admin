@@ -32,11 +32,13 @@ export default function DepartmentsClient({
   rallyeOptions,
   rallyeAssignmentsMap,
 }: DepartmentsClientProps) {
+  const isSingleSite = organizationOptions.length === 1;
+  const siteLabel = organizationOptions[0]?.name || 'DHBW Lörrach';
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>('all');
 
   const filteredDepartments =
-    selectedOrganizationId === 'all'
+    isSingleSite || selectedOrganizationId === 'all'
       ? departments
       : departments.filter(
           (dept) => dept.organization_id.toString() === selectedOrganizationId
@@ -48,7 +50,7 @@ export default function DepartmentsClient({
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">Abteilungen</h1>
           <p className="text-muted-foreground">
-            Verwalten Sie Ihre Abteilungen und deren Organisationszugehörigkeit.
+            Verwalten Sie Ihre Abteilungen am Standort {siteLabel}.
           </p>
         </div>
         <DepartmentDialog
@@ -58,20 +60,20 @@ export default function DepartmentsClient({
         />
       </div>
 
-      {departments.length > 0 && (
+      {!isSingleSite && departments.length > 0 && (
         <div className="flex items-center space-x-4">
           <Label htmlFor="organization-filter" className="text-sm font-medium">
-            Filter nach Organisation:
+            Filter nach Standort:
           </Label>
           <Select
             value={selectedOrganizationId}
             onValueChange={setSelectedOrganizationId}
           >
-            <SelectTrigger className="w-[250px]">
+            <SelectTrigger className="w-62.5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle Organisationen</SelectItem>
+              <SelectItem value="all">Alle Standorte</SelectItem>
               {organizationOptions.map((org) => (
                 <SelectItem key={org.id} value={org.id.toString()}>
                   {org.name}
@@ -97,7 +99,7 @@ export default function DepartmentsClient({
             Keine Abteilungen gefunden
           </h2>
           <p className="text-sm text-muted-foreground">
-            Für die ausgewählte Organisation wurden keine Abteilungen gefunden.
+            Für den ausgewählten Standort wurden keine Abteilungen gefunden.
           </p>
         </div>
       ) : (
@@ -108,7 +110,10 @@ export default function DepartmentsClient({
               department={department}
               organizationOptions={organizationOptions}
               organizationName={
-                organizationNames.get(department.organization_id) || 'Unbekannt'
+                isSingleSite
+                  ? ''
+                  : organizationNames.get(department.organization_id) ||
+                    'Unbekannt'
               }
               rallyeOptions={rallyeOptions}
               assignedRallyeIds={rallyeAssignmentsMap.get(department.id) || []}

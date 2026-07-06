@@ -253,8 +253,8 @@ describe('/rallyes page', () => {
       within(explorationSection).getByText('Campus Tour A')
     ).toBeInTheDocument();
     expect(
-      within(explorationSection).getByText('Organisation: Org A')
-    ).toBeInTheDocument();
+      within(explorationSection).queryByText('Organisation: Org A')
+    ).not.toBeInTheDocument();
     expect(
       within(explorationSection).getByRole('link', { name: 'Fragen zuordnen' })
     ).toHaveAttribute('href', '/rallyes/1/questions');

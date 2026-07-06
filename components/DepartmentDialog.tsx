@@ -50,7 +50,11 @@ export default function DepartmentDialog({
   rallyeOptions: RallyeOption[];
 }) {
   const [name, setName] = useState('');
-  const [organizationId, setOrganizationId] = useState('');
+  const isSingleSite = organizationOptions.length === 1;
+  const defaultOrganizationId = organizationOptions[0]?.id.toString() || '';
+  const [organizationId, setOrganizationId] = useState(
+    isSingleSite ? defaultOrganizationId : ''
+  );
   const [selectedRallyeIds, setSelectedRallyeIds] = useState<Set<number>>(
     new Set()
   );
@@ -64,7 +68,7 @@ export default function DepartmentDialog({
     if (result?.success && result.data?.departmentId) {
       setOpen(false);
       setName('');
-      setOrganizationId('');
+      setOrganizationId(isSingleSite ? defaultOrganizationId : '');
       setSelectedRallyeIds(new Set());
     }
     return result;
@@ -75,13 +79,13 @@ export default function DepartmentDialog({
     setOpen(nextOpen);
     if (!nextOpen) {
       setName('');
-      setOrganizationId('');
+      setOrganizationId(isSingleSite ? defaultOrganizationId : '');
       setSelectedRallyeIds(new Set());
     }
   };
 
   const isNameEmpty = name.trim().length === 0;
-  const isOrganizationEmpty = organizationId.length === 0;
+  const isOrganizationEmpty = !isSingleSite && organizationId.length === 0;
   const isFormInvalid = isNameEmpty || isOrganizationEmpty;
 
   const handleRallyeToggle = (rallyeId: number, isChecked: boolean) => {
@@ -146,30 +150,40 @@ export default function DepartmentDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="create-organization">Organisation</Label>
-              <Select
-                name="organization_id"
-                value={organizationId}
-                onValueChange={setOrganizationId}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Organisation auswählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizationOptions.map((org) => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {formState?.success === false &&
-                formState.issues?.organization_id && (
-                  <div className="text-sm text-red-600 dark:text-red-400">
-                    {formState.issues.organization_id}
-                  </div>
-                )}
+              {isSingleSite ? (
+                <input
+                  type="hidden"
+                  name="organization_id"
+                  value={organizationId}
+                />
+              ) : (
+                <>
+                  <Label htmlFor="create-organization">Standort</Label>
+                  <Select
+                    name="organization_id"
+                    value={organizationId}
+                    onValueChange={setOrganizationId}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Standort auswählen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizationOptions.map((org) => (
+                        <SelectItem key={org.id} value={org.id.toString()}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formState?.success === false &&
+                    formState.issues?.organization_id && (
+                      <div className="text-sm text-red-600 dark:text-red-400">
+                        {formState.issues.organization_id}
+                      </div>
+                    )}
+                </>
+              )}
             </div>
 
             <div className="grid gap-2">
