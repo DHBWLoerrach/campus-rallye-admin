@@ -17,7 +17,7 @@ const allRoutes: Route[] = [
   },
   {
     href: '/departments',
-    label: 'Abteilungen',
+    label: 'Bereiche',
   },
 ];
 

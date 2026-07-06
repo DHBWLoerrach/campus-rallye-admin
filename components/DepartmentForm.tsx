@@ -100,7 +100,7 @@ export default function DepartmentForm({
     <Card className="w-full max-w-md">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between gap-3">
-          Abteilung bearbeiten
+          Bereich bearbeiten
           <Button
             variant="ghost"
             size="icon"
@@ -143,7 +143,7 @@ export default function DepartmentForm({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Abteilungsname"
+              placeholder="Bereichsname"
               required
               aria-describedby={
                 formState?.success === false && formState.issues?.name
@@ -236,9 +236,9 @@ export default function DepartmentForm({
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Abteilung löschen</DialogTitle>
+                  <DialogTitle>Bereich löschen</DialogTitle>
                   <DialogDescription>
-                    Möchten Sie die Abteilung &quot;{department.name}&quot;
+                    Möchten Sie den Bereich &quot;{department.name}&quot;
                     wirklich löschen? Diese Aktion kann nicht rückgängig gemacht
                     werden.
                   </DialogDescription>

@@ -99,7 +99,7 @@ export default function ProgramRallyeDialog({
           <DialogDescription>
             {createdRallyeId
               ? 'Rallye erstellt. Sie können jetzt Fragen zuordnen.'
-              : 'Wählen Sie genau eine Abteilung für die neue Rallye.'}
+              : 'Wählen Sie genau einen Bereich für die neue Rallye.'}
           </DialogDescription>
         </DialogHeader>
         {createdRallyeId ? (
@@ -147,15 +147,15 @@ export default function ProgramRallyeDialog({
                   htmlFor="program-rallye-department"
                   className="text-right"
                 >
-                  Abteilung
+                  Bereich
                 </Label>
                 <div className="col-span-3">
                   <Select value={departmentId} onValueChange={setDepartmentId}>
                     <SelectTrigger
                       id="program-rallye-department"
-                      aria-label="Abteilung"
+                      aria-label="Bereich"
                     >
-                      <SelectValue placeholder="Abteilung auswählen" />
+                      <SelectValue placeholder="Bereich auswählen" />
                     </SelectTrigger>
                     <SelectContent>
                       {departments.map((department) => (
@@ -172,7 +172,7 @@ export default function ProgramRallyeDialog({
               </div>
               {!hasDepartments && (
                 <p className="text-sm text-muted-foreground">
-                  Keine geeigneten Studiengangs-Abteilungen verfügbar.
+                  Keine geeigneten Studiengangsbereiche verfügbar.
                 </p>
               )}
               {departmentId.length > 0 && (

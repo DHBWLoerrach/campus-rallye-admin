@@ -52,7 +52,7 @@ const rallyeSections: {
   {
     type: 'program',
     title: 'Studiengänge',
-    description: 'Reguläre Rallyes für Abteilungen',
+    description: 'Reguläre Rallyes für Bereiche',
   },
   {
     type: 'other',
@@ -74,10 +74,10 @@ const getContextLabel = (
       return `Standort: ${classification.locationNames.join(', ')}`;
     case 'program':
       if (classification.departmentNames.length === 0) return undefined;
-      return `Abteilung: ${classification.departmentNames.join(', ')}`;
+      return `Bereich: ${classification.departmentNames.join(', ')}`;
     default:
       if (classification.departmentNames.length > 0) {
-        return `Abteilungen: ${classification.departmentNames.join(', ')}`;
+        return `Bereiche: ${classification.departmentNames.join(', ')}`;
       }
       if (classification.locationNames.length > 0) {
         return `Standorte: ${classification.locationNames.join(', ')}`;

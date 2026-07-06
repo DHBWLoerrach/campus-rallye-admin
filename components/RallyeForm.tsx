@@ -198,17 +198,17 @@ export default function RallyeCardForm({
 
           {allowDepartmentAssignments && (
             <div className="grid gap-2 mt-2">
-              <Label>Abteilungen zuordnen</Label>
+              <Label>Bereiche zuordnen</Label>
               {!departmentAssignmentsLoaded ? (
                 <p className="text-sm text-muted-foreground">
-                  Abteilungszuordnungen konnten nicht geladen werden. Beim
+                  Bereichszuordnungen konnten nicht geladen werden. Beim
                   Speichern bleiben bestehende Zuordnungen unverändert.
                 </p>
               ) : (
                 <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
                   {departmentOptions.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      Keine Abteilungen vorhanden
+                      Keine Bereiche vorhanden
                     </p>
                   ) : (
                     departmentOptions.map((dept) => (

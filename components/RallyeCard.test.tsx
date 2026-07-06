@@ -104,14 +104,14 @@ describe('RallyeCard', () => {
         questionCount={0}
         uploadQuestionCount={0}
         typeLabel="Studiengang"
-        contextLabel="Abteilung: BWL"
+        contextLabel="Bereich: BWL"
         onEdit={vi.fn()}
       />
     );
 
     expect(screen.getByText('Studiengang')).toBeInTheDocument();
     expect(screen.getByLabelText('Rallye-Kontext')).toHaveTextContent(
-      'Abteilung: BWL'
+      'Bereich: BWL'
     );
   });
 });

@@ -19,7 +19,7 @@ export default function DepartmentCard({
     <Card
       className="group relative w-full overflow-hidden border-border/60 bg-card/90 transition-all hover:-translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_28px_rgba(0,0,0,0.12)]"
       role="button"
-      aria-label={`Abteilung ${department.name} bearbeiten`}
+      aria-label={`Bereich ${department.name} bearbeiten`}
     >
       <div
         className="absolute inset-x-0 top-0 h-1 bg-primary/80"

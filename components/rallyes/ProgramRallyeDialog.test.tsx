@@ -43,7 +43,7 @@ describe('ProgramRallyeDialog', () => {
       target: { value: 'Informatik Semester 1' },
     });
     const departmentTrigger = screen.getByRole('combobox', {
-      name: 'Abteilung',
+      name: 'Bereich',
     });
     fireEvent.click(departmentTrigger);
     fireEvent.click(screen.getByRole('option', { name: 'Informatik' }));
@@ -74,7 +74,7 @@ describe('ProgramRallyeDialog', () => {
     });
 
     expect(
-      screen.getByText('Keine geeigneten Studiengangs-Abteilungen verfügbar.')
+      screen.getByText('Keine geeigneten Studiengangsbereiche verfügbar.')
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();
     expect(mockCreateRallye).not.toHaveBeenCalled();

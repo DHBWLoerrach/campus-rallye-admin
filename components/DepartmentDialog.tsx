@@ -101,14 +101,14 @@ export default function DepartmentDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className={buttonStyle} variant="dhbwStyle" size="default">
-          Abteilung erstellen
+          Bereich erstellen
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Neue Abteilung erstellen</DialogTitle>
+          <DialogTitle>Neuen Bereich erstellen</DialogTitle>
           <DialogDescription>
-            Geben Sie die Details für die neue Abteilung ein.
+            Geben Sie die Details für den neuen Bereich ein.
           </DialogDescription>
         </DialogHeader>
         <form action={formAction}>
@@ -131,7 +131,7 @@ export default function DepartmentDialog({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Abteilungsname"
+                placeholder="Bereichsname"
                 required
                 aria-describedby={
                   formState?.success === false && formState.issues?.name

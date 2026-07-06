@@ -129,11 +129,11 @@ export default function RallyeDialog({
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Abteilungen zuordnen (optional)</Label>
+                <Label>Bereiche zuordnen (optional)</Label>
                 <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
                   {departmentOptions.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      Keine Abteilungen vorhanden
+                      Keine Bereiche vorhanden
                     </p>
                   ) : (
                     departmentOptions.map((dept) => (

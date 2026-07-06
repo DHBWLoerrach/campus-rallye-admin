@@ -119,7 +119,7 @@ export default function EventRallyeDialog({
           <DialogDescription>
             {createdRallyeId
               ? 'Rallye erstellt. Sie können jetzt Fragen zuordnen.'
-              : 'Wählen Sie einen Standort. Die Event-Abteilung wird automatisch zugeordnet.'}
+              : 'Wählen Sie einen Standort. Der Event-Bereich wird automatisch zugeordnet.'}
           </DialogDescription>
         </DialogHeader>
         {createdRallyeId ? (
@@ -203,7 +203,7 @@ export default function EventRallyeDialog({
               )}
               {!isLocationEmpty && !hasSelectedEventDepartment && (
                 <p className="text-sm text-muted-foreground">
-                  Für diesen Standort wurde keine passende Event-Abteilung
+                  Für diesen Standort wurde kein passender Event-Bereich
                   gefunden.
                 </p>
               )}

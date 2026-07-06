@@ -77,7 +77,7 @@ describe('EventRallyeDialog', () => {
 
     expect(
       screen.getByText(
-        'Für diesen Standort wurde keine passende Event-Abteilung gefunden.'
+        'Für diesen Standort wurde kein passender Event-Bereich gefunden.'
       )
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();

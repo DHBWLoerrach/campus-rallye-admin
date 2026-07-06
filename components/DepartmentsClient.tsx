@@ -47,11 +47,15 @@ export default function DepartmentsClient({
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Abteilungen</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Bereiche</h1>
           <p className="text-muted-foreground">
             {isSingleSite
-              ? `Verwalten Sie Ihre Abteilungen für ${siteLabel}.`
-              : `Verwalten Sie Ihre Abteilungen am Standort ${siteLabel}.`}
+              ? `Verwalten Sie Ihre Bereiche für ${siteLabel}.`
+              : `Verwalten Sie Ihre Bereiche am Standort ${siteLabel}.`}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Bereiche sind z. B. Studiengänge (Maschinenbau, BWL-Handel),
+            Studienzentren (SZI) oder allgemeine Bereiche (Marketing).
           </p>
         </div>
         <DepartmentDialog
@@ -88,19 +92,19 @@ export default function DepartmentsClient({
       {!departments || departments.length === 0 ? (
         <div className="flex min-h-96 flex-col items-center justify-center space-y-2 rounded-md border border-dashed border-border/60 bg-muted/20 p-8 text-center">
           <h2 className="text-lg font-medium text-foreground">
-            Keine Abteilungen
+            Keine Bereiche
           </h2>
           <p className="text-sm text-muted-foreground">
-            Erstellen Sie Ihre erste Abteilung, um zu beginnen.
+            Erstellen Sie Ihren ersten Bereich, um zu beginnen.
           </p>
         </div>
       ) : filteredDepartments.length === 0 ? (
         <div className="flex min-h-96 flex-col items-center justify-center space-y-2 rounded-md border border-dashed border-border/60 bg-muted/20 p-8 text-center">
           <h2 className="text-lg font-medium text-foreground">
-            Keine Abteilungen gefunden
+            Keine Bereiche gefunden
           </h2>
           <p className="text-sm text-muted-foreground">
-            Für den ausgewählten Standort wurden keine Abteilungen gefunden.
+            Für den ausgewählten Standort wurden keine Bereiche gefunden.
           </p>
         </div>
       ) : (
