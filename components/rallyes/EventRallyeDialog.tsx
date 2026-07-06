@@ -118,7 +118,7 @@ export default function EventRallyeDialog({
           <DialogDescription>
             {createdRallyeId
               ? 'Rallye erstellt. Sie können jetzt Fragen zuordnen.'
-              : 'Wählen Sie eine Organisation. Die Event-Abteilung wird automatisch zugeordnet.'}
+              : 'Wählen Sie einen Standort. Die Event-Abteilung wird automatisch zugeordnet.'}
           </DialogDescription>
         </DialogHeader>
         {createdRallyeId ? (
@@ -166,7 +166,7 @@ export default function EventRallyeDialog({
                   htmlFor="event-rallye-organization"
                   className="text-right"
                 >
-                  Organisation
+                  Standort
                 </Label>
                 <div className="col-span-3">
                   <Select
@@ -175,9 +175,9 @@ export default function EventRallyeDialog({
                   >
                     <SelectTrigger
                       id="event-rallye-organization"
-                      aria-label="Organisation"
+                      aria-label="Standort"
                     >
-                      <SelectValue placeholder="Organisation auswählen" />
+                      <SelectValue placeholder="Standort auswählen" />
                     </SelectTrigger>
                     <SelectContent>
                       {organizations.map((organization) => (
@@ -194,12 +194,12 @@ export default function EventRallyeDialog({
               </div>
               {!hasOrganizations && (
                 <p className="text-sm text-muted-foreground">
-                  Keine Organisationen verfügbar.
+                  Keine Standorte verfügbar.
                 </p>
               )}
               {!isOrganizationEmpty && !hasSelectedEventDepartment && (
                 <p className="text-sm text-muted-foreground">
-                  Für diese Organisation wurde keine passende Event-Abteilung
+                  Für diesen Standort wurde keine passende Event-Abteilung
                   gefunden.
                 </p>
               )}
