@@ -4,28 +4,28 @@ Dieser Kontext definiert die gemeinsame Sprache für Inhalte, Standorte und Rall
 
 ## Sprache
 
-### Standorte und Abteilungen
+### Standorte und Bereiche
 
 **Standort**:
-Ein DHBW-Standort, unter dem Abteilungen und eine Campus-Tour verwaltet werden.
+Ein DHBW-Standort, unter dem Bereiche und eine Campus-Tour verwaltet werden.
 _Vermeiden_: Organisation, Mandant, Zwischenebene
 
-**Abteilung**:
+**Bereich**:
 Eine fachliche Gruppe innerhalb eines Standorts, die Rallyes für eine bestimmte Zielgruppe oder einen bestimmten Zweck anbieten kann.
-_Vermeiden_: Department, Bereich
+_Vermeiden_: Department, Abteilung
 
 **Studiengang**:
-Eine Abteilung, die einen akademischen Studiengang repräsentiert.
+Ein Bereich, der einen akademischen Studiengang repräsentiert.
 _Vermeiden_: Program department
 
 **Studienzentrum**:
-Eine Abteilung, die mehrere zusammengehörige Studiengänge bündelt.
+Ein Bereich, der mehrere zusammengehörige Studiengänge bündelt.
 _Vermeiden_: Study center
 
 ### Rallyes
 
 **Rallye**:
-Eine spielbare Zusammenstellung von Fragen für eine Campus-Tour oder eine Abteilung.
+Eine spielbare Zusammenstellung von Fragen für eine Campus-Tour oder einen Bereich.
 _Vermeiden_: Tour
 
 **Campus-Tour**:
@@ -36,16 +36,16 @@ _Vermeiden_: Erkundungsmodus, Tour-Mode
 Ein konkreter Rallye-Durchlauf, bei dem Teams teilnehmen, Team-Antworten erhalten bleiben und die Spielzeit in das Ergebnis eingehen kann.
 _Vermeiden_: Team event, Rallye-Durchlauf
 
-**Abteilungs-Rallye**:
-Eine Team-Rallye, die von genau einer Abteilung angeboten wird.
+**Bereichs-Rallye**:
+Eine Team-Rallye, die von genau einem Bereich angeboten wird.
 _Vermeiden_: Event-Rallye
 
 **Studiengangs-Rallye**:
-Eine Abteilungs-Rallye, deren Abteilung ein Studiengang ist.
+Eine Bereichs-Rallye, deren Bereich ein Studiengang ist.
 _Vermeiden_: Program rallye
 
 **Studienzentrums-Rallye**:
-Eine Abteilungs-Rallye, deren Abteilung ein Studienzentrum ist.
+Eine Bereichs-Rallye, deren Bereich ein Studienzentrum ist.
 _Vermeiden_: Study center rallye
 
 **Rallye-Vorlage**:
@@ -67,15 +67,15 @@ Eine wiederverwendbare Frage, die unabhängig von einer konkreten Rallye existie
 _Vermeiden_: Katalogfrage, question template
 
 **Frage-Herkunft**:
-Die fachliche Herkunft einer Frage, entweder Standort oder Abteilung.
+Die fachliche Herkunft einer Frage, entweder Standort oder Bereich.
 _Vermeiden_: Eigentümer, Owner, Ownership
 
 **Standortfrage**:
-Eine Frage, die zu genau einem Standort gehört und in Rallyes aller Abteilungen dieses Standorts verwendet werden darf.
+Eine Frage, die zu genau einem Standort gehört und in Rallyes aller Bereiche dieses Standorts verwendet werden darf.
 _Vermeiden_: allgemeine Frage
 
-**Abteilungsfrage**:
-Eine Frage, die zu genau einer Abteilung gehört und nur in Rallyes dieser Abteilung verwendet werden darf.
+**Bereichsfrage**:
+Eine Frage, die zu genau einem Bereich gehört und nur in Rallyes dieses Bereichs verwendet werden darf.
 _Vermeiden_: private Frage
 
 **Rallye-Frage**:
@@ -215,7 +215,7 @@ _Vermeiden_: Ended
 ### Bearbeitung und Apps
 
 **Admin-App**:
-Die Webanwendung, in der Bearbeitende Standorte, Abteilungen, Rallyes und Fragen verwalten.
+Die Webanwendung, in der Bearbeitende Standorte, Bereiche, Rallyes und Fragen verwalten.
 _Vermeiden_: App
 
 **Rallye-App**:
@@ -227,7 +227,7 @@ Personen, die Inhalte oder Struktur in der Admin-App pflegen dürfen.
 _Vermeiden_: Mitarbeitende, User, staff user
 
 **Admin**:
-Ein Bearbeitender mit Vollzugriff auf Standorte, Abteilungen, Rallyes und Fragen.
+Ein Bearbeitender mit Vollzugriff auf Standorte, Bereiche, Rallyes und Fragen.
 _Vermeiden_: Superuser
 
 **Organisator**:
@@ -235,16 +235,16 @@ Ein Bearbeitender, der eine konkrete Team-Rallye durchführt und Status sowie Ab
 _Vermeiden_: Admin
 
 **Zuständigkeit**:
-Der fachliche Verantwortungsbereich eines Bearbeitenden für einen Standort oder eine Abteilung.
+Der fachliche Verantwortungsbereich eines Bearbeitenden für einen Standort oder einen Bereich.
 _Vermeiden_: Rolle, permission scope, ownership
 
 **Standort-Zuständigkeit**:
-Eine Zuständigkeit für einen Standort, dessen Abteilungen und die dazugehörigen Rallyes und Fragen.
+Eine Zuständigkeit für einen Standort, dessen Bereiche und die dazugehörigen Rallyes und Fragen.
 _Vermeiden_: Standort-Rolle
 
-**Abteilungs-Zuständigkeit**:
-Eine Zuständigkeit für eine Abteilung und die dazugehörigen Rallyes und Fragen.
-_Vermeiden_: Abteilungs-Rolle
+**Bereichs-Zuständigkeit**:
+Eine Zuständigkeit für einen Bereich und die dazugehörigen Rallyes und Fragen.
+_Vermeiden_: Bereichs-Rolle
 
 **Berechtigung**:
 Ein aus Rolle und Zuständigkeit abgeleitetes Zugriffsrecht in der Admin-App.
@@ -256,66 +256,66 @@ Die Fachsprache in diesem Dokument bleibt deutsch. Code, APIs und Datenmodell ve
 
 Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komponenten können daraus PascalCase ableiten. Für Datenmodell-Bezeichner wird die Snake-Case-Form verwendet; Tabellen dürfen gemäß bestehender Datenbankkonvention pluralisiert werden.
 
-| Fachbegriff              | Code-Bezeichner            | Datenmodell-Bezeichner      | Hinweis                                          |
-| ------------------------ | -------------------------- | --------------------------- | ------------------------------------------------ |
-| Standort                 | `location`                 | `location`                  | Nicht `organization` verwenden.                  |
-| Abteilung                | `department`               | `department`                | Oberbegriff für Studiengänge und andere Gruppen. |
-| Studiengang              | `studyProgram`             | `study_program`             | Spezielle Art von Abteilung.                     |
-| Studienzentrum           | `studyCenter`              | `study_center`              | Spezielle Art von Abteilung.                     |
-| Campus-Tour              | `campusTour`               | `campus_tour`               | Getrennt von Team-Rallyes modellieren.           |
-| Rallye                   | `rallye`                   | `rallye`                    | Produktbegriff; nicht `tour`.                    |
-| Team-Rallye              | `teamRallye`               | `team_rallye`               | Konkreter Team-Durchlauf.                        |
-| Abteilungs-Rallye        | `departmentRallye`         | `department_rallye`         | Primäres Modell für Team-Rallyes.                |
-| Studiengangs-Rallye      | `studyProgramRallye`       | `study_program_rallye`      | Auffindbarkeit über Studiengang.                 |
-| Studienzentrums-Rallye   | `studyCenterRallye`        | `study_center_rallye`       | Auffindbarkeit über Studienzentrum.              |
-| Rallye-Vorlage           | `rallyeTemplate`           | `rallye_template`           | Nicht spielbar.                                  |
-| Rallye-Code              | `rallyeCode`               | `rallye_code`               | Nicht `password`.                                |
-| Rallye-Ende              | `rallyeEnd`                | `rallye_end`                | Nur für Team-Rallyes.                            |
-| Frage                    | `question`                 | `question`                  | Wiederverwendbare Frage.                         |
-| Frage-Herkunft           | `questionOrigin`           | `question_origin`           | Nicht `owner` oder `ownership`.                  |
-| Standortfrage            | `locationQuestion`         | `location_question`         | Frage mit Standort-Herkunft.                     |
-| Abteilungsfrage          | `departmentQuestion`       | `department_question`       | Frage mit Abteilungs-Herkunft.                   |
-| Rallye-Frage             | `rallyeQuestion`           | `rallye_question`           | Frage in einer konkreten Rallye.                 |
-| Vorlagen-Frage           | `templateQuestion`         | `template_question`         | Frage in einer Rallye-Vorlage.                   |
-| Lösungsoption            | `solutionOption`           | `solution_option`           | Vorbereitete Antwortmöglichkeit.                 |
-| Fragebild                | `questionImage`            | `question_image`            | Bild als Teil einer Frage.                       |
-| QR-Code                  | `qrCode`                   | `qr_code`                   | Maschinenlesbare Lösungsoption.                  |
-| Kategorie                | `category`                 | `category`                  | Konzept ist noch fachlich offen.                 |
-| Hinweis                  | `hint`                     | `hint`                      | Optionale Hilfestellung.                         |
-| Punktwert                | `pointValue`               | `point_value`               | Erreichbare Punkte einer Frage.                  |
-| Wissensfrage             | `knowledgeQuestion`        | `knowledge_question`        | Freitext mit erwarteter Lösungsoption.           |
-| Multiple-Choice-Frage    | `multipleChoiceQuestion`   | `multiple_choice_question`  | Mehrere Lösungsoptionen, genau eine korrekt.     |
-| Bildfrage                | `imageQuestion`            | `image_question`            | Frage mit Fragebild.                             |
-| QR-Code-Frage            | `qrCodeQuestion`           | `qr_code_question`          | Lösungsoption wird als QR-Code bereitgestellt.   |
-| Upload-Frage             | `uploadQuestion`           | `upload_question`           | Nur für Team-Rallyes.                            |
-| Team                     | `team`                     | `team`                      | Teilnehmende Gruppe.                             |
-| Teilnehmende             | `participant`              | `participant`               | Personen in der Rallye-App.                      |
-| Team-Antwort             | `teamAnswer`               | `team_answer`               | Abgegebene Antwort eines Teams.                  |
-| Upload-Foto              | `uploadedPhoto`            | `uploaded_photo`            | Foto als Team-Antwort.                           |
-| Bewertung                | `evaluation`               | `evaluation`                | Vergibt Team-Punkte.                             |
-| Team-Punkte              | `teamPoints`               | `team_points`               | Vergebene Punkte eines Teams.                    |
-| Ergebnis                 | `result`                   | `result`                    | Rangliste einer Team-Rallye.                     |
-| Endstand                 | `finalResult`              | `final_result`              | Finales Ergebnis.                                |
-| Spielzeit                | `playTime`                 | `play_time`                 | Dauer eines Teams in der Team-Rallye.            |
-| Campus-Tour-Status       | `campusTourStatus`         | `campus_tour_status`        | Statuskonzept nur für Campus-Touren.             |
-| Team-Rallye-Status       | `teamRallyeStatus`         | `team_rallye_status`        | Statuskonzept nur für Team-Rallyes.              |
-| Aktiv                    | `active`                   | `active`                    | Campus-Tour-Statuswert.                          |
-| Inaktiv                  | `inactive`                 | `inactive`                  | Campus-Tour- oder Team-Rallye-Statuswert.        |
-| Vorbereitung             | `preparing`                | `preparing`                 | Team-Rallye-Statuswert.                          |
-| Gestartet                | `running`                  | `running`                   | Team-Rallye-Statuswert.                          |
-| Abstimmung               | `voting`                   | `voting`                    | Team-Rallye-Statuswert und Bewertungsphase.      |
-| Abstimmungsfrage         | `votingQuestion`           | `voting_question`           | Rallye-Frage in der Abstimmung.                  |
-| Ranking                  | `ranking`                  | `ranking`                   | Team-Rallye-Statuswert.                          |
-| Beendet                  | `ended`                    | `ended`                     | Finaler Team-Rallye-Statuswert.                  |
-| Admin-App                | `adminApp`                 | `admin_app`                 | Webanwendung für Bearbeitende.                   |
-| Rallye-App               | `rallyeApp`                | `rallye_app`                | App für Teilnehmende.                            |
-| Bearbeitende             | `editor`                   | `editor`                    | Nicht `staff user`.                              |
-| Admin                    | `admin`                    | `admin`                     | Bearbeitender mit Vollzugriff.                   |
-| Organisator              | `organizer`                | `organizer`                 | Führt eine konkrete Team-Rallye durch.           |
-| Zuständigkeit            | `responsibility`           | `responsibility`            | Nicht `role` oder `permission`.                  |
-| Standort-Zuständigkeit   | `locationResponsibility`   | `location_responsibility`   | Zuständigkeit für einen Standort.                |
-| Abteilungs-Zuständigkeit | `departmentResponsibility` | `department_responsibility` | Zuständigkeit für eine Abteilung.                |
-| Berechtigung             | `permission`               | `permission`                | Abgeleitetes Zugriffsrecht.                      |
+| Fachbegriff            | Code-Bezeichner            | Datenmodell-Bezeichner      | Hinweis                                          |
+| ---------------------- | -------------------------- | --------------------------- | ------------------------------------------------ |
+| Standort               | `location`                 | `location`                  | Nicht `organization` verwenden.                  |
+| Bereich                | `department`               | `department`                | Oberbegriff für Studiengänge und andere Gruppen. |
+| Studiengang            | `studyProgram`             | `study_program`             | Spezielle Art von Bereich.                       |
+| Studienzentrum         | `studyCenter`              | `study_center`              | Spezielle Art von Bereich.                       |
+| Campus-Tour            | `campusTour`               | `campus_tour`               | Getrennt von Team-Rallyes modellieren.           |
+| Rallye                 | `rallye`                   | `rallye`                    | Produktbegriff; nicht `tour`.                    |
+| Team-Rallye            | `teamRallye`               | `team_rallye`               | Konkreter Team-Durchlauf.                        |
+| Bereichs-Rallye        | `departmentRallye`         | `department_rallye`         | Primäres Modell für Team-Rallyes.                |
+| Studiengangs-Rallye    | `studyProgramRallye`       | `study_program_rallye`      | Auffindbarkeit über Studiengang.                 |
+| Studienzentrums-Rallye | `studyCenterRallye`        | `study_center_rallye`       | Auffindbarkeit über Studienzentrum.              |
+| Rallye-Vorlage         | `rallyeTemplate`           | `rallye_template`           | Nicht spielbar.                                  |
+| Rallye-Code            | `rallyeCode`               | `rallye_code`               | Nicht `password`.                                |
+| Rallye-Ende            | `rallyeEnd`                | `rallye_end`                | Nur für Team-Rallyes.                            |
+| Frage                  | `question`                 | `question`                  | Wiederverwendbare Frage.                         |
+| Frage-Herkunft         | `questionOrigin`           | `question_origin`           | Nicht `owner` oder `ownership`.                  |
+| Standortfrage          | `locationQuestion`         | `location_question`         | Frage mit Standort-Herkunft.                     |
+| Bereichsfrage          | `departmentQuestion`       | `department_question`       | Frage mit Bereichs-Herkunft.                     |
+| Rallye-Frage           | `rallyeQuestion`           | `rallye_question`           | Frage in einer konkreten Rallye.                 |
+| Vorlagen-Frage         | `templateQuestion`         | `template_question`         | Frage in einer Rallye-Vorlage.                   |
+| Lösungsoption          | `solutionOption`           | `solution_option`           | Vorbereitete Antwortmöglichkeit.                 |
+| Fragebild              | `questionImage`            | `question_image`            | Bild als Teil einer Frage.                       |
+| QR-Code                | `qrCode`                   | `qr_code`                   | Maschinenlesbare Lösungsoption.                  |
+| Kategorie              | `category`                 | `category`                  | Konzept ist noch fachlich offen.                 |
+| Hinweis                | `hint`                     | `hint`                      | Optionale Hilfestellung.                         |
+| Punktwert              | `pointValue`               | `point_value`               | Erreichbare Punkte einer Frage.                  |
+| Wissensfrage           | `knowledgeQuestion`        | `knowledge_question`        | Freitext mit erwarteter Lösungsoption.           |
+| Multiple-Choice-Frage  | `multipleChoiceQuestion`   | `multiple_choice_question`  | Mehrere Lösungsoptionen, genau eine korrekt.     |
+| Bildfrage              | `imageQuestion`            | `image_question`            | Frage mit Fragebild.                             |
+| QR-Code-Frage          | `qrCodeQuestion`           | `qr_code_question`          | Lösungsoption wird als QR-Code bereitgestellt.   |
+| Upload-Frage           | `uploadQuestion`           | `upload_question`           | Nur für Team-Rallyes.                            |
+| Team                   | `team`                     | `team`                      | Teilnehmende Gruppe.                             |
+| Teilnehmende           | `participant`              | `participant`               | Personen in der Rallye-App.                      |
+| Team-Antwort           | `teamAnswer`               | `team_answer`               | Abgegebene Antwort eines Teams.                  |
+| Upload-Foto            | `uploadedPhoto`            | `uploaded_photo`            | Foto als Team-Antwort.                           |
+| Bewertung              | `evaluation`               | `evaluation`                | Vergibt Team-Punkte.                             |
+| Team-Punkte            | `teamPoints`               | `team_points`               | Vergebene Punkte eines Teams.                    |
+| Ergebnis               | `result`                   | `result`                    | Rangliste einer Team-Rallye.                     |
+| Endstand               | `finalResult`              | `final_result`              | Finales Ergebnis.                                |
+| Spielzeit              | `playTime`                 | `play_time`                 | Dauer eines Teams in der Team-Rallye.            |
+| Campus-Tour-Status     | `campusTourStatus`         | `campus_tour_status`        | Statuskonzept nur für Campus-Touren.             |
+| Team-Rallye-Status     | `teamRallyeStatus`         | `team_rallye_status`        | Statuskonzept nur für Team-Rallyes.              |
+| Aktiv                  | `active`                   | `active`                    | Campus-Tour-Statuswert.                          |
+| Inaktiv                | `inactive`                 | `inactive`                  | Campus-Tour- oder Team-Rallye-Statuswert.        |
+| Vorbereitung           | `preparing`                | `preparing`                 | Team-Rallye-Statuswert.                          |
+| Gestartet              | `running`                  | `running`                   | Team-Rallye-Statuswert.                          |
+| Abstimmung             | `voting`                   | `voting`                    | Team-Rallye-Statuswert und Bewertungsphase.      |
+| Abstimmungsfrage       | `votingQuestion`           | `voting_question`           | Rallye-Frage in der Abstimmung.                  |
+| Ranking                | `ranking`                  | `ranking`                   | Team-Rallye-Statuswert.                          |
+| Beendet                | `ended`                    | `ended`                     | Finaler Team-Rallye-Statuswert.                  |
+| Admin-App              | `adminApp`                 | `admin_app`                 | Webanwendung für Bearbeitende.                   |
+| Rallye-App             | `rallyeApp`                | `rallye_app`                | App für Teilnehmende.                            |
+| Bearbeitende           | `editor`                   | `editor`                    | Nicht `staff user`.                              |
+| Admin                  | `admin`                    | `admin`                     | Bearbeitender mit Vollzugriff.                   |
+| Organisator            | `organizer`                | `organizer`                 | Führt eine konkrete Team-Rallye durch.           |
+| Zuständigkeit          | `responsibility`           | `responsibility`            | Nicht `role` oder `permission`.                  |
+| Standort-Zuständigkeit | `locationResponsibility`   | `location_responsibility`   | Zuständigkeit für einen Standort.                |
+| Bereichs-Zuständigkeit | `departmentResponsibility` | `department_responsibility` | Zuständigkeit für einen Bereich.                 |
+| Berechtigung           | `permission`               | `permission`                | Abgeleitetes Zugriffsrecht.                      |
 
 **Antwort** wird nicht als eigener Code-Begriff verwendet, weil der deutsche Begriff überladen ist. Für vorbereitete Antwortmöglichkeiten gilt `solutionOption`; für abgegebene Team-Antworten gilt `teamAnswer`.
 
@@ -323,25 +323,25 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 
 ### Struktur und Auffindbarkeit
 
-- Ein **Standort** hat null oder mehr **Abteilungen**.
-- Zwischen **Standort** und **Abteilung** gibt es keine weiteren fachlichen Ebenen.
-- Ein **Studiengang** und ein **Studienzentrum** sind jeweils eine **Abteilung**.
+- Ein **Standort** hat null oder mehr **Bereiche**.
+- Zwischen **Standort** und **Bereich** gibt es keine weiteren fachlichen Ebenen.
+- Ein **Studiengang** und ein **Studienzentrum** sind jeweils ein **Bereich**.
 - Ein **Studienzentrum** bündelt einen oder mehrere **Studiengänge**.
-- Andere Gruppen wie Studierendenvertretung oder Hochschulkommunikation sind **Abteilungen** ohne eigenen Untertyp.
+- Andere Gruppen wie Studierendenvertretung oder Hochschulkommunikation sind **Bereiche** ohne eigenen Untertyp.
 - Ein **Standort** hat null oder eine **Campus-Tour**.
 - Eine **Campus-Tour** wird über ihren **Standort** gefunden.
-- Eine **Abteilungs-Rallye** wird über ihre **Abteilung** gefunden.
+- Eine **Bereichs-Rallye** wird über ihre **Bereich** gefunden.
 - Eine **Studiengangs-Rallye** wird über ihren **Studiengang** gefunden.
 - Eine **Studienzentrums-Rallye** wird über ihr **Studienzentrum** und dessen **Studiengänge** gefunden.
 
 ### Rallyes und Vorlagen
 
-- Eine **Campus-Tour** und eine **Abteilungs-Rallye** sind jeweils eine **Rallye**.
-- Eine **Abteilungs-Rallye** ist eine **Team-Rallye** und wird von genau einer **Abteilung** angeboten.
-- Eine **Studiengangs-Rallye** und eine **Studienzentrums-Rallye** sind jeweils eine **Abteilungs-Rallye**.
-- **Studiengangs-Rallyes** und **Studienzentrums-Rallyes** unterscheiden sich von anderen **Abteilungs-Rallyes** nur durch Einordnung und Auffindbarkeit, nicht durch Regeln oder Teilnehmererlebnis.
-- Eine **Rallye-Vorlage** gehört zu genau einer **Abteilung**.
-- Eine **Abteilung** kann null oder mehr **Rallye-Vorlagen** haben.
+- Eine **Campus-Tour** und eine **Bereichs-Rallye** sind jeweils eine **Rallye**.
+- Eine **Bereichs-Rallye** ist eine **Team-Rallye** und wird von genau einem **Bereich** angeboten.
+- Eine **Studiengangs-Rallye** und eine **Studienzentrums-Rallye** sind jeweils eine **Bereichs-Rallye**.
+- **Studiengangs-Rallyes** und **Studienzentrums-Rallyes** unterscheiden sich von anderen **Bereichs-Rallyes** nur durch Einordnung und Auffindbarkeit, nicht durch Regeln oder Teilnehmererlebnis.
+- Eine **Rallye-Vorlage** gehört zu genau einem **Bereich**.
+- Eine **Bereich** kann null oder mehr **Rallye-Vorlagen** haben.
 - Eine **Rallye-Vorlage** ist keine **Rallye** und ist nicht spielbar.
 - Aus einer **Rallye-Vorlage** können null oder mehr **Team-Rallyes** erstellt werden.
 - Aus einer **Rallye-Vorlage** entstehen keine **Campus-Touren**.
@@ -352,17 +352,17 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 ### Fragen und Verwendung
 
 - Eine **Frage** hat genau eine **Frage-Herkunft**.
-- Eine **Frage** ist entweder eine **Standortfrage** oder eine **Abteilungsfrage**.
+- Eine **Frage** ist entweder eine **Standortfrage** oder eine **Bereichsfrage**.
 - Eine **Standortfrage** gehört zu genau einem **Standort**.
-- Eine **Abteilungsfrage** gehört zu genau einer **Abteilung**.
+- Eine **Bereichsfrage** gehört zu genau einem **Bereich**.
 - Es gibt keine standortübergreifenden **Fragen**.
-- Eine **Standortfrage** darf in **Campus-Touren** und in **Abteilungs-Rallyes** ihres **Standorts** verwendet werden, sofern ihr Fragetyp dort fachlich erlaubt ist.
-- Eine **Abteilungsfrage** darf nur in **Abteilungs-Rallyes** ihrer eigenen **Abteilung** verwendet werden.
-- Eine **Abteilungs-Rallye** darf **Abteilungsfragen** ihrer eigenen **Abteilung** und **Standortfragen** ihres **Standorts** verwenden.
-- Eine **Abteilungs-Rallye** darf keine **Abteilungsfragen** anderer **Abteilungen** verwenden.
-- Eine **Rallye-Vorlage** darf **Abteilungsfragen** ihrer eigenen **Abteilung** und **Standortfragen** ihres **Standorts** verwenden.
-- Eine **Rallye-Vorlage** darf keine **Abteilungsfragen** anderer **Abteilungen** verwenden.
-- Eine **Campus-Tour** darf **Standortfragen** ihres **Standorts** verwenden und keine **Abteilungsfragen**.
+- Eine **Standortfrage** darf in **Campus-Touren** und in **Bereichs-Rallyes** ihres **Standorts** verwendet werden, sofern ihr Fragetyp dort fachlich erlaubt ist.
+- Eine **Bereichsfrage** darf nur in **Bereichs-Rallyes** ihrer eigenen **Bereich** verwendet werden.
+- Eine **Bereichs-Rallye** darf **Bereichsfragen** ihrer eigenen **Bereich** und **Standortfragen** ihres **Standorts** verwenden.
+- Eine **Bereichs-Rallye** darf keine **Bereichsfragen** anderer **Bereiche** verwenden.
+- Eine **Rallye-Vorlage** darf **Bereichsfragen** ihrer eigenen **Bereich** und **Standortfragen** ihres **Standorts** verwenden.
+- Eine **Rallye-Vorlage** darf keine **Bereichsfragen** anderer **Bereiche** verwenden.
+- Eine **Campus-Tour** darf **Standortfragen** ihres **Standorts** verwenden und keine **Bereichsfragen**.
 - **Frage**-Herkunft und Fragetyp sind getrennte Eigenschaften.
 - Eine **Rallye-Frage** entsteht, wenn eine **Frage** einer **Rallye** zugeordnet wird.
 - Eine **Vorlagen-Frage** entsteht, wenn eine **Frage** einer **Rallye-Vorlage** zugeordnet wird.
@@ -422,32 +422,32 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 
 - **Bearbeitende** nutzen die **Admin-App**.
 - **Teilnehmende** nutzen die **Rallye-App**.
-- Ein **Admin** ist ein **Bearbeitender** und kann alle **Standorte**, **Abteilungen**, **Rallyes** und **Fragen** bearbeiten.
+- Ein **Admin** ist ein **Bearbeitender** und kann alle **Standorte**, **Bereiche**, **Rallyes** und **Fragen** bearbeiten.
 - Ein **Organisator** ist ein **Bearbeitender**.
 - Ein **Bearbeitender** kann null oder mehr **Zuständigkeiten** haben.
-- Eine **Zuständigkeit** bezieht sich auf einen **Standort** oder eine **Abteilung**.
-- Eine **Standort-Zuständigkeit** und eine **Abteilungs-Zuständigkeit** sind jeweils eine **Zuständigkeit**.
-- Eine **Standort-Zuständigkeit** umfasst alle **Abteilungen** des **Standorts**.
-- Eine **Abteilungs-Zuständigkeit** umfasst genau eine **Abteilung**.
-- Die **Abteilungs-Zuständigkeit** für ein **Studienzentrum** umfasst nicht automatisch die gebündelten **Studiengänge**.
+- Eine **Zuständigkeit** bezieht sich auf einen **Standort** oder einen **Bereich**.
+- Eine **Standort-Zuständigkeit** und eine **Bereichs-Zuständigkeit** sind jeweils eine **Zuständigkeit**.
+- Eine **Standort-Zuständigkeit** umfasst alle **Bereiche** des **Standorts**.
+- Eine **Bereichs-Zuständigkeit** umfasst genau einen **Bereich**.
+- Die **Bereichs-Zuständigkeit** für ein **Studienzentrum** umfasst nicht automatisch die gebündelten **Studiengänge**.
 - Eine **Zuständigkeit** bestimmt die fachliche Verantwortung eines **Bearbeitenden**.
 - Eine **Berechtigung** bestimmt, welche **Rallyes** und **Fragen** ein **Bearbeitender** in der **Admin-App** bearbeiten darf.
 - Eine **Berechtigung** kann aus einer **Zuständigkeit** abgeleitet werden.
-- Ein **Admin** darf alle **Standortfragen** und **Abteilungsfragen** bearbeiten.
-- Ein **Bearbeitender** mit **Standort-Zuständigkeit** darf die **Standortfragen** dieses **Standorts** und die **Abteilungsfragen** aller **Abteilungen** dieses **Standorts** bearbeiten.
-- Ein **Bearbeitender** mit **Abteilungs-Zuständigkeit** darf **Abteilungsfragen** genau dieser **Abteilung** bearbeiten.
-- Ein **Bearbeitender** mit nur **Abteilungs-Zuständigkeit** darf **Standortfragen** verwenden, aber nicht bearbeiten.
-- Ein **Bearbeitender** ohne passende **Zuständigkeit** darf **Abteilungsfragen** weder verwenden noch bearbeiten.
+- Ein **Admin** darf alle **Standortfragen** und **Bereichsfragen** bearbeiten.
+- Ein **Bearbeitender** mit **Standort-Zuständigkeit** darf die **Standortfragen** dieses **Standorts** und die **Bereichsfragen** aller **Bereiche** dieses **Standorts** bearbeiten.
+- Ein **Bearbeitender** mit **Bereichs-Zuständigkeit** darf **Bereichsfragen** genau dieses **Bereichs** bearbeiten.
+- Ein **Bearbeitender** mit nur **Bereichs-Zuständigkeit** darf **Standortfragen** verwenden, aber nicht bearbeiten.
+- Ein **Bearbeitender** ohne passende **Zuständigkeit** darf **Bereichsfragen** weder verwenden noch bearbeiten.
 
 ## Beispieldialog
 
 > **Dev:** "Soll diese Rallye direkt an den **Standort** gehängt werden?"
-> **Domain Expert:** "Nur eine **Campus-Tour** gehört direkt zum **Standort**. Eine **Team-Rallye** ist eine **Abteilungs-Rallye**, also hänge sie an die **Abteilung**, die sie anbietet."
+> **Domain Expert:** "Nur eine **Campus-Tour** gehört direkt zum **Standort**. Eine **Team-Rallye** ist eine **Bereichs-Rallye**, also hänge sie an den **Bereich**, der sie anbietet."
 
 ## Geklärte Unschärfen
 
-- `department` taucht in Produkt- und Codesprache sowohl als "Abteilung" als auch als "Studiengang" auf. Geklärt: **Abteilung** ist der kanonische Oberbegriff; **Studiengang** ist eine bestimmte Art von Abteilung.
-- "Bereich" ist ein unscharfer Alltagsbegriff für **Abteilung**, aber kein eigener Domänenbegriff.
+- `department` taucht in Produkt- und Codesprache sowohl als "Bereich" als auch als "Studiengang" auf. Geklärt: **Bereich** ist der kanonische Oberbegriff; **Studiengang** ist eine bestimmte Art von Bereich.
+- "Abteilung" ist ein älteres Synonym für **Bereich**, aber nicht mehr der bevorzugte Domänenbegriff.
 - "Erkundungsmodus" und "Tour-Mode" tauchen rund um Default-Rallyes auf. Geklärt: **Campus-Tour** ist der kanonische Domänenbegriff.
 - "Weitere Rallyes" ist eine UI-Auffanggruppe. Geklärt: Das ist kein Domänenkonzept; solche Rallyes sind unklassifizierte Daten, die korrigiert werden sollten.
 - "Antwort" meint sowohl vorbereitete Antwortdaten als auch die Antwort eines Teams. Geklärt: **Lösungsoption** für vorbereitete Optionen, **Team-Antwort** für abgegebene Antworten.
@@ -462,8 +462,8 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - "Zuordnung" ist UI-Aktionssprache für das Zuordnen von **Fragen** zu **Rallyes**, aber kein eigenes Domänenkonzept.
 - **Standort** meint einen DHBW-Standort, keine beliebige Organisationshierarchie.
 - "Organisation" ist bestehendes Code- und UI-Wording für **Standort**, aber kein akzeptiertes fachliches Synonym.
-- **Kategorie** ist aktuell ein loser Ordnungsbegriff. Ob Kategorien ein gepflegtes Vokabular werden und ob sie standort- oder abteilungsspezifisch sind, ist offen.
-- "Event-Rallye" und **Event-Abteilung** wurden als eigene Konzepte erwogen. Geklärt: Eine Team-Rallye ist eine **Abteilungs-Rallye**; ein Event-Kontext sollte erst modelliert werden, wenn er ein echtes Konzept wird.
+- **Kategorie** ist aktuell ein loser Ordnungsbegriff. Ob Kategorien ein gepflegtes Vokabular werden und ob sie standort- oder bereichsspezifisch sind, ist offen.
+- "Event-Rallye" und **Event-Bereich** wurden als eigene Konzepte erwogen. Geklärt: Eine Team-Rallye ist eine **Bereichs-Rallye**; ein Event-Kontext sollte erst modelliert werden, wenn er ein echtes Konzept wird.
 - Eine eigene Organisator-Bewertung gibt es aktuell nicht; nicht automatisch bewertete **Team-Antworten** werden über **Abstimmung** bewertet.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**.
