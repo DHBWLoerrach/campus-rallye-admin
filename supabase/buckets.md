@@ -13,7 +13,7 @@ Buckets in Supabase erstellen:
     - `Restrict file size`: 10 MB
     - `Restrict MIME types` einschalten und `image/*` eintragen
   - Bucket 1: `question-pictures` als Name und `Public` **aktivieren**
-  - Bucket 2: `Upload-photos` als Name und `Public` **ausschalten**
+  - Bucket 2: `upload-photos` als Name und `Public` **ausschalten**
 
 Nun benötigen wir noch `Row Level Security (RLS)`-Policies für die beiden Buckets.
 Dazu zum `SQL Editor` in der linken Seitenleiste navigieren, folgende SQL-Anweisungen einfügen und mit dem `Run`-Button ausführen.
