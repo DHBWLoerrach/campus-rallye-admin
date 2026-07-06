@@ -19,9 +19,13 @@ const allRoutes: Route[] = [
     href: '/departments',
     label: 'Abteilungen',
   },
+  {
+    href: '/locations',
+    label: 'Standorte',
+  },
 ];
 
-const adminOnlyRoutes = new Set(['/departments']);
+const adminOnlyRoutes = new Set(['/departments', '/locations']);
 
 export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
   const signOutUrl = getSignOutUrl();

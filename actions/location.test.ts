@@ -28,7 +28,7 @@ const makeFormData = (entries: Record<string, string>) => {
   return formData;
 };
 
-describe('createOrganization', () => {
+describe('createLocation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -37,8 +37,8 @@ describe('createOrganization', () => {
   it('returns validation errors before touching Supabase', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    const { createOrganization } = await import('./organization');
-    const result = await createOrganization(null, makeFormData({ name: '' }));
+    const { createLocation } = await import('./location');
+    const result = await createLocation(null, makeFormData({ name: '' }));
 
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
@@ -49,10 +49,10 @@ describe('createOrganization', () => {
   it('requires admin before touching Supabase', async () => {
     mockRequireAdmin.mockRejectedValue(new Error('Denied'));
 
-    const { createOrganization } = await import('./organization');
+    const { createLocation } = await import('./location');
 
     await expect(
-      createOrganization(null, makeFormData({ name: 'Test Org' }))
+      createLocation(null, makeFormData({ name: 'Test Org' }))
     ).rejects.toThrow('Denied');
 
     expect(mockCreateClient).not.toHaveBeenCalled();
@@ -66,8 +66,8 @@ describe('createOrganization', () => {
     const from = vi.fn(() => ({ insert }));
     mockCreateClient.mockResolvedValue({ from });
 
-    const { createOrganization } = await import('./organization');
-    await createOrganization(
+    const { createLocation } = await import('./location');
+    await createLocation(
       null,
       makeFormData({ name: 'Test', default_rallye_id: 'none' })
     );
@@ -79,7 +79,7 @@ describe('createOrganization', () => {
   });
 });
 
-describe('updateOrganization', () => {
+describe('updateLocation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -88,8 +88,8 @@ describe('updateOrganization', () => {
   it('returns validation errors before touching Supabase', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    const { updateOrganization } = await import('./organization');
-    const result = await updateOrganization(
+    const { updateLocation } = await import('./location');
+    const result = await updateLocation(
       null,
       makeFormData({ id: '1', name: '' })
     );
@@ -99,7 +99,7 @@ describe('updateOrganization', () => {
     expect(result.error).toBe('Ungültige Eingaben');
   });
 
-  it('returns error when organization not found', async () => {
+  it('returns error when location not found', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
@@ -107,8 +107,8 @@ describe('updateOrganization', () => {
     const from = vi.fn(() => ({ select }));
     mockCreateClient.mockResolvedValue({ from });
 
-    const { updateOrganization } = await import('./organization');
-    const result = await updateOrganization(
+    const { updateLocation } = await import('./location');
+    const result = await updateLocation(
       null,
       makeFormData({ id: '999', name: 'Test' })
     );
@@ -119,7 +119,7 @@ describe('updateOrganization', () => {
   });
 });
 
-describe('deleteOrganization', () => {
+describe('deleteLocation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -128,15 +128,15 @@ describe('deleteOrganization', () => {
   it('returns error for invalid id', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    const { deleteOrganization } = await import('./organization');
-    const result = await deleteOrganization('abc');
+    const { deleteLocation } = await import('./location');
+    const result = await deleteLocation('abc');
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
     expect(result.error).toBe('Ungültige Organisations-ID');
   });
 
-  it('returns error when organization not found', async () => {
+  it('returns error when location not found', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
@@ -144,8 +144,8 @@ describe('deleteOrganization', () => {
     const from = vi.fn(() => ({ select }));
     mockCreateClient.mockResolvedValue({ from });
 
-    const { deleteOrganization } = await import('./organization');
-    const result = await deleteOrganization('999');
+    const { deleteLocation } = await import('./location');
+    const result = await deleteLocation('999');
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
@@ -153,7 +153,7 @@ describe('deleteOrganization', () => {
   });
 });
 
-describe('getRallyeOptionsByOrganization', () => {
+describe('getRallyeOptionsByLocation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -162,9 +162,9 @@ describe('getRallyeOptionsByOrganization', () => {
   it('requires admin', async () => {
     mockRequireAdmin.mockRejectedValue(new Error('Denied'));
 
-    const { getRallyeOptionsByOrganization } = await import('./organization');
+    const { getRallyeOptionsByLocation } = await import('./location');
 
-    await expect(getRallyeOptionsByOrganization(1)).rejects.toThrow('Denied');
+    await expect(getRallyeOptionsByLocation(1)).rejects.toThrow('Denied');
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
@@ -177,8 +177,8 @@ describe('getRallyeOptionsByOrganization', () => {
     const from = vi.fn(() => ({ select }));
     mockCreateClient.mockResolvedValue({ from });
 
-    const { getRallyeOptionsByOrganization } = await import('./organization');
-    const result = await getRallyeOptionsByOrganization(1);
+    const { getRallyeOptionsByLocation } = await import('./location');
+    const result = await getRallyeOptionsByLocation(1);
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
@@ -209,8 +209,8 @@ describe('getRallyeOptionsByOrganization', () => {
     const from = vi.fn(() => ({ select }));
     mockCreateClient.mockResolvedValue({ from });
 
-    const { getRallyeOptionsByOrganization } = await import('./organization');
-    const result = await getRallyeOptionsByOrganization(5);
+    const { getRallyeOptionsByLocation } = await import('./location');
+    const result = await getRallyeOptionsByLocation(5);
 
     expect(result.success).toBe(true);
     if (!result.success) throw new Error('Expected success');
@@ -235,8 +235,8 @@ describe('getRallyeOptionsByOrganization', () => {
     const from = vi.fn(() => ({ select }));
     mockCreateClient.mockResolvedValue({ from });
 
-    const { getRallyeOptionsByOrganization } = await import('./organization');
-    const result = await getRallyeOptionsByOrganization(5);
+    const { getRallyeOptionsByLocation } = await import('./location');
+    const result = await getRallyeOptionsByLocation(5);
 
     expect(result.success).toBe(true);
     if (!result.success) throw new Error('Expected success');

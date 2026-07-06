@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { OrganizationOption, RallyeOption } from '@/lib/types';
+import type { LocationOption, RallyeOption } from '@/lib/types';
 
 function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
@@ -42,16 +42,16 @@ function SaveButton({ disabled }: { disabled: boolean }) {
 
 export default function DepartmentDialog({
   buttonStyle,
-  organizationOptions,
+  locationOptions,
   rallyeOptions,
 }: {
   buttonStyle: string;
-  organizationOptions: OrganizationOption[];
+  locationOptions: LocationOption[];
   rallyeOptions: RallyeOption[];
 }) {
   const [name, setName] = useState('');
-  const isSingleSite = organizationOptions.length === 1;
-  const defaultOrganizationId = organizationOptions[0]?.id.toString() || '';
+  const isSingleSite = locationOptions.length === 1;
+  const defaultOrganizationId = locationOptions[0]?.id.toString() || '';
   const [organizationId, setOrganizationId] = useState(
     isSingleSite ? defaultOrganizationId : ''
   );
@@ -169,7 +169,7 @@ export default function DepartmentDialog({
                       <SelectValue placeholder="Standort auswählen" />
                     </SelectTrigger>
                     <SelectContent>
-                      {organizationOptions.map((org) => (
+                      {locationOptions.map((org) => (
                         <SelectItem key={org.id} value={org.id.toString()}>
                           {org.name}
                         </SelectItem>

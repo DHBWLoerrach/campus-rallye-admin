@@ -22,7 +22,7 @@ describe('EventRallyeDialog', () => {
     vi.clearAllMocks();
   });
 
-  it('preselects the only organization and submits with automatically assigned event department', async () => {
+  it('preselects the only location and submits with automatically assigned event department', async () => {
     mockCreateRallye.mockResolvedValue({
       success: true,
       data: { message: 'Rallye erfolgreich gespeichert', rallyeId: 42 },
@@ -31,8 +31,8 @@ describe('EventRallyeDialog', () => {
     render(
       <EventRallyeDialog
         buttonStyle=""
-        organizations={[{ id: 10, name: 'Org A', hasEventDepartment: true }]}
-        eventDepartmentIdByOrganizationId={{ '10': 100 }}
+        locations={[{ id: 10, name: 'Org A', hasEventDepartment: true }]}
+        eventDepartmentIdByLocationId={{ '10': 100 }}
       />
     );
 
@@ -62,12 +62,12 @@ describe('EventRallyeDialog', () => {
     });
   });
 
-  it('disables save when no event department mapping exists for the selected organization', async () => {
+  it('disables save when no event department mapping exists for the selected location', async () => {
     render(
       <EventRallyeDialog
         buttonStyle=""
-        organizations={[{ id: 20, name: 'Org B', hasEventDepartment: false }]}
-        eventDepartmentIdByOrganizationId={{}}
+        locations={[{ id: 20, name: 'Org B', hasEventDepartment: false }]}
+        eventDepartmentIdByLocationId={{}}
       />
     );
 

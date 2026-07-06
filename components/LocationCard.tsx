@@ -2,24 +2,24 @@ import { Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Organization } from '@/lib/types';
+import { Location } from '@/lib/types';
 
-interface OrganizationCardProps {
-  organization: Organization;
+interface LocationCardProps {
+  location: Location;
   onEdit: () => void;
   defaultRallyeName?: string;
 }
 
-export default function OrganizationCard({
-  organization,
+export default function LocationCard({
+  location,
   onEdit,
   defaultRallyeName,
-}: OrganizationCardProps) {
+}: LocationCardProps) {
   return (
     <Card
       className="group relative w-full overflow-hidden border-border/60 bg-card/90 transition-all hover:-translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,0.04),0_12px_28px_rgba(0,0,0,0.12)]"
       role="button"
-      aria-label={`Organisation ${organization.name} bearbeiten`}
+      aria-label={`Standort ${location.name} bearbeiten`}
     >
       <div
         className="absolute inset-x-0 top-0 h-1 bg-primary/80"
@@ -28,7 +28,7 @@ export default function OrganizationCard({
       <CardHeader className="relative pb-2">
         <CardTitle className="flex items-center justify-between">
           <span className="truncate font-semibold text-foreground">
-            {organization.name}
+            {location.name}
           </span>
           <Button
             variant="ghost"
@@ -38,7 +38,7 @@ export default function OrganizationCard({
               e.stopPropagation();
               onEdit();
             }}
-            aria-label={`${organization.name} bearbeiten`}
+            aria-label={`${location.name} bearbeiten`}
           >
             <Pencil className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -62,7 +62,7 @@ export default function OrganizationCard({
           )}
           <div className="text-xs text-muted-foreground">
             Erstellt:{' '}
-            {new Date(organization.created_at).toLocaleDateString('de-DE')}
+            {new Date(location.created_at).toLocaleDateString('de-DE')}
           </div>
         </div>
       </CardContent>

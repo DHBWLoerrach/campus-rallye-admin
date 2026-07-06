@@ -25,12 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Department, OrganizationOption, RallyeOption } from '@/lib/types';
+import type { Department, LocationOption, RallyeOption } from '@/lib/types';
 
 interface DepartmentFormProps {
   department: Department;
   onCancel: () => void;
-  organizationOptions: OrganizationOption[];
+  locationOptions: LocationOption[];
   rallyeOptions: RallyeOption[];
   assignedRallyeIds: number[];
 }
@@ -54,13 +54,13 @@ function SaveButton() {
 export default function DepartmentForm({
   department,
   onCancel,
-  organizationOptions,
+  locationOptions,
   rallyeOptions,
   assignedRallyeIds,
 }: DepartmentFormProps) {
   const [formState, formAction] = useActionState(updateDepartment, null);
   const [name, setName] = useState<string>(department.name);
-  const isSingleSite = organizationOptions.length === 1;
+  const isSingleSite = locationOptions.length === 1;
   const [organizationId, setOrganizationId] = useState<string>(
     department.organization_id.toString()
   );
@@ -181,7 +181,7 @@ export default function DepartmentForm({
                     <SelectValue placeholder="Standort auswählen" />
                   </SelectTrigger>
                   <SelectContent>
-                    {organizationOptions.map((org) => (
+                    {locationOptions.map((org) => (
                       <SelectItem key={org.id} value={org.id.toString()}>
                         {org.name}
                       </SelectItem>

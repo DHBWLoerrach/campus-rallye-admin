@@ -1,7 +1,7 @@
 'use client';
 import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { createOrganization } from '@/actions/organization';
+import { createLocation } from '@/actions/location';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,7 +31,7 @@ function SaveButton({ disabled }: { disabled: boolean }) {
   );
 }
 
-export default function OrganizationDialog({
+export default function LocationDialog({
   buttonStyle,
 }: {
   buttonStyle: string;
@@ -40,11 +40,11 @@ export default function OrganizationDialog({
   const [open, setOpen] = useState(false);
 
   const handleCreate = async (
-    state: Parameters<typeof createOrganization>[0],
+    state: Parameters<typeof createLocation>[0],
     formData: FormData
   ) => {
-    const result = await createOrganization(state, formData);
-    if (result?.success && result.data?.organizationId) {
+    const result = await createLocation(state, formData);
+    if (result?.success && result.data?.locationId) {
       setOpen(false);
       setName('');
     }
@@ -65,14 +65,14 @@ export default function OrganizationDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className={buttonStyle} variant="dhbwStyle" size="default">
-          Organisation erstellen
+          Standort erstellen
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Neue Organisation erstellen</DialogTitle>
+          <DialogTitle>Neuen Standort erstellen</DialogTitle>
           <DialogDescription>
-            Geben Sie die Details für die neue Organisation ein.
+            Geben Sie die Details für den neuen Standort ein.
           </DialogDescription>
         </DialogHeader>
         <form action={formAction}>
@@ -95,7 +95,7 @@ export default function OrganizationDialog({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Organisationsname"
+                placeholder="Standortname"
                 required
                 aria-describedby={
                   formState?.success === false && formState.issues?.name

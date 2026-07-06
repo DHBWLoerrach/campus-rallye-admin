@@ -6,7 +6,7 @@ const { mockCreateClient, mockEventDialogProps, mockProgramDialogProps } =
   vi.hoisted(() => ({
     mockCreateClient: vi.fn(),
     mockEventDialogProps: [] as Array<{
-      organizations: { id: number; name: string }[];
+      locations: { id: number; name: string }[];
     }>,
     mockProgramDialogProps: [] as Array<{
       departments: { id: number; name: string }[];
@@ -19,7 +19,7 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/components/rallyes/EventRallyeDialog', () => ({
   __esModule: true,
-  default: (props: { organizations: { id: number; name: string }[] }) => {
+  default: (props: { locations: { id: number; name: string }[] }) => {
     mockEventDialogProps.push(props);
     return <button type="button">Event erstellen</button>;
   },
@@ -59,7 +59,7 @@ type MockRow = Record<string, unknown>;
 
 type SupabaseFixture = {
   rallyes: Array<Record<string, unknown>>;
-  organizations: Array<Record<string, unknown>>;
+  locations: Array<Record<string, unknown>>;
   departments: Array<Record<string, unknown>>;
   departmentAssignments: Array<Record<string, unknown>>;
   questionAssignments: Array<Record<string, unknown>>;
@@ -110,7 +110,7 @@ function buildDefaultFixture(): SupabaseFixture {
     },
   ];
 
-  const organizations: SupabaseFixture['organizations'] = [
+  const locations: SupabaseFixture['locations'] = [
     { id: 10, name: 'Org A', default_rallye_id: 1 },
   ];
   const departments: SupabaseFixture['departments'] = [
@@ -136,7 +136,7 @@ function buildDefaultFixture(): SupabaseFixture {
 
   return {
     rallyes,
-    organizations,
+    locations,
     departments,
     departmentAssignments,
     questionAssignments,
@@ -148,7 +148,7 @@ function createSupabaseMock(fixtureOverrides?: Partial<SupabaseFixture>) {
   const fixture = { ...buildDefaultFixture(), ...fixtureOverrides };
   const {
     rallyes,
-    organizations,
+    locations,
     departments,
     departmentAssignments,
     questionAssignments,
@@ -167,7 +167,7 @@ function createSupabaseMock(fixtureOverrides?: Partial<SupabaseFixture>) {
       }),
     },
     organization: {
-      select: async () => ({ data: organizations, error: null }),
+      select: async () => ({ data: locations, error: null }),
     },
     department: {
       select: () => ({
@@ -236,7 +236,7 @@ describe('/rallyes page', () => {
     expect(within(otherSection).getByText('Freie Rallye')).toBeInTheDocument();
 
     expect(
-      mockEventDialogProps[0]?.organizations.map((org) => org.name)
+      mockEventDialogProps[0]?.locations.map((location) => location.name)
     ).toEqual(['Org A']);
     expect(
       mockProgramDialogProps[0]?.departments.map((dept) => dept.name)
@@ -253,7 +253,7 @@ describe('/rallyes page', () => {
       within(explorationSection).getByText('Campus Tour A')
     ).toBeInTheDocument();
     expect(
-      within(explorationSection).queryByText('Organisation: Org A')
+      within(explorationSection).queryByText('Standort: Org A')
     ).not.toBeInTheDocument();
     expect(
       within(explorationSection).getByRole('link', { name: 'Fragen zuordnen' })

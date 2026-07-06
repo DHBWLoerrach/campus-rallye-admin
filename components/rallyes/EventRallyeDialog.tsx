@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-type EventOrganizationOption = {
+type EventLocationOption = {
   id: number;
   name: string;
   hasEventDepartment: boolean;
@@ -33,8 +33,8 @@ type EventOrganizationOption = {
 
 interface EventRallyeDialogProps {
   buttonStyle: string;
-  organizations: EventOrganizationOption[];
-  eventDepartmentIdByOrganizationId: Record<string, number>;
+  locations: EventLocationOption[];
+  eventDepartmentIdByLocationId: Record<string, number>;
 }
 
 function SaveButton({ disabled }: { disabled: boolean }) {
@@ -55,20 +55,20 @@ function SaveButton({ disabled }: { disabled: boolean }) {
 
 export default function EventRallyeDialog({
   buttonStyle,
-  organizations,
-  eventDepartmentIdByOrganizationId,
+  locations,
+  eventDepartmentIdByLocationId,
 }: EventRallyeDialogProps) {
   const router = useRouter();
-  const defaultOrganizationId =
-    organizations.length === 1 ? String(organizations[0].id) : '';
+  const defaultLocationId =
+    locations.length === 1 ? String(locations[0].id) : '';
   const [name, setName] = useState('');
-  const [organizationId, setOrganizationId] = useState(defaultOrganizationId);
+  const [locationId, setLocationId] = useState(defaultLocationId);
   const [open, setOpen] = useState(false);
   const [createdRallyeId, setCreatedRallyeId] = useState<number | null>(null);
   const [createdRallyeName, setCreatedRallyeName] = useState('');
   const selectedDepartmentId =
-    organizationId.length > 0
-      ? eventDepartmentIdByOrganizationId[organizationId]
+    locationId.length > 0
+      ? eventDepartmentIdByLocationId[locationId]
       : undefined;
 
   const handleCreate = async (
@@ -89,20 +89,20 @@ export default function EventRallyeDialog({
     setOpen(nextOpen);
     if (!nextOpen) {
       setName('');
-      setOrganizationId(defaultOrganizationId);
+      setLocationId(defaultLocationId);
       setCreatedRallyeId(null);
       setCreatedRallyeName('');
     }
   };
 
-  const hasOrganizations = organizations.length > 0;
+  const hasLocations = locations.length > 0;
   const hasSelectedEventDepartment = selectedDepartmentId !== undefined;
   const isNameEmpty = name.trim().length === 0;
-  const isOrganizationEmpty = organizationId.length === 0;
+  const isLocationEmpty = locationId.length === 0;
   const isSaveDisabled =
     isNameEmpty ||
-    isOrganizationEmpty ||
-    !hasOrganizations ||
+    isLocationEmpty ||
+    !hasLocations ||
     !hasSelectedEventDepartment;
 
   return (
@@ -162,52 +162,46 @@ export default function EventRallyeDialog({
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label
-                  htmlFor="event-rallye-organization"
-                  className="text-right"
-                >
+                <Label htmlFor="event-rallye-location" className="text-right">
                   Standort
                 </Label>
                 <div className="col-span-3">
-                  <Select
-                    value={organizationId}
-                    onValueChange={setOrganizationId}
-                  >
+                  <Select value={locationId} onValueChange={setLocationId}>
                     <SelectTrigger
-                      id="event-rallye-organization"
+                      id="event-rallye-location"
                       aria-label="Standort"
                     >
                       <SelectValue placeholder="Standort auswählen" />
                     </SelectTrigger>
                     <SelectContent>
-                      {organizations.map((organization) => (
+                      {locations.map((location) => (
                         <SelectItem
-                          key={organization.id}
-                          value={String(organization.id)}
+                          key={location.id}
+                          value={String(location.id)}
                         >
-                          {organization.name}
+                          {location.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              {!hasOrganizations && (
+              {!hasLocations && (
                 <p className="text-sm text-muted-foreground">
                   Keine Standorte verfügbar.
                 </p>
               )}
-              {!isOrganizationEmpty && !hasSelectedEventDepartment && (
+              {!isLocationEmpty && !hasSelectedEventDepartment && (
                 <p className="text-sm text-muted-foreground">
                   Für diesen Standort wurde keine passende Event-Abteilung
                   gefunden.
                 </p>
               )}
-              {organizationId.length > 0 && (
+              {locationId.length > 0 && (
                 <input
                   type="hidden"
                   name="organization_id"
-                  value={organizationId}
+                  value={locationId}
                 />
               )}
               {hasSelectedEventDepartment && (

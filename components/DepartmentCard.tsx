@@ -7,13 +7,13 @@ import { Department } from '@/lib/types';
 interface DepartmentCardProps {
   department: Department;
   onEdit: () => void;
-  organizationName: string;
+  locationName: string;
 }
 
 export default function DepartmentCard({
   department,
   onEdit,
-  organizationName,
+  locationName,
 }: DepartmentCardProps) {
   return (
     <Card
@@ -46,13 +46,13 @@ export default function DepartmentCard({
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {organizationName ? (
+          {locationName ? (
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
                 Standort
               </Badge>
               <span className="truncate text-sm text-muted-foreground">
-                {organizationName}
+                {locationName}
               </span>
             </div>
           ) : null}

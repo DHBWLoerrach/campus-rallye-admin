@@ -6,7 +6,7 @@ import ProgramRallyeDialog from '@/components/rallyes/ProgramRallyeDialog';
 import {
   classifyRallyesByType,
   getEventDepartmentIds,
-  getEventDepartmentIdByOrganization,
+  getEventDepartmentIdByLocation,
   getRallyeUiTypeLabel,
   type RallyeUiClassification,
   type RallyeUiType,
@@ -28,7 +28,7 @@ type DepartmentRow = {
   organization_id: number;
 };
 
-type OrganizationRow = {
+type LocationRow = {
   id: number;
   name: string;
   default_rallye_id: number | null;
@@ -70,8 +70,8 @@ const getContextLabel = (
     case 'exploration':
     case 'event':
       if (isSingleSite) return undefined;
-      if (classification.organizationNames.length === 0) return undefined;
-      return `Organisation: ${classification.organizationNames.join(', ')}`;
+      if (classification.locationNames.length === 0) return undefined;
+      return `Standort: ${classification.locationNames.join(', ')}`;
     case 'program':
       if (classification.departmentNames.length === 0) return undefined;
       return `Abteilung: ${classification.departmentNames.join(', ')}`;
@@ -79,8 +79,8 @@ const getContextLabel = (
       if (classification.departmentNames.length > 0) {
         return `Abteilungen: ${classification.departmentNames.join(', ')}`;
       }
-      if (classification.organizationNames.length > 0) {
-        return `Organisationen: ${classification.organizationNames.join(', ')}`;
+      if (classification.locationNames.length > 0) {
+        return `Standorte: ${classification.locationNames.join(', ')}`;
       }
       return undefined;
   }
@@ -114,14 +114,14 @@ export default async function Home() {
     );
   }
 
-  // Load organization and department data for UI type classification
-  const { data: organizations } = await supabase
+  // Load location and department data for UI type classification
+  const { data: locations } = await supabase
     .from('organization')
     .select('id, name, default_rallye_id');
-  const typedOrganizations = ((organizations || []) as OrganizationRow[]).sort(
-    (a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
+  const typedLocations = ((locations || []) as LocationRow[]).sort((a, b) =>
+    a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
   );
-  const isSingleSite = typedOrganizations.length === 1;
+  const isSingleSite = typedLocations.length === 1;
 
   const { data: departmentRows } = await supabase
     .from('department')
@@ -133,23 +133,23 @@ export default async function Home() {
     name,
   }));
 
-  const eventDepartmentIdByOrganizationMap = getEventDepartmentIdByOrganization(
-    typedOrganizations,
+  const eventDepartmentIdByLocationMap = getEventDepartmentIdByLocation(
+    typedLocations,
     typedDepartmentRows
   );
   const eventDepartmentIds = getEventDepartmentIds(
-    typedOrganizations,
+    typedLocations,
     typedDepartmentRows
   );
-  const eventDepartmentIdByOrganizationId = Object.fromEntries(
-    Array.from(eventDepartmentIdByOrganizationMap.entries()).map(
+  const eventDepartmentIdByLocationId = Object.fromEntries(
+    Array.from(eventDepartmentIdByLocationMap.entries()).map(
       ([orgId, deptId]) => [String(orgId), deptId]
     )
   );
-  const eventOrganizationOptions = typedOrganizations.map((organization) => ({
-    id: organization.id,
-    name: organization.name,
-    hasEventDepartment: eventDepartmentIdByOrganizationMap.has(organization.id),
+  const eventLocationOptions = typedLocations.map((location) => ({
+    id: location.id,
+    name: location.name,
+    hasEventDepartment: eventDepartmentIdByLocationMap.has(location.id),
   }));
   const programDepartmentOptions: DepartmentOption[] = departmentOptions.filter(
     (department) => !eventDepartmentIds.has(department.id)
@@ -220,7 +220,7 @@ export default async function Home() {
 
   const rallyeTypeById = classifyRallyesByType({
     rallyeIds: typedRallyes.map((rallye) => rallye.id),
-    organizations: (organizations || []) as OrganizationRow[],
+    locations: (locations || []) as LocationRow[],
     departments: typedDepartmentRows,
     assignments: classificationAssignments,
   });
@@ -319,10 +319,8 @@ export default async function Home() {
               {section.type === 'event' ? (
                 <EventRallyeDialog
                   buttonStyle="w-full sm:w-auto cursor-pointer"
-                  organizations={eventOrganizationOptions}
-                  eventDepartmentIdByOrganizationId={
-                    eventDepartmentIdByOrganizationId
-                  }
+                  locations={eventLocationOptions}
+                  eventDepartmentIdByLocationId={eventDepartmentIdByLocationId}
                 />
               ) : section.type === 'program' ? (
                 <ProgramRallyeDialog

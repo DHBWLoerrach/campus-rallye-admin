@@ -3,20 +3,20 @@
 import { useState } from 'react';
 import DepartmentCard from '@/components/DepartmentCard';
 import DepartmentForm from '@/components/DepartmentForm';
-import type { Department, OrganizationOption, RallyeOption } from '@/lib/types';
+import type { Department, LocationOption, RallyeOption } from '@/lib/types';
 
 interface DepartmentProps {
   department: Department;
-  organizationOptions: OrganizationOption[];
-  organizationName: string;
+  locationOptions: LocationOption[];
+  locationName: string;
   rallyeOptions: RallyeOption[];
   assignedRallyeIds: number[];
 }
 
 export default function Department({
   department,
-  organizationOptions,
-  organizationName,
+  locationOptions,
+  locationName,
   rallyeOptions,
   assignedRallyeIds,
 }: DepartmentProps) {
@@ -25,7 +25,7 @@ export default function Department({
   return editMode ? (
     <DepartmentForm
       department={department}
-      organizationOptions={organizationOptions}
+      locationOptions={locationOptions}
       rallyeOptions={rallyeOptions}
       assignedRallyeIds={assignedRallyeIds}
       onCancel={() => setEditMode(false)}
@@ -33,7 +33,7 @@ export default function Department({
   ) : (
     <DepartmentCard
       department={department}
-      organizationName={organizationName}
+      locationName={locationName}
       onEdit={() => setEditMode(true)}
     />
   );

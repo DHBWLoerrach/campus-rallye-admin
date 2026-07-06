@@ -2,7 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
 import { requireAdmin } from '@/lib/require-profile';
-import { Organization, OrganizationOption } from '@/lib/types';
+import { Location, LocationOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import {
   formatZodError,
@@ -13,10 +13,10 @@ import type { RallyeOption } from '@/lib/types';
 
 type FormState = ActionResult<{
   message: string;
-  organizationId?: number;
+  locationId?: number;
 }> | null;
 
-export async function createOrganization(state: FormState, formData: FormData) {
+export async function createLocation(state: FormState, formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
 
@@ -36,25 +36,25 @@ export async function createOrganization(state: FormState, formData: FormData) {
     default_rallye_id: parsed.data.default_rallye_id || null,
   };
 
-  const { data: createdOrganization, error } = await supabase
+  const { data: createdLocation, error } = await supabase
     .from('organization')
     .insert(data)
     .select('id')
     .single();
 
-  if (error || !createdOrganization) {
+  if (error || !createdLocation) {
     console.error('Error creating organization:', error);
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  revalidatePath('/organizations');
+  revalidatePath('/locations');
   return ok({
     message: 'Organisation erfolgreich gespeichert',
-    organizationId: createdOrganization.id,
+    locationId: createdLocation.id,
   });
 }
 
-export async function updateOrganization(state: FormState, formData: FormData) {
+export async function updateLocation(state: FormState, formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
 
@@ -72,7 +72,7 @@ export async function updateOrganization(state: FormState, formData: FormData) {
 
   const data = parsed.data;
 
-  const { data: existingOrganization, error: existingError } = await supabase
+  const { data: existingLocation, error: existingError } = await supabase
     .from('organization')
     .select('id')
     .eq('id', data.id)
@@ -83,7 +83,7 @@ export async function updateOrganization(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  if (!existingOrganization) {
+  if (!existingLocation) {
     return fail('Organisation nicht gefunden');
   }
 
@@ -102,13 +102,11 @@ export async function updateOrganization(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  revalidatePath('/organizations');
+  revalidatePath('/locations');
   return ok({ message: 'Organisation erfolgreich gespeichert' });
 }
 
-export async function getOrganizations(): Promise<
-  ActionResult<Organization[]>
-> {
+export async function getLocations(): Promise<ActionResult<Location[]>> {
   await requireAdmin();
   const supabase = await createClient();
 
@@ -125,8 +123,8 @@ export async function getOrganizations(): Promise<
   return ok(data || []);
 }
 
-export async function getOrganizationOptions(): Promise<
-  ActionResult<OrganizationOption[]>
+export async function getLocationOptions(): Promise<
+  ActionResult<LocationOption[]>
 > {
   await requireAdmin();
   const supabase = await createClient();
@@ -140,14 +138,14 @@ export async function getOrganizationOptions(): Promise<
     return fail('Fehler beim Laden der Organisationen');
   }
 
-  const organizations = (data || []) as OrganizationOption[];
+  const organizations = (data || []) as LocationOption[];
   organizations.sort((a, b) =>
     a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
   );
   return ok(organizations);
 }
 
-export async function deleteOrganization(
+export async function deleteLocation(
   organizationId: string
 ): Promise<ActionResult<{ message: string }>> {
   await requireAdmin();
@@ -158,7 +156,7 @@ export async function deleteOrganization(
     return fail('Ungültige Organisations-ID', formatZodError(idResult.error));
   }
 
-  const { data: existingOrganization, error: existingError } = await supabase
+  const { data: existingLocation, error: existingError } = await supabase
     .from('organization')
     .select('id')
     .eq('id', idResult.data)
@@ -169,7 +167,7 @@ export async function deleteOrganization(
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  if (!existingOrganization) {
+  if (!existingLocation) {
     return fail('Organisation nicht gefunden');
   }
 
@@ -183,11 +181,11 @@ export async function deleteOrganization(
     return fail('Fehler beim Löschen der Organisation');
   }
 
-  revalidatePath('/organizations');
+  revalidatePath('/locations');
   return ok({ message: 'Organisation erfolgreich gelöscht' });
 }
 
-export async function getRallyeOptionsByOrganization(
+export async function getRallyeOptionsByLocation(
   organizationId: number
 ): Promise<ActionResult<RallyeOption[]>> {
   await requireAdmin();

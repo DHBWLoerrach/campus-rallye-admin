@@ -49,14 +49,14 @@ export const getRallyeStatusLabel = (status: RallyeStatus): string => {
 export const isRallyeActive = (status: RallyeStatus): boolean =>
   status === 'running';
 
-export interface Organization {
+export interface Location {
   id: number;
   name: string;
   created_at: string;
   default_rallye_id: number | null;
 }
 
-export type OrganizationOption = Pick<Organization, 'id' | 'name'>;
+export type LocationOption = Pick<Location, 'id' | 'name'>;
 
 export interface Department {
   id: number;

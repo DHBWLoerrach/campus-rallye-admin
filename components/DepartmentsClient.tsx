@@ -13,27 +13,27 @@ import DepartmentDialog from '@/components/DepartmentDialog';
 import { Label } from '@/components/ui/label';
 import type {
   Department as DepartmentType,
-  OrganizationOption,
+  LocationOption,
   RallyeOption,
 } from '@/lib/types';
 
 interface DepartmentsClientProps {
   departments: DepartmentType[];
-  organizationOptions: OrganizationOption[];
-  organizationNames: Map<number, string>;
+  locationOptions: LocationOption[];
+  locationNames: Map<number, string>;
   rallyeOptions: RallyeOption[];
   rallyeAssignmentsMap: Map<number, number[]>;
 }
 
 export default function DepartmentsClient({
   departments,
-  organizationOptions,
-  organizationNames,
+  locationOptions,
+  locationNames,
   rallyeOptions,
   rallyeAssignmentsMap,
 }: DepartmentsClientProps) {
-  const isSingleSite = organizationOptions.length === 1;
-  const siteLabel = organizationOptions[0]?.name || 'DHBW Lörrach';
+  const isSingleSite = locationOptions.length === 1;
+  const siteLabel = locationOptions[0]?.name || 'DHBW Lörrach';
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>('all');
 
@@ -55,7 +55,7 @@ export default function DepartmentsClient({
         </div>
         <DepartmentDialog
           buttonStyle="ml-auto"
-          organizationOptions={organizationOptions}
+          locationOptions={locationOptions}
           rallyeOptions={rallyeOptions}
         />
       </div>
@@ -74,7 +74,7 @@ export default function DepartmentsClient({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle Standorte</SelectItem>
-              {organizationOptions.map((org) => (
+              {locationOptions.map((org) => (
                 <SelectItem key={org.id} value={org.id.toString()}>
                   {org.name}
                 </SelectItem>
@@ -108,12 +108,11 @@ export default function DepartmentsClient({
             <Department
               key={department.id}
               department={department}
-              organizationOptions={organizationOptions}
-              organizationName={
+              locationOptions={locationOptions}
+              locationName={
                 isSingleSite
                   ? ''
-                  : organizationNames.get(department.organization_id) ||
-                    'Unbekannt'
+                  : locationNames.get(department.organization_id) || 'Unbekannt'
               }
               rallyeOptions={rallyeOptions}
               assignedRallyeIds={rallyeAssignmentsMap.get(department.id) || []}

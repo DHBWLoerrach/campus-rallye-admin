@@ -18,8 +18,8 @@ export default async function DepartmentsPage() {
     .select('id, name, created_at, organization_id')
     .order('name');
 
-  // Load organization options
-  const { data: organizationOptions } = await supabase
+  // Load location options
+  const { data: locationOptions } = await supabase
     .from('organization')
     .select('id, name')
     .order('name');
@@ -30,11 +30,11 @@ export default async function DepartmentsPage() {
     .select('id, name')
     .order('name');
 
-  // Create a map of organization names
-  const organizationNames = new Map<number, string>();
-  if (organizationOptions) {
-    organizationOptions.forEach((org) => {
-      organizationNames.set(org.id, org.name);
+  // Create a map of location names
+  const locationNames = new Map<number, string>();
+  if (locationOptions) {
+    locationOptions.forEach((org) => {
+      locationNames.set(org.id, org.name);
     });
   }
 
@@ -73,8 +73,8 @@ export default async function DepartmentsPage() {
   return (
     <DepartmentsClient
       departments={departments || []}
-      organizationOptions={organizationOptions || []}
-      organizationNames={organizationNames}
+      locationOptions={locationOptions || []}
+      locationNames={locationNames}
       rallyeOptions={rallyeOptions || []}
       rallyeAssignmentsMap={rallyeAssignmentsMap}
     />

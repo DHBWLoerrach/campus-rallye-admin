@@ -95,7 +95,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
   }
 
   revalidatePath('/departments');
-  revalidatePath('/organizations');
+  revalidatePath('/locations');
   return ok({
     message: 'Abteilung erfolgreich gespeichert',
     departmentId: createdDepartment.id,
@@ -231,7 +231,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   }
 
   revalidatePath('/departments');
-  revalidatePath('/organizations');
+  revalidatePath('/locations');
   return ok({ message: 'Abteilung erfolgreich gespeichert' });
 }
 
@@ -309,7 +309,7 @@ export async function deleteDepartment(
   }
 
   revalidatePath('/departments');
-  revalidatePath('/organizations');
+  revalidatePath('/locations');
   return ok({ message: 'Abteilung erfolgreich gelöscht' });
 }
 

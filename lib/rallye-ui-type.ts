@@ -1,6 +1,6 @@
 export type RallyeUiType = 'exploration' | 'event' | 'program' | 'other';
 
-export interface RallyeUiOrganization {
+export interface RallyeUiLocation {
   id: number;
   name: string;
   default_rallye_id: number | null;
@@ -19,13 +19,13 @@ export interface RallyeUiDepartmentAssignment {
 
 export interface RallyeUiClassification {
   type: RallyeUiType;
-  organizationNames: string[];
+  locationNames: string[];
   departmentNames: string[];
 }
 
 interface ClassifyRallyesParams {
   rallyeIds: number[];
-  organizations: RallyeUiOrganization[];
+  locations: RallyeUiLocation[];
   departments: RallyeUiDepartment[];
   assignments: RallyeUiDepartmentAssignment[];
 }
@@ -33,29 +33,27 @@ interface ClassifyRallyesParams {
 export const normalizeComparisonName = (value: string): string =>
   value.trim().toLocaleLowerCase('de-DE');
 
-export const isEventDepartmentForOrganization = (
+export const isEventDepartmentForLocation = (
   departmentName: string,
-  organizationName: string
+  locationName: string
 ): boolean =>
   normalizeComparisonName(departmentName) ===
-  normalizeComparisonName(organizationName);
+  normalizeComparisonName(locationName);
 
 export function getEventDepartmentIds(
-  organizations: RallyeUiOrganization[],
+  locations: RallyeUiLocation[],
   departments: RallyeUiDepartment[]
 ): Set<number> {
-  const organizationNameById = new Map(
-    organizations.map((organization) => [organization.id, organization.name])
+  const locationNameById = new Map(
+    locations.map((location) => [location.id, location.name])
   );
   const eventDepartmentIds = new Set<number>();
 
   for (const department of departments) {
-    const organizationName = organizationNameById.get(
-      department.organization_id
-    );
-    if (!organizationName) continue;
+    const locationName = locationNameById.get(department.organization_id);
+    if (!locationName) continue;
 
-    if (isEventDepartmentForOrganization(department.name, organizationName)) {
+    if (isEventDepartmentForLocation(department.name, locationName)) {
       eventDepartmentIds.add(department.id);
     }
   }
@@ -63,24 +61,24 @@ export function getEventDepartmentIds(
   return eventDepartmentIds;
 }
 
-export function getEventDepartmentIdByOrganization(
-  organizations: RallyeUiOrganization[],
+export function getEventDepartmentIdByLocation(
+  locations: RallyeUiLocation[],
   departments: RallyeUiDepartment[]
 ): Map<number, number> {
   const result = new Map<number, number>();
 
-  for (const organization of organizations) {
+  for (const location of locations) {
     const matchingDepartmentIds = departments
       .filter(
         (department) =>
-          department.organization_id === organization.id &&
-          isEventDepartmentForOrganization(department.name, organization.name)
+          department.organization_id === location.id &&
+          isEventDepartmentForLocation(department.name, location.name)
       )
       .map((department) => department.id)
       .sort((a, b) => a - b);
 
     if (matchingDepartmentIds.length > 0) {
-      result.set(organization.id, matchingDepartmentIds[0]);
+      result.set(location.id, matchingDepartmentIds[0]);
     }
   }
 
@@ -107,22 +105,25 @@ export const getRallyeUiTypeLabel = (type: RallyeUiType): string => {
 
 export function classifyRallyesByType({
   rallyeIds,
-  organizations,
+  locations,
   departments,
   assignments,
 }: ClassifyRallyesParams): Map<number, RallyeUiClassification> {
-  const defaultOrgNamesByRallyeId = new Map<number, string[]>();
-  const orgById = new Map(organizations.map((org) => [org.id, org]));
+  const defaultLocationNamesByRallyeId = new Map<number, string[]>();
+  const locationById = new Map(
+    locations.map((location) => [location.id, location])
+  );
   const departmentById = new Map(
     departments.map((department) => [department.id, department])
   );
   const departmentIdsByRallyeId = new Map<number, number[]>();
 
-  for (const org of organizations) {
-    if (!org.default_rallye_id) continue;
-    const existing = defaultOrgNamesByRallyeId.get(org.default_rallye_id) ?? [];
-    existing.push(org.name);
-    defaultOrgNamesByRallyeId.set(org.default_rallye_id, existing);
+  for (const location of locations) {
+    if (!location.default_rallye_id) continue;
+    const existing =
+      defaultLocationNamesByRallyeId.get(location.default_rallye_id) ?? [];
+    existing.push(location.name);
+    defaultLocationNamesByRallyeId.set(location.default_rallye_id, existing);
   }
 
   for (const assignment of assignments) {
@@ -134,11 +135,12 @@ export function classifyRallyesByType({
   const result = new Map<number, RallyeUiClassification>();
 
   for (const rallyeId of rallyeIds) {
-    const explorationOrgNames = defaultOrgNamesByRallyeId.get(rallyeId) ?? [];
-    if (explorationOrgNames.length > 0) {
+    const explorationLocationNames =
+      defaultLocationNamesByRallyeId.get(rallyeId) ?? [];
+    if (explorationLocationNames.length > 0) {
       result.set(rallyeId, {
         type: 'exploration',
-        organizationNames: uniqueSorted(explorationOrgNames),
+        locationNames: uniqueSorted(explorationLocationNames),
         departmentNames: [],
       });
       continue;
@@ -148,7 +150,7 @@ export function classifyRallyesByType({
     if (departmentIds.length === 0) {
       result.set(rallyeId, {
         type: 'other',
-        organizationNames: [],
+        locationNames: [],
         departmentNames: [],
       });
       continue;
@@ -157,7 +159,7 @@ export function classifyRallyesByType({
     let hasUnknown = false;
     let hasEventDepartment = false;
     let hasProgramDepartment = false;
-    const organizationNames: string[] = [];
+    const locationNames: string[] = [];
     const departmentNames: string[] = [];
 
     for (const departmentId of departmentIds) {
@@ -169,30 +171,28 @@ export function classifyRallyesByType({
 
       departmentNames.push(department.name);
 
-      const organization = orgById.get(department.organization_id);
-      if (!organization) {
+      const location = locationById.get(department.organization_id);
+      if (!location) {
         hasUnknown = true;
         continue;
       }
 
-      organizationNames.push(organization.name);
+      locationNames.push(location.name);
 
-      if (
-        isEventDepartmentForOrganization(department.name, organization.name)
-      ) {
+      if (isEventDepartmentForLocation(department.name, location.name)) {
         hasEventDepartment = true;
       } else {
         hasProgramDepartment = true;
       }
     }
 
-    const normalizedOrganizationNames = uniqueSorted(organizationNames);
+    const normalizedLocationNames = uniqueSorted(locationNames);
     const normalizedDepartmentNames = uniqueSorted(departmentNames);
 
     if (hasUnknown || (hasEventDepartment && hasProgramDepartment)) {
       result.set(rallyeId, {
         type: 'other',
-        organizationNames: normalizedOrganizationNames,
+        locationNames: normalizedLocationNames,
         departmentNames: normalizedDepartmentNames,
       });
       continue;
@@ -201,7 +201,7 @@ export function classifyRallyesByType({
     if (hasEventDepartment) {
       result.set(rallyeId, {
         type: 'event',
-        organizationNames: normalizedOrganizationNames,
+        locationNames: normalizedLocationNames,
         departmentNames: normalizedDepartmentNames,
       });
       continue;
@@ -209,7 +209,7 @@ export function classifyRallyesByType({
 
     result.set(rallyeId, {
       type: 'program',
-      organizationNames: normalizedOrganizationNames,
+      locationNames: normalizedLocationNames,
       departmentNames: normalizedDepartmentNames,
     });
   }

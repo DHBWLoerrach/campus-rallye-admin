@@ -3,7 +3,7 @@
 import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { CircleX, Trash2 } from 'lucide-react';
-import { updateOrganization, deleteOrganization } from '@/actions/organization';
+import { updateLocation, deleteLocation } from '@/actions/location';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -24,10 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Organization, RallyeOption } from '@/lib/types';
+import type { Location, RallyeOption } from '@/lib/types';
 
-interface OrganizationFormProps {
-  organization: Organization;
+interface LocationFormProps {
+  location: Location;
   onCancel: () => void;
   rallyeOptions: RallyeOption[];
 }
@@ -48,15 +48,15 @@ function SaveButton() {
   );
 }
 
-export default function OrganizationForm({
-  organization,
+export default function LocationForm({
+  location,
   onCancel,
   rallyeOptions,
-}: OrganizationFormProps) {
-  const [formState, formAction] = useActionState(updateOrganization, null);
-  const [name, setName] = useState<string>(organization.name);
+}: LocationFormProps) {
+  const [formState, formAction] = useActionState(updateLocation, null);
+  const [name, setName] = useState<string>(location.name);
   const [defaultRallyeId, setDefaultRallyeId] = useState<string>(
-    organization.default_rallye_id?.toString() ?? 'none'
+    location.default_rallye_id?.toString() ?? 'none'
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -64,7 +64,7 @@ export default function OrganizationForm({
   async function handleDelete() {
     setIsDeleting(true);
     try {
-      const result = await deleteOrganization(organization.id.toString());
+      const result = await deleteLocation(location.id.toString());
       if (!result.success) {
         console.error(result.error);
       } else {
@@ -82,7 +82,7 @@ export default function OrganizationForm({
     <Card className="w-full max-w-md">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between gap-3">
-          Organisation bearbeiten
+          Standort bearbeiten
           <Button
             variant="ghost"
             size="icon"
@@ -95,7 +95,7 @@ export default function OrganizationForm({
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-4">
-          <input type="hidden" name="id" value={organization.id} />
+          <input type="hidden" name="id" value={location.id} />
 
           {formState?.success === false && (
             <div
@@ -125,7 +125,7 @@ export default function OrganizationForm({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Organisationsname"
+              placeholder="Standortname"
               required
               aria-describedby={
                 formState?.success === false && formState.issues?.name
@@ -176,7 +176,7 @@ export default function OrganizationForm({
                 <DialogHeader>
                   <DialogTitle>Organisation löschen</DialogTitle>
                   <DialogDescription>
-                    Möchten Sie die Organisation &quot;{organization.name}&quot;
+                    Möchten Sie den Standort &quot;{location.name}&quot;
                     wirklich löschen? Diese Aktion kann nicht rückgängig gemacht
                     werden.
                   </DialogDescription>
