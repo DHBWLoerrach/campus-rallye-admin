@@ -6,8 +6,8 @@ import { Location, LocationOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import {
   formatZodError,
-  organizationCreateSchema,
-  organizationUpdateSchema,
+  locationCreateSchema,
+  locationUpdateSchema,
 } from '@/lib/validation';
 import type { RallyeOption } from '@/lib/types';
 
@@ -21,7 +21,7 @@ export async function createLocation(state: FormState, formData: FormData) {
   const supabase = await createClient();
 
   const rawRallyeId = formData.get('default_rallye_id');
-  const parsed = organizationCreateSchema.safeParse({
+  const parsed = locationCreateSchema.safeParse({
     name: formData.get('name'),
     default_rallye_id:
       rawRallyeId === 'none' || !rawRallyeId ? undefined : rawRallyeId,
@@ -37,19 +37,19 @@ export async function createLocation(state: FormState, formData: FormData) {
   };
 
   const { data: createdLocation, error } = await supabase
-    .from('organization')
+    .from('location')
     .insert(data)
     .select('id')
     .single();
 
   if (error || !createdLocation) {
-    console.error('Error creating organization:', error);
+    console.error('Error creating location:', error);
     return fail('Es ist ein Fehler aufgetreten');
   }
 
   revalidatePath('/locations');
   return ok({
-    message: 'Organisation erfolgreich gespeichert',
+    message: 'Standort erfolgreich gespeichert',
     locationId: createdLocation.id,
   });
 }
@@ -59,7 +59,7 @@ export async function updateLocation(state: FormState, formData: FormData) {
   const supabase = await createClient();
 
   const rawRallyeId = formData.get('default_rallye_id');
-  const parsed = organizationUpdateSchema.safeParse({
+  const parsed = locationUpdateSchema.safeParse({
     id: formData.get('id'),
     name: formData.get('name'),
     default_rallye_id:
@@ -73,18 +73,18 @@ export async function updateLocation(state: FormState, formData: FormData) {
   const data = parsed.data;
 
   const { data: existingLocation, error: existingError } = await supabase
-    .from('organization')
+    .from('location')
     .select('id')
     .eq('id', data.id)
     .maybeSingle();
 
   if (existingError) {
-    console.error('Error checking organization:', existingError);
+    console.error('Error checking location:', existingError);
     return fail('Es ist ein Fehler aufgetreten');
   }
 
   if (!existingLocation) {
-    return fail('Organisation nicht gefunden');
+    return fail('Standort nicht gefunden');
   }
 
   const updatePayload = {
@@ -93,17 +93,17 @@ export async function updateLocation(state: FormState, formData: FormData) {
   };
 
   const { error } = await supabase
-    .from('organization')
+    .from('location')
     .update(updatePayload)
     .eq('id', data.id);
 
   if (error) {
-    console.error('Error updating organization:', error);
+    console.error('Error updating location:', error);
     return fail('Es ist ein Fehler aufgetreten');
   }
 
   revalidatePath('/locations');
-  return ok({ message: 'Organisation erfolgreich gespeichert' });
+  return ok({ message: 'Standort erfolgreich gespeichert' });
 }
 
 export async function getLocations(): Promise<ActionResult<Location[]>> {
@@ -111,13 +111,13 @@ export async function getLocations(): Promise<ActionResult<Location[]>> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('organization')
+    .from('location')
     .select('id, name, created_at, default_rallye_id')
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching organizations:', error);
-    return fail('Fehler beim Laden der Organisationen');
+    console.error('Error fetching locations:', error);
+    return fail('Fehler beim Laden der Standorte');
   }
 
   return ok(data || []);
@@ -129,64 +129,62 @@ export async function getLocationOptions(): Promise<
   await requireAdmin();
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from('organization')
-    .select('id, name');
+  const { data, error } = await supabase.from('location').select('id, name');
 
   if (error) {
-    console.error('Error fetching organization options:', error);
-    return fail('Fehler beim Laden der Organisationen');
+    console.error('Error fetching location options:', error);
+    return fail('Fehler beim Laden der Standorte');
   }
 
-  const organizations = (data || []) as LocationOption[];
-  organizations.sort((a, b) =>
+  const locations = (data || []) as LocationOption[];
+  locations.sort((a, b) =>
     a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
   );
-  return ok(organizations);
+  return ok(locations);
 }
 
 export async function deleteLocation(
-  organizationId: string
+  locationId: string
 ): Promise<ActionResult<{ message: string }>> {
   await requireAdmin();
   const supabase = await createClient();
 
-  const idResult = organizationUpdateSchema.shape.id.safeParse(organizationId);
+  const idResult = locationUpdateSchema.shape.id.safeParse(locationId);
   if (!idResult.success) {
-    return fail('Ungültige Organisations-ID', formatZodError(idResult.error));
+    return fail('Ungültige Standort-ID', formatZodError(idResult.error));
   }
 
   const { data: existingLocation, error: existingError } = await supabase
-    .from('organization')
+    .from('location')
     .select('id')
     .eq('id', idResult.data)
     .maybeSingle();
 
   if (existingError) {
-    console.error('Error checking organization:', existingError);
+    console.error('Error checking location:', existingError);
     return fail('Es ist ein Fehler aufgetreten');
   }
 
   if (!existingLocation) {
-    return fail('Organisation nicht gefunden');
+    return fail('Standort nicht gefunden');
   }
 
   const { error } = await supabase
-    .from('organization')
+    .from('location')
     .delete()
     .eq('id', idResult.data);
 
   if (error) {
-    console.error('Error deleting organization:', error);
-    return fail('Fehler beim Löschen der Organisation');
+    console.error('Error deleting location:', error);
+    return fail('Fehler beim Löschen des Standorts');
   }
 
   revalidatePath('/locations');
-  return ok({ message: 'Organisation erfolgreich gelöscht' });
+  return ok({ message: 'Standort erfolgreich gelöscht' });
 }
 
 export async function getRallyeOptionsByLocation(
-  organizationId: number
+  locationId: number
 ): Promise<ActionResult<RallyeOption[]>> {
   await requireAdmin();
   const supabase = await createClient();
@@ -194,10 +192,10 @@ export async function getRallyeOptionsByLocation(
   const { data, error } = await supabase
     .from('department')
     .select('join_department_rallye(rallye(id, name))')
-    .eq('organization_id', organizationId);
+    .eq('location_id', locationId);
 
   if (error) {
-    console.error('Error fetching rallye options for organization:', error);
+    console.error('Error fetching rallye options for location:', error);
     return fail('Fehler beim Laden der Rallye-Optionen');
   }
 

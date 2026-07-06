@@ -9,7 +9,7 @@ export interface RallyeUiLocation {
 export interface RallyeUiDepartment {
   id: number;
   name: string;
-  organization_id: number;
+  location_id: number;
 }
 
 export interface RallyeUiDepartmentAssignment {
@@ -50,7 +50,7 @@ export function getEventDepartmentIds(
   const eventDepartmentIds = new Set<number>();
 
   for (const department of departments) {
-    const locationName = locationNameById.get(department.organization_id);
+    const locationName = locationNameById.get(department.location_id);
     if (!locationName) continue;
 
     if (isEventDepartmentForLocation(department.name, locationName)) {
@@ -71,7 +71,7 @@ export function getEventDepartmentIdByLocation(
     const matchingDepartmentIds = departments
       .filter(
         (department) =>
-          department.organization_id === location.id &&
+          department.location_id === location.id &&
           isEventDepartmentForLocation(department.name, location.name)
       )
       .map((department) => department.id)
@@ -171,7 +171,7 @@ export function classifyRallyesByType({
 
       departmentNames.push(department.name);
 
-      const location = locationById.get(department.organization_id);
+      const location = locationById.get(department.location_id);
       if (!location) {
         hasUnknown = true;
         continue;

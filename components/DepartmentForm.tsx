@@ -61,8 +61,8 @@ export default function DepartmentForm({
   const [formState, formAction] = useActionState(updateDepartment, null);
   const [name, setName] = useState<string>(department.name);
   const isSingleSite = locationOptions.length === 1;
-  const [organizationId, setOrganizationId] = useState<string>(
-    department.organization_id.toString()
+  const [locationId, setLocationId] = useState<string>(
+    department.location_id.toString()
   );
   const [selectedRallyeIds, setSelectedRallyeIds] = useState<Set<number>>(
     new Set(assignedRallyeIds)
@@ -163,18 +163,14 @@ export default function DepartmentForm({
 
           <div className="grid gap-2">
             {isSingleSite ? (
-              <input
-                type="hidden"
-                name="organization_id"
-                value={organizationId}
-              />
+              <input type="hidden" name="location_id" value={locationId} />
             ) : (
               <>
-                <Label htmlFor="organization_id">Standort</Label>
+                <Label htmlFor="location_id">Standort</Label>
                 <Select
-                  name="organization_id"
-                  value={organizationId}
-                  onValueChange={setOrganizationId}
+                  name="location_id"
+                  value={locationId}
+                  onValueChange={setLocationId}
                   required
                 >
                   <SelectTrigger>
@@ -189,9 +185,9 @@ export default function DepartmentForm({
                   </SelectContent>
                 </Select>
                 {formState?.success === false &&
-                  formState.issues?.organization_id && (
+                  formState.issues?.location_id && (
                     <div className="text-sm text-red-600 dark:text-red-400">
-                      {formState.issues.organization_id}
+                      {formState.issues.location_id}
                     </div>
                   )}
               </>

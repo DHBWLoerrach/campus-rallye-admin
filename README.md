@@ -22,7 +22,7 @@ supabase db dump --db-url "postgresql://postgres:<password>@<serverurl>/postgres
 ### Hinweis zum Datenmodell
 
 - `studiengang` wurde durch Departments ersetzt (Tabelle `department` + Verknüpfung über `join_department_rallye`).
-- `tour_mode` existiert nicht mehr in `rallye`. Tour-Mode wird über `organization.default_rallye_id` abgebildet.
+- `tour_mode` existiert nicht mehr in `rallye`. Tour-Mode wird über `location.default_rallye_id` abgebildet.
 - Rallye-Statuswerte: `preparing`, `inactive`, `running`, `voting`, `ranking`, `ended`.
 
 ## KeyCloak für Authentifizierung

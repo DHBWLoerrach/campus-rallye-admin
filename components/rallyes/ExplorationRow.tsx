@@ -4,14 +4,14 @@ import Link from 'next/link';
 interface ExplorationRowProps {
   rallyeId: number;
   name: string;
-  organizationLabel?: string;
+  locationLabel?: string;
   questionCount?: number;
 }
 
 export default function ExplorationRow({
   rallyeId,
   name,
-  organizationLabel,
+  locationLabel,
   questionCount,
 }: ExplorationRowProps) {
   const questionCountLabel =
@@ -28,9 +28,9 @@ export default function ExplorationRow({
           <p className="truncate text-base font-semibold text-foreground">
             {name}
           </p>
-          {organizationLabel && (
+          {locationLabel && (
             <p className="truncate text-xs text-muted-foreground">
-              {organizationLabel}
+              {locationLabel}
             </p>
           )}
         </div>

@@ -21,7 +21,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
 
   const parsed = departmentCreateSchema.safeParse({
     name: formData.get('name'),
-    organization_id: formData.get('organization_id'),
+    location_id: formData.get('location_id'),
   });
 
   if (!parsed.success) {
@@ -30,23 +30,23 @@ export async function createDepartment(state: FormState, formData: FormData) {
 
   const data = {
     name: parsed.data.name,
-    organization_id: parsed.data.organization_id,
+    location_id: parsed.data.location_id,
   };
 
-  // Verify that the organization exists
-  const { data: existingOrganization, error: orgError } = await supabase
-    .from('organization')
+  // Verify that the location exists
+  const { data: existingLocation, error: locationError } = await supabase
+    .from('location')
     .select('id')
-    .eq('id', data.organization_id)
+    .eq('id', data.location_id)
     .maybeSingle();
 
-  if (orgError) {
-    console.error('Error checking organization:', orgError);
+  if (locationError) {
+    console.error('Error checking location:', locationError);
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  if (!existingOrganization) {
-    return fail('Organisation nicht gefunden');
+  if (!existingLocation) {
+    return fail('Standort nicht gefunden');
   }
 
   const { data: createdDepartment, error } = await supabase
@@ -109,7 +109,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   const parsed = departmentUpdateSchema.safeParse({
     id: formData.get('id'),
     name: formData.get('name'),
-    organization_id: formData.get('organization_id'),
+    location_id: formData.get('location_id'),
   });
 
   if (!parsed.success) {
@@ -134,25 +134,25 @@ export async function updateDepartment(state: FormState, formData: FormData) {
     return fail('Abteilung nicht gefunden');
   }
 
-  // Verify that the organization exists
-  const { data: existingOrganization, error: orgError } = await supabase
-    .from('organization')
+  // Verify that the location exists
+  const { data: existingLocation, error: locationError } = await supabase
+    .from('location')
     .select('id')
-    .eq('id', data.organization_id)
+    .eq('id', data.location_id)
     .maybeSingle();
 
-  if (orgError) {
-    console.error('Error checking organization:', orgError);
+  if (locationError) {
+    console.error('Error checking location:', locationError);
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  if (!existingOrganization) {
-    return fail('Organisation nicht gefunden');
+  if (!existingLocation) {
+    return fail('Standort nicht gefunden');
   }
 
   const updatePayload = {
     name: data.name,
-    organization_id: data.organization_id,
+    location_id: data.location_id,
   };
 
   const { error } = await supabase
@@ -241,7 +241,7 @@ export async function getDepartments(): Promise<ActionResult<Department[]>> {
 
   const { data, error } = await supabase
     .from('department')
-    .select('id, name, created_at, organization_id')
+    .select('id, name, created_at, location_id')
     .order('created_at', { ascending: false });
 
   if (error) {

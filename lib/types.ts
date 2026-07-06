@@ -62,7 +62,7 @@ export interface Department {
   id: number;
   name: string;
   created_at: string;
-  organization_id: number;
+  location_id: number;
 }
 
 export type DepartmentOption = Pick<Department, 'id' | 'name'>;

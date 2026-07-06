@@ -52,7 +52,7 @@ describe('createLocation', () => {
     const { createLocation } = await import('./location');
 
     await expect(
-      createLocation(null, makeFormData({ name: 'Test Org' }))
+      createLocation(null, makeFormData({ name: 'Test Loc' }))
     ).rejects.toThrow('Denied');
 
     expect(mockCreateClient).not.toHaveBeenCalled();
@@ -115,7 +115,7 @@ describe('updateLocation', () => {
 
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
-    expect(result.error).toBe('Organisation nicht gefunden');
+    expect(result.error).toBe('Standort nicht gefunden');
   });
 });
 
@@ -133,7 +133,7 @@ describe('deleteLocation', () => {
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
-    expect(result.error).toBe('Ungültige Organisations-ID');
+    expect(result.error).toBe('Ungültige Standort-ID');
   });
 
   it('returns error when location not found', async () => {
@@ -149,7 +149,7 @@ describe('deleteLocation', () => {
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
-    expect(result.error).toBe('Organisation nicht gefunden');
+    expect(result.error).toBe('Standort nicht gefunden');
   });
 });
 

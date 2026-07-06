@@ -16,28 +16,28 @@ export default async function LocationsPage() {
 
   // Load locations
   const { data: locations } = await supabase
-    .from('organization')
+    .from('location')
     .select('id, name, created_at, default_rallye_id')
     .order('name');
 
   // Load all department-rallye links in one query and group by location.
   const { data: departmentRallyeRows } = await supabase
     .from('department')
-    .select('organization_id, join_department_rallye(rallye(id, name))');
+    .select('location_id, join_department_rallye(rallye(id, name))');
 
   const rallyeOptionsMap = new Map<number, RallyeOption[]>();
   const defaultRallyeNames = new Map<number, string>();
-  const rallyeMapByOrganization = new Map<number, Map<number, string>>();
+  const rallyeMapByLocation = new Map<number, Map<number, string>>();
   const emptyRallyeMap = new Map<number, string>();
 
   for (const row of departmentRallyeRows || []) {
-    const organizationId = (row as { organization_id: number }).organization_id;
+    const locationId = (row as { location_id: number }).location_id;
     const joins = (row as Record<string, unknown>).join_department_rallye;
 
-    let organizationRallyes = rallyeMapByOrganization.get(organizationId);
-    if (!organizationRallyes) {
-      organizationRallyes = new Map<number, string>();
-      rallyeMapByOrganization.set(organizationId, organizationRallyes);
+    let locationRallyes = rallyeMapByLocation.get(locationId);
+    if (!locationRallyes) {
+      locationRallyes = new Map<number, string>();
+      rallyeMapByLocation.set(locationId, locationRallyes);
     }
 
     if (!Array.isArray(joins)) {
@@ -55,16 +55,16 @@ export default async function LocationsPage() {
         typeof rallye.id === 'number' &&
         typeof rallye.name === 'string'
       ) {
-        organizationRallyes.set(rallye.id, rallye.name);
+        locationRallyes.set(rallye.id, rallye.name);
       }
     }
   }
 
   if (locations) {
     locations.forEach((location) => {
-      const rallyesForOrganization =
-        rallyeMapByOrganization.get(location.id) || emptyRallyeMap;
-      const options = Array.from(rallyesForOrganization.entries())
+      const rallyesForLocation =
+        rallyeMapByLocation.get(location.id) || emptyRallyeMap;
+      const options = Array.from(rallyesForLocation.entries())
         .map(([id, name]) => ({ id, name }))
         .sort((a, b) =>
           a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
@@ -73,7 +73,7 @@ export default async function LocationsPage() {
       rallyeOptionsMap.set(location.id, options);
 
       if (location.default_rallye_id) {
-        const defaultRallyeName = rallyesForOrganization.get(
+        const defaultRallyeName = rallyesForLocation.get(
           location.default_rallye_id
         );
         if (defaultRallyeName) {

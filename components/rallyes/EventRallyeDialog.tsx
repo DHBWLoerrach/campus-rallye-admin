@@ -198,11 +198,7 @@ export default function EventRallyeDialog({
                 </p>
               )}
               {locationId.length > 0 && (
-                <input
-                  type="hidden"
-                  name="organization_id"
-                  value={locationId}
-                />
+                <input type="hidden" name="location_id" value={locationId} />
               )}
               {hasSelectedEventDepartment && (
                 <input

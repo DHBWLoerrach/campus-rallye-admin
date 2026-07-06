@@ -25,7 +25,7 @@ type RallyeRow = {
 type DepartmentRow = {
   id: number;
   name: string;
-  organization_id: number;
+  location_id: number;
 };
 
 type LocationRow = {
@@ -116,7 +116,7 @@ export default async function Home() {
 
   // Load location and department data for UI type classification
   const { data: locations } = await supabase
-    .from('organization')
+    .from('location')
     .select('id, name, default_rallye_id');
   const typedLocations = ((locations || []) as LocationRow[]).sort((a, b) =>
     a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
@@ -125,7 +125,7 @@ export default async function Home() {
 
   const { data: departmentRows } = await supabase
     .from('department')
-    .select('id, name, organization_id')
+    .select('id, name, location_id')
     .order('name');
   const typedDepartmentRows = (departmentRows || []) as DepartmentRow[];
   const departmentOptions = typedDepartmentRows.map(({ id, name }) => ({
@@ -343,7 +343,7 @@ export default async function Home() {
                       key={rallye.id}
                       rallyeId={rallye.id}
                       name={rallye.name}
-                      organizationLabel={meta?.contextLabel}
+                      locationLabel={meta?.contextLabel}
                       questionCount={questionCounts.get(rallye.id)}
                     />
                   );

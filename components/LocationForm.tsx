@@ -174,7 +174,7 @@ export default function LocationForm({
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Organisation löschen</DialogTitle>
+                  <DialogTitle>Standort löschen</DialogTitle>
                   <DialogDescription>
                     Möchten Sie den Standort &quot;{location.name}&quot;
                     wirklich löschen? Diese Aktion kann nicht rückgängig gemacht

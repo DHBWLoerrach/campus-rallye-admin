@@ -34,14 +34,13 @@ export default function DepartmentsClient({
 }: DepartmentsClientProps) {
   const isSingleSite = locationOptions.length === 1;
   const siteLabel = locationOptions[0]?.name || 'DHBW Lörrach';
-  const [selectedOrganizationId, setSelectedOrganizationId] =
-    useState<string>('all');
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('all');
 
   const filteredDepartments =
-    isSingleSite || selectedOrganizationId === 'all'
+    isSingleSite || selectedLocationId === 'all'
       ? departments
       : departments.filter(
-          (dept) => dept.organization_id.toString() === selectedOrganizationId
+          (dept) => dept.location_id.toString() === selectedLocationId
         );
 
   return (
@@ -62,21 +61,21 @@ export default function DepartmentsClient({
 
       {!isSingleSite && departments.length > 0 && (
         <div className="flex items-center space-x-4">
-          <Label htmlFor="organization-filter" className="text-sm font-medium">
+          <Label htmlFor="location-filter" className="text-sm font-medium">
             Filter nach Standort:
           </Label>
           <Select
-            value={selectedOrganizationId}
-            onValueChange={setSelectedOrganizationId}
+            value={selectedLocationId}
+            onValueChange={setSelectedLocationId}
           >
             <SelectTrigger className="w-62.5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle Standorte</SelectItem>
-              {locationOptions.map((org) => (
-                <SelectItem key={org.id} value={org.id.toString()}>
-                  {org.name}
+              {locationOptions.map((location) => (
+                <SelectItem key={location.id} value={location.id.toString()}>
+                  {location.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -112,7 +111,7 @@ export default function DepartmentsClient({
               locationName={
                 isSingleSite
                   ? ''
-                  : locationNames.get(department.organization_id) || 'Unbekannt'
+                  : locationNames.get(department.location_id) || 'Unbekannt'
               }
               rallyeOptions={rallyeOptions}
               assignedRallyeIds={rallyeAssignmentsMap.get(department.id) || []}

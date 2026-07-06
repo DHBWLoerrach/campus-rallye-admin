@@ -60,13 +60,13 @@ describe('createDepartment', () => {
     const { createDepartment } = await import('./department');
 
     await expect(
-      createDepartment(null, makeFormData({ name: 'IT', organization_id: '1' }))
+      createDepartment(null, makeFormData({ name: 'IT', location_id: '1' }))
     ).rejects.toThrow('Denied');
 
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
-  it('returns error when organization not found', async () => {
+  it('returns error when location not found', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const selectEq = vi.fn(() => ({ maybeSingle }));
@@ -77,23 +77,25 @@ describe('createDepartment', () => {
     const { createDepartment } = await import('./department');
     const result = await createDepartment(
       null,
-      makeFormData({ name: 'IT', organization_id: '999' })
+      makeFormData({ name: 'IT', location_id: '999' })
     );
 
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
-    expect(result.error).toBe('Organisation nicht gefunden');
+    expect(result.error).toBe('Standort nicht gefunden');
   });
 
   it('saves rallye assignments after creating department', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    // org check
-    const orgMaybeSingle = vi
+    // location check
+    const locationMaybeSingle = vi
       .fn()
       .mockResolvedValue({ data: { id: 1 }, error: null });
-    const orgSelectEq = vi.fn(() => ({ maybeSingle: orgMaybeSingle }));
-    const orgSelect = vi.fn(() => ({ eq: orgSelectEq }));
+    const locationSelectEq = vi.fn(() => ({
+      maybeSingle: locationMaybeSingle,
+    }));
+    const locationSelect = vi.fn(() => ({ eq: locationSelectEq }));
 
     // department insert
     const deptSingle = vi
@@ -106,9 +108,9 @@ describe('createDepartment', () => {
     const joinInsert = vi.fn().mockResolvedValue({ error: null });
 
     const from = vi.fn((table: string) => {
-      if (table === 'organization') return { select: orgSelect };
+      if (table === 'location') return { select: locationSelect };
       if (table === 'department')
-        return { insert: deptInsert, select: orgSelect };
+        return { insert: deptInsert, select: locationSelect };
       if (table === 'join_department_rallye') return { insert: joinInsert };
       return {};
     });
@@ -118,7 +120,7 @@ describe('createDepartment', () => {
     const result = await createDepartment(
       null,
       makeFormData(
-        { name: 'IT', organization_id: '1' },
+        { name: 'IT', location_id: '1' },
         { rallye_ids: ['10', '20'] }
       )
     );
@@ -133,11 +135,13 @@ describe('createDepartment', () => {
   it('skips rallye insert when no rallye_ids provided', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    const orgMaybeSingle = vi
+    const locationMaybeSingle = vi
       .fn()
       .mockResolvedValue({ data: { id: 1 }, error: null });
-    const orgSelectEq = vi.fn(() => ({ maybeSingle: orgMaybeSingle }));
-    const orgSelect = vi.fn(() => ({ eq: orgSelectEq }));
+    const locationSelectEq = vi.fn(() => ({
+      maybeSingle: locationMaybeSingle,
+    }));
+    const locationSelect = vi.fn(() => ({ eq: locationSelectEq }));
 
     const deptSingle = vi
       .fn()
@@ -148,9 +152,9 @@ describe('createDepartment', () => {
     const joinInsert = vi.fn().mockResolvedValue({ error: null });
 
     const from = vi.fn((table: string) => {
-      if (table === 'organization') return { select: orgSelect };
+      if (table === 'location') return { select: locationSelect };
       if (table === 'department')
-        return { insert: deptInsert, select: orgSelect };
+        return { insert: deptInsert, select: locationSelect };
       if (table === 'join_department_rallye') return { insert: joinInsert };
       return {};
     });
@@ -159,7 +163,7 @@ describe('createDepartment', () => {
     const { createDepartment } = await import('./department');
     const result = await createDepartment(
       null,
-      makeFormData({ name: 'IT', organization_id: '1' })
+      makeFormData({ name: 'IT', location_id: '1' })
     );
 
     expect(result?.success).toBe(true);
@@ -169,11 +173,13 @@ describe('createDepartment', () => {
   it('returns an error when rallye assignment insert fails and rolls back department', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
 
-    const orgMaybeSingle = vi
+    const locationMaybeSingle = vi
       .fn()
       .mockResolvedValue({ data: { id: 1 }, error: null });
-    const orgSelectEq = vi.fn(() => ({ maybeSingle: orgMaybeSingle }));
-    const orgSelect = vi.fn(() => ({ eq: orgSelectEq }));
+    const locationSelectEq = vi.fn(() => ({
+      maybeSingle: locationMaybeSingle,
+    }));
+    const locationSelect = vi.fn(() => ({ eq: locationSelectEq }));
 
     const deptSingle = vi
       .fn()
@@ -188,9 +194,13 @@ describe('createDepartment', () => {
       .mockResolvedValue({ error: { message: 'insert failed' } });
 
     const from = vi.fn((table: string) => {
-      if (table === 'organization') return { select: orgSelect };
+      if (table === 'location') return { select: locationSelect };
       if (table === 'department') {
-        return { insert: deptInsert, delete: deptDelete, select: orgSelect };
+        return {
+          insert: deptInsert,
+          delete: deptDelete,
+          select: locationSelect,
+        };
       }
       if (table === 'join_department_rallye') return { insert: joinInsert };
       return {};
@@ -201,7 +211,7 @@ describe('createDepartment', () => {
     const result = await createDepartment(
       null,
       makeFormData(
-        { name: 'IT', organization_id: '1' },
+        { name: 'IT', location_id: '1' },
         { rallye_ids: ['10', '20'] }
       )
     );
@@ -245,7 +255,7 @@ describe('updateDepartment', () => {
     const { updateDepartment } = await import('./department');
     const result = await updateDepartment(
       null,
-      makeFormData({ id: '999', name: 'IT', organization_id: '1' })
+      makeFormData({ id: '999', name: 'IT', location_id: '1' })
     );
 
     expect(result?.success).toBe(false);
@@ -289,7 +299,7 @@ describe('updateDepartment', () => {
       if (table === 'department') {
         return { select: deptSelect, update };
       }
-      if (table === 'organization') return { select: orgSelect };
+      if (table === 'location') return { select: orgSelect };
       if (table === 'join_department_rallye') {
         return { select: joinSelect, insert: joinInsert, delete: joinDelete };
       }
@@ -301,7 +311,7 @@ describe('updateDepartment', () => {
     const result = await updateDepartment(
       null,
       makeFormData(
-        { id: '5', name: 'IT', organization_id: '1' },
+        { id: '5', name: 'IT', location_id: '1' },
         { rallye_ids: ['20', '30'] }
       )
     );
@@ -344,7 +354,7 @@ describe('updateDepartment', () => {
 
     const from = vi.fn((table: string) => {
       if (table === 'department') return { select: deptSelect, update };
-      if (table === 'organization') return { select: orgSelect };
+      if (table === 'location') return { select: orgSelect };
       if (table === 'join_department_rallye') {
         return { select: joinSelect, insert: joinInsert, delete: joinDelete };
       }
@@ -356,7 +366,7 @@ describe('updateDepartment', () => {
     const result = await updateDepartment(
       null,
       makeFormData(
-        { id: '5', name: 'IT', organization_id: '1' },
+        { id: '5', name: 'IT', location_id: '1' },
         { rallye_ids: ['20'] }
       )
     );
@@ -397,7 +407,7 @@ describe('updateDepartment', () => {
 
     const from = vi.fn((table: string) => {
       if (table === 'department') return { select: deptSelect, update };
-      if (table === 'organization') return { select: orgSelect };
+      if (table === 'location') return { select: orgSelect };
       if (table === 'join_department_rallye') {
         return { select: joinSelect, delete: joinDelete, insert: vi.fn() };
       }
@@ -408,7 +418,7 @@ describe('updateDepartment', () => {
     const { updateDepartment } = await import('./department');
     const result = await updateDepartment(
       null,
-      makeFormData({ id: '5', name: 'IT', organization_id: '1' })
+      makeFormData({ id: '5', name: 'IT', location_id: '1' })
     );
 
     expect(result?.success).toBe(false);

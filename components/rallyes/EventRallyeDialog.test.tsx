@@ -31,7 +31,7 @@ describe('EventRallyeDialog', () => {
     render(
       <EventRallyeDialog
         buttonStyle=""
-        locations={[{ id: 10, name: 'Org A', hasEventDepartment: true }]}
+        locations={[{ id: 10, name: 'Loc A', hasEventDepartment: true }]}
         eventDepartmentIdByLocationId={{ '10': 100 }}
       />
     );
@@ -39,7 +39,7 @@ describe('EventRallyeDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Event erstellen' }));
     expect(
       screen.getByRole('combobox', { name: 'Standort' })
-    ).toHaveTextContent('Org A');
+    ).toHaveTextContent('Loc A');
     fireEvent.change(screen.getByLabelText('Name'), {
       target: { value: 'Girls Day' },
     });
@@ -51,7 +51,7 @@ describe('EventRallyeDialog', () => {
 
     const submittedFormData = mockCreateRallye.mock.calls[0][1] as FormData;
     expect(submittedFormData.get('name')).toBe('Girls Day');
-    expect(submittedFormData.get('organization_id')).toBe('10');
+    expect(submittedFormData.get('location_id')).toBe('10');
     expect(submittedFormData.getAll('department_ids')).toEqual(['100']);
     expect(mockRefresh).toHaveBeenCalledTimes(1);
 
@@ -66,7 +66,7 @@ describe('EventRallyeDialog', () => {
     render(
       <EventRallyeDialog
         buttonStyle=""
-        locations={[{ id: 20, name: 'Org B', hasEventDepartment: false }]}
+        locations={[{ id: 20, name: 'Loc B', hasEventDepartment: false }]}
         eventDepartmentIdByLocationId={{}}
       />
     );
@@ -77,7 +77,7 @@ describe('EventRallyeDialog', () => {
     });
     const orgTrigger = screen.getByRole('combobox', { name: 'Standort' });
     fireEvent.click(orgTrigger);
-    fireEvent.click(screen.getByRole('option', { name: 'Org B' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Loc B' }));
 
     expect(
       screen.getByText(

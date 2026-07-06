@@ -180,9 +180,8 @@ export default function DatenschutzPage() {
           8. Rallye-, Fragen-, Team-, Upload- und Ergebnisdaten
         </h2>
         <p className="mt-2">
-          Die App verarbeitet fachliche Verwaltungsdaten wie Rallyes,
-          Organisationen, Abteilungen, Fragen, Antwortmöglichkeiten und
-          Punktewerte.
+          Die App verarbeitet fachliche Verwaltungsdaten wie Rallyes, Standorte,
+          Abteilungen, Fragen, Antwortmöglichkeiten und Punktewerte.
         </p>
         <p className="mt-2">
           Für die Durchführung und Auswertung verarbeitet die App außerdem

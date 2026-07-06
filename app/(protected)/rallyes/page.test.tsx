@@ -111,13 +111,13 @@ function buildDefaultFixture(): SupabaseFixture {
   ];
 
   const locations: SupabaseFixture['locations'] = [
-    { id: 10, name: 'Org A', default_rallye_id: 1 },
+    { id: 10, name: 'Loc A', default_rallye_id: 1 },
   ];
   const departments: SupabaseFixture['departments'] = [
-    { id: 100, name: 'Org A', organization_id: 10 },
-    { id: 103, name: ' org a ', organization_id: 10 },
-    { id: 101, name: 'Informatik', organization_id: 10 },
-    { id: 102, name: 'BWL', organization_id: 10 },
+    { id: 100, name: 'Loc A', location_id: 10 },
+    { id: 103, name: ' loc a ', location_id: 10 },
+    { id: 101, name: 'Informatik', location_id: 10 },
+    { id: 102, name: 'BWL', location_id: 10 },
   ];
   const departmentAssignments: SupabaseFixture['departmentAssignments'] = [
     { rallye_id: 1, department_id: 101 },
@@ -166,7 +166,7 @@ function createSupabaseMock(fixtureOverrides?: Partial<SupabaseFixture>) {
         order: async () => ({ data: rallyes, error: null }),
       }),
     },
-    organization: {
+    location: {
       select: async () => ({ data: locations, error: null }),
     },
     department: {
@@ -237,7 +237,7 @@ describe('/rallyes page', () => {
 
     expect(
       mockEventDialogProps[0]?.locations.map((location) => location.name)
-    ).toEqual(['Org A']);
+    ).toEqual(['Loc A']);
     expect(
       mockProgramDialogProps[0]?.departments.map((dept) => dept.name)
     ).toEqual(['Informatik', 'BWL']);
@@ -253,7 +253,7 @@ describe('/rallyes page', () => {
       within(explorationSection).getByText('Campus Tour A')
     ).toBeInTheDocument();
     expect(
-      within(explorationSection).queryByText('Standort: Org A')
+      within(explorationSection).queryByText('Standort: Loc A')
     ).not.toBeInTheDocument();
     expect(
       within(explorationSection).getByRole('link', { name: 'Fragen zuordnen' })

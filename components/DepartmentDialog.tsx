@@ -51,9 +51,9 @@ export default function DepartmentDialog({
 }) {
   const [name, setName] = useState('');
   const isSingleSite = locationOptions.length === 1;
-  const defaultOrganizationId = locationOptions[0]?.id.toString() || '';
-  const [organizationId, setOrganizationId] = useState(
-    isSingleSite ? defaultOrganizationId : ''
+  const defaultLocationId = locationOptions[0]?.id.toString() || '';
+  const [locationId, setLocationId] = useState(
+    isSingleSite ? defaultLocationId : ''
   );
   const [selectedRallyeIds, setSelectedRallyeIds] = useState<Set<number>>(
     new Set()
@@ -68,7 +68,7 @@ export default function DepartmentDialog({
     if (result?.success && result.data?.departmentId) {
       setOpen(false);
       setName('');
-      setOrganizationId(isSingleSite ? defaultOrganizationId : '');
+      setLocationId(isSingleSite ? defaultLocationId : '');
       setSelectedRallyeIds(new Set());
     }
     return result;
@@ -79,14 +79,14 @@ export default function DepartmentDialog({
     setOpen(nextOpen);
     if (!nextOpen) {
       setName('');
-      setOrganizationId(isSingleSite ? defaultOrganizationId : '');
+      setLocationId(isSingleSite ? defaultLocationId : '');
       setSelectedRallyeIds(new Set());
     }
   };
 
   const isNameEmpty = name.trim().length === 0;
-  const isOrganizationEmpty = !isSingleSite && organizationId.length === 0;
-  const isFormInvalid = isNameEmpty || isOrganizationEmpty;
+  const isLocationEmpty = !isSingleSite && locationId.length === 0;
+  const isFormInvalid = isNameEmpty || isLocationEmpty;
 
   const handleRallyeToggle = (rallyeId: number, isChecked: boolean) => {
     setSelectedRallyeIds((prev) => {
@@ -151,35 +151,34 @@ export default function DepartmentDialog({
 
             <div className="grid gap-2">
               {isSingleSite ? (
-                <input
-                  type="hidden"
-                  name="organization_id"
-                  value={organizationId}
-                />
+                <input type="hidden" name="location_id" value={locationId} />
               ) : (
                 <>
-                  <Label htmlFor="create-organization">Standort</Label>
+                  <Label htmlFor="create-location">Standort</Label>
                   <Select
-                    name="organization_id"
-                    value={organizationId}
-                    onValueChange={setOrganizationId}
+                    name="location_id"
+                    value={locationId}
+                    onValueChange={setLocationId}
                     required
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Standort auswählen" />
                     </SelectTrigger>
                     <SelectContent>
-                      {locationOptions.map((org) => (
-                        <SelectItem key={org.id} value={org.id.toString()}>
-                          {org.name}
+                      {locationOptions.map((location) => (
+                        <SelectItem
+                          key={location.id}
+                          value={location.id.toString()}
+                        >
+                          {location.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {formState?.success === false &&
-                    formState.issues?.organization_id && (
+                    formState.issues?.location_id && (
                       <div className="text-sm text-red-600 dark:text-red-400">
-                        {formState.issues.organization_id}
+                        {formState.issues.location_id}
                       </div>
                     )}
                 </>

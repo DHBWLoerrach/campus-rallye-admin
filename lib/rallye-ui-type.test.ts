@@ -16,10 +16,10 @@ const locations: RallyeUiLocation[] = [
 ];
 
 const departments: RallyeUiDepartment[] = [
-  { id: 10, name: 'DHBW Lörrach', organization_id: 1 },
-  { id: 11, name: 'Informatik', organization_id: 1 },
-  { id: 20, name: ' Campus Mannheim ', organization_id: 2 },
-  { id: 21, name: 'BWL', organization_id: 2 },
+  { id: 10, name: 'DHBW Lörrach', location_id: 1 },
+  { id: 11, name: 'Informatik', location_id: 1 },
+  { id: 20, name: ' Campus Mannheim ', location_id: 2 },
+  { id: 21, name: 'BWL', location_id: 2 },
 ];
 
 const assignments: RallyeUiDepartmentAssignment[] = [
@@ -128,8 +128,8 @@ describe('getEventDepartmentIdByLocation', () => {
   it('returns one deterministic event department per location', () => {
     const eventDepartmentMap = getEventDepartmentIdByLocation(locations, [
       ...departments,
-      { id: 5, name: 'DHBW Lörrach', organization_id: 1 },
-      { id: 6, name: 'dhbw lörrach', organization_id: 1 },
+      { id: 5, name: 'DHBW Lörrach', location_id: 1 },
+      { id: 6, name: 'dhbw lörrach', location_id: 1 },
     ]);
 
     expect(eventDepartmentMap.get(1)).toBe(5);
@@ -141,8 +141,8 @@ describe('getEventDepartmentIds', () => {
   it('returns all departments that match the event naming convention', () => {
     const ids = getEventDepartmentIds(locations, [
       ...departments,
-      { id: 5, name: 'DHBW Lörrach', organization_id: 1 },
-      { id: 6, name: 'Informatik', organization_id: 1 },
+      { id: 5, name: 'DHBW Lörrach', location_id: 1 },
+      { id: 6, name: 'Informatik', location_id: 1 },
     ]);
 
     expect(Array.from(ids).sort((a, b) => a - b)).toEqual([5, 10, 20]);
