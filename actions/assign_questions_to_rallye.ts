@@ -196,6 +196,177 @@ export async function assignQuestionsToRallye(
   return ok({ message: 'Fragen erfolgreich zugeordnet' });
 }
 
+type IdPairValidation =
+  | { ok: true; rallyeId: number; questionId: number }
+  | { ok: false; result: ActionResult<never> };
+
+const validateIdPair = (
+  rallyeId: number,
+  questionId: number
+): IdPairValidation => {
+  const rallyeIdResult = idSchema.safeParse(rallyeId);
+  if (!rallyeIdResult.success) {
+    return {
+      ok: false,
+      result: fail('Ungültige Rallye-ID', formatZodError(rallyeIdResult.error)),
+    };
+  }
+  const questionIdResult = idSchema.safeParse(questionId);
+  if (!questionIdResult.success) {
+    return {
+      ok: false,
+      result: fail(
+        'Ungültige Frage-ID',
+        formatZodError(questionIdResult.error)
+      ),
+    };
+  }
+  return {
+    ok: true,
+    rallyeId: rallyeIdResult.data,
+    questionId: questionIdResult.data,
+  };
+};
+
+const revalidateRallyeDetail = (rallyeId: number) => {
+  revalidatePath('/rallyes');
+  revalidatePath(`/rallyes/${rallyeId}`, 'layout');
+};
+
+export async function addQuestionToRallye(
+  rallyeId: number,
+  questionId: number
+): Promise<ActionResult<{ message: string }>> {
+  await requireProfile();
+  const ids = validateIdPair(rallyeId, questionId);
+  if (!ids.ok) return ids.result;
+
+  const supabase = await createClient();
+
+  const { data: existingRallye, error: rallyeError } = await supabase
+    .from('rallye')
+    .select('id')
+    .eq('id', ids.rallyeId)
+    .maybeSingle();
+  if (rallyeError) {
+    console.error('Error checking rallye:', rallyeError);
+    return fail('Rallye konnte nicht aktualisiert werden');
+  }
+  if (!existingRallye) {
+    return fail('Rallye nicht gefunden');
+  }
+
+  const { data: question, error: questionError } = await supabase
+    .from('questions')
+    .select('id, type')
+    .eq('id', ids.questionId)
+    .maybeSingle();
+  if (questionError) {
+    console.error('Error checking question:', questionError);
+    return fail('Frage konnte nicht geladen werden');
+  }
+  if (!question) {
+    return fail('Frage nicht gefunden');
+  }
+
+  const { data: existingJoin, error: joinError } = await supabase
+    .from('join_rallye_questions')
+    .select('question_id')
+    .eq('rallye_id', ids.rallyeId)
+    .eq('question_id', ids.questionId)
+    .maybeSingle();
+  if (joinError) {
+    console.error('Error checking assignment:', joinError);
+    return fail('Rallye konnte nicht aktualisiert werden');
+  }
+  if (existingJoin) {
+    return ok({ message: 'Frage ist bereits zugeordnet' });
+  }
+
+  const { error: insertError } = await supabase
+    .from('join_rallye_questions')
+    .insert({
+      rallye_id: ids.rallyeId,
+      question_id: ids.questionId,
+      is_voting: false,
+    });
+  if (insertError) {
+    console.error('Error adding question to rallye:', insertError);
+    return fail('Rallye konnte nicht aktualisiert werden');
+  }
+
+  revalidateRallyeDetail(ids.rallyeId);
+  return ok({ message: 'Frage hinzugefügt' });
+}
+
+export async function removeQuestionFromRallye(
+  rallyeId: number,
+  questionId: number
+): Promise<ActionResult<{ message: string }>> {
+  await requireProfile();
+  const ids = validateIdPair(rallyeId, questionId);
+  if (!ids.ok) return ids.result;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('join_rallye_questions')
+    .delete()
+    .eq('rallye_id', ids.rallyeId)
+    .eq('question_id', ids.questionId);
+  if (error) {
+    console.error('Error removing question from rallye:', error);
+    return fail('Rallye konnte nicht aktualisiert werden');
+  }
+
+  revalidateRallyeDetail(ids.rallyeId);
+  return ok({ message: 'Frage entfernt' });
+}
+
+export async function setQuestionVoting(
+  rallyeId: number,
+  questionId: number,
+  isVoting: boolean
+): Promise<ActionResult<{ message: string }>> {
+  await requireProfile();
+  const ids = validateIdPair(rallyeId, questionId);
+  if (!ids.ok) return ids.result;
+
+  const supabase = await createClient();
+
+  // Voting is only allowed for upload questions (same rule as the full sync).
+  if (isVoting) {
+    const { data: question, error: questionError } = await supabase
+      .from('questions')
+      .select('id, type')
+      .eq('id', ids.questionId)
+      .maybeSingle();
+    if (questionError) {
+      console.error('Error checking question:', questionError);
+      return fail('Frage konnte nicht geladen werden');
+    }
+    if (!question || question.type !== 'upload') {
+      return fail('Abstimmung nur für Upload-Fragen möglich');
+    }
+  }
+
+  const { data: updatedRows, error } = await supabase
+    .from('join_rallye_questions')
+    .update({ is_voting: isVoting })
+    .eq('rallye_id', ids.rallyeId)
+    .eq('question_id', ids.questionId)
+    .select('question_id');
+  if (error) {
+    console.error('Error updating voting flag:', error);
+    return fail('Rallye konnte nicht aktualisiert werden');
+  }
+  if (!updatedRows || updatedRows.length === 0) {
+    return fail('Frage ist dieser Rallye nicht zugeordnet');
+  }
+
+  revalidateRallyeDetail(ids.rallyeId);
+  return ok({ message: 'Abstimmung aktualisiert' });
+}
+
 export async function getRallyeQuestions(
   rallyeId: number
 ): Promise<ActionResult<number[]>> {
