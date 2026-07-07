@@ -30,17 +30,17 @@ export type RallyeOption = Pick<Rallye, 'id' | 'name'>;
 export const getRallyeStatusLabel = (status: RallyeStatus): string => {
   switch (status) {
     case 'preparing':
-      return 'Vorbereitung';
+      return 'Entwurf';
     case 'running':
-      return 'Gestartet';
+      return 'Läuft';
     case 'voting':
       return 'Abstimmung';
     case 'ranking':
       return 'Ranking';
     case 'ended':
-      return 'Beendet';
+      return 'Abgeschlossen';
     case 'inactive':
-      return 'Inaktiv';
+      return 'Bereit';
     default:
       return 'Unbekannt';
   }
