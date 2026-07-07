@@ -23,6 +23,7 @@ interface DepartmentsClientProps {
   locationNames: Map<number, string>;
   rallyeOptions: RallyeOption[];
   rallyeAssignmentsMap: Map<number, number[]>;
+  userCountByDepartment: Map<number, number>;
 }
 
 export default function DepartmentsClient({
@@ -31,6 +32,7 @@ export default function DepartmentsClient({
   locationNames,
   rallyeOptions,
   rallyeAssignmentsMap,
+  userCountByDepartment,
 }: DepartmentsClientProps) {
   const isSingleSite = locationOptions.length === 1;
   const siteLabel = locationOptions[0]?.name || 'DHBW Lörrach';
@@ -121,6 +123,7 @@ export default function DepartmentsClient({
               }
               rallyeOptions={rallyeOptions}
               assignedRallyeIds={rallyeAssignmentsMap.get(department.id) || []}
+              assignedUserCount={userCountByDepartment.get(department.id) || 0}
             />
           ))}
         </div>

@@ -11,6 +11,7 @@ interface DepartmentProps {
   locationName: string;
   rallyeOptions: RallyeOption[];
   assignedRallyeIds: number[];
+  assignedUserCount: number;
 }
 
 export default function Department({
@@ -19,6 +20,7 @@ export default function Department({
   locationName,
   rallyeOptions,
   assignedRallyeIds,
+  assignedUserCount,
 }: DepartmentProps) {
   const [editMode, setEditMode] = useState(false);
 
@@ -28,6 +30,7 @@ export default function Department({
       locationOptions={locationOptions}
       rallyeOptions={rallyeOptions}
       assignedRallyeIds={assignedRallyeIds}
+      assignedUserCount={assignedUserCount}
       onCancel={() => setEditMode(false)}
     />
   ) : (

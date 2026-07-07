@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import createClient from '@/lib/supabase';
 import { requireAdmin } from '@/lib/require-profile';
+import { listLocalUsers } from '@/lib/db/local-user';
 import DepartmentsClient from '@/components/DepartmentsClient';
 
 export default async function DepartmentsPage() {
@@ -70,6 +71,17 @@ export default async function DepartmentsPage() {
     );
   }
 
+  // Count local users per department for the delete-warning in the UI.
+  const userCountByDepartment = new Map<number, number>();
+  for (const user of listLocalUsers()) {
+    if (user.department_id !== null) {
+      userCountByDepartment.set(
+        user.department_id,
+        (userCountByDepartment.get(user.department_id) || 0) + 1
+      );
+    }
+  }
+
   return (
     <DepartmentsClient
       departments={departments || []}
@@ -77,6 +89,7 @@ export default async function DepartmentsPage() {
       locationNames={locationNames}
       rallyeOptions={rallyeOptions || []}
       rallyeAssignmentsMap={rallyeAssignmentsMap}
+      userCountByDepartment={userCountByDepartment}
     />
   );
 }

@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
 import { requireAdmin } from '@/lib/require-profile';
+import { clearDepartmentAssignments } from '@/lib/db/local-user';
 import { Department, DepartmentOption } from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import {
@@ -297,8 +298,18 @@ export async function deleteDepartment(
     return fail('Fehler beim Löschen der Abteilung');
   }
 
+  // Application-level ON DELETE SET NULL: local_users reference Supabase
+  // departments without a real FK, so clear stale assignments here.
+  const clearedUsers = clearDepartmentAssignments(idResult.data);
+  if (clearedUsers > 0) {
+    console.log(
+      `Cleared department assignment for ${clearedUsers} local user(s)`
+    );
+  }
+
   revalidatePath('/departments');
   revalidatePath('/locations');
+  revalidatePath('/users');
   return ok({ message: 'Abteilung erfolgreich gelöscht' });
 }
 

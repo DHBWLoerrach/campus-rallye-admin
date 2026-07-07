@@ -33,6 +33,7 @@ interface DepartmentFormProps {
   locationOptions: LocationOption[];
   rallyeOptions: RallyeOption[];
   assignedRallyeIds: number[];
+  assignedUserCount: number;
 }
 
 function SaveButton() {
@@ -57,6 +58,7 @@ export default function DepartmentForm({
   locationOptions,
   rallyeOptions,
   assignedRallyeIds,
+  assignedUserCount,
 }: DepartmentFormProps) {
   const [formState, formAction] = useActionState(updateDepartment, null);
   const [name, setName] = useState<string>(department.name);
@@ -241,6 +243,14 @@ export default function DepartmentForm({
                     Möchten Sie den Bereich &quot;{department.name}&quot;
                     wirklich löschen? Diese Aktion kann nicht rückgängig gemacht
                     werden.
+                    {assignedUserCount > 0 && (
+                      <>
+                        {' '}
+                        {assignedUserCount === 1
+                          ? 'Ein Nutzer verliert dabei seine Bereichszuordnung.'
+                          : `${assignedUserCount} Nutzer verlieren dabei ihre Bereichszuordnung.`}
+                      </>
+                    )}
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
