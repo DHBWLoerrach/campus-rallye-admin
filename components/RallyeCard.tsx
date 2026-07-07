@@ -135,7 +135,7 @@ export default function RallyeCard({
           </div>
           <div className="flex flex-col items-end gap-1">
             <Link
-              href={`/rallyes/${rallye.id}/questions`}
+              href={`/rallyes/${rallye.id}`}
               className="group flex items-center gap-1 font-semibold text-primary hover:underline"
               onClick={(e) => e.stopPropagation()}
               aria-label="Fragen zuordnen"

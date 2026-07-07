@@ -35,7 +35,7 @@ vi.mock('@/components/RallyeCard', () => ({
       <button type="button">Bearbeiten</button>
       <span>Status</span>
       <span>Ende</span>
-      <a href={`/rallyes/${rallye.id}/questions`}>Fragen zuordnen</a>
+      <a href={`/rallyes/${rallye.id}`}>Fragen zuordnen</a>
       {uploadQuestionCount && uploadQuestionCount > 0 ? (
         <span>Upload-Fotos anzeigen</span>
       ) : null}
@@ -232,7 +232,7 @@ describe('/rallyes page', () => {
     ).not.toBeInTheDocument();
     expect(
       within(explorationSection).getByRole('link', { name: 'Fragen zuordnen' })
-    ).toHaveAttribute('href', '/rallyes/1/questions');
+    ).toHaveAttribute('href', '/rallyes/1');
 
     expect(
       within(explorationSection).queryByText('Bearbeiten')

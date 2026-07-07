@@ -112,7 +112,7 @@ export default function ProgramRallyeDialog({
             <DialogFooter className="gap-2 sm:justify-end">
               <Button asChild variant="dhbwStyle" className="cursor-pointer">
                 <Link
-                  href={`/rallyes/${createdRallyeId}/questions`}
+                  href={`/rallyes/${createdRallyeId}`}
                   onClick={() => setOpen(false)}
                 >
                   Fragen zuordnen

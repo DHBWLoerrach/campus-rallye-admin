@@ -192,7 +192,7 @@ export async function assignQuestionsToRallye(
 
   // Invalidate cached pages that depend on these assignments
   revalidatePath('/rallyes');
-  revalidatePath(`/rallyes/${rallyeIdResult.data}/questions`);
+  revalidatePath(`/rallyes/${rallyeIdResult.data}`, 'layout');
   return ok({ message: 'Fragen erfolgreich zugeordnet' });
 }
 
@@ -550,7 +550,7 @@ export async function assignRallyesToQuestion(
   revalidatePath('/questions');
   const revalidateRallyes = new Set([...rallyesToAdd, ...rallyesToRemove]);
   revalidateRallyes.forEach((rallyeId) => {
-    revalidatePath(`/rallyes/${rallyeId}/questions`);
+    revalidatePath(`/rallyes/${rallyeId}`, 'layout');
   });
   return ok({ message: 'Rallyes erfolgreich zugeordnet' });
 }

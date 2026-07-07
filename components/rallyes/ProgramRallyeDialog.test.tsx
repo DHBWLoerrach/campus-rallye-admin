@@ -61,7 +61,7 @@ describe('ProgramRallyeDialog', () => {
     await waitFor(() => {
       expect(
         screen.getByRole('link', { name: 'Fragen zuordnen' })
-      ).toHaveAttribute('href', '/rallyes/77/questions');
+      ).toHaveAttribute('href', '/rallyes/77');
     });
   });
 

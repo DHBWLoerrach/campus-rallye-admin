@@ -37,7 +37,7 @@ export default function ExplorationRow({
         <div className="flex items-center gap-4 text-sm">
           <span className="text-muted-foreground">{questionCountLabel}</span>
           <Link
-            href={`/rallyes/${rallyeId}/questions`}
+            href={`/rallyes/${rallyeId}`}
             className="group inline-flex items-center gap-1 font-semibold text-primary hover:underline"
             aria-label="Fragen zuordnen"
           >
