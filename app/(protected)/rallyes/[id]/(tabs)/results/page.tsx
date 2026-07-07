@@ -1,16 +1,12 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Star, Timer } from 'lucide-react';
 import { getRallyeResults, getRallyeMaxPoints } from '@/actions/rallye-results';
-import { Button } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
-
-type RallyeRow = { id: number; name: string };
 
 function formatDuration(ms?: number | null) {
   if (ms == null) return '-';
@@ -44,35 +40,15 @@ export default async function Page(props: PageProps) {
   if (error || !data) {
     notFound();
   }
-  const rallye = data as RallyeRow;
-
   const results = await getRallyeResults(rallyeId);
   const maxPointsResult = await getRallyeMaxPoints(rallyeId);
   const maxPoints = maxPointsResult.success ? (maxPointsResult.data ?? 0) : 0;
 
   return (
-    <main className="mx-auto flex w-full max-w-450 flex-col gap-4 px-4 py-4">
-      <section className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="cursor-pointer"
-          >
-            <Link href="/rallyes">← Zurück zu Rallyes</Link>
-          </Button>
-        </div>
-        <div className="space-y-1 text-left">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Rallye
-          </p>
-          <h1 className="text-xl font-semibold text-foreground">Endstand</h1>
-          <p className="text-sm text-muted-foreground">
-            Rallye „{rallye.name}“ · Maximale Punktzahl: {maxPoints}
-          </p>
-        </div>
-      </section>
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">
+        Endstand · Maximale Punktzahl: {maxPoints}
+      </p>
 
       {!results.success && (
         <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
@@ -150,6 +126,6 @@ export default async function Page(props: PageProps) {
           })}
         </section>
       ) : null}
-    </main>
+    </div>
   );
 }

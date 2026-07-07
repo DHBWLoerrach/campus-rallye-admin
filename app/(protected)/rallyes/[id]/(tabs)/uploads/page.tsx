@@ -1,17 +1,13 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getRallyeUploadAnswers } from '@/actions/upload-answers';
 import UploadPhotoSlideshow from '@/components/UploadPhotoSlideshow';
 import UploadPhotoTile from '@/components/UploadPhotoTile';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
-
-type RallyeRow = { id: number; name: string };
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
@@ -29,37 +25,11 @@ export default async function Page(props: PageProps) {
   if (error || !data) {
     notFound();
   }
-  const rallye = data as RallyeRow;
-
   const uploadResult = await getRallyeUploadAnswers(rallyeId);
   const uploadQuestions = uploadResult.success ? (uploadResult.data ?? []) : [];
 
   return (
-    <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
-      <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="cursor-pointer"
-          >
-            <Link href="/rallyes">← Zurück zu Rallyes</Link>
-          </Button>
-        </div>
-        <div className="space-y-1 text-left">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Rallye
-          </p>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Upload-Fotos
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Rallye „{rallye.name}“
-          </p>
-        </div>
-      </section>
-
+    <div className="flex flex-col gap-6">
       {!uploadResult.success && (
         <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
           {uploadResult.error}
@@ -147,6 +117,6 @@ export default async function Page(props: PageProps) {
           })}
         </section>
       )}
-    </main>
+    </div>
   );
 }
