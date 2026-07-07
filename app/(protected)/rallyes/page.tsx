@@ -1,5 +1,5 @@
 import createClient from '@/lib/supabase';
-import Rallye from '@/components/Rallye';
+import RallyeCard from '@/components/RallyeCard';
 import ExplorationRow from '@/components/rallyes/ExplorationRow';
 import ProgramRallyeDialog from '@/components/rallyes/ProgramRallyeDialog';
 import type { DepartmentOption } from '@/lib/types';
@@ -97,7 +97,6 @@ export default async function Home() {
   const questionCounts = new Map<number, number>();
   const uploadQuestionCounts = new Map<number, number>();
   const departmentAssignmentsMap = new Map<number, number[]>();
-  const departmentAssignmentsLoaded = true;
   if (typedRallyes.length > 0) {
     const rallyeIds = typedRallyes.map((r) => r.id);
     const { data: joins } = await supabase
@@ -191,14 +190,11 @@ export default async function Home() {
   const renderRallyeCard = (rallye: RallyeRow) => {
     const meta = rallyeDisplayMeta.get(rallye.id);
     return (
-      <Rallye
+      <RallyeCard
         key={rallye.id}
         rallye={rallye}
         questionCount={questionCounts.get(rallye.id) ?? 0}
         uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
-        departmentOptions={departmentOptions}
-        assignedDepartmentIds={departmentAssignmentsMap.get(rallye.id) ?? []}
-        departmentAssignmentsLoaded={departmentAssignmentsLoaded}
         typeLabel={meta?.typeLabel}
         contextLabel={meta?.contextLabel}
       />

@@ -28,7 +28,6 @@ describe('RallyeCard', () => {
         }}
         questionCount={0}
         uploadQuestionCount={1}
-        onEdit={vi.fn()}
       />
     );
 
@@ -41,6 +40,31 @@ describe('RallyeCard', () => {
     expect(
       screen.queryByRole('link', { name: 'Endstand anzeigen' })
     ).not.toBeInTheDocument();
+  });
+
+  it('links title to the detail page and pencil to settings', () => {
+    render(
+      <RallyeCard
+        rallye={{
+          id: 12,
+          name: 'Rallye 12',
+          status: 'running',
+          end_time: '2024-01-01',
+          password: '',
+          created_at: '2024-01-01',
+        }}
+        questionCount={0}
+        uploadQuestionCount={0}
+      />
+    );
+
+    expect(
+      screen.getByRole('link', { name: 'Rallye Rallye 12 öffnen' })
+    ).toHaveAttribute('href', '/rallyes/12');
+    expect(screen.getByRole('link', { name: 'Einstellungen' })).toHaveAttribute(
+      'href',
+      '/rallyes/12/settings'
+    );
   });
 
   it('hides the upload photos link when no upload questions exist', () => {
@@ -56,7 +80,6 @@ describe('RallyeCard', () => {
         }}
         questionCount={0}
         uploadQuestionCount={0}
-        onEdit={vi.fn()}
       />
     );
 
@@ -80,7 +103,6 @@ describe('RallyeCard', () => {
           }}
           questionCount={0}
           uploadQuestionCount={0}
-          onEdit={vi.fn()}
         />
       );
 
@@ -105,7 +127,6 @@ describe('RallyeCard', () => {
         uploadQuestionCount={0}
         typeLabel="Studiengang"
         contextLabel="Bereich: BWL"
-        onEdit={vi.fn()}
       />
     );
 

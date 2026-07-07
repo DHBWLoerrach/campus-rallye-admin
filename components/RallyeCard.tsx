@@ -1,3 +1,5 @@
+'use client';
+
 import { Camera, ChevronRight, Pencil, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +12,6 @@ import { getRallyeQuestions } from '@/actions/assign_questions_to_rallye';
 
 interface RallyeCardProps {
   rallye: Rallye;
-  onEdit: () => void;
   questionCount?: number;
   uploadQuestionCount?: number;
   typeLabel?: string;
@@ -19,7 +20,6 @@ interface RallyeCardProps {
 
 export default function RallyeCard({
   rallye,
-  onEdit,
   questionCount: questionCountProp,
   uploadQuestionCount: uploadQuestionCountProp,
   typeLabel,
@@ -75,19 +75,24 @@ export default function RallyeCard({
       <CardHeader className="space-y-3 pb-4">
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-lg font-semibold leading-tight">
-            {rallye.name}
+            <Link
+              href={`/rallyes/${rallye.id}`}
+              className="hover:underline"
+              aria-label={`Rallye ${rallye.name} öffnen`}
+            >
+              {rallye.name}
+            </Link>
           </CardTitle>
           <Button
+            asChild
             variant="ghost"
             size="icon"
-            aria-label="Bearbeiten"
-            className="text-muted-foreground hover:text-foreground cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
+            aria-label="Einstellungen"
+            className="text-muted-foreground hover:text-foreground"
           >
-            <Pencil className="h-4 w-4" aria-hidden="true" />
+            <Link href={`/rallyes/${rallye.id}/settings`}>
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </Button>
         </div>
         <div className="flex items-center justify-between">

@@ -21,7 +21,7 @@ vi.mock('@/components/rallyes/ProgramRallyeDialog', () => ({
   },
 }));
 
-vi.mock('@/components/Rallye', () => ({
+vi.mock('@/components/RallyeCard', () => ({
   __esModule: true,
   default: ({
     rallye,
