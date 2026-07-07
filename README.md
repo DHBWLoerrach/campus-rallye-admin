@@ -146,8 +146,15 @@ CREATE TABLE IF NOT EXISTS local_users (
     user_id TEXT PRIMARY KEY,
     email TEXT,
     registered_at TEXT,
-    admin INTEGER NOT NULL DEFAULT 0
+    admin INTEGER NOT NULL DEFAULT 0,
+    department_id INTEGER
 );
+```
+
+Bei einer bestehenden Datenbank (ohne die Spalte `department_id`) stattdessen einmalig ausführen:
+
+```
+ALTER TABLE local_users ADD COLUMN department_id INTEGER;
 ```
 
 Nach einem ersten Login kann man dem User Admin-Rechte geben:

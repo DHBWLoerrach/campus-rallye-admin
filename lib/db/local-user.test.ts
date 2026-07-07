@@ -10,7 +10,13 @@ vi.mock('./sqlite', () => ({
   },
 }));
 
-import { getLocalUser, upsertLocalUser } from './local-user';
+import {
+  clearDepartmentAssignments,
+  getLocalUser,
+  listLocalUsers,
+  setLocalUserDepartment,
+  upsertLocalUser,
+} from './local-user';
 
 describe('local-user', () => {
   beforeEach(() => {
@@ -20,7 +26,8 @@ describe('local-user', () => {
         user_id TEXT PRIMARY KEY,
         email TEXT,
         registered_at TEXT,
-        admin INTEGER NOT NULL DEFAULT 0
+        admin INTEGER NOT NULL DEFAULT 0,
+        department_id INTEGER
       );
     `);
     dbHolder.current = db;
@@ -71,6 +78,7 @@ describe('local-user', () => {
       email: 'winner@example.de',
       registered_at: '2026-05-15T00:00:00.000Z',
       admin: true,
+      department_id: null,
     });
   });
 
@@ -87,5 +95,44 @@ describe('local-user', () => {
     const user = upsertLocalUser('uuid-2', null);
     expect(user.email).toBeNull();
     expect(getLocalUser('uuid-2')?.email).toBeNull();
+  });
+
+  describe('department assignment', () => {
+    it('defaults department_id to null on insert', () => {
+      const user = upsertLocalUser('uuid-1', 'a@b.de');
+      expect(user.department_id).toBeNull();
+      expect(getLocalUser('uuid-1')?.department_id).toBeNull();
+    });
+
+    it('sets and clears the department of a user', () => {
+      upsertLocalUser('uuid-1', 'a@b.de');
+      expect(setLocalUserDepartment('uuid-1', 7)).toBe(true);
+      expect(getLocalUser('uuid-1')?.department_id).toBe(7);
+      expect(setLocalUserDepartment('uuid-1', null)).toBe(true);
+      expect(getLocalUser('uuid-1')?.department_id).toBeNull();
+    });
+
+    it('returns false when setting department of unknown user', () => {
+      expect(setLocalUserDepartment('missing', 7)).toBe(false);
+    });
+
+    it('lists all users sorted by email', () => {
+      upsertLocalUser('uuid-b', 'b@b.de');
+      upsertLocalUser('uuid-a', 'a@b.de');
+      const users = listLocalUsers();
+      expect(users.map((u) => u.email)).toEqual(['a@b.de', 'b@b.de']);
+    });
+
+    it('clears all assignments of a department and reports count', () => {
+      upsertLocalUser('uuid-1', 'a@b.de');
+      upsertLocalUser('uuid-2', 'b@b.de');
+      upsertLocalUser('uuid-3', 'c@b.de');
+      setLocalUserDepartment('uuid-1', 7);
+      setLocalUserDepartment('uuid-2', 7);
+      setLocalUserDepartment('uuid-3', 8);
+      expect(clearDepartmentAssignments(7)).toBe(2);
+      expect(getLocalUser('uuid-1')?.department_id).toBeNull();
+      expect(getLocalUser('uuid-3')?.department_id).toBe(8);
+    });
   });
 });
