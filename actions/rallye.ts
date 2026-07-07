@@ -2,10 +2,16 @@
 import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
-import { Rallye, RallyeOption, RallyeStatus } from '@/lib/types';
+import {
+  getNextRallyeTransition,
+  Rallye,
+  RallyeOption,
+  RallyeStatus,
+} from '@/lib/types';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import {
   formatZodError,
+  idSchema,
   rallyeCreateSchema,
   rallyeUpdateSchema,
 } from '@/lib/validation';
@@ -232,4 +238,69 @@ export async function deleteRallye(
 
   revalidatePath('/');
   return ok({ message: 'Rallye erfolgreich gelöscht' });
+}
+
+export async function advanceRallyeStatus(
+  rallyeId: number,
+  target: RallyeStatus
+): Promise<ActionResult<{ message: string }>> {
+  await requireProfile();
+
+  const idResult = idSchema.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  const supabase = await createClient();
+
+  const { data: rallye, error: rallyeError } = await supabase
+    .from('rallye')
+    .select('id, status')
+    .eq('id', idResult.data)
+    .maybeSingle();
+
+  if (rallyeError) {
+    console.error('Error loading rallye:', rallyeError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  if (!rallye) {
+    return fail('Rallye nicht gefunden');
+  }
+
+  const { count: votingCount, error: votingError } = await supabase
+    .from('join_rallye_questions')
+    .select('question_id', { count: 'exact', head: true })
+    .eq('rallye_id', idResult.data)
+    .eq('is_voting', true);
+
+  if (votingError) {
+    console.error('Error counting voting questions:', votingError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  // Server-side guard: only the transition derived from the current status
+  // is allowed here; free status changes remain in updateRallye (expert mode).
+  const expected = getNextRallyeTransition(
+    rallye.status as RallyeStatus,
+    (votingCount ?? 0) > 0
+  );
+
+  if (!expected || expected.target !== target) {
+    return fail('Ungültiger Statuswechsel');
+  }
+
+  const { error } = await supabase
+    .from('rallye')
+    .update({ status: target })
+    .eq('id', idResult.data);
+
+  if (error) {
+    console.error('Error advancing rallye status:', error);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  revalidatePath('/rallyes');
+  revalidatePath(`/rallyes/${idResult.data}`, 'layout');
+  return ok({ message: 'Status erfolgreich geändert' });
 }

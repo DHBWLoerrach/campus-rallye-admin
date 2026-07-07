@@ -264,3 +264,104 @@ describe('updateRallye', () => {
     expect(rallyeUpdate).not.toHaveBeenCalled();
   });
 });
+
+describe('advanceRallyeStatus', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  // Supabase mock covering: select rallye status, count voting questions, update
+  const makeSupabase = (
+    status: string | null,
+    votingCount: number,
+    updateError: unknown = null
+  ) => {
+    const updateEq = vi.fn().mockResolvedValue({ error: updateError });
+    const update = vi.fn(() => ({ eq: updateEq }));
+    const from = vi.fn((table: string) => {
+      if (table === 'rallye') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: status === null ? null : { id: 5, status },
+                error: null,
+              }),
+            })),
+          })),
+          update,
+        };
+      }
+      // join_rallye_questions voting count
+      const countEq2 = vi
+        .fn()
+        .mockResolvedValue({ count: votingCount, error: null });
+      const countEq1 = vi.fn(() => ({ eq: countEq2 }));
+      return { select: vi.fn(() => ({ eq: countEq1 })) };
+    });
+    return { from, update, updateEq };
+  };
+
+  it('advances inactive to running', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('inactive', 0);
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'running');
+
+    expect(result.success).toBe(true);
+    expect(supabase.update).toHaveBeenCalledWith({ status: 'running' });
+  });
+
+  it('rejects a target that does not match the guided transition', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockCreateClient.mockResolvedValue(makeSupabase('inactive', 0));
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'ended');
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe('Ungültiger Statuswechsel');
+  });
+
+  it('goes running to voting only when voting questions exist', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockCreateClient.mockResolvedValue(makeSupabase('running', 2));
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'voting');
+    expect(result.success).toBe(true);
+  });
+
+  it('goes running to ranking when no voting questions exist', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockCreateClient.mockResolvedValue(makeSupabase('running', 0));
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    expect((await advanceRallyeStatus(5, 'voting')).success).toBe(false);
+    vi.resetModules();
+    mockCreateClient.mockResolvedValue(makeSupabase('running', 0));
+    const { advanceRallyeStatus: advance2 } = await import('./rallye');
+    expect((await advance2(5, 'ranking')).success).toBe(true);
+  });
+
+  it('fails for unknown rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockCreateClient.mockResolvedValue(makeSupabase(null, 0));
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(999, 'running');
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects an invalid id without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(-1, 'running');
+    expect(result.success).toBe(false);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+});
