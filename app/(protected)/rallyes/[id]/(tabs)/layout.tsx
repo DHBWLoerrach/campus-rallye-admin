@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import createClient from '@/lib/supabase';
+import RallyePhaseControls from '@/components/rallyes/RallyePhaseControls';
 import RallyeTabsNav from '@/components/rallyes/RallyeTabsNav';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,12 @@ export default async function RallyeDetailLayout({
     departmentName = department?.name ?? null;
   }
 
+  const { count: votingCount } = await supabase
+    .from('join_rallye_questions')
+    .select('question_id', { count: 'exact', head: true })
+    .eq('rallye_id', rallyeId)
+    .eq('is_voting', true);
+
   const currentIndex = RALLYE_STATUSES.indexOf(status);
 
   return (
@@ -71,9 +78,16 @@ export default async function RallyeDetailLayout({
               </p>
             )}
           </div>
-          <Badge variant={isRallyeActive(status) ? 'default' : 'secondary'}>
-            {getRallyeStatusLabel(status)}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant={isRallyeActive(status) ? 'default' : 'secondary'}>
+              {getRallyeStatusLabel(status)}
+            </Badge>
+            <RallyePhaseControls
+              rallyeId={rallyeId}
+              status={status}
+              hasVotingQuestions={(votingCount ?? 0) > 0}
+            />
+          </div>
         </div>
         <ol
           aria-label="Phasen der Rallye"
