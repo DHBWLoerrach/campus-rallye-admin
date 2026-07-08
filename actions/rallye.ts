@@ -304,3 +304,74 @@ export async function advanceRallyeStatus(
   revalidatePath(`/rallyes/${idResult.data}`, 'layout');
   return ok({ message: 'Status erfolgreich geändert' });
 }
+
+export async function duplicateRallye(
+  rallyeId: number
+): Promise<ActionResult<{ rallyeId: number; message: string }>> {
+  await requireProfile();
+
+  const idResult = idSchema.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  const supabase = await createClient();
+
+  const { data: source, error: sourceError } = await supabase
+    .from('rallye')
+    .select('id, name, department_id')
+    .eq('id', idResult.data)
+    .maybeSingle();
+  if (sourceError) {
+    console.error('Error loading rallye:', sourceError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+  if (!source) {
+    return fail('Rallye nicht gefunden');
+  }
+
+  const { data: joins, error: joinsError } = await supabase
+    .from('join_rallye_questions')
+    .select('question_id, is_voting')
+    .eq('rallye_id', idResult.data);
+  if (joinsError) {
+    console.error('Error loading question assignments:', joinsError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  // The copy starts as a fresh draft: preparing, end time to be set, no password.
+  const { data: created, error: insertError } = await supabase
+    .from('rallye')
+    .insert({
+      name: `${source.name} (Kopie)`,
+      status: 'preparing' as RallyeStatus,
+      end_time: new Date(),
+      password: '',
+      department_id: source.department_id,
+    })
+    .select('id')
+    .single();
+  if (insertError || !created) {
+    console.error('Error duplicating rallye:', insertError);
+    return fail('Rallye konnte nicht dupliziert werden');
+  }
+
+  if ((joins ?? []).length > 0) {
+    const { error: joinInsertError } = await supabase
+      .from('join_rallye_questions')
+      .insert(
+        (joins ?? []).map((row) => ({
+          rallye_id: created.id,
+          question_id: row.question_id,
+          is_voting: row.is_voting === true,
+        }))
+      );
+    if (joinInsertError) {
+      console.error('Error copying question assignments:', joinInsertError);
+      return fail('Fragen konnten nicht kopiert werden');
+    }
+  }
+
+  revalidatePath('/rallyes');
+  return ok({ rallyeId: created.id, message: 'Rallye dupliziert' });
+}

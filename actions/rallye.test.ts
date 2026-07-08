@@ -365,3 +365,128 @@ describe('advanceRallyeStatus', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 });
+
+describe('duplicateRallye', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const makeSupabase = (opts: {
+    source?: {
+      id: number;
+      name: string;
+      department_id: number | null;
+    } | null;
+    joins?: Array<{ question_id: number; is_voting: boolean }>;
+    insertError?: unknown;
+  }) => {
+    const insertedRallye = { id: 99 };
+    const insertSelectSingle = vi.fn().mockResolvedValue({
+      data: insertedRallye,
+      error: opts.insertError ?? null,
+    });
+    const insertSelect = vi.fn(() => ({ single: insertSelectSingle }));
+    const rallyeInsert = vi.fn(() => ({ select: insertSelect }));
+    const joinInsert = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn((table: string) => {
+      if (table === 'rallye') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data:
+                  opts.source === null
+                    ? null
+                    : (opts.source ?? {
+                        id: 5,
+                        name: 'Studieninfotag',
+                        department_id: 7,
+                      }),
+                error: null,
+              }),
+            })),
+          })),
+          insert: rallyeInsert,
+        };
+      }
+      // join_rallye_questions
+      return {
+        select: vi.fn(() => ({
+          eq: vi
+            .fn()
+            .mockResolvedValue({ data: opts.joins ?? [], error: null }),
+        })),
+        insert: joinInsert,
+      };
+    });
+    return { from, rallyeInsert, joinInsert };
+  };
+
+  it('creates a preparing copy with suffixed name', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({});
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { duplicateRallye } = await import('./rallye');
+    const result = await duplicateRallye(5);
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected success');
+    expect(result.data?.rallyeId).toBe(99);
+    expect(supabase.rallyeInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Studieninfotag (Kopie)',
+        status: 'preparing',
+        password: '',
+        department_id: 7,
+      })
+    );
+  });
+
+  it('copies question assignments including voting flags', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      joins: [
+        { question_id: 1, is_voting: false },
+        { question_id: 2, is_voting: true },
+      ],
+    });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { duplicateRallye } = await import('./rallye');
+    await duplicateRallye(5);
+
+    expect(supabase.joinInsert).toHaveBeenCalledWith([
+      { rallye_id: 99, question_id: 1, is_voting: false },
+      { rallye_id: 99, question_id: 2, is_voting: true },
+    ]);
+  });
+
+  it('skips join insert when the source has no questions', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ joins: [] });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { duplicateRallye } = await import('./rallye');
+    const result = await duplicateRallye(5);
+
+    expect(result.success).toBe(true);
+    expect(supabase.joinInsert).not.toHaveBeenCalled();
+  });
+
+  it('fails for unknown rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockCreateClient.mockResolvedValue(makeSupabase({ source: null }));
+
+    const { duplicateRallye } = await import('./rallye');
+    expect((await duplicateRallye(999)).success).toBe(false);
+  });
+
+  it('rejects invalid ids without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { duplicateRallye } = await import('./rallye');
+    expect((await duplicateRallye(0)).success).toBe(false);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+});
