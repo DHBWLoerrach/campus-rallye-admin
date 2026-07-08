@@ -22,11 +22,6 @@ vi.mock('@/lib/db/local-user', () => ({
   getLocalUser: mockGetLocalUser,
 }));
 
-vi.mock('@/components/rallyes/ProgramRallyeDialog', () => ({
-  __esModule: true,
-  default: () => <button type="button">Rallye erstellen</button>,
-}));
-
 vi.mock('@/components/RallyeCard', () => ({
   __esModule: true,
   default: ({
@@ -191,11 +186,12 @@ describe('/rallyes page', () => {
     expect(screen.queryByText(/Andere Bereiche/)).not.toBeInTheDocument();
   });
 
-  it('renders the create button in the page header', async () => {
+  it('renders the create link in the page header', async () => {
     render(await Home());
-    expect(
-      screen.getByRole('button', { name: 'Rallye erstellen' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '+ Neue Rallye' })).toHaveAttribute(
+      'href',
+      '/rallyes/new'
+    );
   });
 
   it('hides empty phase groups', async () => {

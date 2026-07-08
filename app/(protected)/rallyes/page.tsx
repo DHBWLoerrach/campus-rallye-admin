@@ -1,7 +1,8 @@
+import Link from 'next/link';
 import createClient from '@/lib/supabase';
 import RallyeCard from '@/components/RallyeCard';
 import ExplorationRow from '@/components/rallyes/ExplorationRow';
-import ProgramRallyeDialog from '@/components/rallyes/ProgramRallyeDialog';
+import { Button } from '@/components/ui/button';
 import { getUserContext } from '@/lib/user-context';
 import { getLocalUser } from '@/lib/db/local-user';
 import {
@@ -9,7 +10,7 @@ import {
   getRallyePhaseGroup,
   type RallyePhaseGroup,
 } from '@/lib/types';
-import type { DepartmentOption, Rallye } from '@/lib/types';
+import type { Rallye } from '@/lib/types';
 
 type RallyeRow = Rallye & { department_id: number | null };
 
@@ -68,9 +69,6 @@ export default async function Home() {
     .select('id, name, location_id')
     .order('name');
   const typedDepartmentRows = (departmentRows || []) as DepartmentRow[];
-  const departmentOptions: DepartmentOption[] = typedDepartmentRows.map(
-    ({ id, name }) => ({ id, name })
-  );
   const departmentById = new Map(
     typedDepartmentRows.map((department) => [department.id, department])
   );
@@ -167,10 +165,9 @@ export default async function Home() {
               : 'Alle Rallyes, gruppiert nach Phase.'}
           </p>
         </div>
-        <ProgramRallyeDialog
-          buttonStyle="w-full sm:w-auto cursor-pointer"
-          departments={departmentOptions}
-        />
+        <Button asChild variant="dhbwStyle" className="w-full sm:w-auto">
+          <Link href="/rallyes/new">+ Neue Rallye</Link>
+        </Button>
       </section>
 
       {myGroups.length === 0 ? (

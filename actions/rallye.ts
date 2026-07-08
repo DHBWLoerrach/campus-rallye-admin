@@ -19,56 +19,6 @@ import {
 
 type FormState = ActionResult<{ message: string; rallyeId?: number }> | null;
 
-export async function createRallye(state: FormState, formData: FormData) {
-  await requireProfile();
-  const supabase = await createClient();
-
-  const parsed = rallyeCreateSchema.safeParse({
-    name: formData.get('name'),
-  });
-
-  if (!parsed.success) {
-    return fail('Ungültige Eingaben', formatZodError(parsed.error));
-  }
-
-  const data = { name: parsed.data.name };
-
-  const departmentIds = formData
-    .getAll('department_ids')
-    .map(Number)
-    .filter((id) => !isNaN(id) && id > 0);
-
-  const uniqueDepartmentIds = Array.from(new Set(departmentIds));
-  if (uniqueDepartmentIds.length !== 1) {
-    return fail('Genau ein Bereich muss zugeordnet werden');
-  }
-
-  const departmentId = uniqueDepartmentIds[0];
-
-  const { data: createdRallye, error } = await supabase
-    .from('rallye')
-    .insert({
-      name: data.name,
-      status: 'inactive' as RallyeStatus,
-      end_time: new Date(),
-      password: '',
-      department_id: departmentId,
-    })
-    .select('id')
-    .single();
-
-  if (error || !createdRallye) {
-    console.error('Error creating rallye:', error);
-    return fail('Es ist ein Fehler aufgetreten');
-  }
-
-  revalidatePath('/');
-  return ok({
-    message: 'Rallye erfolgreich gespeichert',
-    rallyeId: createdRallye.id,
-  });
-}
-
 export async function updateRallye(state: FormState, formData: FormData) {
   await requireProfile();
   const supabase = await createClient();
