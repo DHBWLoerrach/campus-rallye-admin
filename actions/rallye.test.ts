@@ -490,3 +490,116 @@ describe('duplicateRallye', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 });
+
+describe('createRallyeWithQuestions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const makeSupabase = (opts: { departmentExists?: boolean }) => {
+    const insertSelectSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 42 }, error: null });
+    const insertSelect = vi.fn(() => ({ single: insertSelectSingle }));
+    const rallyeInsert = vi.fn(() => ({ select: insertSelect }));
+    const joinInsert = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn((table: string) => {
+      if (table === 'department') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: opts.departmentExists === false ? null : { id: 7 },
+                error: null,
+              }),
+            })),
+          })),
+        };
+      }
+      if (table === 'rallye') {
+        return { insert: rallyeInsert };
+      }
+      return { insert: joinInsert };
+    });
+    return { from, rallyeInsert, joinInsert };
+  };
+
+  it('creates a preparing rallye with question assignments', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({});
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { createRallyeWithQuestions } = await import('./rallye');
+    const result = await createRallyeWithQuestions({
+      name: "Girl's Day 2027",
+      departmentId: 7,
+      endTime: '2027-04-22T13:00:00.000Z',
+      password: 'geheim',
+      questionIds: [1, 2],
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error('Expected success');
+    expect(result.data?.rallyeId).toBe(42);
+    expect(supabase.rallyeInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Girl's Day 2027",
+        status: 'preparing',
+        password: 'geheim',
+        department_id: 7,
+      })
+    );
+    expect(supabase.joinInsert).toHaveBeenCalledWith([
+      { rallye_id: 42, question_id: 1, is_voting: false },
+      { rallye_id: 42, question_id: 2, is_voting: false },
+    ]);
+  });
+
+  it('fails when the department does not exist', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockCreateClient.mockResolvedValue(
+      makeSupabase({ departmentExists: false })
+    );
+
+    const { createRallyeWithQuestions } = await import('./rallye');
+    const result = await createRallyeWithQuestions({
+      name: 'X',
+      departmentId: 99,
+      endTime: null,
+      password: '',
+      questionIds: [],
+    });
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe('Bereich nicht gefunden');
+  });
+
+  it('rejects an empty name without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { createRallyeWithQuestions } = await import('./rallye');
+    const result = await createRallyeWithQuestions({
+      name: '',
+      departmentId: 7,
+      endTime: null,
+      password: '',
+      questionIds: [],
+    });
+    expect(result.success).toBe(false);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid end time', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { createRallyeWithQuestions } = await import('./rallye');
+    const result = await createRallyeWithQuestions({
+      name: 'X',
+      departmentId: 7,
+      endTime: 'kein-datum',
+      password: '',
+      questionIds: [],
+    });
+    expect(result.success).toBe(false);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+});

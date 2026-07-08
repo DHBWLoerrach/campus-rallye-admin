@@ -11,6 +11,7 @@ import {
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import {
   formatZodError,
+  idArraySchema,
   idSchema,
   rallyeCreateSchema,
   rallyeUpdateSchema,
@@ -374,4 +375,89 @@ export async function duplicateRallye(
 
   revalidatePath('/rallyes');
   return ok({ rallyeId: created.id, message: 'Rallye dupliziert' });
+}
+
+export async function createRallyeWithQuestions(input: {
+  name: string;
+  departmentId: number;
+  endTime: string | null;
+  password: string;
+  questionIds: number[];
+}): Promise<ActionResult<{ rallyeId: number; message: string }>> {
+  await requireProfile();
+
+  const nameResult = rallyeCreateSchema.safeParse({ name: input.name });
+  if (!nameResult.success) {
+    return fail('Ungültige Eingaben', formatZodError(nameResult.error));
+  }
+
+  const departmentIdResult = idSchema.safeParse(input.departmentId);
+  if (!departmentIdResult.success) {
+    return fail('Genau ein Bereich muss zugeordnet werden');
+  }
+
+  const questionIdsResult = idArraySchema.safeParse(input.questionIds);
+  if (!questionIdsResult.success) {
+    return fail('Ungültige Fragen', formatZodError(questionIdsResult.error));
+  }
+
+  let endTime = new Date();
+  if (input.endTime !== null) {
+    const parsed = new Date(input.endTime);
+    if (Number.isNaN(parsed.getTime())) {
+      return fail('Ungültiges Datum');
+    }
+    endTime = parsed;
+  }
+
+  const supabase = await createClient();
+
+  const { data: department, error: departmentError } = await supabase
+    .from('department')
+    .select('id')
+    .eq('id', departmentIdResult.data)
+    .maybeSingle();
+  if (departmentError) {
+    console.error('Error checking department:', departmentError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+  if (!department) {
+    return fail('Bereich nicht gefunden');
+  }
+
+  const { data: created, error: insertError } = await supabase
+    .from('rallye')
+    .insert({
+      name: nameResult.data.name,
+      status: 'preparing' as RallyeStatus,
+      end_time: endTime,
+      password: input.password,
+      department_id: departmentIdResult.data,
+    })
+    .select('id')
+    .single();
+  if (insertError || !created) {
+    console.error('Error creating rallye:', insertError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  const uniqueQuestionIds = Array.from(new Set(questionIdsResult.data));
+  if (uniqueQuestionIds.length > 0) {
+    const { error: joinError } = await supabase
+      .from('join_rallye_questions')
+      .insert(
+        uniqueQuestionIds.map((questionId) => ({
+          rallye_id: created.id,
+          question_id: questionId,
+          is_voting: false,
+        }))
+      );
+    if (joinError) {
+      console.error('Error assigning questions:', joinError);
+      return fail('Fragen konnten nicht zugeordnet werden');
+    }
+  }
+
+  revalidatePath('/rallyes');
+  return ok({ rallyeId: created.id, message: 'Rallye erstellt' });
 }
