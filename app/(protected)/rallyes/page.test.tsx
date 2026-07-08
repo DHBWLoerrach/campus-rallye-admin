@@ -23,22 +23,13 @@ vi.mock('@/components/rallyes/ProgramRallyeDialog', () => ({
 
 vi.mock('@/components/RallyeCard', () => ({
   __esModule: true,
-  default: ({
-    rallye,
-    uploadQuestionCount,
-  }: {
-    rallye: { id: number; name: string };
-    uploadQuestionCount?: number;
-  }) => (
+  default: ({ rallye }: { rallye: { id: number; name: string } }) => (
     <article data-testid="rallye-item">
       <p>{rallye.name}</p>
       <button type="button">Bearbeiten</button>
       <span>Status</span>
       <span>Ende</span>
       <a href={`/rallyes/${rallye.id}`}>Fragen zuordnen</a>
-      {uploadQuestionCount && uploadQuestionCount > 0 ? (
-        <span>Upload-Fotos anzeigen</span>
-      ) : null}
     </article>
   ),
 }));
@@ -251,9 +242,6 @@ describe('/rallyes page', () => {
       within(rallyesSection).getAllByRole('button', { name: 'Bearbeiten' })
         .length
     ).toBeGreaterThan(0);
-    expect(
-      within(rallyesSection).getByText('Upload-Fotos anzeigen')
-    ).toBeInTheDocument();
     expect(screen.getAllByTestId('rallye-item')).toHaveLength(4);
   });
 

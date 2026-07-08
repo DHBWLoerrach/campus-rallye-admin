@@ -194,8 +194,6 @@ export default async function Home() {
         key={rallye.id}
         rallye={rallye}
         questionCount={questionCounts.get(rallye.id) ?? 0}
-        uploadQuestionCount={uploadQuestionCounts.get(rallye.id) ?? 0}
-        typeLabel={meta?.typeLabel}
         contextLabel={meta?.contextLabel}
       />
     );
