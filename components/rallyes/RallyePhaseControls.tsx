@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Play } from 'lucide-react';
-import { advanceRallyeStatus } from '@/actions/rallye';
+import { useRouter } from 'next/navigation';
+import { Copy, Play } from 'lucide-react';
+import { advanceRallyeStatus, duplicateRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,13 +27,47 @@ export default function RallyePhaseControls({
   status,
   hasVotingQuestions,
 }: RallyePhaseControlsProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
+
+  const handleDuplicate = () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await duplicateRallye(rallyeId);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      if (result.data) {
+        router.push(`/rallyes/${result.data.rallyeId}`);
+      }
+    });
+  };
+
   if (!transition) {
-    return null;
+    // Final phase: the only remaining action is creating a fresh copy (ADR-0002).
+    return (
+      <div className="flex flex-col items-start gap-2">
+        <Button
+          variant="outline"
+          className="cursor-pointer"
+          onClick={handleDuplicate}
+          disabled={isPending}
+        >
+          <Copy className="mr-2 h-4 w-4" aria-hidden="true" />
+          {isPending ? 'Wird dupliziert…' : 'Duplizieren'}
+        </Button>
+        {error && (
+          <p className="text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    );
   }
 
   const handleConfirm = () => {

@@ -1,11 +1,27 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RallyePhaseControls from './RallyePhaseControls';
 
-const { mockAdvance } = vi.hoisted(() => ({ mockAdvance: vi.fn() }));
-vi.mock('@/actions/rallye', () => ({ advanceRallyeStatus: mockAdvance }));
+const { mockAdvance, mockDuplicate, mockPush } = vi.hoisted(() => ({
+  mockAdvance: vi.fn(),
+  mockDuplicate: vi.fn(),
+  mockPush: vi.fn(),
+}));
+
+vi.mock('@/actions/rallye', () => ({
+  advanceRallyeStatus: mockAdvance,
+  duplicateRallye: mockDuplicate,
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 describe('RallyePhaseControls', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('shows the action for the current phase', () => {
     render(
       <RallyePhaseControls
@@ -32,15 +48,34 @@ describe('RallyePhaseControls', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders nothing when the rallye has ended', () => {
-    const { container } = render(
+  it('offers duplication when the rallye has ended', async () => {
+    mockDuplicate.mockResolvedValue({
+      success: true,
+      data: { rallyeId: 99, message: 'ok' },
+    });
+    render(
       <RallyePhaseControls
         rallyeId={5}
         status="ended"
         hasVotingQuestions={false}
       />
     );
-    expect(container).toBeEmptyDOMElement();
+    fireEvent.click(screen.getByRole('button', { name: 'Duplizieren' }));
+    await waitFor(() => expect(mockDuplicate).toHaveBeenCalledWith(5));
+    expect(mockPush).toHaveBeenCalledWith('/rallyes/99');
+  });
+
+  it('shows the error when duplication fails', async () => {
+    mockDuplicate.mockResolvedValue({ success: false, error: 'Kaputt' });
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="ended"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Duplizieren' }));
+    await waitFor(() => expect(screen.getByText('Kaputt')).toBeInTheDocument());
   });
 
   it('opens a confirmation dialog and calls the action on confirm', async () => {
