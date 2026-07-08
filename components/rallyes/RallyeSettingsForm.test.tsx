@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import RallyeSettingsForm from './RallyeSettingsForm';
 
@@ -61,6 +61,44 @@ describe('RallyeSettingsForm', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();
+  });
+
+  it('leaves the end time empty when none is planned', () => {
+    const { container } = render(
+      <RallyeSettingsForm
+        rallye={{ ...baseRallye, end_time: null }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+
+    expect(screen.getByLabelText('Stunde')).toHaveDisplayValue('');
+    expect(screen.getByLabelText('Minute')).toHaveDisplayValue('');
+    expect(container.querySelector('input[name="end_time"]')).toHaveValue('');
+  });
+
+  it('submits the chosen 24-hour time on the rallye day', () => {
+    const { container } = render(
+      <RallyeSettingsForm
+        rallye={{ ...baseRallye, end_time: null }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText('Stunde'), {
+      target: { value: '18' },
+    });
+    fireEvent.change(screen.getByLabelText('Minute'), {
+      target: { value: '30' },
+    });
+
+    const hidden = container.querySelector(
+      'input[name="end_time"]'
+    ) as HTMLInputElement;
+    const end = new Date(hidden.value);
+    expect(end.getHours()).toBe(18);
+    expect(end.getMinutes()).toBe(30);
   });
 
   it('shows the danger zone with a delete dialog trigger', () => {

@@ -3,7 +3,6 @@
 import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { de } from 'date-fns/locale';
 import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { updateRallye, deleteRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -60,8 +58,12 @@ export default function RallyeSettingsForm({
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
-  const [date24, setDate24] = useState<Date | undefined>(
-    rallye.end_time ? new Date(rallye.end_time) : undefined
+  const initialEnd = rallye.end_time ? new Date(rallye.end_time) : null;
+  const [endHour, setEndHour] = useState(
+    initialEnd ? String(initialEnd.getHours()) : ''
+  );
+  const [endMinute, setEndMinute] = useState(
+    initialEnd ? String(initialEnd.getMinutes()) : ''
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
@@ -76,11 +78,29 @@ export default function RallyeSettingsForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const currentYear = new Date().getFullYear();
-  const calendarStartMonth = new Date(currentYear, 0, 1);
-  const calendarEndMonth = new Date(currentYear + 5, 11, 31);
   const isSaveDisabled =
     departmentOptions.length > 0 && selectedDepartmentId.length === 0;
+
+  // The planned end is a 24-hour time on the rallye's day (today for a fresh
+  // one). Empty fields submit no value, leaving the stored end unchanged.
+  const endTimeValue = (() => {
+    if (endHour === '' && endMinute === '') return '';
+    const h = Number(endHour === '' ? '0' : endHour);
+    const m = Number(endMinute === '' ? '0' : endMinute);
+    if (
+      Number.isNaN(h) ||
+      Number.isNaN(m) ||
+      h < 0 ||
+      h > 23 ||
+      m < 0 ||
+      m > 59
+    ) {
+      return '';
+    }
+    const base = rallye.end_time ? new Date(rallye.end_time) : new Date();
+    base.setHours(h, m, 0, 0);
+    return base.toISOString();
+  })();
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -104,7 +124,7 @@ export default function RallyeSettingsForm({
       <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <form action={formAction} className="flex max-w-xl flex-col gap-4">
           <input type="hidden" name="id" value={rallye.id} />
-          <input type="hidden" name="end_time" value={date24?.toISOString()} />
+          <input type="hidden" name="end_time" value={endTimeValue} />
           <input type="hidden" name="status" value={status} />
           <input type="hidden" name="department_sync" value="1" />
 
@@ -126,15 +146,33 @@ export default function RallyeSettingsForm({
               Nur zur Orientierung. Die Rallye endet erst, wenn du sie im Ablauf
               beendest.
             </p>
-            <DateTimePicker
-              locale={de}
-              hourCycle={24}
-              value={date24}
-              onChange={setDate24}
-              startMonth={calendarStartMonth}
-              endMonth={calendarEndMonth}
-              className="max-w-sm"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                id={`rallye-${rallye.id}-endtime`}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={23}
+                placeholder="18"
+                value={endHour}
+                onChange={(e) => setEndHour(e.target.value)}
+                className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                aria-label="Stunde"
+              />
+              <span className="select-none">:</span>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={59}
+                placeholder="00"
+                value={endMinute}
+                onChange={(e) => setEndMinute(e.target.value)}
+                className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                aria-label="Minute"
+              />
+              <span className="text-sm text-muted-foreground">Uhr</span>
+            </div>
           </div>
 
           <div className="grid gap-2">
