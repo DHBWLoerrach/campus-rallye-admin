@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { de } from 'date-fns/locale';
 import { createRallyeWithQuestions } from '@/actions/rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
 import { questionTypes } from '@/helpers/questionTypes';
@@ -10,7 +9,6 @@ import type { Question } from '@/helpers/questions';
 import type { DepartmentOption } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -35,7 +33,7 @@ interface RallyeCreateWizardProps {
   categories: string[];
 }
 
-const STEPS = ['Name & Bereich', 'Fragen wählen', 'Termin & Passwort'];
+const STEPS = ['Name & Bereich', 'Fragen wählen', 'Passwort'];
 
 const getTypeLabel = (type: string | null | undefined): string =>
   questionTypes.find((t) => t.id === type)?.name ?? '—';
@@ -86,7 +84,6 @@ export default function RallyeCreateWizard({
   );
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [filters, setFilters] = useState<Filters>({});
-  const [endTime, setEndTime] = useState<Date | undefined>(undefined);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -113,7 +110,7 @@ export default function RallyeCreateWizard({
       const result = await createRallyeWithQuestions({
         name: name.trim(),
         departmentId: Number(departmentId),
-        endTime: endTime ? endTime.toISOString() : null,
+        endTime: null,
         password,
         questionIds: Array.from(selectedIds),
       });
@@ -227,19 +224,6 @@ export default function RallyeCreateWizard({
 
       {step === 2 && (
         <div className="flex max-w-xl flex-col gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="wizard-endtime">Ende der Rallye</Label>
-            <DateTimePicker
-              locale={de}
-              hourCycle={24}
-              value={endTime}
-              onChange={setEndTime}
-              className="max-w-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Kann später in den Einstellungen geändert werden.
-            </p>
-          </div>
           <div className="grid gap-2">
             <Label htmlFor="wizard-password">Passwort (optional)</Label>
             <Input
