@@ -120,8 +120,12 @@ export default function RallyeSettingsForm({
 
           <div className="grid gap-2">
             <Label htmlFor={`rallye-${rallye.id}-endtime`}>
-              Ende der Rallye
+              Geplantes Ende
             </Label>
+            <p className="text-sm text-muted-foreground">
+              Nur zur Orientierung. Die Rallye endet erst, wenn du sie im Ablauf
+              beendest.
+            </p>
             <DateTimePicker
               locale={de}
               hourCycle={24}

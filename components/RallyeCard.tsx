@@ -49,7 +49,7 @@ export default function RallyeCard({
         <CardContent className="grid gap-3">
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm">
             <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Ende
+              Geplant bis
             </span>
             <span className="font-medium text-foreground">
               <FormattedEndTime value={rallye.end_time} />

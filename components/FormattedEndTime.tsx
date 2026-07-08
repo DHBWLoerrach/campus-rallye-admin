@@ -16,5 +16,5 @@ export default function FormattedEndTime({ value }: { value: string }) {
     () => ''
   );
 
-  return <span>{text || 'Endzeitpunkt fehlt'}</span>;
+  return <span>{text || 'Kein Ende geplant'}</span>;
 }

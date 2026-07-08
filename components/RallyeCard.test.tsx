@@ -32,6 +32,11 @@ describe('RallyeCard', () => {
     expect(screen.getByText('Bereich: HoKo/Marketing')).toBeInTheDocument();
   });
 
+  it('frames the end time as a relaxed "geplant bis" orientation', () => {
+    render(<RallyeCard rallye={baseRallye} questionCount={3} />);
+    expect(screen.getByText('Geplant bis')).toBeInTheDocument();
+  });
+
   it('shows a hint when no questions are assigned', () => {
     render(<RallyeCard rallye={baseRallye} questionCount={0} />);
     expect(screen.getByText('Keine Fragen')).toBeInTheDocument();
