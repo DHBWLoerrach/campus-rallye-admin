@@ -60,7 +60,7 @@ describe('getRallyeResults', () => {
     expect(result.error).toBe('Rallye ist nicht beendet');
   });
 
-  it('orders by points desc then duration asc and assigns ranks', async () => {
+  it('gives equal-point teams a shared rank and orders them by name, not speed', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const rallyeQuery = {
@@ -73,6 +73,7 @@ describe('getRallyeResults', () => {
       })),
     };
 
+    // Team Beta finished faster, but speed must not affect placement.
     const teamRows = [
       {
         id: 10,
@@ -162,14 +163,109 @@ describe('getRallyeResults', () => {
     if (!result.success) {
       throw new Error('Expected success');
     }
-    expect(result.data?.[0].teamName).toBe('Team Beta');
+    // Equal points -> same rank; neutral alphabetical order for display.
+    expect(result.data?.[0].teamName).toBe('Team Alpha');
     expect(result.data?.[0].rank).toBe(1);
-    expect(result.data?.[1].teamName).toBe('Team Alpha');
-    expect(result.data?.[1].rank).toBe(2);
-    expect(result.data?.[0].photoUrl).toBe('https://example.com/team-b.png');
-    expect(result.data?.[1].photoUrl).toBe('https://example.com/newer.png');
+    expect(result.data?.[1].teamName).toBe('Team Beta');
+    expect(result.data?.[1].rank).toBe(1);
+    expect(result.data?.[0].photoUrl).toBe('https://example.com/newer.png');
+    expect(result.data?.[1].photoUrl).toBe('https://example.com/team-b.png');
     expect(storageFrom).toHaveBeenCalledWith('upload-photos');
     expect(createSignedUrl).toHaveBeenCalledWith('newer.png', 3600);
+  });
+
+  it('orders by points desc and skips ranks after a tie', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const rallyeQuery = {
+      select: vi.fn(() => rallyeQuery),
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { id: 1, status: 'ended' },
+          error: null,
+        }),
+      })),
+    };
+
+    const teamRows = [
+      {
+        id: 20,
+        name: 'Team Beta',
+        created_at: '2024-01-01T00:00:00.000Z',
+        time_played: '2024-01-01T00:10:00.000Z',
+      },
+      {
+        id: 21,
+        name: 'Team Alpha',
+        created_at: '2024-01-01T00:00:00.000Z',
+        time_played: '2024-01-01T00:30:00.000Z',
+      },
+      {
+        id: 22,
+        name: 'Team Gamma',
+        created_at: '2024-01-01T00:00:00.000Z',
+        time_played: '2024-01-01T00:05:00.000Z',
+      },
+    ];
+
+    const teamQuery = {
+      select: vi.fn(() => teamQuery),
+      eq: vi.fn(() => Promise.resolve({ data: teamRows, error: null })),
+    };
+
+    // Alpha and Beta tie on 8 points; Gamma trails with 3.
+    const teamQuestionRows = [
+      { team_id: 20, points: 8 },
+      { team_id: 21, points: 8 },
+      { team_id: 22, points: 3 },
+    ];
+
+    const teamQuestionQuery = {
+      select: vi.fn(() => teamQuestionQuery),
+      in: vi.fn(() => Promise.resolve({ data: teamQuestionRows, error: null })),
+    };
+
+    const uploadQuery = {
+      select: vi.fn(() => uploadQuery),
+      in: vi.fn(() => ({
+        eq: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+    };
+
+    const storageFrom = vi.fn(() => ({ createSignedUrl: vi.fn() }));
+
+    const teamQuestionsRouter = {
+      select: vi.fn((fields: string) => {
+        if (fields.includes('team_answer')) {
+          return uploadQuery;
+        }
+        return teamQuestionQuery;
+      }),
+    };
+
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn((table: string) => {
+        if (table === 'rallye') return rallyeQuery;
+        if (table === 'rallye_team') return teamQuery;
+        if (table === 'team_questions') return teamQuestionsRouter;
+        throw new Error(`Unexpected table ${table}`);
+      }),
+      storage: { from: storageFrom },
+    });
+
+    const { getRallyeResults } = await import('./rallye-results');
+    const result = await getRallyeResults(1);
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error('Expected success');
+    }
+    // Tie for first (alphabetical display order), then a gap to rank 3.
+    expect(result.data?.map((row) => [row.teamName, row.rank])).toEqual([
+      ['Team Alpha', 1],
+      ['Team Beta', 1],
+      ['Team Gamma', 3],
+    ]);
   });
 
   it('returns 0 for rallye with no teams', async () => {

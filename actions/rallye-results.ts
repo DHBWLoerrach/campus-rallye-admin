@@ -165,20 +165,22 @@ export async function getRallyeResults(
     photoUrl: photoUrlByTeam.get(team.id),
   }));
 
+  // Only points decide placement. Speed is never a tiebreaker; a neutral
+  // alphabetical order just gives equal-point teams a stable display order.
   rows.sort((a, b) => {
     if (a.points !== b.points) {
       return b.points - a.points;
     }
-    const durationA = a.durationMs ?? Number.POSITIVE_INFINITY;
-    const durationB = b.durationMs ?? Number.POSITIVE_INFINITY;
-    if (durationA !== durationB) {
-      return durationA - durationB;
-    }
     return a.teamName.localeCompare(b.teamName, 'de', { sensitivity: 'base' });
   });
 
+  // Standard competition ranking: equal points share a rank, and the next
+  // distinct group skips ahead (e.g. 1, 1, 3).
   rows.forEach((row, index) => {
-    row.rank = index + 1;
+    row.rank =
+      index > 0 && row.points === rows[index - 1].points
+        ? rows[index - 1].rank
+        : index + 1;
   });
 
   return ok(rows);
