@@ -193,13 +193,25 @@ export async function deleteRallye(
 
 export async function advanceRallyeStatus(
   rallyeId: number,
-  target: RallyeStatus
+  target: RallyeStatus,
+  endTime?: string
 ): Promise<ActionResult<{ message: string }>> {
   await requireProfile();
 
   const idResult = idSchema.safeParse(rallyeId);
   if (!idResult.success) {
     return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  // An optional planned end can be set alongside the transition, typically the
+  // "geplant bis" time chosen when the rallye is started.
+  let parsedEndTime: Date | undefined;
+  if (endTime !== undefined && endTime !== '') {
+    const parsed = new Date(endTime);
+    if (Number.isNaN(parsed.getTime())) {
+      return fail('Ungültiges Datum');
+    }
+    parsedEndTime = parsed;
   }
 
   const supabase = await createClient();
@@ -241,9 +253,16 @@ export async function advanceRallyeStatus(
     return fail('Ungültiger Statuswechsel');
   }
 
+  const updatePayload: { status: RallyeStatus; end_time?: Date } = {
+    status: target,
+  };
+  if (parsedEndTime !== undefined) {
+    updatePayload.end_time = parsedEndTime;
+  }
+
   const { error } = await supabase
     .from('rallye')
-    .update({ status: target })
+    .update(updatePayload)
     .eq('id', idResult.data);
 
   if (error) {

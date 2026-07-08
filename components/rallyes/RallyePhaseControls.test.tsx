@@ -93,9 +93,56 @@ describe('RallyePhaseControls', () => {
         'Teams können ab jetzt beitreten und die Fragen beantworten.'
       )
     ).toBeInTheDocument();
+    expect(screen.getByText('Endet heute um (optional)')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
     await waitFor(() => {
-      expect(mockAdvance).toHaveBeenCalledWith(5, 'running');
+      expect(mockAdvance).toHaveBeenCalledWith(5, 'running', undefined);
     });
+  });
+
+  it("combines the chosen time with today's date when starting", async () => {
+    mockAdvance.mockResolvedValue({ success: true, data: { message: 'ok' } });
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="inactive"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
+    fireEvent.change(screen.getByLabelText('Stunde'), {
+      target: { value: '18' },
+    });
+    fireEvent.change(screen.getByLabelText('Minute'), {
+      target: { value: '30' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
+    await waitFor(() => {
+      expect(mockAdvance).toHaveBeenCalledWith(
+        5,
+        'running',
+        expect.any(String)
+      );
+    });
+    const iso = mockAdvance.mock.calls[0][2] as string;
+    const end = new Date(iso);
+    const today = new Date();
+    expect(end.getHours()).toBe(18);
+    expect(end.getMinutes()).toBe(30);
+    expect(end.toDateString()).toBe(today.toDateString());
+  });
+
+  it('offers no planned-end field for later transitions', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="running"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Ranking zeigen' }));
+    expect(
+      screen.queryByText('Endet heute um (optional)')
+    ).not.toBeInTheDocument();
   });
 });

@@ -315,6 +315,39 @@ describe('advanceRallyeStatus', () => {
     expect(supabase.update).toHaveBeenCalledWith({ status: 'running' });
   });
 
+  it('sets the planned end time when starting the rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('inactive', 0);
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(
+      5,
+      'running',
+      '2027-06-01T16:00:00.000Z'
+    );
+
+    expect(result.success).toBe(true);
+    expect(supabase.update).toHaveBeenCalledWith({
+      status: 'running',
+      end_time: new Date('2027-06-01T16:00:00.000Z'),
+    });
+  });
+
+  it('rejects an invalid planned end time', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('inactive', 0);
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'running', 'kein-datum');
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe('Ungültiges Datum');
+    expect(supabase.update).not.toHaveBeenCalled();
+  });
+
   it('rejects a target that does not match the guided transition', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     mockCreateClient.mockResolvedValue(makeSupabase('inactive', 0));

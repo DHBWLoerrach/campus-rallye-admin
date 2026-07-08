@@ -14,7 +14,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { getNextRallyeTransition, type RallyeStatus } from '@/lib/types';
+
+// A rallye ends on the day it starts, so we only ask for a 24-hour time and pin
+// it to today. Returns undefined when nothing is entered (no planned end).
+function endTimeToIso(hour: string, minute: string): string | undefined {
+  if (hour === '' && minute === '') return undefined;
+  const h = Number(hour === '' ? '0' : hour);
+  const m = Number(minute === '' ? '0' : minute);
+  if (Number.isNaN(h) || Number.isNaN(m)) return undefined;
+  if (h < 0 || h > 23 || m < 0 || m > 59) return undefined;
+  const end = new Date();
+  end.setHours(h, m, 0, 0);
+  return end.toISOString();
+}
 
 interface RallyePhaseControlsProps {
   rallyeId: number;
@@ -30,9 +45,13 @@ export default function RallyePhaseControls({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [endHour, setEndHour] = useState('');
+  const [endMinute, setEndMinute] = useState('');
   const [isPending, startTransition] = useTransition();
 
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
+  // Only the start step offers a "geplant bis" time; other transitions don't.
+  const showEndTime = status === 'inactive';
 
   const handleDuplicate = () => {
     setError(null);
@@ -73,7 +92,11 @@ export default function RallyePhaseControls({
   const handleConfirm = () => {
     setError(null);
     startTransition(async () => {
-      const result = await advanceRallyeStatus(rallyeId, transition.target);
+      const result = await advanceRallyeStatus(
+        rallyeId,
+        transition.target,
+        showEndTime ? endTimeToIso(endHour, endMinute) : undefined
+      );
       if (!result.success) {
         setError(result.error);
       } else {
@@ -98,6 +121,44 @@ export default function RallyePhaseControls({
             <DialogTitle>{transition.actionLabel}</DialogTitle>
             <DialogDescription>{transition.confirmText}</DialogDescription>
           </DialogHeader>
+          {showEndTime && (
+            <div className="grid gap-2">
+              <Label htmlFor="phase-endtime-hour">
+                Endet heute um (optional)
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="phase-endtime-hour"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={23}
+                  placeholder="18"
+                  value={endHour}
+                  onChange={(e) => setEndHour(e.target.value)}
+                  className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  aria-label="Stunde"
+                />
+                <span className="select-none">:</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={59}
+                  placeholder="00"
+                  value={endMinute}
+                  onChange={(e) => setEndMinute(e.target.value)}
+                  className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  aria-label="Minute"
+                />
+                <span className="text-sm text-muted-foreground">Uhr</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Nur zur Orientierung. Die Rallye endet erst, wenn du sie im
+                Ablauf beendest.
+              </p>
+            </div>
+          )}
           {error && (
             <p className="text-sm text-destructive" role="alert">
               {error}
