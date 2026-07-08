@@ -50,13 +50,15 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
               <TableHead className="w-8"></TableHead>
               <TableHead>Frage</TableHead>
               <TableHead>Typ</TableHead>
+              <TableHead className="w-20 text-right">Punkte</TableHead>
+              <TableHead className="w-32">Verwendet in</TableHead>
               <TableHead className="w-12 text-center">Aktionen</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {questions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   Keine Einträge
                 </TableCell>
               </TableRow>
@@ -78,12 +80,27 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                         />
                       </TableCell>
                       <TableCell className="max-w-md">
-                        <QuestionSummary
-                          question={question}
-                          rallyeNames={rallyeNames}
-                        />
+                        <QuestionSummary question={question} />
                       </TableCell>
-                      <TableCell>{questionTypeLabels[question.type]}</TableCell>
+                      <TableCell>
+                        {questionTypeLabels[question.type] ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {question.points ?? '—'}
+                      </TableCell>
+                      <TableCell>
+                        {rallyeNames.length === 0 ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <span
+                            className="text-muted-foreground"
+                            title={rallyeNames.join(', ')}
+                          >
+                            {rallyeNames.length}{' '}
+                            {rallyeNames.length === 1 ? 'Rallye' : 'Rallyes'}
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-center">
                         <Button
                           asChild
@@ -100,7 +117,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                     </TableRow>
                     {expandedRows.includes(question.id) && (
                       <TableRow className="bg-muted/30 hover:bg-muted/30">
-                        <TableCell colSpan={4} className="p-0">
+                        <TableCell colSpan={6} className="p-0">
                           <div className="p-3 pl-12 border-b">
                             <QuestionDetailsRows
                               question={question}

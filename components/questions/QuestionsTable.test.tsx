@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import QuestionsTable from './QuestionsTable';
 
@@ -34,14 +34,20 @@ describe('QuestionsTable', () => {
       screen.getByRole('columnheader', { name: 'Aktionen' })
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('columnheader', { name: 'Punkte' })
-    ).not.toBeInTheDocument();
+      screen.getByRole('columnheader', { name: 'Punkte' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Verwendet in' })
+    ).toBeInTheDocument();
     expect(screen.getByText('Testfrage')).toBeInTheDocument();
     expect(screen.getByText('Wissensfrage')).toBeInTheDocument();
-    expect(screen.getByText('2p')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByTitle('Bild vorhanden')).toBeInTheDocument();
     expect(screen.getByTitle('Hinweis vorhanden')).toBeInTheDocument();
-    expect(screen.getByText('2 Rallyes')).toBeInTheDocument();
+    expect(screen.getByText('2 Rallyes')).toHaveAttribute(
+      'title',
+      'Rallye A, Rallye B'
+    );
     expect(screen.getByRole('link', { name: 'Bearbeiten' })).toHaveAttribute(
       'href',
       '/questions/1'
@@ -79,5 +85,16 @@ describe('QuestionsTable', () => {
     fireEvent.click(toggle as SVGElement);
     expect(screen.getByText('Antwort:')).toBeInTheDocument();
     expect(screen.getByText('Einzelantwort')).toBeInTheDocument();
+  });
+
+  it('shows dashes for missing type, points and rallye usage', () => {
+    render(
+      <QuestionsTable
+        questions={[{ id: 2, content: 'Ohne alles', type: '', answers: [] }]}
+      />
+    );
+
+    const rows = screen.getAllByRole('row');
+    expect(within(rows[1]).getAllByText('—').length).toBeGreaterThanOrEqual(2);
   });
 });
