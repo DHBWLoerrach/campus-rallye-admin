@@ -36,21 +36,17 @@ const QuestionPage: React.FC<Props> = ({
   const hasReturnTarget = returnToParam.startsWith('/');
   const isRallyeContext = returnToParam.startsWith('/rallyes/');
   const returnLabel = isRallyeContext ? '← Zurück zu Rallye' : '← Zurück';
-  const rallyeIdParam = searchParams.get('rallyeId') ?? '';
-  const rallyeIdValue = rallyeIdParam ? Number(rallyeIdParam) : Number.NaN;
-  const effectiveRallyeIds =
-    isNew && !Number.isNaN(rallyeIdValue) ? [rallyeIdValue] : initialRallyeIds;
-  const assignedRallyeIds = new Set(effectiveRallyeIds);
+  const assignedRallyeIds = new Set(initialRallyeIds);
   const assignedRallyes = rallyes.filter((rallye) =>
     assignedRallyeIds.has(rallye.id)
   );
-  const hasAssignments = effectiveRallyeIds.length > 0;
+  const hasAssignments = initialRallyeIds.length > 0;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const unsavedChangesMessage =
-    'Ungespeicherte Änderungen gehen verloren. Möchten Sie die Seite wirklich verlassen?';
+    'Ungespeicherte Änderungen gehen verloren. Seite wirklich verlassen?';
 
   useUnsavedChangesGuard(isDirty, unsavedChangesMessage);
 
@@ -141,30 +137,44 @@ const QuestionPage: React.FC<Props> = ({
         </div>
       </section>
 
-      {hasAssignments && (
+      {!isNew && (
         <div className="rounded-2xl border border-border/60 bg-muted/40 px-4 py-3 text-sm">
-          <span className="font-medium">Zugeordnet zu:</span>{' '}
-          {assignedRallyes.length > 0 ? (
+          {hasAssignments ? (
             <>
-              {assignedRallyes.map((rallye, index) => (
-                <React.Fragment key={rallye.id}>
-                  <Link
-                    href={`/rallyes/${rallye.id}/questions`}
-                    className="underline underline-offset-2"
-                  >
-                    {rallye.name}
-                  </Link>
-                  {index < assignedRallyes.length - 1 ? ', ' : ''}
-                </React.Fragment>
-              ))}
-              {assignedRallyes.length > 1 && (
-                <span className="ml-2 text-muted-foreground">
-                  Wirkt in allen zugeordneten Rallyes.
+              <span className="font-medium">
+                Verwendet in {initialRallyeIds.length}{' '}
+                {initialRallyeIds.length === 1 ? 'Rallye' : 'Rallyes'}:
+              </span>{' '}
+              {assignedRallyes.length > 0 ? (
+                <>
+                  {assignedRallyes.map((rallye, index) => (
+                    <React.Fragment key={rallye.id}>
+                      <Link
+                        href={`/rallyes/${rallye.id}`}
+                        className="underline underline-offset-2"
+                      >
+                        {rallye.name}
+                      </Link>
+                      {index < assignedRallyes.length - 1 ? ', ' : ''}
+                    </React.Fragment>
+                  ))}
+                  {assignedRallyes.length > 1 && (
+                    <span className="ml-2 text-muted-foreground">
+                      Änderungen wirken in allen zugeordneten Rallyes.
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground">
+                  Unbekannte Rallyes
                 </span>
               )}
             </>
           ) : (
-            <span className="text-muted-foreground">Unbekannte Rallyes</span>
+            <span className="text-muted-foreground">
+              In keiner Rallye verwendet. Die Zuordnung erfolgt auf der
+              Rallye-Detailseite im Tab „Fragen“.
+            </span>
           )}
         </div>
       )}
@@ -182,8 +192,6 @@ const QuestionPage: React.FC<Props> = ({
           onDelete={id !== 'new' ? handleDelete : undefined}
           initialData={initialData}
           categories={categories}
-          rallyes={rallyes}
-          initialRallyeIds={effectiveRallyeIds}
           isSubmitting={isSubmitting}
           onDirtyChange={setIsDirty}
         />

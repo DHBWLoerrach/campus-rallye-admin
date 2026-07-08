@@ -22,7 +22,6 @@ describe('QuestionForm', () => {
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
         categories={['Test Category']}
-        rallyes={[]}
       />
     );
 
@@ -41,7 +40,7 @@ describe('QuestionForm', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('includes selected rallyes in the submit payload', () => {
+  it('submits without a rallyeIds field so assignments stay untouched', () => {
     const handleSubmit = vi.fn();
 
     render(
@@ -54,21 +53,43 @@ describe('QuestionForm', () => {
         onSubmit={handleSubmit}
         onCancel={vi.fn()}
         categories={[]}
-        rallyes={[
-          { id: 1, name: 'Rallye A' },
-          { id: 2, name: 'Rallye B' },
-        ]}
       />
     );
 
-    fireEvent.click(screen.getByLabelText('Rallye A'));
-    fireEvent.click(screen.getByLabelText('Rallye B'));
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
     expect(handleSubmit).toHaveBeenCalledTimes(1);
-    expect(handleSubmit.mock.calls[0][0].rallyeIds).toEqual(
-      expect.arrayContaining([1, 2])
+    expect(handleSubmit.mock.calls[0][0].rallyeIds).toBeUndefined();
+    expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
+  });
+
+  it('shows only question and type until a type is chosen', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
     );
+    expect(screen.getByLabelText('Frage*')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Punkte')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Hinweis')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Kategorie')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Zuerst einen Fragetyp wählen — danach erscheinen die passenden Felder.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('shows the relevant fields once a type is set', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{ id: 1, content: 'X', type: 'knowledge', answers: [] }}
+      />
+    );
+    expect(screen.getByLabelText('Punkte')).toBeInTheDocument();
+    expect(screen.getByLabelText('Hinweis')).toBeInTheDocument();
+    expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
 
   it('keeps a correct answer when removing the last answer', () => {
@@ -82,7 +103,6 @@ describe('QuestionForm', () => {
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
         categories={[]}
-        rallyes={[]}
       />
     );
 
@@ -108,7 +128,6 @@ describe('QuestionForm', () => {
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
         categories={[]}
-        rallyes={[]}
       />
     );
 
@@ -135,7 +154,6 @@ describe('QuestionForm', () => {
         onSubmit={handleSubmit}
         onCancel={vi.fn()}
         categories={[]}
-        rallyes={[]}
       />
     );
 
@@ -163,7 +181,6 @@ describe('QuestionForm', () => {
         onSubmit={handleSubmit}
         onCancel={vi.fn()}
         categories={[]}
-        rallyes={[]}
       />
     );
 
@@ -188,7 +205,6 @@ describe('QuestionForm', () => {
         onSubmit={handleSubmit}
         onCancel={vi.fn()}
         categories={[]}
-        rallyes={[]}
       />
     );
 
@@ -219,7 +235,6 @@ describe('QuestionForm', () => {
         onCancel={vi.fn()}
         onDirtyChange={handleDirtyChange}
         categories={[]}
-        rallyes={[]}
       />
     );
 

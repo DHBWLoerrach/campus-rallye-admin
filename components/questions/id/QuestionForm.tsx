@@ -3,7 +3,6 @@ import { Plus, Minus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -14,7 +13,6 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
-import type { RallyeOption } from '@/lib/types';
 import QuestionImage from './QuestionImage';
 import QuestionQRCode from './QuestionQRCode';
 
@@ -25,8 +23,6 @@ interface QuestionFormProps {
   onDelete?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
   categories: string[];
-  rallyes: RallyeOption[];
-  initialRallyeIds?: number[];
   isSubmitting?: boolean;
 }
 
@@ -39,8 +35,7 @@ interface FormErrors {
 }
 
 const buildInitialFormData = (
-  initialData: Partial<Question> | null | undefined,
-  initialRallyeIds: number[]
+  initialData: Partial<Question> | null | undefined
 ): QuestionFormData => ({
   content: initialData?.content ?? '',
   type: initialData?.type ?? '',
@@ -51,7 +46,6 @@ const buildInitialFormData = (
   answers: initialData?.answers?.length
     ? initialData.answers
     : [{ id: 0, correct: true, text: '' }],
-  rallyeIds: initialRallyeIds,
 });
 
 const normalizeFormData = (data: QuestionFormData) => ({
@@ -66,7 +60,6 @@ const normalizeFormData = (data: QuestionFormData) => ({
     correct: Boolean(answer.correct),
     text: answer.text ?? '',
   })),
-  rallyeIds: [...(data.rallyeIds ?? [])].sort((a, b) => a - b),
 });
 
 const QuestionForm: React.FC<QuestionFormProps> = ({
@@ -76,14 +69,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   onDelete,
   onDirtyChange,
   categories,
-  rallyes,
-  initialRallyeIds = [],
   isSubmitting = false,
 }) => {
   const initialSerializedRef = useRef<string | null>(null);
   const dirtyStateRef = useRef(false);
   const [formData, setFormData] = useState<QuestionFormData>(() =>
-    buildInitialFormData(initialData, initialRallyeIds)
+    buildInitialFormData(initialData)
   );
 
   const [isNewCategory, setIsNewCategory] = useState(false);
@@ -124,18 +115,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       setIsNewCategory(false);
       setFormData((prev) => ({ ...prev, category: value }));
     }
-  };
-
-  const handleRallyeToggle = (rallyeId: number, isChecked: boolean) => {
-    setFormData((prev) => {
-      const nextIds = new Set(prev.rallyeIds ?? []);
-      if (isChecked) {
-        nextIds.add(rallyeId);
-      } else {
-        nextIds.delete(rallyeId);
-      }
-      return { ...prev, rallyeIds: Array.from(nextIds) };
-    });
   };
 
   const handleAnswerChange = (
@@ -355,30 +334,38 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 <span className="text-sm text-destructive">{errors.type}</span>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="points">Punkte</Label>
-              <Input
-                type="number"
-                id="points"
-                value={formData.points}
-                onChange={(e) =>
-                  handleFormChange('points', Number(e.target.value))
-                }
-                placeholder="0"
-                min={0}
-                className={`w-full ${
-                  errors.points
-                    ? 'border-destructive focus-visible:ring-destructive/40'
-                    : ''
-                }`}
-              />
-              {errors.points && (
-                <span className="text-sm text-destructive">
-                  {errors.points}
-                </span>
-              )}
-            </div>
+            {hasType && (
+              <div className="space-y-2">
+                <Label htmlFor="points">Punkte</Label>
+                <Input
+                  type="number"
+                  id="points"
+                  value={formData.points}
+                  onChange={(e) =>
+                    handleFormChange('points', Number(e.target.value))
+                  }
+                  placeholder="0"
+                  min={0}
+                  className={`w-full ${
+                    errors.points
+                      ? 'border-destructive focus-visible:ring-destructive/40'
+                      : ''
+                  }`}
+                />
+                {errors.points && (
+                  <span className="text-sm text-destructive">
+                    {errors.points}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
+          {!hasType && (
+            <p className="text-sm text-muted-foreground md:col-span-2">
+              Zuerst einen Fragetyp wählen — danach erscheinen die passenden
+              Felder.
+            </p>
+          )}
         </div>
 
         {showAnswers && (
@@ -470,92 +457,68 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           </div>
         )}
 
-        <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="hint">Hinweis</Label>
-            <Input
-              id="hint"
-              value={formData.hint ?? ''}
-              onChange={(e) => handleFormChange('hint', e.target.value)}
-              placeholder="Geben Sie einen Hinweis ein"
-            />
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="category">Kategorie</Label>
-            <Select
-              value={isNewCategory ? 'new' : formData.category || ''}
-              onValueChange={handleCategoryChange}
-            >
-              <SelectTrigger
-                className={
-                  errors.category
-                    ? 'border-destructive focus:ring-destructive/40'
-                    : ''
-                }
-              >
-                <SelectValue placeholder="Wählen Sie eine Kategorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Bitte auswählen</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-                <SelectItem value="new">+ Neue Kategorie</SelectItem>
-              </SelectContent>
-            </Select>
-            {isNewCategory && (
+        {hasType && (
+          <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="hint">Hinweis</Label>
               <Input
-                type="text"
-                value={formData.category ?? ''}
-                placeholder="Neue Kategorie eingeben"
-                onChange={(e) => handleFormChange('category', e.target.value)}
-              />
-            )}
-            {errors.category && (
-              <span className="text-sm text-destructive">
-                {errors.category}
-              </span>
-            )}
-          </div>
-          {isPicture && (
-            <div className="md:col-span-2">
-              <QuestionImage
-                bucketPath={formData.bucket_path}
-                onImageChange={(newPath) =>
-                  handleFormChange('bucket_path', newPath)
-                }
+                id="hint"
+                value={formData.hint ?? ''}
+                onChange={(e) => handleFormChange('hint', e.target.value)}
+                placeholder="Geben Sie einen Hinweis ein"
               />
             </div>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label>Rallyes zuordnen</Label>
-          <div className="rounded-xl border border-border/60 bg-muted/30 p-3 max-h-56 overflow-y-auto space-y-2">
-            {rallyes.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                Keine Rallyes vorhanden
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="category">Kategorie</Label>
+              <Select
+                value={isNewCategory ? 'new' : formData.category || ''}
+                onValueChange={handleCategoryChange}
+              >
+                <SelectTrigger
+                  className={
+                    errors.category
+                      ? 'border-destructive focus:ring-destructive/40'
+                      : ''
+                  }
+                >
+                  <SelectValue placeholder="Wählen Sie eine Kategorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Bitte auswählen</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="new">+ Neue Kategorie</SelectItem>
+                </SelectContent>
+              </Select>
+              {isNewCategory && (
+                <Input
+                  type="text"
+                  value={formData.category ?? ''}
+                  placeholder="Neue Kategorie eingeben"
+                  onChange={(e) => handleFormChange('category', e.target.value)}
+                />
+              )}
+              {errors.category && (
+                <span className="text-sm text-destructive">
+                  {errors.category}
+                </span>
+              )}
+            </div>
+            {isPicture && (
+              <div className="md:col-span-2">
+                <QuestionImage
+                  bucketPath={formData.bucket_path}
+                  onImageChange={(newPath) =>
+                    handleFormChange('bucket_path', newPath)
+                  }
+                />
               </div>
-            ) : (
-              rallyes.map((rallye) => (
-                <div key={rallye.id} className="flex items-center gap-2">
-                  <Checkbox
-                    id={`rallye-${rallye.id}`}
-                    checked={formData.rallyeIds?.includes(rallye.id) ?? false}
-                    onCheckedChange={(checked) =>
-                      handleRallyeToggle(rallye.id, checked === true)
-                    }
-                  />
-                  <Label htmlFor={`rallye-${rallye.id}`} className="text-sm">
-                    {rallye.name}
-                  </Label>
-                </div>
-              ))
             )}
           </div>
-        </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4">
           {onDelete && (

@@ -76,41 +76,34 @@ describe('QuestionPage', () => {
       />
     );
 
-    expect(screen.getByText('Zugeordnet zu:')).toBeInTheDocument();
+    expect(screen.getByText('Verwendet in 2 Rallyes:')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Rallye A' })).toHaveAttribute(
       'href',
-      '/rallyes/1/questions'
+      '/rallyes/1'
     );
     expect(screen.getByRole('link', { name: 'Rallye B' })).toHaveAttribute(
       'href',
-      '/rallyes/2/questions'
+      '/rallyes/2'
     );
     expect(
-      screen.getByText('Wirkt in allen zugeordneten Rallyes.')
+      screen.getByText('Änderungen wirken in allen zugeordneten Rallyes.')
     ).toBeInTheDocument();
   });
 
-  it('preselects a rallye for new questions when rallyeId is provided', () => {
-    mockSearchParams.get.mockImplementation((key) => {
-      if (key === 'rallyeId') return '2';
-      return '';
-    });
+  it('shows a hint when the question is used in no rallye', () => {
+    mockSearchParams.get.mockImplementation(() => '');
 
     render(
       <QuestionPage
-        id="new"
+        id="1"
         initialData={null}
         categories={[]}
-        rallyes={[
-          { id: 1, name: 'Rallye A' },
-          { id: 2, name: 'Rallye B' },
-        ]}
+        rallyes={[]}
         initialRallyeIds={[]}
       />
     );
 
-    const checkbox = screen.getByRole('checkbox', { name: 'Rallye B' });
-    expect(checkbox).toHaveAttribute('data-state', 'checked');
+    expect(screen.getByText(/In keiner Rallye verwendet/)).toBeInTheDocument();
   });
 
   it('prompts before navigating via link when form is dirty', () => {
