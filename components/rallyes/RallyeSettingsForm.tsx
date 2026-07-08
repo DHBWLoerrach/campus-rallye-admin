@@ -101,6 +101,10 @@ export default function RallyeSettingsForm({
     base.setHours(h, m, 0, 0);
     return base.toISOString();
   })();
+  // Purely informational nudge; a past time never blocks saving.
+  const endIsPast =
+    endTimeValue !== '' &&
+    new Date(endTimeValue).getTime() < new Date().getTime();
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -173,6 +177,11 @@ export default function RallyeSettingsForm({
               />
               <span className="text-sm text-muted-foreground">Uhr</span>
             </div>
+            {endIsPast && (
+              <p className="text-xs text-amber-600 dark:text-amber-500">
+                Diese Uhrzeit liegt bereits in der Vergangenheit.
+              </p>
+            )}
           </div>
 
           <div className="grid gap-2">

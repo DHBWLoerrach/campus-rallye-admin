@@ -52,6 +52,13 @@ export default function RallyePhaseControls({
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
   // Only the start step offers a "geplant bis" time; other transitions don't.
   const showEndTime = status === 'inactive';
+  const plannedEndIso = showEndTime
+    ? endTimeToIso(endHour, endMinute)
+    : undefined;
+  // Purely informational nudge; entering a past time never blocks the start.
+  const endIsPast =
+    plannedEndIso !== undefined &&
+    new Date(plannedEndIso).getTime() < new Date().getTime();
 
   const handleDuplicate = () => {
     setError(null);
@@ -95,7 +102,7 @@ export default function RallyePhaseControls({
       const result = await advanceRallyeStatus(
         rallyeId,
         transition.target,
-        showEndTime ? endTimeToIso(endHour, endMinute) : undefined
+        plannedEndIso
       );
       if (!result.success) {
         setError(result.error);
@@ -153,6 +160,11 @@ export default function RallyePhaseControls({
                 />
                 <span className="text-sm text-muted-foreground">Uhr</span>
               </div>
+              {endIsPast && (
+                <p className="text-xs text-amber-600 dark:text-amber-500">
+                  Diese Uhrzeit liegt bereits in der Vergangenheit.
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
                 Nur zur Orientierung. Die Rallye endet erst, wenn du sie im
                 Ablauf beendest.

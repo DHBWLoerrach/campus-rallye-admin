@@ -101,6 +101,36 @@ describe('RallyeSettingsForm', () => {
     expect(end.getMinutes()).toBe(30);
   });
 
+  it('warns when the entered end time is already in the past', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-07-08T12:00:00'));
+    try {
+      render(
+        <RallyeSettingsForm
+          rallye={{ ...baseRallye, end_time: null }}
+          departmentOptions={[{ id: 10, name: 'Informatik' }]}
+          assignedDepartmentIds={[10]}
+        />
+      );
+
+      fireEvent.change(screen.getByLabelText('Stunde'), {
+        target: { value: '8' },
+      });
+      expect(
+        screen.getByText('Diese Uhrzeit liegt bereits in der Vergangenheit.')
+      ).toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText('Stunde'), {
+        target: { value: '18' },
+      });
+      expect(
+        screen.queryByText('Diese Uhrzeit liegt bereits in der Vergangenheit.')
+      ).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('shows the danger zone with a delete dialog trigger', () => {
     render(
       <RallyeSettingsForm

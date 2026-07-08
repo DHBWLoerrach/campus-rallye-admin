@@ -132,6 +132,38 @@ describe('RallyePhaseControls', () => {
     expect(end.toDateString()).toBe(today.toDateString());
   });
 
+  it('warns about a past end time without blocking the start', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-07-08T12:00:00'));
+    try {
+      render(
+        <RallyePhaseControls
+          rallyeId={5}
+          status="inactive"
+          hasVotingQuestions={false}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
+      fireEvent.change(screen.getByLabelText('Stunde'), {
+        target: { value: '8' },
+      });
+      expect(
+        screen.getByText('Diese Uhrzeit liegt bereits in der Vergangenheit.')
+      ).toBeInTheDocument();
+      // Confirming is still possible despite the warning.
+      expect(screen.getByRole('button', { name: 'Bestätigen' })).toBeEnabled();
+
+      fireEvent.change(screen.getByLabelText('Stunde'), {
+        target: { value: '18' },
+      });
+      expect(
+        screen.queryByText('Diese Uhrzeit liegt bereits in der Vergangenheit.')
+      ).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('offers no planned-end field for later transitions', () => {
     render(
       <RallyePhaseControls
