@@ -8,8 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import Link from 'next/link';
 import Department from '@/components/Department';
 import DepartmentDialog from '@/components/DepartmentDialog';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type {
   Department as DepartmentType,
@@ -47,13 +49,16 @@ export default function DepartmentsClient({
 
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
+      <Button asChild variant="outline" size="sm" className="w-fit">
+        <Link href="/admin">← Zurück zur Verwaltung</Link>
+      </Button>
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">Bereiche</h1>
           <p className="text-muted-foreground">
             {isSingleSite
-              ? `Verwalten Sie Ihre Bereiche für ${siteLabel}.`
-              : `Verwalten Sie Ihre Bereiche am Standort ${siteLabel}.`}
+              ? `Bereiche für ${siteLabel} verwalten.`
+              : `Bereiche am Standort ${siteLabel} verwalten.`}
           </p>
           <p className="text-sm text-muted-foreground">
             Bereiche sind z. B. Studiengänge (Maschinenbau, BWL-Handel),
@@ -97,7 +102,7 @@ export default function DepartmentsClient({
             Keine Bereiche
           </h2>
           <p className="text-sm text-muted-foreground">
-            Erstellen Sie Ihren ersten Bereich, um zu beginnen.
+            Den ersten Bereich anlegen, um zu beginnen.
           </p>
         </div>
       ) : filteredDepartments.length === 0 ? (

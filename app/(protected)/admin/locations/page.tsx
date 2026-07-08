@@ -1,8 +1,10 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import createClient from '@/lib/supabase';
 import { requireAdmin } from '@/lib/require-profile';
 import Location from '@/components/Location';
 import LocationDialog from '@/components/LocationDialog';
+import { Button } from '@/components/ui/button';
 import type { RallyeOption } from '@/lib/types';
 
 export default async function LocationsPage() {
@@ -93,11 +95,14 @@ export default async function LocationsPage() {
 
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
+      <Button asChild variant="outline" size="sm" className="w-fit">
+        <Link href="/admin">← Zurück zur Verwaltung</Link>
+      </Button>
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">Standorte</h1>
           <p className="text-muted-foreground">
-            Verwalten Sie Ihre Standorte und deren Campus-Touren.
+            Standorte und deren Campus-Touren verwalten.
           </p>
         </div>
         <LocationDialog buttonStyle="ml-auto" />
@@ -120,7 +125,7 @@ export default async function LocationsPage() {
             Keine Standorte
           </h2>
           <p className="text-sm text-muted-foreground">
-            Erstellen Sie Ihren ersten Standort, um zu beginnen.
+            Den ersten Standort anlegen, um zu beginnen.
           </p>
         </div>
       ) : (

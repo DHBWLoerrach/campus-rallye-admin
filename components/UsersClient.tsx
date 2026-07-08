@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { assignUserDepartment } from '@/actions/local-users';
 import type { LocalUser } from '@/lib/db/local-user';
 import type { DepartmentOption } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -50,11 +52,14 @@ export default function UsersClient({
 
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
+      <Button asChild variant="outline" size="sm" className="w-fit">
+        <Link href="/admin">← Zurück zur Verwaltung</Link>
+      </Button>
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Nutzer</h1>
         <p className="text-muted-foreground">
-          Ordnen Sie Nutzern einen Bereich zu. Der Bereich bestimmt, welche
-          Rallyes im Fokus stehen.
+          Nutzern einen Bereich zuordnen. Der Bereich bestimmt, welche Rallyes
+          im Fokus stehen.
         </p>
       </div>
 
