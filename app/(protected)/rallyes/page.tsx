@@ -33,10 +33,16 @@ const PHASE_SYMBOLS: Record<RallyePhaseGroup, string> = {
 };
 
 // Live and preparing rallyes: nearest end first; finished: latest end first.
+// Rallyes without a planned end sort to the very bottom of their group.
 const sortForGroup = (group: RallyePhaseGroup, rallyes: RallyeRow[]) =>
   [...rallyes].sort((a, b) => {
-    const diff =
-      new Date(a.end_time).getTime() - new Date(b.end_time).getTime();
+    const aTime = a.end_time ? new Date(a.end_time).getTime() : null;
+    const bTime = b.end_time ? new Date(b.end_time).getTime() : null;
+    if (aTime === null || bTime === null) {
+      if (aTime === bTime) return 0;
+      return aTime === null ? 1 : -1;
+    }
+    const diff = aTime - bTime;
     return group === 'done' ? -diff : diff;
   });
 

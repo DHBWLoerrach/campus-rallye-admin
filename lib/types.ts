@@ -19,7 +19,7 @@ export interface Rallye {
   id: number;
   name: string;
   status: RallyeStatus;
-  end_time: string;
+  end_time: string | null;
   password: string;
   created_at: string;
 }

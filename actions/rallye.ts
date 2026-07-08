@@ -290,13 +290,13 @@ export async function duplicateRallye(
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  // The copy starts as a fresh draft: preparing, end time to be set, no password.
+  // The copy starts as a fresh draft: preparing, no planned end, no password.
   const { data: created, error: insertError } = await supabase
     .from('rallye')
     .insert({
       name: `${source.name} (Kopie)`,
       status: 'preparing' as RallyeStatus,
-      end_time: new Date(),
+      end_time: null,
       password: '',
       department_id: source.department_id,
     })
@@ -351,7 +351,8 @@ export async function createRallyeWithQuestions(input: {
     return fail('Ungültige Fragen', formatZodError(questionIdsResult.error));
   }
 
-  let endTime = new Date();
+  // A fresh draft has no planned end; the time is set later, ideally at start.
+  let endTime: Date | null = null;
   if (input.endTime !== null) {
     const parsed = new Date(input.endTime);
     if (Number.isNaN(parsed.getTime())) {

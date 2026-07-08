@@ -61,7 +61,7 @@ export default function RallyeSettingsForm({
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
   const [date24, setDate24] = useState<Date | undefined>(
-    new Date(rallye.end_time)
+    rallye.end_time ? new Date(rallye.end_time) : undefined
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);

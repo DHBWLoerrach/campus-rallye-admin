@@ -556,6 +556,26 @@ describe('createRallyeWithQuestions', () => {
     ]);
   });
 
+  it('stores a null end time when none is planned', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({});
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { createRallyeWithQuestions } = await import('./rallye');
+    const result = await createRallyeWithQuestions({
+      name: 'Ohne Ende',
+      departmentId: 7,
+      endTime: null,
+      password: '',
+      questionIds: [],
+    });
+
+    expect(result.success).toBe(true);
+    expect(supabase.rallyeInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ end_time: null })
+    );
+  });
+
   it('fails when the department does not exist', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     mockCreateClient.mockResolvedValue(
