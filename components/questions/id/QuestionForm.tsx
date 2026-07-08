@@ -220,16 +220,16 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     const newErrors: FormErrors = {};
 
     if (!data.content.trim()) {
-      newErrors.content = 'Bitte geben Sie eine Frage ein';
+      newErrors.content = 'Bitte eine Frage eingeben';
     }
 
     if (!data.type) {
-      newErrors.type = 'Bitte wählen Sie einen Fragetyp';
+      newErrors.type = 'Bitte einen Fragetyp wählen';
     }
 
     if (!data.category?.trim() && isNewCategory) {
       newErrors.category =
-        'Bitte wählen Sie eine Kategorie oder geben Sie eine neue ein';
+        'Bitte eine Kategorie wählen oder eine neue eingeben';
     }
 
     if ((data.points ?? 0) < 0) {
@@ -294,7 +294,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               id="question"
               value={formData.content}
               onChange={(e) => handleFormChange('content', e.target.value)}
-              placeholder="Geben Sie die Frage ein"
+              placeholder="Frage eingeben"
               className={
                 errors.content
                   ? 'border-destructive focus-visible:ring-destructive/40'
@@ -320,7 +320,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                       : ''
                   }
                 >
-                  <SelectValue placeholder="Wählen Sie einen Fragetyp" />
+                  <SelectValue placeholder="Fragetyp wählen" />
                 </SelectTrigger>
                 <SelectContent>
                   {questionTypes.map((type) => (
@@ -393,7 +393,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                         onChange={(e) =>
                           handleAnswerChange(index, 'text', e.target.value)
                         }
-                        placeholder="Füge eine Antwort hinzu"
+                        placeholder="Antwort eingeben"
                         className={
                           errors.answers
                             ? 'border-destructive focus-visible:ring-destructive/40'
@@ -423,7 +423,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     onChange={(e) =>
                       handleAnswerChange(index, 'text', e.target.value)
                     }
-                    placeholder="Füge eine Antwort hinzu"
+                    placeholder="Antwort eingeben"
                     className={
                       errors.answers
                         ? 'border-destructive focus-visible:ring-destructive/40'
@@ -465,7 +465,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 id="hint"
                 value={formData.hint ?? ''}
                 onChange={(e) => handleFormChange('hint', e.target.value)}
-                placeholder="Geben Sie einen Hinweis ein"
+                placeholder="Hinweis eingeben (optional)"
               />
             </div>
             <div className="space-y-2 md:col-span-2">
@@ -481,7 +481,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                       : ''
                   }
                 >
-                  <SelectValue placeholder="Wählen Sie eine Kategorie" />
+                  <SelectValue placeholder="Kategorie wählen" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Bitte auswählen</SelectItem>
@@ -526,11 +526,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               variant="outline"
               type="button"
               onClick={() => {
-                if (
-                  window.confirm(
-                    'Sind Sie sicher, dass Sie diese Frage löschen möchten?'
-                  )
-                ) {
+                if (window.confirm('Diese Frage wirklich löschen?')) {
                   onDelete();
                 }
               }}

@@ -184,7 +184,7 @@ export default function RallyeCreateWizard({
         <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
             {selectedIds.size === 0
-              ? 'Wähle Fragen aus dem Katalog — oder überspringe diesen Schritt und ordne später zu.'
+              ? 'Fragen aus dem Katalog wählen — dieser Schritt kann übersprungen werden.'
               : `${selectedIds.size} ${selectedIds.size === 1 ? 'Frage' : 'Fragen'} ausgewählt.`}
           </p>
           <SearchFilters

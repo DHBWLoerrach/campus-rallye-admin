@@ -172,7 +172,7 @@ export default async function Home() {
 
       {myGroups.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-          Noch keine Rallyes. Erstelle die erste über „Rallye erstellen“.
+          Noch keine Rallyes. Die erste über „+ Neue Rallye“ anlegen.
         </section>
       ) : (
         myGroups.map((group) => (
