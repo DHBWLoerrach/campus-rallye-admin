@@ -8,20 +8,18 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-function formatDuration(ms?: number | null) {
-  if (ms == null) return '-';
-  const totalSeconds = Math.floor(ms / 1000);
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-
-  const mStr = m.toString().padStart(2, '0');
-  const sStr = s.toString().padStart(2, '0');
+// Playtime is a keepsake ("47 Min. unterwegs"), not a scored metric, so it is
+// phrased in words and rounded to minutes rather than shown as a stopwatch.
+function formatPlaytime(ms?: number | null) {
+  if (ms == null) return null;
+  const totalMinutes = Math.round(ms / 60000);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
 
   if (h > 0) {
-    return `${h}:${mStr}:${sStr}`;
+    return `${h} Std. ${m} Min. unterwegs`;
   }
-  return `${m}:${sStr}`;
+  return `${m} Min. unterwegs`;
 }
 
 export default async function Page(props: PageProps) {
@@ -71,6 +69,7 @@ export default async function Page(props: PageProps) {
                   : row.rank === 3
                     ? '3 🥉'
                     : '';
+            const playtime = formatPlaytime(row.durationMs);
             return (
               <article
                 key={row.teamId}
@@ -96,30 +95,24 @@ export default async function Page(props: PageProps) {
                     </span>
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 p-4">
-                  <div className="space-y-1">
-                    <h2 className="text-base font-semibold text-foreground">
-                      {row.teamName}
-                    </h2>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <p className="flex items-center justify-start gap-2 text-xl font-semibold text-foreground">
-                        <Star className="h-5 w-5" /> {row.points}
-                        {maxPoints > 0 && (
-                          <span className="text-sm font-normal text-muted-foreground">
-                            ({Math.round((row.points / maxPoints) * 100)}%)
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="space-y-1 text-right">
-                      <p className="flex items-center justify-end gap-2 text-lg font-semibold text-muted-foreground">
-                        <Timer className="h-5 w-5" />
-                        {formatDuration(row.durationMs)}
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex flex-col gap-2 p-4">
+                  <h2 className="text-base font-semibold text-foreground">
+                    {row.teamName}
+                  </h2>
+                  <p className="flex items-center gap-2 text-xl font-semibold text-foreground">
+                    <Star className="h-5 w-5" /> {row.points}
+                    {maxPoints > 0 && (
+                      <span className="text-sm font-normal text-muted-foreground">
+                        ({Math.round((row.points / maxPoints) * 100)}%)
+                      </span>
+                    )}
+                  </p>
+                  {playtime && (
+                    <p className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
+                      <Timer className="h-4 w-4" />
+                      {playtime}
+                    </p>
+                  )}
                 </div>
               </article>
             );
