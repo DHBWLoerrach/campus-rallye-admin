@@ -508,7 +508,7 @@ describe('deleteDepartment', () => {
 
     expect(result.success).toBe(true);
     expect(mockClearDepartmentAssignments).toHaveBeenCalledWith(7);
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/users');
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
   });
 });
 

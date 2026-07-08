@@ -109,7 +109,7 @@ describe('assignUserDepartment', () => {
     const result = await assignUserDepartment('u1', 7);
     expect(result.success).toBe(true);
     expect(mockSetLocalUserDepartment).toHaveBeenCalledWith('u1', 7);
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/users');
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
   });
 
   it('clears an assignment without querying Supabase', async () => {

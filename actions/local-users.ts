@@ -49,6 +49,6 @@ export async function assignUserDepartment(
     return fail('Nutzer nicht gefunden');
   }
 
-  revalidatePath('/users');
+  revalidatePath('/admin/users');
   return ok({ message: 'Bereich erfolgreich zugeordnet' });
 }

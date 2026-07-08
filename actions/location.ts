@@ -47,7 +47,7 @@ export async function createLocation(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  revalidatePath('/locations');
+  revalidatePath('/admin/locations');
   return ok({
     message: 'Standort erfolgreich gespeichert',
     locationId: createdLocation.id,
@@ -102,7 +102,7 @@ export async function updateLocation(state: FormState, formData: FormData) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  revalidatePath('/locations');
+  revalidatePath('/admin/locations');
   return ok({ message: 'Standort erfolgreich gespeichert' });
 }
 
@@ -179,7 +179,7 @@ export async function deleteLocation(
     return fail('Fehler beim Löschen des Standorts');
   }
 
-  revalidatePath('/locations');
+  revalidatePath('/admin/locations');
   return ok({ message: 'Standort erfolgreich gelöscht' });
 }
 
