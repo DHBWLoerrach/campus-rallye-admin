@@ -2,322 +2,217 @@ import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Home from './page';
 
-const { mockCreateClient, mockProgramDialogProps } = vi.hoisted(() => ({
-  mockCreateClient: vi.fn(),
-  mockProgramDialogProps: [] as Array<{
-    departments: { id: number; name: string }[];
-  }>,
-}));
+const { mockCreateClient, mockGetUserContext, mockGetLocalUser } = vi.hoisted(
+  () => ({
+    mockCreateClient: vi.fn(),
+    mockGetUserContext: vi.fn(),
+    mockGetLocalUser: vi.fn(),
+  })
+);
 
 vi.mock('@/lib/supabase', () => ({
   default: mockCreateClient,
 }));
 
+vi.mock('@/lib/user-context', () => ({
+  getUserContext: mockGetUserContext,
+}));
+
+vi.mock('@/lib/db/local-user', () => ({
+  getLocalUser: mockGetLocalUser,
+}));
+
 vi.mock('@/components/rallyes/ProgramRallyeDialog', () => ({
   __esModule: true,
-  default: (props: { departments: { id: number; name: string }[] }) => {
-    mockProgramDialogProps.push(props);
-    return <button type="button">Rallye erstellen</button>;
-  },
+  default: () => <button type="button">Rallye erstellen</button>,
 }));
 
 vi.mock('@/components/RallyeCard', () => ({
   __esModule: true,
-  default: ({ rallye }: { rallye: { id: number; name: string } }) => (
-    <article data-testid="rallye-item">
-      <p>{rallye.name}</p>
-      <button type="button">Bearbeiten</button>
-      <span>Status</span>
-      <span>Ende</span>
-      <a href={`/rallyes/${rallye.id}`}>Fragen zuordnen</a>
+  default: ({
+    rallye,
+    contextLabel,
+  }: {
+    rallye: { id: number; name: string };
+    contextLabel?: string;
+  }) => (
+    <article data-testid="rallye-card">
+      <a href={`/rallyes/${rallye.id}`}>{rallye.name}</a>
+      {contextLabel && <p>{contextLabel}</p>}
     </article>
   ),
 }));
-
-type MockRow = Record<string, unknown>;
 
 type SupabaseFixture = {
   rallyes: Array<Record<string, unknown>>;
   locations: Array<Record<string, unknown>>;
   departments: Array<Record<string, unknown>>;
   questionAssignments: Array<Record<string, unknown>>;
-  uploadQuestionAssignments: Array<Record<string, unknown>>;
 };
 
+const makeRallye = (
+  id: number,
+  name: string,
+  status: string,
+  departmentId: number | null
+) => ({
+  id,
+  name,
+  status,
+  end_time: '2026-01-01T00:00:00.000Z',
+  password: '',
+  created_at: '2026-01-01T00:00:00.000Z',
+  department_id: departmentId,
+});
+
 function buildDefaultFixture(): SupabaseFixture {
-  const rallyes: SupabaseFixture['rallyes'] = [
-    {
-      id: 1,
-      name: 'Campus Tour A',
-      status: 'inactive',
-      end_time: '2026-01-01T00:00:00.000Z',
-      password: '',
-      created_at: '2026-01-01T00:00:00.000Z',
-      department_id: 101,
-    },
-    {
-      id: 2,
-      name: 'Event A',
-      status: 'inactive',
-      end_time: '2026-01-01T00:00:00.000Z',
-      password: '',
-      created_at: '2026-01-01T00:00:00.000Z',
-      department_id: 100,
-    },
-    {
-      id: 3,
-      name: 'Informatik 1',
-      status: 'running',
-      end_time: '2026-01-01T00:00:00.000Z',
-      password: '',
-      created_at: '2026-01-01T00:00:00.000Z',
-      department_id: 101,
-    },
-    {
-      id: 4,
-      name: 'Freie Rallye',
-      status: 'preparing',
-      end_time: '2026-01-01T00:00:00.000Z',
-      password: '',
-      created_at: '2026-01-01T00:00:00.000Z',
-      department_id: null,
-    },
-    {
-      id: 5,
-      name: 'BWL 1',
-      status: 'inactive',
-      end_time: '2026-01-01T00:00:00.000Z',
-      password: '',
-      created_at: '2026-01-01T00:00:00.000Z',
-      department_id: 102,
-    },
-  ];
-
-  const locations: SupabaseFixture['locations'] = [
-    { id: 10, name: 'Loc A', default_rallye_id: 1 },
-  ];
-  const departments: SupabaseFixture['departments'] = [
-    { id: 100, name: 'Loc A', location_id: 10 },
-    { id: 103, name: ' loc a ', location_id: 10 },
-    { id: 101, name: 'Informatik', location_id: 10 },
-    { id: 102, name: 'BWL', location_id: 10 },
-  ];
-  const questionAssignments: SupabaseFixture['questionAssignments'] = [
-    { rallye_id: 1, question_id: 1 },
-    { rallye_id: 2, question_id: 2 },
-    { rallye_id: 3, question_id: 3 },
-    { rallye_id: 5, question_id: 4 },
-  ];
-  const uploadQuestionAssignments: SupabaseFixture['uploadQuestionAssignments'] =
-    [{ rallye_id: 2, questions: { type: 'upload' } }];
-
   return {
-    rallyes,
-    locations,
-    departments,
-    questionAssignments,
-    uploadQuestionAssignments,
+    rallyes: [
+      makeRallye(1, 'Campus Tour A', 'inactive', 101),
+      makeRallye(2, 'Marketing läuft', 'running', 100),
+      makeRallye(3, 'Marketing Entwurf', 'preparing', 100),
+      makeRallye(4, 'Marketing fertig', 'ended', 100),
+      makeRallye(5, 'Informatik 1', 'running', 101),
+    ],
+    locations: [{ id: 10, name: 'Loc A', default_rallye_id: 1 }],
+    departments: [
+      { id: 100, name: 'HoKo/Marketing', location_id: 10 },
+      { id: 101, name: 'Informatik', location_id: 10 },
+    ],
+    questionAssignments: [
+      { rallye_id: 2, question_id: 1 },
+      { rallye_id: 5, question_id: 2 },
+    ],
   };
 }
 
 function createSupabaseMock(fixtureOverrides?: Partial<SupabaseFixture>) {
   const fixture = { ...buildDefaultFixture(), ...fixtureOverrides };
-  const {
-    rallyes,
-    locations,
-    departments,
-    questionAssignments,
-    uploadQuestionAssignments,
-  } = fixture;
-
-  const byTable: Record<
-    string,
-    {
-      select: (columns: string) => unknown;
-    }
-  > = {
+  const byTable: Record<string, { select: (columns: string) => unknown }> = {
     rallye: {
       select: () => ({
-        order: async () => ({ data: rallyes, error: null }),
+        order: async () => ({ data: fixture.rallyes, error: null }),
       }),
     },
     location: {
-      select: async () => ({ data: locations, error: null }),
+      select: async () => ({ data: fixture.locations, error: null }),
     },
     department: {
       select: () => ({
-        order: async () => ({ data: departments, error: null }),
+        order: async () => ({ data: fixture.departments, error: null }),
       }),
     },
     join_rallye_questions: {
-      select: (columns: string) => {
-        if (columns.includes('question_id')) {
-          return {
-            in: async () => ({ data: questionAssignments, error: null }),
-          };
-        }
-        return {
-          in: () => ({
-            eq: async () => ({ data: uploadQuestionAssignments, error: null }),
-          }),
-        };
-      },
+      select: () => ({
+        in: async () => ({ data: fixture.questionAssignments, error: null }),
+      }),
     },
   };
-
   return {
-    from: (table: string) => byTable[table] as unknown as MockRow,
+    from: (table: string) =>
+      byTable[table] as unknown as Record<string, unknown>,
   };
-}
-
-function getSectionByTitle(title: string): HTMLElement {
-  const heading = screen.getByRole('heading', { level: 2, name: title });
-  const section = heading.closest('section');
-  if (!section) {
-    throw new Error(`Section for "${title}" not found`);
-  }
-  return section;
 }
 
 describe('/rallyes page', () => {
   beforeEach(() => {
-    mockCreateClient.mockReset();
-    mockProgramDialogProps.length = 0;
+    vi.clearAllMocks();
     mockCreateClient.mockResolvedValue(createSupabaseMock());
+    mockGetUserContext.mockResolvedValue({
+      uuid: 'user-1',
+      email: 'a@b.de',
+      roles: ['staff'],
+    });
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'user-1',
+      email: 'a@b.de',
+      registered_at: '2026-01-01',
+      admin: false,
+      department_id: 100,
+    });
   });
 
-  it('groups rallyes into exploration and team rallyes sections', async () => {
+  it('groups own department rallyes by phase', async () => {
     render(await Home());
 
-    const explorationSection = getSectionByTitle('Erkundungsmodus');
-    const rallyesSection = getSectionByTitle('Rallyes');
+    const live = screen
+      .getByRole('heading', { name: '● Läuft gerade' })
+      .closest('section') as HTMLElement;
+    const preparation = screen
+      .getByRole('heading', { name: '○ In Vorbereitung' })
+      .closest('section') as HTMLElement;
+    const done = screen
+      .getByRole('heading', { name: '✓ Abgeschlossen' })
+      .closest('section') as HTMLElement;
 
+    expect(within(live).getByText('Marketing läuft')).toBeInTheDocument();
     expect(
-      within(explorationSection).getByText('Campus Tour A')
+      within(preparation).getByText('Marketing Entwurf')
     ).toBeInTheDocument();
-    expect(within(rallyesSection).getByText('Event A')).toBeInTheDocument();
-    expect(
-      within(rallyesSection).getByText('Informatik 1')
-    ).toBeInTheDocument();
-    expect(within(rallyesSection).getByText('BWL 1')).toBeInTheDocument();
-    expect(
-      within(rallyesSection).getByText('Freie Rallye')
-    ).toBeInTheDocument();
-
-    expect(
-      mockProgramDialogProps[0]?.departments.map((dept) => dept.name)
-    ).toEqual(['Loc A', ' loc a ', 'Informatik', 'BWL']);
+    expect(within(done).getByText('Marketing fertig')).toBeInTheDocument();
   });
 
-  it('renders exploration rallyes as read-only rows', async () => {
+  it('shows the own department name in the header', async () => {
+    render(await Home());
+    expect(screen.getByText(/HoKo\/Marketing/)).toBeInTheDocument();
+  });
+
+  it('collapses other departments and campus tours', async () => {
     render(await Home());
 
-    const explorationSection = getSectionByTitle('Erkundungsmodus');
-    const rallyesSection = getSectionByTitle('Rallyes');
+    const others = screen
+      .getByText(/Andere Bereiche/)
+      .closest('details') as HTMLElement;
+    expect(others).not.toHaveAttribute('open');
+    expect(within(others).getByText('Informatik 1')).toBeInTheDocument();
 
-    expect(
-      within(explorationSection).getByText('Campus Tour A')
-    ).toBeInTheDocument();
-    expect(
-      within(explorationSection).queryByText('Standort: Loc A')
-    ).not.toBeInTheDocument();
-    expect(
-      within(explorationSection).getByRole('link', { name: 'Fragen zuordnen' })
-    ).toHaveAttribute('href', '/rallyes/1');
-
-    expect(
-      within(explorationSection).queryByText('Bearbeiten')
-    ).not.toBeInTheDocument();
-    expect(
-      within(explorationSection).queryByText('Upload-Fotos anzeigen')
-    ).not.toBeInTheDocument();
-    expect(
-      within(explorationSection).queryByText('Status')
-    ).not.toBeInTheDocument();
-    expect(
-      within(explorationSection).queryByText('Ende')
-    ).not.toBeInTheDocument();
-
-    expect(
-      within(rallyesSection).getAllByRole('button', { name: 'Bearbeiten' })
-        .length
-    ).toBeGreaterThan(0);
-    expect(screen.getAllByTestId('rallye-item')).toHaveLength(4);
+    const tours = screen
+      .getByText(/Campus-Touren/)
+      .closest('details') as HTMLElement;
+    expect(within(tours).getByText('Campus Tour A')).toBeInTheDocument();
   });
 
-  it('groups rallyes by assigned department with fallback groups', async () => {
+  it('shows all rallyes in phase groups when the user has no department', async () => {
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'user-1',
+      email: 'a@b.de',
+      registered_at: '2026-01-01',
+      admin: false,
+      department_id: null,
+    });
+
     render(await Home());
 
-    const rallyesSection = getSectionByTitle('Rallyes');
-
-    expect(
-      within(rallyesSection).getByRole('heading', { level: 3, name: 'BWL' })
-    ).toBeInTheDocument();
-    expect(
-      within(rallyesSection).getByRole('heading', {
-        level: 3,
-        name: 'Informatik',
-      })
-    ).toBeInTheDocument();
-    expect(
-      within(rallyesSection).getByRole('heading', {
-        level: 3,
-        name: 'Ohne Bereich',
-      })
-    ).toBeInTheDocument();
-    expect(within(rallyesSection).getByText('BWL 1')).toBeInTheDocument();
-    expect(
-      within(rallyesSection).getByText('Informatik 1')
-    ).toBeInTheDocument();
+    const live = screen
+      .getByRole('heading', { name: '● Läuft gerade' })
+      .closest('section') as HTMLElement;
+    expect(within(live).getByText('Marketing läuft')).toBeInTheDocument();
+    expect(within(live).getByText('Informatik 1')).toBeInTheDocument();
+    expect(screen.queryByText(/Andere Bereiche/)).not.toBeInTheDocument();
   });
 
-  it('shows create button only in rallyes section and no global create button in header', async () => {
+  it('renders the create button in the page header', async () => {
     render(await Home());
-
-    const pageHeader = screen
-      .getByRole('heading', { level: 1, name: 'Rallyes verwalten' })
-      .closest('section');
-    if (!pageHeader) {
-      throw new Error('Page header section not found');
-    }
-    const rallyesSection = getSectionByTitle('Rallyes');
-
     expect(
-      within(pageHeader).queryByRole('button', { name: 'Rallye erstellen' })
-    ).toBeNull();
-    expect(
-      within(rallyesSection).getByRole('button', { name: 'Rallye erstellen' })
+      screen.getByRole('button', { name: 'Rallye erstellen' })
     ).toBeInTheDocument();
   });
 
-  it('keeps section-level create button visible for empty rallyes section', async () => {
+  it('hides empty phase groups', async () => {
     mockCreateClient.mockResolvedValue(
       createSupabaseMock({
-        rallyes: [
-          {
-            id: 1,
-            name: 'Campus Tour A',
-            status: 'inactive',
-            end_time: '2026-01-01T00:00:00.000Z',
-            password: '',
-            created_at: '2026-01-01T00:00:00.000Z',
-            department_id: 101,
-          },
-        ],
-        questionAssignments: [{ rallye_id: 1, question_id: 1 }],
-        uploadQuestionAssignments: [],
+        rallyes: [makeRallye(2, 'Marketing läuft', 'running', 100)],
+        questionAssignments: [],
       })
     );
 
     render(await Home());
 
-    const rallyesSection = getSectionByTitle('Rallyes');
-
     expect(
-      within(rallyesSection).getByRole('button', { name: 'Rallye erstellen' })
+      screen.getByRole('heading', { name: '● Läuft gerade' })
     ).toBeInTheDocument();
     expect(
-      within(rallyesSection).getByText('Keine Rallyes in diesem Bereich.')
-    ).toBeInTheDocument();
+      screen.queryByRole('heading', { name: '✓ Abgeschlossen' })
+    ).not.toBeInTheDocument();
   });
 });

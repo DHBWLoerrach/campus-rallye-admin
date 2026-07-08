@@ -2,17 +2,16 @@ import createClient from '@/lib/supabase';
 import RallyeCard from '@/components/RallyeCard';
 import ExplorationRow from '@/components/rallyes/ExplorationRow';
 import ProgramRallyeDialog from '@/components/rallyes/ProgramRallyeDialog';
-import type { DepartmentOption } from '@/lib/types';
+import { getUserContext } from '@/lib/user-context';
+import { getLocalUser } from '@/lib/db/local-user';
+import {
+  RALLYE_PHASE_GROUPS,
+  getRallyePhaseGroup,
+  type RallyePhaseGroup,
+} from '@/lib/types';
+import type { DepartmentOption, Rallye } from '@/lib/types';
 
-type RallyeRow = {
-  id: number;
-  name: string;
-  status: 'preparing' | 'inactive' | 'running' | 'voting' | 'ranking' | 'ended';
-  end_time: string;
-  password: string;
-  created_at: string;
-  department_id: number | null;
-};
+type RallyeRow = Rallye & { department_id: number | null };
 
 type DepartmentRow = {
   id: number;
@@ -26,100 +25,69 @@ type LocationRow = {
   default_rallye_id: number | null;
 };
 
-const rallyeSections: {
-  type: 'exploration' | 'department';
-  title: string;
-  description: string;
-}[] = [
-  {
-    type: 'exploration',
-    title: 'Erkundungsmodus',
-    description: 'Campus-Touren',
-  },
-  {
-    type: 'department',
-    title: 'Rallyes',
-    description: 'Team-Rallyes mit genau einem Bereich',
-  },
-];
-
-const uniqueSorted = (values: string[]): string[] =>
-  Array.from(new Set(values)).sort((a, b) =>
-    a.localeCompare(b, 'de', { sensitivity: 'base' })
-  );
-
-const getDepartmentGroupLabel = (departmentNames: string[]): string => {
-  if (departmentNames.length === 0) {
-    return 'Ohne Bereich';
-  }
-
-  if (departmentNames.length === 1) {
-    return departmentNames[0];
-  }
-
-  return 'Mehrere Bereiche';
+const PHASE_SYMBOLS: Record<RallyePhaseGroup, string> = {
+  live: '●',
+  preparation: '○',
+  done: '✓',
 };
+
+// Live and preparing rallyes: nearest end first; finished: latest end first.
+const sortForGroup = (group: RallyePhaseGroup, rallyes: RallyeRow[]) =>
+  [...rallyes].sort((a, b) => {
+    const diff =
+      new Date(a.end_time).getTime() - new Date(b.end_time).getTime();
+    return group === 'done' ? -diff : diff;
+  });
+
+async function getUserDepartmentId(): Promise<number | null> {
+  try {
+    const { uuid } = await getUserContext();
+    return getLocalUser(uuid)?.department_id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default async function Home() {
   const supabase = await createClient();
+  const userDepartmentId = await getUserDepartmentId();
+
   const { data: rallyes } = await supabase
     .from('rallye')
     .select('id, name, status, end_time, password, created_at, department_id')
     .order('name');
   const typedRallyes = (rallyes || []) as RallyeRow[];
-  // supabase can't sort ignoring case, so we do it manually
-  if (typedRallyes.length > 0) {
-    typedRallyes.sort((a, b) =>
-      a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
-    );
-  }
 
-  // Load location and department data for UI type classification
   const { data: locations } = await supabase
     .from('location')
     .select('id, name, default_rallye_id');
-  const typedLocations = ((locations || []) as LocationRow[]).sort((a, b) =>
-    a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
-  );
+  const typedLocations = (locations || []) as LocationRow[];
 
   const { data: departmentRows } = await supabase
     .from('department')
     .select('id, name, location_id')
     .order('name');
   const typedDepartmentRows = (departmentRows || []) as DepartmentRow[];
-  const departmentOptions = typedDepartmentRows.map(({ id, name }) => ({
-    id,
-    name,
-  }));
-  const createDialogDepartmentOptions: DepartmentOption[] = departmentOptions;
+  const departmentOptions: DepartmentOption[] = typedDepartmentRows.map(
+    ({ id, name }) => ({ id, name })
+  );
+  const departmentById = new Map(
+    typedDepartmentRows.map((department) => [department.id, department])
+  );
 
-  // Fetch question counts for all rallyes in a single query
   const questionCounts = new Map<number, number>();
-  const uploadQuestionCounts = new Map<number, number>();
-  const departmentAssignmentsMap = new Map<number, number[]>();
   if (typedRallyes.length > 0) {
-    const rallyeIds = typedRallyes.map((r) => r.id);
     const { data: joins } = await supabase
       .from('join_rallye_questions')
       .select('rallye_id, question_id')
-      .in('rallye_id', rallyeIds);
+      .in(
+        'rallye_id',
+        typedRallyes.map((r) => r.id)
+      );
     joins?.forEach((row) => {
-      const current = questionCounts.get(row.rallye_id) ?? 0;
-      questionCounts.set(row.rallye_id, current + 1);
-    });
-    const { data: uploadJoins } = await supabase
-      .from('join_rallye_questions')
-      .select('rallye_id, questions!inner(type)')
-      .in('rallye_id', rallyeIds)
-      .eq('questions.type', 'upload');
-    uploadJoins?.forEach((row) => {
-      const current = uploadQuestionCounts.get(row.rallye_id) ?? 0;
-      uploadQuestionCounts.set(row.rallye_id, current + 1);
-    });
-    typedRallyes.forEach((rallye) => {
-      departmentAssignmentsMap.set(
-        rallye.id,
-        rallye.department_id ? [rallye.department_id] : []
+      questionCounts.set(
+        row.rallye_id,
+        (questionCounts.get(row.rallye_id) ?? 0) + 1
       );
     });
   }
@@ -130,154 +98,153 @@ export default async function Home() {
       .filter((id): id is number => id !== null)
   );
 
-  const departmentById = new Map(
-    typedDepartmentRows.map((department) => [department.id, department])
+  const explorationRallyes = typedRallyes.filter((rallye) =>
+    explorationRallyeIds.has(rallye.id)
   );
-  const rallyesBySection = new Map<'exploration' | 'department', RallyeRow[]>(
-    rallyeSections.map(({ type }) => [type, [] as RallyeRow[]])
+  const teamRallyes = typedRallyes.filter(
+    (rallye) => !explorationRallyeIds.has(rallye.id)
   );
-  const rallyeDisplayMeta = new Map<
-    number,
-    { typeLabel?: string; contextLabel?: string; departmentNames: string[] }
-  >();
-  for (const rallye of typedRallyes) {
-    const sectionType = explorationRallyeIds.has(rallye.id)
-      ? 'exploration'
-      : 'department';
-    const section = rallyesBySection.get(sectionType);
-    if (section) {
-      section.push(rallye);
-    }
 
-    const assignedDepartmentIds = departmentAssignmentsMap.get(rallye.id) ?? [];
-    const assignedDepartmentNames = uniqueSorted(
-      assignedDepartmentIds
-        .map((id) => departmentById.get(id)?.name)
-        .filter((name): name is string => Boolean(name))
-    );
+  const myRallyes =
+    userDepartmentId === null
+      ? teamRallyes
+      : teamRallyes.filter(
+          (rallye) => rallye.department_id === userDepartmentId
+        );
+  const otherRallyes =
+    userDepartmentId === null
+      ? []
+      : teamRallyes.filter(
+          (rallye) => rallye.department_id !== userDepartmentId
+        );
 
-    const contextLabel =
-      assignedDepartmentNames.length === 1
-        ? `Bereich: ${assignedDepartmentNames[0]}`
-        : assignedDepartmentNames.length > 1
-          ? `Bereiche: ${assignedDepartmentNames.join(', ')}`
-          : undefined;
+  const myGroups = RALLYE_PHASE_GROUPS.map((group) => ({
+    ...group,
+    rallyes: sortForGroup(
+      group.id,
+      myRallyes.filter(
+        (rallye) => getRallyePhaseGroup(rallye.status) === group.id
+      )
+    ),
+  })).filter((group) => group.rallyes.length > 0);
 
-    rallyeDisplayMeta.set(rallye.id, {
-      typeLabel: sectionType === 'department' ? 'Bereichs-Rallye' : undefined,
-      contextLabel,
-      departmentNames: assignedDepartmentNames,
-    });
+  const othersByDepartment = new Map<string, RallyeRow[]>();
+  for (const rallye of otherRallyes) {
+    const name = rallye.department_id
+      ? (departmentById.get(rallye.department_id)?.name ?? 'Ohne Bereich')
+      : 'Ohne Bereich';
+    othersByDepartment.set(name, [
+      ...(othersByDepartment.get(name) ?? []),
+      rallye,
+    ]);
   }
-
-  const programGroups = new Map<string, RallyeRow[]>();
-  for (const rallye of rallyesBySection.get('department') || []) {
-    const groupLabel = getDepartmentGroupLabel(
-      rallyeDisplayMeta.get(rallye.id)?.departmentNames ?? []
-    );
-    const group = programGroups.get(groupLabel);
-    if (group) {
-      group.push(rallye);
-    } else {
-      programGroups.set(groupLabel, [rallye]);
-    }
-  }
-
-  const sortedProgramGroups = Array.from(programGroups.entries()).sort(
+  const sortedOtherGroups = Array.from(othersByDepartment.entries()).sort(
     ([a], [b]) => a.localeCompare(b, 'de', { sensitivity: 'base' })
   );
 
-  const renderRallyeCard = (rallye: RallyeRow) => {
-    const meta = rallyeDisplayMeta.get(rallye.id);
-    return (
-      <RallyeCard
-        key={rallye.id}
-        rallye={rallye}
-        questionCount={questionCounts.get(rallye.id) ?? 0}
-        contextLabel={meta?.contextLabel}
-      />
-    );
-  };
+  const contextLabel = (rallye: RallyeRow) =>
+    rallye.department_id
+      ? `Bereich: ${departmentById.get(rallye.department_id)?.name ?? 'Unbekannt'}`
+      : undefined;
+
+  const userDepartmentName = userDepartmentId
+    ? (departmentById.get(userDepartmentId)?.name ?? null)
+    : null;
 
   return (
     <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
-      <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
+      <section className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="space-y-1 text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Rallyes
           </p>
           <h1 className="text-2xl font-semibold text-foreground">
-            Rallyes verwalten
+            {userDepartmentName ? 'Meine Rallyes' : 'Rallyes verwalten'}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Erstellen, bearbeiten und Fragen zuordnen.
+            {userDepartmentName
+              ? `Bereich: ${userDepartmentName}`
+              : 'Alle Rallyes, gruppiert nach Phase.'}
           </p>
         </div>
+        <ProgramRallyeDialog
+          buttonStyle="w-full sm:w-auto cursor-pointer"
+          departments={departmentOptions}
+        />
       </section>
-      {rallyeSections.map((section) => {
-        const sectionRallyes = rallyesBySection.get(section.type) ?? [];
-        return (
+
+      {myGroups.length === 0 ? (
+        <section className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-8 text-center text-sm text-muted-foreground">
+          Noch keine Rallyes. Erstelle die erste über „Rallye erstellen“.
+        </section>
+      ) : (
+        myGroups.map((group) => (
           <section
-            key={section.type}
+            key={group.id}
             className="space-y-3 rounded-2xl border border-border/60 bg-card/60 p-4"
           >
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-foreground">
-                  {section.title}
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  {section.description}
-                </p>
-              </div>
-              {section.type === 'department' ? (
-                <ProgramRallyeDialog
-                  buttonStyle="w-full sm:w-auto cursor-pointer"
-                  departments={createDialogDepartmentOptions}
+            <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              {`${PHASE_SYMBOLS[group.id]} ${group.label}`}
+            </h2>
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {group.rallyes.map((rallye) => (
+                <RallyeCard
+                  key={rallye.id}
+                  rallye={rallye}
+                  questionCount={questionCounts.get(rallye.id) ?? 0}
+                  contextLabel={
+                    userDepartmentId === null ? contextLabel(rallye) : undefined
+                  }
                 />
-              ) : null}
+              ))}
             </div>
-
-            {sectionRallyes.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-border/60 bg-background/30 px-3 py-2 text-sm text-muted-foreground">
-                Keine Rallyes in diesem Bereich.
-              </p>
-            ) : section.type === 'exploration' ? (
-              <div className="space-y-2">
-                {sectionRallyes.map((rallye) => {
-                  const meta = rallyeDisplayMeta.get(rallye.id);
-                  return (
-                    <ExplorationRow
-                      key={rallye.id}
-                      rallyeId={rallye.id}
-                      name={rallye.name}
-                      locationLabel={meta?.contextLabel}
-                      questionCount={questionCounts.get(rallye.id)}
-                    />
-                  );
-                })}
-              </div>
-            ) : section.type === 'department' ? (
-              <div className="space-y-4">
-                {sortedProgramGroups.map(([groupLabel, rallyes]) => (
-                  <div key={groupLabel} className="space-y-2">
-                    <h3 className="text-sm font-semibold text-muted-foreground">
-                      {groupLabel}
-                    </h3>
-                    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                      {rallyes.map((rallye) => renderRallyeCard(rallye))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {sectionRallyes.map((rallye) => renderRallyeCard(rallye))}
-              </div>
-            )}
           </section>
-        );
-      })}
+        ))
+      )}
+
+      {sortedOtherGroups.length > 0 && (
+        <details className="rounded-2xl border border-border/60 bg-card/60 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-muted-foreground">
+            Andere Bereiche ({otherRallyes.length})
+          </summary>
+          <div className="mt-4 space-y-4">
+            {sortedOtherGroups.map(([groupLabel, groupRallyes]) => (
+              <div key={groupLabel} className="space-y-2">
+                <h3 className="text-sm font-semibold text-muted-foreground">
+                  {groupLabel}
+                </h3>
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {groupRallyes.map((rallye) => (
+                    <RallyeCard
+                      key={rallye.id}
+                      rallye={rallye}
+                      questionCount={questionCounts.get(rallye.id) ?? 0}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
+      {explorationRallyes.length > 0 && (
+        <details className="rounded-2xl border border-border/60 bg-card/60 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-muted-foreground">
+            Campus-Touren (Erkundungsmodus)
+          </summary>
+          <div className="mt-4 space-y-2">
+            {explorationRallyes.map((rallye) => (
+              <ExplorationRow
+                key={rallye.id}
+                rallyeId={rallye.id}
+                name={rallye.name}
+                questionCount={questionCounts.get(rallye.id)}
+              />
+            ))}
+          </div>
+        </details>
+      )}
     </main>
   );
 }
