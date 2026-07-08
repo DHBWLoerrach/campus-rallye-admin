@@ -109,6 +109,30 @@ export const getNextRallyeTransition = (
   }
 };
 
+// Home-page grouping: three user-facing phase buckets (spec section 2).
+export type RallyePhaseGroup = 'live' | 'preparation' | 'done';
+
+export const RALLYE_PHASE_GROUPS: {
+  id: RallyePhaseGroup;
+  label: string;
+}[] = [
+  { id: 'live', label: 'Läuft gerade' },
+  { id: 'preparation', label: 'In Vorbereitung' },
+  { id: 'done', label: 'Abgeschlossen' },
+];
+
+export const getRallyePhaseGroup = (status: RallyeStatus): RallyePhaseGroup => {
+  switch (status) {
+    case 'ended':
+      return 'done';
+    case 'preparing':
+    case 'inactive':
+      return 'preparation';
+    default:
+      return 'live';
+  }
+};
+
 export interface Location {
   id: number;
   name: string;

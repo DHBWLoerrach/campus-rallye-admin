@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   getNextRallyeTransition,
+  getRallyePhaseGroup,
   getRallyeStatusLabel,
+  RALLYE_PHASE_GROUPS,
   RALLYE_STATUSES,
 } from './types';
 
@@ -68,5 +70,31 @@ describe('getNextRallyeTransition', () => {
       const t = getNextRallyeTransition(status, true);
       if (t) expect(t.confirmText.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('getRallyePhaseGroup', () => {
+  it.each([
+    ['running', 'live'],
+    ['voting', 'live'],
+    ['ranking', 'live'],
+    ['preparing', 'preparation'],
+    ['inactive', 'preparation'],
+    ['ended', 'done'],
+  ] as const)('maps %s to %s', (status, group) => {
+    expect(getRallyePhaseGroup(status)).toBe(group);
+  });
+
+  it('orders groups live, preparation, done with German labels', () => {
+    expect(RALLYE_PHASE_GROUPS.map((g) => g.id)).toEqual([
+      'live',
+      'preparation',
+      'done',
+    ]);
+    expect(RALLYE_PHASE_GROUPS.map((g) => g.label)).toEqual([
+      'Läuft gerade',
+      'In Vorbereitung',
+      'Abgeschlossen',
+    ]);
   });
 });
