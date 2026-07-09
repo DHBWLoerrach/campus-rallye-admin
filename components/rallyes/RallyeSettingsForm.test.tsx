@@ -131,6 +131,27 @@ describe('RallyeSettingsForm', () => {
     }
   });
 
+  it('blocks saving with an invalid end time', () => {
+    render(
+      <RallyeSettingsForm
+        rallye={{ ...baseRallye, end_time: null }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText('Stunde'), {
+      target: { value: '24' },
+    });
+
+    expect(
+      screen.getByText(
+        'Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();
+  });
+
   it('shows the danger zone with a delete dialog trigger', () => {
     render(
       <RallyeSettingsForm

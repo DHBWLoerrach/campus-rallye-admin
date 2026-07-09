@@ -164,6 +164,30 @@ describe('RallyePhaseControls', () => {
     }
   });
 
+  it('blocks starting with an invalid end time instead of dropping it', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="inactive"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
+    fireEvent.change(screen.getByLabelText('Stunde'), {
+      target: { value: '24' },
+    });
+
+    expect(
+      screen.getByText(
+        'Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).'
+      )
+    ).toBeInTheDocument();
+    const confirm = screen.getByRole('button', { name: 'Bestätigen' });
+    expect(confirm).toBeDisabled();
+    fireEvent.click(confirm);
+    expect(mockAdvance).not.toHaveBeenCalled();
+  });
+
   it('offers no planned-end field for later transitions', () => {
     render(
       <RallyePhaseControls

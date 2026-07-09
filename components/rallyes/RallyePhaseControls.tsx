@@ -16,20 +16,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { parsePlannedEnd } from '@/lib/planned-end';
 import { getNextRallyeTransition, type RallyeStatus } from '@/lib/types';
-
-// A rallye ends on the day it starts, so we only ask for a 24-hour time and pin
-// it to today. Returns undefined when nothing is entered (no planned end).
-function endTimeToIso(hour: string, minute: string): string | undefined {
-  if (hour === '' && minute === '') return undefined;
-  const h = Number(hour === '' ? '0' : hour);
-  const m = Number(minute === '' ? '0' : minute);
-  if (Number.isNaN(h) || Number.isNaN(m)) return undefined;
-  if (h < 0 || h > 23 || m < 0 || m > 59) return undefined;
-  const end = new Date();
-  end.setHours(h, m, 0, 0);
-  return end.toISOString();
-}
 
 interface RallyePhaseControlsProps {
   rallyeId: number;
@@ -52,13 +40,15 @@ export default function RallyePhaseControls({
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
   // Only the start step offers a "geplant bis" time; other transitions don't.
   const showEndTime = status === 'inactive';
-  const plannedEndIso = showEndTime
-    ? endTimeToIso(endHour, endMinute)
-    : undefined;
+  const plannedEnd = showEndTime
+    ? parsePlannedEnd(endHour, endMinute)
+    : ({ kind: 'none' } as const);
+  const endIsInvalid = plannedEnd.kind === 'invalid';
+  const plannedEndIso = plannedEnd.kind === 'time' ? plannedEnd.iso : undefined;
   // Purely informational nudge; entering a past time never blocks the start.
   const endIsPast =
-    plannedEndIso !== undefined &&
-    new Date(plannedEndIso).getTime() < new Date().getTime();
+    plannedEnd.kind === 'time' &&
+    new Date(plannedEnd.iso).getTime() < new Date().getTime();
 
   const handleDuplicate = () => {
     setError(null);
@@ -97,6 +87,7 @@ export default function RallyePhaseControls({
   }
 
   const handleConfirm = () => {
+    if (endIsInvalid) return;
     setError(null);
     startTransition(async () => {
       const result = await advanceRallyeStatus(
@@ -160,6 +151,11 @@ export default function RallyePhaseControls({
                 />
                 <span className="text-sm text-muted-foreground">Uhr</span>
               </div>
+              {endIsInvalid && (
+                <p className="text-xs text-destructive">
+                  Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).
+                </p>
+              )}
               {endIsPast && (
                 <p className="text-xs text-amber-600 dark:text-amber-500">
                   Diese Uhrzeit liegt bereits in der Vergangenheit.
@@ -188,7 +184,7 @@ export default function RallyePhaseControls({
               variant="dhbwStyle"
               className="cursor-pointer"
               onClick={handleConfirm}
-              disabled={isPending}
+              disabled={isPending || endIsInvalid}
             >
               {isPending ? 'Wird geändert…' : 'Bestätigen'}
             </Button>

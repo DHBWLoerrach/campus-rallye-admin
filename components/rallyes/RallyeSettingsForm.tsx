@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { parsePlannedEnd } from '@/lib/planned-end';
 import { RALLYE_STATUSES, getRallyeStatusLabel } from '@/lib/types';
 import type { DepartmentOption, Rallye, RallyeStatus } from '@/lib/types';
 
@@ -78,33 +79,24 @@ export default function RallyeSettingsForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const isSaveDisabled =
-    departmentOptions.length > 0 && selectedDepartmentId.length === 0;
-
   // The planned end is a 24-hour time on the rallye's day (today for a fresh
-  // one). Empty fields submit no value, leaving the stored end unchanged.
-  const endTimeValue = (() => {
-    if (endHour === '' && endMinute === '') return '';
-    const h = Number(endHour === '' ? '0' : endHour);
-    const m = Number(endMinute === '' ? '0' : endMinute);
-    if (
-      Number.isNaN(h) ||
-      Number.isNaN(m) ||
-      h < 0 ||
-      h > 23 ||
-      m < 0 ||
-      m > 59
-    ) {
-      return '';
-    }
-    const base = rallye.end_time ? new Date(rallye.end_time) : new Date();
-    base.setHours(h, m, 0, 0);
-    return base.toISOString();
-  })();
+  // one). Empty submits nothing (clears the end); an invalid entry blocks saving
+  // rather than being silently dropped.
+  const plannedEnd = parsePlannedEnd(
+    endHour,
+    endMinute,
+    rallye.end_time ? new Date(rallye.end_time) : undefined
+  );
+  const endTimeValue = plannedEnd.kind === 'time' ? plannedEnd.iso : '';
+  const endIsInvalid = plannedEnd.kind === 'invalid';
+  const isSaveDisabled =
+    (departmentOptions.length > 0 && selectedDepartmentId.length === 0) ||
+    endIsInvalid;
+
   // Purely informational nudge; a past time never blocks saving.
   const endIsPast =
-    endTimeValue !== '' &&
-    new Date(endTimeValue).getTime() < new Date().getTime();
+    plannedEnd.kind === 'time' &&
+    new Date(plannedEnd.iso).getTime() < new Date().getTime();
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -177,6 +169,11 @@ export default function RallyeSettingsForm({
               />
               <span className="text-sm text-muted-foreground">Uhr</span>
             </div>
+            {endIsInvalid && (
+              <p className="text-xs text-destructive">
+                Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).
+              </p>
+            )}
             {endIsPast && (
               <p className="text-xs text-amber-600 dark:text-amber-500">
                 Diese Uhrzeit liegt bereits in der Vergangenheit.
