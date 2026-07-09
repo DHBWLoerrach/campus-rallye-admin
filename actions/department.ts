@@ -94,7 +94,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
   revalidatePath('/admin/departments');
   revalidatePath('/admin/locations');
   return ok({
-    message: 'Abteilung erfolgreich gespeichert',
+    message: 'Bereich erfolgreich gespeichert',
     departmentId: createdDepartment.id,
   });
 }
@@ -128,7 +128,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   }
 
   if (!existingDepartment) {
-    return fail('Abteilung nicht gefunden');
+    return fail('Bereich nicht gefunden');
   }
 
   // Verify that the location exists
@@ -222,7 +222,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
   revalidatePath('/admin/departments');
   revalidatePath('/admin/locations');
-  return ok({ message: 'Abteilung erfolgreich gespeichert' });
+  return ok({ message: 'Bereich erfolgreich gespeichert' });
 }
 
 export async function getDepartments(): Promise<ActionResult<Department[]>> {
@@ -236,7 +236,7 @@ export async function getDepartments(): Promise<ActionResult<Department[]>> {
 
   if (error) {
     console.error('Error fetching departments:', error);
-    return fail('Fehler beim Laden der Abteilungen');
+    return fail('Fehler beim Laden der Bereiche');
   }
 
   return ok(data || []);
@@ -252,7 +252,7 @@ export async function getDepartmentOptions(): Promise<
 
   if (error) {
     console.error('Error fetching department options:', error);
-    return fail('Fehler beim Laden der Abteilungen');
+    return fail('Fehler beim Laden der Bereiche');
   }
 
   const departments = (data || []) as DepartmentOption[];
@@ -270,7 +270,7 @@ export async function deleteDepartment(
 
   const idResult = departmentUpdateSchema.shape.id.safeParse(departmentId);
   if (!idResult.success) {
-    return fail('Ungültige Abteilungs-ID', formatZodError(idResult.error));
+    return fail('Ungültige Bereichs-ID', formatZodError(idResult.error));
   }
 
   const { data: existingDepartment, error: existingError } = await supabase
@@ -285,7 +285,7 @@ export async function deleteDepartment(
   }
 
   if (!existingDepartment) {
-    return fail('Abteilung nicht gefunden');
+    return fail('Bereich nicht gefunden');
   }
 
   // Rallyes reference departments with ON DELETE RESTRICT, so deleting a
@@ -314,7 +314,7 @@ export async function deleteDepartment(
 
   if (error) {
     console.error('Error deleting department:', error);
-    return fail('Fehler beim Löschen der Abteilung');
+    return fail('Fehler beim Löschen des Bereichs');
   }
 
   // Application-level ON DELETE SET NULL: local_users reference Supabase
@@ -329,7 +329,7 @@ export async function deleteDepartment(
   revalidatePath('/admin/departments');
   revalidatePath('/admin/locations');
   revalidatePath('/admin/users');
-  return ok({ message: 'Abteilung erfolgreich gelöscht' });
+  return ok({ message: 'Bereich erfolgreich gelöscht' });
 }
 
 export async function getRallyeAssignmentsByDepartment(

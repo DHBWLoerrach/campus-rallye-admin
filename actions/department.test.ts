@@ -268,7 +268,7 @@ describe('updateDepartment', () => {
 
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
-    expect(result.error).toBe('Abteilung nicht gefunden');
+    expect(result.error).toBe('Bereich nicht gefunden');
   });
 
   it('syncs rallye assignments on update with delta changes', async () => {
@@ -471,7 +471,7 @@ describe('deleteDepartment', () => {
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
-    expect(result.error).toBe('Ungültige Abteilungs-ID');
+    expect(result.error).toBe('Ungültige Bereichs-ID');
   });
 
   it('returns error when department not found', async () => {
@@ -487,7 +487,7 @@ describe('deleteDepartment', () => {
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
-    expect(result.error).toBe('Abteilung nicht gefunden');
+    expect(result.error).toBe('Bereich nicht gefunden');
   });
 
   it('clears local user assignments after deleting the department', async () => {
