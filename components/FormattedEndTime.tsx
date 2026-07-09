@@ -1,5 +1,8 @@
-// Format the planned end deterministically in the rallye's fixed timezone so
-// the server and the client produce the same string. That avoids the timezone
+import { PLANNED_END_TIME_ZONE } from '@/lib/planned-end';
+
+// Format the planned end deterministically in the same fixed timezone the input
+// and conversion use (PLANNED_END_TIME_ZONE), so display and editing agree and
+// the server and client produce the same string. The latter avoids the timezone
 // hydration mismatch this component used to guard against, without the previous
 // side effect of rendering an empty state on the server (and on the first
 // client paint) even when an end time exists.
@@ -10,7 +13,7 @@ const END_TIME_FORMAT = new Intl.DateTimeFormat('de-DE', {
   year: '2-digit',
   hour: '2-digit',
   minute: '2-digit',
-  timeZone: 'Europe/Berlin',
+  timeZone: PLANNED_END_TIME_ZONE,
 });
 
 export default function FormattedEndTime({ value }: { value: string | null }) {

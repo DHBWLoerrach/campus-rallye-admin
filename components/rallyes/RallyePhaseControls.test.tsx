@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RallyePhaseControls from './RallyePhaseControls';
+import { getZonedHourMinute } from '@/lib/planned-end';
 
 const { mockAdvance, mockDuplicate, mockPush } = vi.hoisted(() => ({
   mockAdvance: vi.fn(),
@@ -125,11 +126,12 @@ describe('RallyePhaseControls', () => {
       );
     });
     const iso = mockAdvance.mock.calls[0][2] as string;
-    const end = new Date(iso);
-    const today = new Date();
-    expect(end.getHours()).toBe(18);
-    expect(end.getMinutes()).toBe(30);
-    expect(end.toDateString()).toBe(today.toDateString());
+    // The time is interpreted in the fixed organizer timezone, not the local
+    // one, so assert against the Berlin wall-clock and Berlin calendar day.
+    expect(getZonedHourMinute(new Date(iso))).toEqual({ hour: 18, minute: 30 });
+    const berlinDay = (date: Date) =>
+      date.toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' });
+    expect(berlinDay(new Date(iso))).toBe(berlinDay(new Date()));
   });
 
   it('warns about a past end time without blocking the start', () => {

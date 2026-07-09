@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { parsePlannedEnd } from './planned-end';
+import { getZonedHourMinute, parsePlannedEnd } from './planned-end';
 
+// The test suite runs in America/New_York (see vitest.config.ts) so these
+// assertions prove the conversion stays in the fixed organizer timezone
+// (Europe/Berlin) rather than following the local machine's zone.
 describe('parsePlannedEnd', () => {
   it('treats two empty fields as no planned end', () => {
     expect(parsePlannedEnd('', '')).toEqual({ kind: 'none' });
@@ -17,22 +20,68 @@ describe('parsePlannedEnd', () => {
     expect(parsePlannedEnd('abc', '0')).toEqual({ kind: 'invalid' });
   });
 
-  it('defaults a missing field to zero', () => {
-    const base = new Date('2026-07-08T00:00:00');
-    expect(parsePlannedEnd('18', '', base)).toEqual({
+  it('interprets the time as Berlin summer time (CEST, UTC+2)', () => {
+    const base = new Date('2026-07-08T12:00:00.000Z');
+    expect(parsePlannedEnd('18', '30', base)).toEqual({
       kind: 'time',
-      iso: new Date('2026-07-08T18:00:00').toISOString(),
+      iso: '2026-07-08T16:30:00.000Z',
     });
   });
 
-  it('pins the time to the provided base day', () => {
-    const base = new Date('2026-07-08T09:15:00');
-    const result = parsePlannedEnd('18', '30', base);
-    expect(result.kind).toBe('time');
-    if (result.kind !== 'time') throw new Error('Expected a time');
-    const end = new Date(result.iso);
-    expect(end.getHours()).toBe(18);
-    expect(end.getMinutes()).toBe(30);
-    expect(end.toDateString()).toBe(base.toDateString());
+  it('interprets the time as Berlin winter time (CET, UTC+1)', () => {
+    const base = new Date('2026-01-08T12:00:00.000Z');
+    expect(parsePlannedEnd('18', '30', base)).toEqual({
+      kind: 'time',
+      iso: '2026-01-08T17:30:00.000Z',
+    });
+  });
+
+  it('defaults a missing field to zero', () => {
+    const base = new Date('2026-07-08T12:00:00.000Z');
+    expect(parsePlannedEnd('18', '', base)).toEqual({
+      kind: 'time',
+      iso: '2026-07-08T16:00:00.000Z',
+    });
+  });
+
+  it('pins the time to the base day in Berlin, not the local zone', () => {
+    // 02:00Z is still 2026-07-07 in New York but already 2026-07-08 in Berlin.
+    const base = new Date('2026-07-08T02:00:00.000Z');
+    expect(parsePlannedEnd('18', '30', base)).toEqual({
+      kind: 'time',
+      iso: '2026-07-08T16:30:00.000Z',
+    });
+  });
+});
+
+describe('getZonedHourMinute', () => {
+  it('reads the Berlin wall-clock hour and minute (CEST)', () => {
+    expect(getZonedHourMinute(new Date('2026-07-08T16:30:00.000Z'))).toEqual({
+      hour: 18,
+      minute: 30,
+    });
+  });
+
+  it('reads the Berlin wall-clock hour and minute (CET)', () => {
+    expect(getZonedHourMinute(new Date('2026-01-08T17:30:00.000Z'))).toEqual({
+      hour: 18,
+      minute: 30,
+    });
+  });
+
+  it('normalizes Berlin midnight to hour 0', () => {
+    expect(getZonedHourMinute(new Date('2026-07-07T22:00:00.000Z'))).toEqual({
+      hour: 0,
+      minute: 0,
+    });
+  });
+
+  it('round-trips with parsePlannedEnd on the same Berlin day', () => {
+    const instant = new Date('2026-07-08T16:30:00.000Z');
+    const { hour, minute } = getZonedHourMinute(instant);
+    expect(parsePlannedEnd(String(hour), String(minute), instant)).toEqual({
+      kind: 'time',
+      iso: instant.toISOString(),
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import RallyeSettingsForm from './RallyeSettingsForm';
+import { getZonedHourMinute } from '@/lib/planned-end';
 
 const { mockUpdateRallye, mockDeleteRallye, mockPush } = vi.hoisted(() => ({
   mockUpdateRallye: vi.fn(),
@@ -77,6 +78,21 @@ describe('RallyeSettingsForm', () => {
     expect(container.querySelector('input[name="end_time"]')).toHaveValue('');
   });
 
+  it('seeds the fields from the stored end in Berlin time, not the local zone', () => {
+    render(
+      <RallyeSettingsForm
+        rallye={{ ...baseRallye, end_time: '2026-07-08T16:30:00.000Z' }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+
+    // 16:30Z is 18:30 in Europe/Berlin (CEST); the suite runs in
+    // America/New_York, where reading the local hour would wrongly show 12:30.
+    expect(screen.getByLabelText('Stunde')).toHaveDisplayValue('18');
+    expect(screen.getByLabelText('Minute')).toHaveDisplayValue('30');
+  });
+
   it('submits the chosen 24-hour time on the rallye day', () => {
     const { container } = render(
       <RallyeSettingsForm
@@ -96,9 +112,12 @@ describe('RallyeSettingsForm', () => {
     const hidden = container.querySelector(
       'input[name="end_time"]'
     ) as HTMLInputElement;
-    const end = new Date(hidden.value);
-    expect(end.getHours()).toBe(18);
-    expect(end.getMinutes()).toBe(30);
+    // The time is interpreted in the fixed organizer timezone, so assert
+    // against the Berlin wall-clock rather than the local one.
+    expect(getZonedHourMinute(new Date(hidden.value))).toEqual({
+      hour: 18,
+      minute: 30,
+    });
   });
 
   it('warns when the entered end time is already in the past', () => {

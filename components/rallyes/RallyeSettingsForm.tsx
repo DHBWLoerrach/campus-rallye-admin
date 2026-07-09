@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { parsePlannedEnd } from '@/lib/planned-end';
+import { getZonedHourMinute, parsePlannedEnd } from '@/lib/planned-end';
 import { RALLYE_STATUSES, getRallyeStatusLabel } from '@/lib/types';
 import type { DepartmentOption, Rallye, RallyeStatus } from '@/lib/types';
 
@@ -59,12 +59,16 @@ export default function RallyeSettingsForm({
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
-  const initialEnd = rallye.end_time ? new Date(rallye.end_time) : null;
+  // Seed the fields from the stored end in the fixed organizer timezone so the
+  // editable value matches what FormattedEndTime shows the admin.
+  const initialEnd = rallye.end_time
+    ? getZonedHourMinute(new Date(rallye.end_time))
+    : null;
   const [endHour, setEndHour] = useState(
-    initialEnd ? String(initialEnd.getHours()) : ''
+    initialEnd ? String(initialEnd.hour) : ''
   );
   const [endMinute, setEndMinute] = useState(
-    initialEnd ? String(initialEnd.getMinutes()) : ''
+    initialEnd ? String(initialEnd.minute) : ''
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
