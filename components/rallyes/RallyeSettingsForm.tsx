@@ -122,7 +122,12 @@ export default function RallyeSettingsForm({
           <input type="hidden" name="id" value={rallye.id} />
           <input type="hidden" name="end_time" value={endTimeValue} />
           <input type="hidden" name="status" value={status} />
-          <input type="hidden" name="department_sync" value="1" />
+          {/* Only opt into department sync when there is something to assign.
+              With no departments the select is hidden and no id can be chosen,
+              so signalling a sync would make the server reject every save. */}
+          {departmentOptions.length > 0 && (
+            <input type="hidden" name="department_sync" value="1" />
+          )}
 
           <div className="grid gap-2">
             <Label htmlFor={`rallye-${rallye.id}-name`}>Name</Label>

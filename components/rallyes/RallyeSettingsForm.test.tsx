@@ -152,6 +152,21 @@ describe('RallyeSettingsForm', () => {
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeDisabled();
   });
 
+  it('omits department sync and allows saving when no departments exist', () => {
+    const { container } = render(
+      <RallyeSettingsForm
+        rallye={baseRallye}
+        departmentOptions={[]}
+        assignedDepartmentIds={[]}
+      />
+    );
+
+    expect(container.querySelector('input[name="department_sync"]')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Speichern' })
+    ).not.toBeDisabled();
+  });
+
   it('shows the danger zone with a delete dialog trigger', () => {
     render(
       <RallyeSettingsForm
