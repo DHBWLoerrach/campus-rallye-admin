@@ -35,14 +35,16 @@ export async function updateRallye(state: FormState, formData: FormData) {
     return fail('Ungültige Eingaben', formatZodError(parsed.error));
   }
 
+  // An empty time field clears the planned end (sets it to null) rather than
+  // leaving the stored value untouched.
   const endTimeRaw = parsed.data.end_time?.trim() ?? '';
-  let endTime: Date | undefined;
+  let endTime: Date | null = null;
   if (endTimeRaw) {
-    const parsed = new Date(endTimeRaw);
-    if (Number.isNaN(parsed.getTime())) {
+    const parsedDate = new Date(endTimeRaw);
+    if (Number.isNaN(parsedDate.getTime())) {
       return fail('Ungültiges Datum');
     }
-    endTime = parsed;
+    endTime = parsedDate;
   }
 
   const data = parsed.data;
@@ -66,17 +68,14 @@ export async function updateRallye(state: FormState, formData: FormData) {
     name: string;
     status: RallyeStatus;
     password: string;
-    end_time?: Date;
+    end_time: Date | null;
     department_id?: number;
   } = {
     name: data.name,
     status: data.status,
     password: data.password,
+    end_time: endTime,
   };
-
-  if (endTime) {
-    updatePayload.end_time = endTime;
-  }
 
   // Only sync department assignment when the form explicitly opts in.
   // This prevents accidental assignment changes when options were not loaded client-side.

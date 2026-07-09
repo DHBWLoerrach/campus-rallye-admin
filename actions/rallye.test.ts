@@ -30,7 +30,7 @@ describe('updateRallye', () => {
     name: string;
     status: string;
     password: string;
-    end_time?: Date;
+    end_time: Date | null;
   };
 
   const setupSupabaseUpdate = () => {
@@ -64,7 +64,7 @@ describe('updateRallye', () => {
     return formData;
   };
 
-  it('skips end_time update when input is empty', async () => {
+  it('clears end_time when input is empty', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const { update } = setupSupabaseUpdate();
 
@@ -84,6 +84,7 @@ describe('updateRallye', () => {
       name: 'Test',
       status: 'running',
       password: 'secret',
+      end_time: null,
     });
   });
 
@@ -176,6 +177,7 @@ describe('updateRallye', () => {
       name: 'Test',
       status: 'running',
       password: 'secret',
+      end_time: null,
     });
   });
 
@@ -218,6 +220,7 @@ describe('updateRallye', () => {
       name: 'Test',
       status: 'running',
       password: 'secret',
+      end_time: null,
       department_id: 20,
     });
   });
