@@ -71,9 +71,15 @@ function zonedWallTimeToInstant(
   minute: number
 ): Date {
   const utcGuess = Date.UTC(year, month - 1, day, hour, minute, 0, 0);
-  // The offset at the guessed instant is correct except during the brief DST
-  // gap/overlap; a single correction is accurate enough for a planned end.
-  const offset = zoneOffsetMs(new Date(utcGuess));
+  // Probe the offset twice: once at the naive guess and once at the instant it
+  // implies. Around a DST change the two differ (the guess sampled the wrong
+  // side of the transition), and the offset at the implied instant is the
+  // correct one. A single pass is not reliable at the spring-forward boundary.
+  const offsetAtGuess = zoneOffsetMs(new Date(utcGuess));
+  const candidate = utcGuess - offsetAtGuess;
+  const offsetAtCandidate = zoneOffsetMs(new Date(candidate));
+  const offset =
+    offsetAtGuess === offsetAtCandidate ? offsetAtGuess : offsetAtCandidate;
   return new Date(utcGuess - offset);
 }
 
@@ -108,5 +114,19 @@ export function parsePlannedEnd(
   // Pin the time to the base's calendar day in the fixed zone (today if absent).
   const { year, month, day } = wallClockInZone(base ?? new Date());
   const end = zonedWallTimeToInstant(year, month, day, h, m);
+  // Verify the instant maps back to exactly the requested wall-clock. It will
+  // not when the time falls into the spring-forward gap (e.g. 02:30 on the DST
+  // switch day in Berlin does not exist); reject it instead of silently
+  // shifting it to an adjacent hour.
+  const check = wallClockInZone(end);
+  if (
+    check.year !== year ||
+    check.month !== month ||
+    check.day !== day ||
+    check.hour !== h ||
+    check.minute !== m
+  ) {
+    return { kind: 'invalid' };
+  }
   return { kind: 'time', iso: end.toISOString() };
 }

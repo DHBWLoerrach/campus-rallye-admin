@@ -52,6 +52,39 @@ describe('parsePlannedEnd', () => {
       iso: '2026-07-08T16:30:00.000Z',
     });
   });
+
+  // On 2026-03-29 Berlin jumps from CET (+1) to CEST (+2) at 01:00 UTC, so the
+  // wall-clock hour 02:00–02:59 does not exist on that day.
+  it('converts a valid time before the spring-forward gap (CET)', () => {
+    const base = new Date('2026-03-29T12:00:00.000Z');
+    expect(parsePlannedEnd('1', '30', base)).toEqual({
+      kind: 'time',
+      iso: '2026-03-29T00:30:00.000Z',
+    });
+  });
+
+  it('converts a valid time after the spring-forward gap (CEST)', () => {
+    const base = new Date('2026-03-29T12:00:00.000Z');
+    expect(parsePlannedEnd('3', '30', base)).toEqual({
+      kind: 'time',
+      iso: '2026-03-29T01:30:00.000Z',
+    });
+  });
+
+  it('rejects a time that falls into the spring-forward gap', () => {
+    const base = new Date('2026-03-29T12:00:00.000Z');
+    expect(parsePlannedEnd('2', '30', base)).toEqual({ kind: 'invalid' });
+  });
+
+  it('accepts an ambiguous time in the autumn fall-back overlap', () => {
+    // On 2026-10-25 Berlin falls back from CEST to CET at 01:00 UTC, so 02:30
+    // exists twice; it is a real time and stays valid (one occurrence is used).
+    const base = new Date('2026-10-25T12:00:00.000Z');
+    expect(parsePlannedEnd('2', '30', base)).toEqual({
+      kind: 'time',
+      iso: '2026-10-25T01:30:00.000Z',
+    });
+  });
 });
 
 describe('getZonedHourMinute', () => {
