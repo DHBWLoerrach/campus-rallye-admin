@@ -132,6 +132,10 @@ _Vermeiden_: QR Code
 Eine Frage, die ein Upload-Foto als Team-Antwort erwartet.
 _Vermeiden_: Upload
 
+**Geocaching-Frage**:
+Eine Frage, die an einen geografischen Zielort gebunden ist. Sie gilt als erreicht, wenn Teilnehmende innerhalb eines Näherungsbereichs um den Zielort sind, und wird per Freitext oder QR-Code beantwortet.
+_Vermeiden_: GPS-Frage, Standortfrage
+
 ### Antworten, Bewertung und Ergebnis
 
 **Team**:
@@ -288,6 +292,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 | Bildfrage              | `imageQuestion`            | `image_question`            | Frage mit Fragebild.                             |
 | QR-Code-Frage          | `qrCodeQuestion`           | `qr_code_question`          | Lösungsoption wird als QR-Code bereitgestellt.   |
 | Upload-Frage           | `uploadQuestion`           | `upload_question`           | Nur für Team-Rallyes.                            |
+| Geocaching-Frage       | `geocachingQuestion`       | `geocaching_question`       | Ortsgebunden; noch nicht in der Admin-App.       |
 | Team                   | `team`                     | `team`                      | Teilnehmende Gruppe.                             |
 | Teilnehmende           | `participant`              | `participant`               | Personen in der Rallye-App.                      |
 | Team-Antwort           | `teamAnswer`               | `team_answer`               | Abgegebene Antwort eines Teams.                  |
@@ -371,7 +376,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 ### Fragetypen und Antworten
 
 - Eine **Frage** hat genau einen Fragetyp.
-- **Wissensfrage**, **Multiple-Choice-Frage**, **Bildfrage**, **QR-Code-Frage** und **Upload-Frage** sind jeweils eine **Frage**.
+- **Wissensfrage**, **Multiple-Choice-Frage**, **Bildfrage**, **QR-Code-Frage**, **Upload-Frage** und **Geocaching-Frage** sind jeweils eine **Frage**.
 - Eine **Frage** hat null oder mehr **Lösungsoptionen**.
 - Eine **Wissensfrage** hat genau eine erwartete **Lösungsoption**.
 - Eine **Multiple-Choice-Frage** hat mindestens zwei **Lösungsoptionen**, von denen genau eine korrekt ist.
@@ -379,6 +384,8 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **QR-Code-Frage** hat genau eine **Lösungsoption** und kann daraus einen **QR-Code** erzeugen.
 - Eine **Upload-Frage** hat keine **Lösungsoption** und gehört nur in eine **Team-Rallye**.
 - Eine **Campus-Tour** sollte keine **Upload-Fragen** enthalten.
+- Eine **Geocaching-Frage** ist an einen geografischen Zielort und einen Näherungsbereich gebunden und wird per Freitext oder QR-Code beantwortet.
+- Eine **Geocaching-Frage** wird automatisch bewertet, braucht kein **Team** und darf in **Campus-Touren** und **Bereichs-Rallyes** vorkommen.
 - Eine **Frage** hat null oder eine **Kategorie**, null oder einen **Hinweis** und null oder einen **Punktwert**.
 
 ### Teams, Bewertung und Ergebnis
@@ -467,3 +474,4 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine eigene Organisator-Bewertung gibt es aktuell nicht; nicht automatisch bewertete **Team-Antworten** werden über **Abstimmung** bewertet.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**.
+- Die **Geocaching-Frage** wurde im Datenmodell (Fragetyp `geocaching`, Tabelle `questions_geocaching`) eingeführt, bevor sie in dieser Fachsprache stand. Geklärt: Sie ist ein eigener Fragetyp, wird automatisch bewertet, braucht kein **Team** und ist in **Campus-Touren** erlaubt. Sie wird aktuell noch nicht in der **Admin-App** gepflegt.
