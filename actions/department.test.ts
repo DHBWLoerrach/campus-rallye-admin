@@ -496,11 +496,17 @@ describe('deleteDepartment', () => {
     const maybeSingle = vi
       .fn()
       .mockResolvedValue({ data: { id: 7 }, error: null });
-    const selectEq = vi.fn(() => ({ maybeSingle }));
-    const select = vi.fn(() => ({ eq: selectEq }));
+    const departmentSelectEq = vi.fn(() => ({ maybeSingle }));
+    const departmentSelect = vi.fn(() => ({ eq: departmentSelectEq }));
     const deleteEq = vi.fn().mockResolvedValue({ error: null });
     const deleteFn = vi.fn(() => ({ eq: deleteEq }));
-    const from = vi.fn(() => ({ select, delete: deleteFn }));
+    const rallyeSelectEq = vi.fn().mockResolvedValue({ data: [], error: null });
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const from = vi.fn((table: string) =>
+      table === 'rallye'
+        ? { select: rallyeSelect }
+        : { select: departmentSelect, delete: deleteFn }
+    );
     mockCreateClient.mockResolvedValue({ from });
 
     const { deleteDepartment } = await import('./department');
@@ -509,6 +515,36 @@ describe('deleteDepartment', () => {
     expect(result.success).toBe(true);
     expect(mockClearDepartmentAssignments).toHaveBeenCalledWith(7);
     expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
+  });
+
+  it('blocks deletion with a clear message when rallyes are still assigned', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 7 }, error: null });
+    const departmentSelectEq = vi.fn(() => ({ maybeSingle }));
+    const departmentSelect = vi.fn(() => ({ eq: departmentSelectEq }));
+    const deleteEq = vi.fn().mockResolvedValue({ error: null });
+    const deleteFn = vi.fn(() => ({ eq: deleteEq }));
+    const rallyeSelectEq = vi
+      .fn()
+      .mockResolvedValue({ data: [{ id: 1 }], error: null });
+    const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
+    const from = vi.fn((table: string) =>
+      table === 'rallye'
+        ? { select: rallyeSelect }
+        : { select: departmentSelect, delete: deleteFn }
+    );
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { deleteDepartment } = await import('./department');
+    const result = await deleteDepartment('7');
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toContain('zugeordnete Rallyes');
+    expect(deleteFn).not.toHaveBeenCalled();
+    expect(mockClearDepartmentAssignments).not.toHaveBeenCalled();
   });
 });
 

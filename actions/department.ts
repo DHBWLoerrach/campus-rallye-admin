@@ -288,6 +288,25 @@ export async function deleteDepartment(
     return fail('Abteilung nicht gefunden');
   }
 
+  // Rallyes reference departments with ON DELETE RESTRICT, so deleting a
+  // department that still has rallyes fails with an opaque database error.
+  // Surface an actionable message instead of the generic delete failure.
+  const { data: assignedRallyes, error: assignedError } = await supabase
+    .from('rallye')
+    .select('id')
+    .eq('department_id', idResult.data);
+
+  if (assignedError) {
+    console.error('Error checking rallye assignments:', assignedError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  if (assignedRallyes && assignedRallyes.length > 0) {
+    return fail(
+      'Der Bereich hat noch zugeordnete Rallyes. Bitte diese zuerst einem anderen Bereich zuordnen oder entfernen.'
+    );
+  }
+
   const { error } = await supabase
     .from('department')
     .delete()
