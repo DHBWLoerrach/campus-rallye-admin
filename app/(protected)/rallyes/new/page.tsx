@@ -25,7 +25,7 @@ export default async function NewRallyePage() {
     supabase
       .from('questions')
       .select(
-        'id, content, type, point_value, category, answers(id, correct, text)'
+        'id, content, type, point_value, category, solutionOptions:solution_options(id, correct, text)'
       ),
   ]);
 

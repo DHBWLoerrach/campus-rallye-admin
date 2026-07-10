@@ -31,7 +31,7 @@ interface FormErrors {
   type?: string;
   category?: string;
   point_value?: string;
-  answers?: string;
+  solutionOptions?: string;
 }
 
 const buildInitialFormData = (
@@ -43,8 +43,8 @@ const buildInitialFormData = (
   hint: initialData?.hint ?? undefined,
   category: initialData?.category ?? undefined,
   bucket_path: initialData?.bucket_path ?? undefined,
-  answers: initialData?.answers?.length
-    ? initialData.answers
+  solutionOptions: initialData?.solutionOptions?.length
+    ? initialData.solutionOptions
     : [{ id: 0, correct: true, text: '' }],
 });
 
@@ -55,7 +55,7 @@ const normalizeFormData = (data: QuestionFormData) => ({
   hint: data.hint ?? '',
   category: data.category ?? '',
   bucket_path: data.bucket_path ?? '',
-  answers: (data.answers ?? []).map((answer) => ({
+  solutionOptions: (data.solutionOptions ?? []).map((answer) => ({
     id: answer.id ?? 0,
     correct: Boolean(answer.correct),
     text: answer.text ?? '',
@@ -123,33 +123,39 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     value: string | boolean
   ) => {
     setFormData((prev) => {
-      const answers = [...(prev.answers || [])];
-      const current = answers[index] ?? { id: 0, correct: false, text: '' };
+      const solutionOptions = [...(prev.solutionOptions || [])];
+      const current = solutionOptions[index] ?? {
+        id: 0,
+        correct: false,
+        text: '',
+      };
 
       if (field === 'text') {
         if (typeof value !== 'string') return prev;
-        answers[index] = { ...current, text: value };
+        solutionOptions[index] = { ...current, text: value };
       } else {
         if (typeof value !== 'boolean') return prev;
-        answers[index] = { ...current, correct: value };
+        solutionOptions[index] = { ...current, correct: value };
       }
 
       // Wenn eine Antwort als korrekt markiert wird, setze alle anderen auf inkorrekt
       if (prev.type === 'multiple_choice' && field === 'correct' && value) {
-        for (let i = 0; i < answers.length; i++) {
-          if (i !== index && answers[i]?.correct) {
-            answers[i] = { ...answers[i], correct: false };
+        for (let i = 0; i < solutionOptions.length; i++) {
+          if (i !== index && solutionOptions[i]?.correct) {
+            solutionOptions[i] = { ...solutionOptions[i], correct: false };
           }
         }
       }
 
-      return { ...prev, answers };
+      return { ...prev, solutionOptions };
     });
   };
 
   // Helper-Funktion, um den Index der korrekten Antwort zu finden
   const getCorrectAnswerIndex = () => {
-    return formData.answers?.findIndex((answer) => answer.correct) ?? -1;
+    return (
+      formData.solutionOptions?.findIndex((answer) => answer.correct) ?? -1
+    );
   };
 
   // Helper-Funktion, um die korrekte Antwort via Index zu setzen
@@ -158,38 +164,41 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     if (isNaN(selectedIndex)) return;
 
     const newAnswers =
-      formData.answers?.map((answer, index) => ({
+      formData.solutionOptions?.map((answer, index) => ({
         ...answer,
         correct: index === selectedIndex,
       })) || [];
 
     setFormData((prev) => ({
       ...prev,
-      answers: newAnswers,
+      solutionOptions: newAnswers,
     }));
   };
 
   const addAnswer = () => {
     setFormData((prev) => ({
       ...prev,
-      answers: [...(prev.answers || []), { id: 0, correct: false, text: '' }],
+      solutionOptions: [
+        ...(prev.solutionOptions || []),
+        { id: 0, correct: false, text: '' },
+      ],
     }));
   };
 
   const ensureCorrectAnswer = (
-    answers: QuestionFormData['answers'],
+    solutionOptions: QuestionFormData['solutionOptions'],
     fallbackIndex: number
   ) => {
-    if (!answers || answers.length === 0) {
+    if (!solutionOptions || solutionOptions.length === 0) {
       return [{ id: 0, correct: true, text: '' }];
     }
 
-    if (answers.some((answer) => answer.correct)) {
-      return answers;
+    if (solutionOptions.some((answer) => answer.correct)) {
+      return solutionOptions;
     }
 
-    const safeIndex = Math.min(fallbackIndex, answers.length - 1);
-    return answers.map((answer, index) => ({
+    const safeIndex = Math.min(fallbackIndex, solutionOptions.length - 1);
+    return solutionOptions.map((answer, index) => ({
       ...answer,
       correct: index === safeIndex,
     }));
@@ -197,18 +206,18 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const removeAnswer = (index: number) => {
     setFormData((prev) => {
-      const currentAnswers = prev.answers ?? [];
+      const currentAnswers = prev.solutionOptions ?? [];
       if (currentAnswers.length <= 1) {
         return {
           ...prev,
-          answers: [{ id: 0, correct: true, text: '' }],
+          solutionOptions: [{ id: 0, correct: true, text: '' }],
         };
       }
 
       const updatedAnswers = currentAnswers.filter((_, i) => i !== index);
       return {
         ...prev,
-        answers: ensureCorrectAnswer(
+        solutionOptions: ensureCorrectAnswer(
           updatedAnswers,
           Math.min(index, updatedAnswers.length - 1)
         ),
@@ -236,21 +245,23 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.point_value = 'Punkte müssen größer oder gleich 0 sein';
     }
 
-    const validAnswers = data.answers?.filter((a) => a.text?.trim()) ?? [];
+    const validAnswers =
+      data.solutionOptions?.filter((a) => a.text?.trim()) ?? [];
     if (data.type === 'multiple_choice') {
       if (validAnswers.length < 2) {
-        newErrors.answers =
+        newErrors.solutionOptions =
           'Mindestens zwei Antworten müssen eingegeben werden';
       } else {
         const normalizedAnswers = validAnswers.map(
           (answer) => answer.text?.trim().toLowerCase() ?? ''
         );
         if (new Set(normalizedAnswers).size !== normalizedAnswers.length) {
-          newErrors.answers = 'Antworten müssen unterschiedlich sein';
+          newErrors.solutionOptions = 'Antworten müssen unterschiedlich sein';
         }
       }
     } else if (data.type !== 'upload' && validAnswers.length === 0) {
-      newErrors.answers = 'Mindestens eine Antwort muss eingegeben werden';
+      newErrors.solutionOptions =
+        'Mindestens eine Antwort muss eingegeben werden';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -260,10 +271,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     event.preventDefault();
     if (isSubmitting) return;
 
-    // Remove empty answers
+    // Remove empty solutionOptions
     const cleanedData = {
       ...formData,
-      answers: formData.answers
+      solutionOptions: formData.solutionOptions
         ?.filter((answer) => answer.text?.trim())
         .map((answer) => ({
           ...answer,
@@ -377,7 +388,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 onValueChange={handleCorrectAnswerSelect}
                 className="space-y-3"
               >
-                {formData.answers?.map((answer, index) => (
+                {formData.solutionOptions?.map((answer, index) => (
                   <div
                     key={index}
                     className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-2"
@@ -395,7 +406,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                         }
                         placeholder="Antwort eingeben"
                         className={
-                          errors.answers
+                          errors.solutionOptions
                             ? 'border-destructive focus-visible:ring-destructive/40'
                             : ''
                         }
@@ -415,7 +426,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 ))}
               </RadioGroup>
             ) : (
-              formData.answers?.map((answer, index) => (
+              formData.solutionOptions?.map((answer, index) => (
                 <div key={index} className="flex gap-2 items-center">
                   <Input
                     type="text"
@@ -425,7 +436,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     }
                     placeholder="Antwort eingeben"
                     className={
-                      errors.answers
+                      errors.solutionOptions
                         ? 'border-destructive focus-visible:ring-destructive/40'
                         : ''
                     }
@@ -440,13 +451,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 Antwort hinzufügen
               </Button>
             )}
-            {errors.answers && (
-              <span className="text-sm text-destructive">{errors.answers}</span>
+            {errors.solutionOptions && (
+              <span className="text-sm text-destructive">
+                {errors.solutionOptions}
+              </span>
             )}
             {isQRCode && (
               <div className="mt-4">
                 <QuestionQRCode
-                  answerText={formData.answers?.[0]?.text ?? ''}
+                  answerText={formData.solutionOptions?.[0]?.text ?? ''}
                   questionContent={formData.content}
                   questionId={initialData?.id}
                   previewSize={200}

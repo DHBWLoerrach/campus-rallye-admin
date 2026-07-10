@@ -1,7 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import QuestionForm from './QuestionForm';
-import type { Answer, Question, QuestionFormData } from '@/helpers/questions';
+import type {
+  SolutionOption,
+  Question,
+  QuestionFormData,
+} from '@/helpers/questions';
 
 describe('QuestionForm', () => {
   it('normalizes null values to empty strings for inputs', () => {
@@ -9,7 +13,7 @@ describe('QuestionForm', () => {
       hint: null,
       category: null,
       type: 'knowledge',
-      answers: [{ id: 1, correct: true, text: null }],
+      solutionOptions: [{ id: 1, correct: true, text: null }],
     } as unknown as Partial<Question>;
 
     const consoleErrorSpy = vi
@@ -48,7 +52,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Was ist die Antwort?',
           type: 'knowledge',
-          answers: [{ id: 1, correct: true, text: '42' }],
+          solutionOptions: [{ id: 1, correct: true, text: '42' }],
         }}
         onSubmit={handleSubmit}
         onCancel={vi.fn()}
@@ -84,7 +88,12 @@ describe('QuestionForm', () => {
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
         categories={[]}
-        initialData={{ id: 1, content: 'X', type: 'knowledge', answers: [] }}
+        initialData={{
+          id: 1,
+          content: 'X',
+          type: 'knowledge',
+          solutionOptions: [],
+        }}
       />
     );
     expect(screen.getByLabelText('Punkte')).toBeInTheDocument();
@@ -98,7 +107,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Beispielfrage',
           type: 'multiple_choice',
-          answers: [{ id: 1, correct: true, text: 'Antwort A' }],
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort A' }],
         }}
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
@@ -119,7 +128,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Mehrfachauswahl',
           type: 'multiple_choice',
-          answers: [
+          solutionOptions: [
             { id: 1, correct: false, text: 'Antwort A' },
             { id: 2, correct: true, text: 'Antwort B' },
             { id: 3, correct: false, text: 'Antwort C' },
@@ -149,7 +158,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Mehrfachauswahl',
           type: 'multiple_choice',
-          answers: [{ id: 1, correct: true, text: 'Antwort A' }],
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort A' }],
         }}
         onSubmit={handleSubmit}
         onCancel={vi.fn()}
@@ -173,7 +182,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Mehrfachauswahl',
           type: 'multiple_choice',
-          answers: [
+          solutionOptions: [
             { id: 1, correct: true, text: 'Antwort A' },
             { id: 2, correct: false, text: 'Antwort A' },
           ],
@@ -200,7 +209,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Mehrfachauswahl',
           type: 'multiple_choice',
-          answers: [{ id: 1, correct: true, text: 'Antwort A' }],
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort A' }],
         }}
         onSubmit={handleSubmit}
         onCancel={vi.fn()}
@@ -215,7 +224,7 @@ describe('QuestionForm', () => {
 
     expect(handleSubmit).toHaveBeenCalledTimes(1);
     const submitted = handleSubmit.mock.calls[0][0] as QuestionFormData;
-    const submittedAnswers: Answer[] = submitted.answers ?? [];
+    const submittedAnswers: SolutionOption[] = submitted.solutionOptions ?? [];
     expect(submittedAnswers).toHaveLength(2);
     expect(submittedAnswers.some((answer) => answer.id === 0)).toBe(false);
     expect(submittedAnswers.some((answer) => answer.id === 1)).toBe(true);
@@ -229,7 +238,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Beispielfrage',
           type: 'knowledge',
-          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
         }}
         onSubmit={vi.fn()}
         onCancel={vi.fn()}

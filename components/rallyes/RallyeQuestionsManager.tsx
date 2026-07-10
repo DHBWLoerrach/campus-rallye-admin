@@ -64,7 +64,7 @@ const matchesFilters = (question: Question, filters: Filters): boolean => {
   }
   if (
     filters.answer &&
-    !(question.answers ?? []).some((answer) =>
+    !(question.solutionOptions ?? []).some((answer) =>
       answer.text?.toLowerCase().includes(filters.answer!.toLowerCase())
     )
   ) {

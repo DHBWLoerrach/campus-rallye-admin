@@ -26,7 +26,7 @@ const makeQuestion = (overrides: Partial<Question>): Question => ({
   type: 'knowledge',
   point_value: 3,
   category: 'Campus',
-  answers: [],
+  solutionOptions: [],
   ...overrides,
 });
 

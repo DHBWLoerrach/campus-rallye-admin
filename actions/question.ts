@@ -51,7 +51,7 @@ export async function getQuestionById(
   const { data, error } = await supabase
     .from('questions')
     .select(
-      'id, content, type, point_value, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text)'
     )
     .eq('id', idResult.data)
     .maybeSingle();
@@ -74,11 +74,11 @@ export async function getQuestions(filters: {
   await requireProfile();
   const supabase = await createClient();
 
-  // Build base query with nested answers to avoid N+1
+  // Build base query with nested solution options to avoid N+1
   let query = supabase
     .from('questions')
     .select(
-      'id, content, type, point_value, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text)'
     );
 
   if (filters.question && filters.question.trim().length > 0) {
@@ -125,7 +125,7 @@ export async function getQuestions(filters: {
   // If filtering by answer text, narrow by question IDs that match
   if (filters.answer && filters.answer.trim().length > 0) {
     const { data: answerRows, error: answerErr } = await supabase
-      .from('answers')
+      .from('solution_options')
       .select('question_id')
       .ilike('text', `%${filters.answer.trim()}%`);
 
@@ -168,7 +168,7 @@ export async function createQuestion(data: {
   hint?: string;
   category?: string;
   bucket_path?: string;
-  answers: { correct: boolean; text?: string }[];
+  solutionOptions: { correct: boolean; text?: string }[];
   rallyeIds?: number[];
 }): Promise<ActionResult<{ message: string }>> {
   await requireProfile();
@@ -178,7 +178,7 @@ export async function createQuestion(data: {
   }
   try {
     const supabase = await createClient();
-    const answers = parsed.data.answers.filter(
+    const answers = parsed.data.solutionOptions.filter(
       (answer) => (answer.text ?? '').trim().length > 0
     );
 
@@ -203,18 +203,18 @@ export async function createQuestion(data: {
 
     const questionId = questionData[0].id;
 
-    type AnswerInsert = {
+    type SolutionOptionInsert = {
       correct: boolean;
       text?: string;
       question_id: number;
       id?: number;
     };
-    const answersData: AnswerInsert[] = answers.map((answer) => ({
+    const answersData: SolutionOptionInsert[] = answers.map((answer) => ({
       ...answer,
       question_id: questionId,
     }));
 
-    // remove id-attribute from answers (id is auto-incremented in supabase)
+    // Remove the id attribute from solution options (auto-incremented in Supabase).
     answersData.forEach((answer) => {
       if ('id' in answer) {
         delete answer.id;
@@ -223,11 +223,11 @@ export async function createQuestion(data: {
 
     if (answersData.length > 0) {
       const { error: answersError } = await supabase
-        .from('answers')
+        .from('solution_options')
         .insert(answersData);
 
       if (answersError) {
-        console.error('Error adding answers:', answersError);
+        console.error('Error adding solution options:', answersError);
         return fail('Antworten konnten nicht gespeichert werden');
       }
     }
@@ -242,7 +242,7 @@ export async function createQuestion(data: {
       }
     }
 
-    console.log('Question and answers added successfully');
+    console.log('Question and solution options added successfully');
     return ok({ message: 'Frage erfolgreich gespeichert' });
   } catch (err) {
     console.error('Error processing request:', err);
@@ -259,7 +259,7 @@ export async function updateQuestion(
     hint?: string;
     category?: string;
     bucket_path?: string;
-    answers: { id?: number; correct: boolean; text?: string }[];
+    solutionOptions: { id?: number; correct: boolean; text?: string }[];
     rallyeIds?: number[];
   }
 ): Promise<ActionResult<{ message: string }>> {
@@ -274,7 +274,7 @@ export async function updateQuestion(
   }
   try {
     const supabase = await createClient();
-    const answers = parsed.data.answers.filter(
+    const answers = parsed.data.solutionOptions.filter(
       (answer) => (answer.text ?? '').trim().length > 0
     );
 
@@ -312,14 +312,14 @@ export async function updateQuestion(
       return fail('Frage konnte nicht gespeichert werden');
     }
 
-    // Fetch existing answers
+    // Fetch existing solution options
     const { data: existingAnswers, error: fetchError } = await supabase
-      .from('answers')
+      .from('solution_options')
       .select('id')
       .eq('question_id', idResult.data);
 
     if (fetchError) {
-      console.error('Error fetching existing answers:', fetchError);
+      console.error('Error fetching existing solution options:', fetchError);
       return fail('Antworten konnten nicht geladen werden');
     }
 
@@ -328,46 +328,51 @@ export async function updateQuestion(
       .map((answer) => answer.id)
       .filter((id) => id !== undefined);
 
-    // Delete answers that are not in the new list
+    // Delete solution options that are not in the new list
     const answersToDelete = existingAnswerIds.filter(
       (id) => !newAnswerIds.includes(id)
     );
     if (answersToDelete.length > 0) {
       const { error: deleteError } = await supabase
-        .from('answers')
+        .from('solution_options')
         .delete()
         .in('id', answersToDelete);
 
       if (deleteError) {
-        console.error('Error deleting answers:', deleteError);
+        console.error('Error deleting solution options:', deleteError);
         return fail('Antworten konnten nicht aktualisiert werden');
       }
     }
 
-    // Update or insert answers
+    // Update or insert solution options
     for (const answer of answers) {
       if (answer.id) {
         // Update existing answer
         const { error: answerError } = await supabase
-          .from('answers')
+          .from('solution_options')
           .update({ correct: answer.correct, text: answer.text })
           .eq('id', answer.id)
           .eq('question_id', idResult.data);
 
         if (answerError) {
-          console.error(`Error updating answer ${answer.id}:`, answerError);
+          console.error(
+            `Error updating solution option ${answer.id}:`,
+            answerError
+          );
           return fail('Antworten konnten nicht aktualisiert werden');
         }
       } else {
         // Insert new answer
-        const { error: answerError } = await supabase.from('answers').insert({
-          correct: answer.correct,
-          text: answer.text,
-          question_id: idResult.data,
-        });
+        const { error: answerError } = await supabase
+          .from('solution_options')
+          .insert({
+            correct: answer.correct,
+            text: answer.text,
+            question_id: idResult.data,
+          });
 
         if (answerError) {
-          console.error('Error adding new answer:', answerError);
+          console.error('Error adding new solution option:', answerError);
           return fail('Antworten konnten nicht aktualisiert werden');
         }
       }
@@ -383,7 +388,7 @@ export async function updateQuestion(
       }
     }
 
-    console.log('Question and answers updated successfully');
+    console.log('Question and solution options updated successfully');
     return ok({ message: 'Frage erfolgreich gespeichert' });
   } catch (err) {
     console.error('Error processing request:', err);
@@ -422,14 +427,14 @@ export async function deleteQuestion(
         ? existingQuestion.bucket_path.trim()
         : '';
 
-    // delete answers first
+    // Delete solution options first.
     const { error: answersError } = await supabase
-      .from('answers')
+      .from('solution_options')
       .delete()
       .eq('question_id', idResult.data);
 
     if (answersError) {
-      console.error('Error deleting answers:', answersError);
+      console.error('Error deleting solution options:', answersError);
       return fail('Frage konnte nicht gelöscht werden');
     }
 
@@ -455,7 +460,7 @@ export async function deleteQuestion(
       }
     }
 
-    console.log('Question and answers deleted successfully');
+    console.log('Question and solution options deleted successfully');
     return ok({ message: 'Frage erfolgreich gelöscht' });
   } catch (err) {
     console.error('Error processing request:', err);

@@ -117,7 +117,7 @@ describe('QuestionPage', () => {
           id: 1,
           content: 'Beispielfrage',
           type: 'knowledge',
-          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
         }}
         categories={[]}
         rallyes={[{ id: 1, name: 'Rallye A' }]}
@@ -145,7 +145,7 @@ describe('QuestionPage', () => {
           id: 1,
           content: 'Beispielfrage',
           type: 'knowledge',
-          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
         }}
         categories={[]}
         rallyes={[{ id: 1, name: 'Rallye A' }]}
@@ -176,7 +176,7 @@ describe('QuestionPage', () => {
           id: 1,
           content: 'Beispielfrage',
           type: 'knowledge',
-          answers: [{ id: 1, correct: true, text: 'Antwort' }],
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
         }}
         categories={[]}
         rallyes={[]}

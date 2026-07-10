@@ -27,7 +27,7 @@ const questions = [
     type: 'knowledge',
     point_value: 3,
     category: 'Campus',
-    answers: [],
+    solutionOptions: [],
   },
 ];
 

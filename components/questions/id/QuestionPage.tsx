@@ -59,7 +59,7 @@ const QuestionPage: React.FC<Props> = ({
       if (id !== 'new') {
         const result = await updateQuestion(Number(id), {
           ...data,
-          answers: data.answers || [],
+          solutionOptions: data.solutionOptions || [],
         });
         if (!result.success) {
           setSubmitError(result.error);
@@ -68,7 +68,7 @@ const QuestionPage: React.FC<Props> = ({
       } else {
         const result = await createQuestion({
           ...data,
-          answers: data.answers || [],
+          solutionOptions: data.solutionOptions || [],
         });
         if (!result.success) {
           setSubmitError(result.error);

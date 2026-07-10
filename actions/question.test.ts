@@ -35,7 +35,7 @@ describe('question write actions', () => {
       content: '',
       type: 'knowledge',
       point_value: 1,
-      answers: [{ correct: true, text: 'Antwort' }],
+      solutionOptions: [{ correct: true, text: 'Antwort' }],
     });
 
     expect(result.success).toBe(false);
@@ -56,7 +56,7 @@ describe('question write actions', () => {
       content: 'Frage',
       type: 'knowledge',
       point_value: -1,
-      answers: [{ id: 1, correct: true, text: 'Antwort' }],
+      solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
     });
 
     expect(result.success).toBe(false);
@@ -82,7 +82,7 @@ describe('question write actions', () => {
         point_value: 1,
         hint: 'Hint',
         category: 'Category',
-        answers: [{ correct: true, text: 'Answer' }],
+        solutionOptions: [{ correct: true, text: 'Answer' }],
       })
     ).rejects.toThrow('Denied');
 
@@ -98,7 +98,7 @@ describe('question write actions', () => {
       updateQuestion(1, {
         content: 'Question',
         type: 'knowledge',
-        answers: [{ id: 1, correct: true, text: 'Answer' }],
+        solutionOptions: [{ id: 1, correct: true, text: 'Answer' }],
       })
     ).rejects.toThrow('Denied');
 
@@ -156,7 +156,7 @@ describe('deleteQuestion', () => {
 
     const from = vi.fn((table: string) => {
       if (table === 'questions') return questionsQuery;
-      if (table === 'answers') return answersQuery;
+      if (table === 'solution_options') return answersQuery;
       throw new Error(`Unexpected table: ${table}`);
     });
 
@@ -193,7 +193,7 @@ describe('deleteQuestion', () => {
 
     const from = vi.fn((table: string) => {
       if (table === 'questions') return questionsQuery;
-      if (table === 'answers') return answersQuery;
+      if (table === 'solution_options') return answersQuery;
       throw new Error(`Unexpected table: ${table}`);
     });
 
@@ -247,7 +247,7 @@ describe('getQuestions', () => {
           hint: null,
           category: 'Allgemein',
           bucket_path: null,
-          answers: [],
+          solutionOptions: [],
         },
       ],
       error: null,
@@ -255,7 +255,7 @@ describe('getQuestions', () => {
     const questionsQuery = makeQuery(questionsResponse);
 
     const from = vi.fn((table: string) => {
-      if (table === 'answers') return answersQuery;
+      if (table === 'solution_options') return answersQuery;
       if (table === 'questions') return questionsQuery;
       throw new Error(`Unexpected table: ${table}`);
     });
@@ -266,6 +266,9 @@ describe('getQuestions', () => {
     const result = await getQuestions({ answer: 'Antwort' });
 
     expect(result).toEqual({ success: true, data: questionsResponse.data });
+    expect(questionsQuery.select).toHaveBeenCalledWith(
+      'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text)'
+    );
     expect(answersQuery.select).toHaveBeenCalledWith('question_id');
     expect(answersQuery.ilike).toHaveBeenCalledWith('text', '%Antwort%');
     expect(questionsQuery.in).toHaveBeenCalledWith('id', [42]);

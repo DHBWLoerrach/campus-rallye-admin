@@ -14,7 +14,7 @@ describe('QuestionsTable', () => {
             point_value: 2,
             hint: 'Hinweistext',
             bucket_path: 'questions/1.png',
-            answers: [
+            solutionOptions: [
               { id: 1, correct: true, text: 'Antwort A' },
               { id: 2, correct: false, text: 'Antwort B' },
             ],
@@ -74,7 +74,7 @@ describe('QuestionsTable', () => {
             id: 1,
             content: 'Testfrage',
             type: 'knowledge',
-            answers: [{ id: 1, correct: true, text: 'Einzelantwort' }],
+            solutionOptions: [{ id: 1, correct: true, text: 'Einzelantwort' }],
           },
         ]}
       />
@@ -90,7 +90,9 @@ describe('QuestionsTable', () => {
   it('shows dashes for missing type, points and rallye usage', () => {
     render(
       <QuestionsTable
-        questions={[{ id: 2, content: 'Ohne alles', type: '', answers: [] }]}
+        questions={[
+          { id: 2, content: 'Ohne alles', type: '', solutionOptions: [] },
+        ]}
       />
     );
 

@@ -1,4 +1,4 @@
-export interface Answer {
+export interface SolutionOption {
   id?: number;
   correct: boolean;
   text?: string;
@@ -13,7 +13,7 @@ export interface Question {
   hint?: string;
   category?: string;
   bucket_path?: string;
-  answers?: Answer[];
+  solutionOptions?: SolutionOption[];
 }
 
 export type QuestionFormData = Omit<Question, 'id'> & {

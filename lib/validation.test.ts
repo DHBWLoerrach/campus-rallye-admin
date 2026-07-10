@@ -10,7 +10,7 @@ describe('questionUpdateSchema', () => {
       hint: null,
       category: null,
       bucket_path: null,
-      answers: [{ id: 1, correct: true, text: 'Antwort' }],
+      solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
       rallyeIds: [],
     });
 

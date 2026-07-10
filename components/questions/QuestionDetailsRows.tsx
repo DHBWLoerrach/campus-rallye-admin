@@ -21,7 +21,7 @@ const QuestionDetailsRows = ({
 
   const hasHint = Boolean(question.hint?.trim());
   const hasRallyes = rallyeNames.length > 0;
-  const answers = question.answers ?? [];
+  const answers = question.solutionOptions ?? [];
   const hasAnswers = answers.length > 0;
   const answersLabel = answers.length === 1 ? 'Antwort' : 'Antworten';
   const answersTitle = answers

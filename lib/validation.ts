@@ -59,7 +59,7 @@ export const departmentUpdateSchema = z.object({
   location_id: idSchema,
 });
 
-const answerSchema = z.object({
+const solutionOptionSchema = z.object({
   correct: z.boolean(),
   text: z.string().optional(),
 });
@@ -67,11 +67,11 @@ const answerSchema = z.object({
 const validateAnswers = (
   data: {
     type: string;
-    answers: { correct: boolean; text?: string }[];
+    solutionOptions: { correct: boolean; text?: string }[];
   },
   ctx: z.RefinementCtx
 ) => {
-  const normalizedAnswers = data.answers
+  const normalizedAnswers = data.solutionOptions
     .map((answer) => (answer.text ?? '').trim())
     .filter((text) => text.length > 0);
 
@@ -79,7 +79,7 @@ const validateAnswers = (
     if (normalizedAnswers.length < 2) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['answers'],
+        path: ['solutionOptions'],
         message: 'Mindestens zwei Antworten müssen eingegeben werden',
       });
       return;
@@ -90,14 +90,14 @@ const validateAnswers = (
     if (normalizedUnique.size !== normalizedAnswers.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['answers'],
+        path: ['solutionOptions'],
         message: 'Antworten müssen unterschiedlich sein',
       });
     }
   } else if (data.type !== 'upload' && normalizedAnswers.length < 1) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['answers'],
+      path: ['solutionOptions'],
       message: 'Mindestens eine Antwort muss eingegeben werden',
     });
   }
@@ -110,7 +110,7 @@ export const questionBaseSchema = z.object({
   hint: z.string().optional().nullable(),
   category: z.string().optional().nullable(),
   bucket_path: z.string().optional().nullable(),
-  answers: z.array(answerSchema).default([]),
+  solutionOptions: z.array(solutionOptionSchema).default([]),
   rallyeIds: idArraySchema.optional(),
 });
 
@@ -119,7 +119,7 @@ export const questionCreateSchema =
 
 export const questionUpdateSchema = questionBaseSchema
   .extend({
-    answers: z.array(
+    solutionOptions: z.array(
       z.object({
         id: idSchema.optional(),
         correct: z.boolean(),
