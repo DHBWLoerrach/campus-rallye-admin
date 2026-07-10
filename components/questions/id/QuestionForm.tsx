@@ -1,5 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Plus, Minus, Trash2 } from 'lucide-react';
+import {
+  Camera,
+  ImageIcon,
+  ListChecks,
+  Minus,
+  Plus,
+  QrCode,
+  TextCursorInput,
+  Trash2,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -13,8 +22,17 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
+import { cn } from '@/lib/utils';
 import QuestionImage from './QuestionImage';
 import QuestionQRCode from './QuestionQRCode';
+
+const questionTypeIcons = {
+  knowledge: TextCursorInput,
+  multiple_choice: ListChecks,
+  picture: ImageIcon,
+  qr_code: QrCode,
+  upload: Camera,
+};
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -298,8 +316,79 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset disabled={isSubmitting} className="space-y-6 border-0 p-0 m-0">
-        <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
-          <div className="space-y-2 md:col-span-2">
+        <div className="space-y-5 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6">
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label id="question-type-label">Was sollen die Teams tun?*</Label>
+              <p className="text-sm text-muted-foreground">
+                Die Auswahl bestimmt, wie Teams die Aufgabe lösen.
+              </p>
+            </div>
+            <RadioGroup
+              value={formData.type}
+              onValueChange={(value) => handleFormChange('type', value)}
+              disabled={initialData?.id !== undefined}
+              aria-labelledby="question-type-label"
+              aria-invalid={Boolean(errors.type)}
+              className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {questionTypes.map((type) => {
+                const Icon =
+                  questionTypeIcons[type.id as keyof typeof questionTypeIcons];
+                const selected = formData.type === type.id;
+                const optionId = `question-type-${type.id}`;
+
+                return (
+                  <Label
+                    key={type.id}
+                    htmlFor={optionId}
+                    aria-disabled={initialData?.id !== undefined}
+                    className={cn(
+                      'flex min-h-40 cursor-pointer flex-col gap-3 rounded-xl border bg-background/80 p-4 shadow-sm transition-colors hover:border-primary/50 hover:bg-background',
+                      selected &&
+                        'border-primary bg-primary/5 ring-2 ring-primary/15',
+                      errors.type && 'border-destructive/60',
+                      initialData?.id !== undefined &&
+                        'cursor-not-allowed opacity-65 hover:border-border'
+                    )}
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span
+                        className={cn(
+                          'flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground',
+                          selected && 'bg-primary/10 text-primary'
+                        )}
+                      >
+                        <Icon className="size-5" aria-hidden="true" />
+                      </span>
+                      <RadioGroupItem value={type.id} id={optionId} />
+                    </span>
+                    <span className="space-y-1">
+                      <span className="block font-semibold text-foreground">
+                        {type.action}
+                      </span>
+                      <span className="block text-sm font-normal leading-5 text-muted-foreground">
+                        {type.description}
+                      </span>
+                    </span>
+                    <span className="mt-auto block text-xs font-normal leading-4 text-muted-foreground/90">
+                      {type.example}
+                    </span>
+                  </Label>
+                );
+              })}
+            </RadioGroup>
+            {errors.type && (
+              <span className="text-sm text-destructive">{errors.type}</span>
+            )}
+            {initialData?.id !== undefined && (
+              <p className="text-xs text-muted-foreground">
+                Die Aufgabenart kann nach dem Erstellen nicht geändert werden.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="question">Frage*</Label>
             <Input
               id="question"
@@ -316,66 +405,30 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <span className="text-sm text-destructive">{errors.content}</span>
             )}
           </div>
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
-            <div className="space-y-2">
-              <Label htmlFor="type">Fragetyp*</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => handleFormChange('type', value)}
-                disabled={initialData?.id !== undefined}
-              >
-                <SelectTrigger
-                  className={
-                    errors.type
-                      ? 'border-destructive focus:ring-destructive/40'
-                      : ''
-                  }
-                >
-                  <SelectValue placeholder="Fragetyp wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {questionTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.type && (
-                <span className="text-sm text-destructive">{errors.type}</span>
+          {hasType && (
+            <div className="max-w-28 space-y-2">
+              <Label htmlFor="point_value">Punkte</Label>
+              <Input
+                type="number"
+                id="point_value"
+                value={formData.point_value}
+                onChange={(e) =>
+                  handleFormChange('point_value', Number(e.target.value))
+                }
+                placeholder="0"
+                min={0}
+                className={`w-full ${
+                  errors.point_value
+                    ? 'border-destructive focus-visible:ring-destructive/40'
+                    : ''
+                }`}
+              />
+              {errors.point_value && (
+                <span className="text-sm text-destructive">
+                  {errors.point_value}
+                </span>
               )}
             </div>
-            {hasType && (
-              <div className="space-y-2">
-                <Label htmlFor="point_value">Punkte</Label>
-                <Input
-                  type="number"
-                  id="point_value"
-                  value={formData.point_value}
-                  onChange={(e) =>
-                    handleFormChange('point_value', Number(e.target.value))
-                  }
-                  placeholder="0"
-                  min={0}
-                  className={`w-full ${
-                    errors.point_value
-                      ? 'border-destructive focus-visible:ring-destructive/40'
-                      : ''
-                  }`}
-                />
-                {errors.point_value && (
-                  <span className="text-sm text-destructive">
-                    {errors.point_value}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          {!hasType && (
-            <p className="text-sm text-muted-foreground md:col-span-2">
-              Zuerst einen Fragetyp wählen — danach erscheinen die passenden
-              Felder.
-            </p>
           )}
         </div>
 
@@ -386,6 +439,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <RadioGroup
                 value={getCorrectAnswerIndex().toString()}
                 onValueChange={handleCorrectAnswerSelect}
+                aria-label="Richtige Antwort"
                 className="space-y-3"
               >
                 {formData.solutionOptions?.map((answer, index) => (

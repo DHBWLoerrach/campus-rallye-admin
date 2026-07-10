@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import QuestionForm from './QuestionForm';
 import type {
@@ -67,17 +67,72 @@ describe('QuestionForm', () => {
     expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
 
-  it('shows only question and type until a type is chosen', () => {
+  it('offers task-oriented question type cards', () => {
     render(
       <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
     );
+
+    expect(
+      screen.getByRole('radiogroup', { name: /Was sollen die Teams tun/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Antwort eingeben/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Antwort auswählen/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Bild ansehen und antworten/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /QR-Code finden/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Foto hochladen/ })
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Frage*')).toBeInTheDocument();
     expect(screen.queryByLabelText('Punkte')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Hinweis')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Kategorie')).not.toBeInTheDocument();
+    expect(screen.queryByText('Fragetyp wählen')).not.toBeInTheDocument();
+  });
+
+  it('shows the matching fields after selecting a task', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
+    );
+
+    const knowledgeType = screen.getByRole('radio', {
+      name: /Antwort eingeben/,
+    });
+    fireEvent.click(knowledgeType);
+
+    expect(knowledgeType).toBeChecked();
+    expect(screen.getByLabelText('Punkte')).toBeInTheDocument();
+    expect(screen.getByText('Antwort*')).toBeInTheDocument();
+  });
+
+  it('keeps the task type locked for an existing question', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          id: 1,
+          content: 'X',
+          type: 'knowledge',
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
+        }}
+      />
+    );
+
+    expect(
+      screen.getByRole('radio', { name: /Antwort eingeben/ })
+    ).toBeDisabled();
     expect(
       screen.getByText(
-        'Zuerst einen Fragetyp wählen — danach erscheinen die passenden Felder.'
+        'Die Aufgabenart kann nach dem Erstellen nicht geändert werden.'
       )
     ).toBeInTheDocument();
   });
@@ -117,7 +172,9 @@ describe('QuestionForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Antwort entfernen' }));
 
-    const radios = screen.getAllByRole('radio');
+    const radios = within(
+      screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
+    ).getAllByRole('radio');
     expect(radios).toHaveLength(1);
     expect(radios[0]).toHaveAttribute('data-state', 'checked');
   });
@@ -145,7 +202,9 @@ describe('QuestionForm', () => {
     });
     fireEvent.click(removeButtons[1]);
 
-    const radios = screen.getAllByRole('radio');
+    const radios = within(
+      screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
+    ).getAllByRole('radio');
     expect(radios).toHaveLength(2);
     expect(radios[1]).toHaveAttribute('data-state', 'checked');
   });
