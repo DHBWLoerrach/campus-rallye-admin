@@ -190,7 +190,7 @@ export async function getRallyeOptionsByLocation(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name, department:department_id!inner(location_id)')
     .eq('department.location_id', locationId);
 

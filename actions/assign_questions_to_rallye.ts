@@ -42,7 +42,7 @@ export async function assignQuestionsToRallye(
   }
 
   const { data: existingRallye, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', rallyeIdResult.data)
     .maybeSingle();
@@ -244,7 +244,7 @@ export async function addQuestionToRallye(
   const supabase = await createClient();
 
   const { data: existingRallye, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', ids.rallyeId)
     .maybeSingle();
@@ -378,7 +378,7 @@ export async function getRallyeQuestions(
   const supabase = await createClient();
 
   const { data: existingRallye, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', rallyeIdResult.data)
     .maybeSingle();
@@ -416,7 +416,7 @@ export async function getVotingQuestions(
   const supabase = await createClient();
 
   const { data: existingRallye, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', rallyeIdResult.data)
     .maybeSingle();
@@ -476,7 +476,7 @@ export async function assignRallyesToQuestion(
 
   if (normalizedRallyeIds.length > 0) {
     const { data: rallyeRows, error: rallyeError } = await supabase
-      .from('rallye')
+      .from('rallyes')
       .select('id')
       .in('id', normalizedRallyeIds);
 
@@ -652,7 +652,7 @@ export async function getQuestionRallyeMap(
   }
 
   const { data: rallyes, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name')
     .in('id', rallyeIds);
 

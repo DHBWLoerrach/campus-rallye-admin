@@ -24,7 +24,7 @@ export default async function LocationsPage() {
 
   // Load rallyes with their department's location and group by location.
   const { data: rallyeRows } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name, department:department_id(location_id)');
 
   const rallyeOptionsMap = new Map<number, RallyeOption[]>();

@@ -31,7 +31,7 @@ export default async function Page(props: PageProps) {
   const rallyeId = Number(idStr);
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id,name')
     .eq('id', rallyeId)
     .maybeSingle();

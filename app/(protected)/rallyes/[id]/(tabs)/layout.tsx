@@ -29,7 +29,7 @@ export default async function RallyeDetailLayout({
 
   const supabase = await createClient();
   const { data: rallye, error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name, status, department_id')
     .eq('id', rallyeId)
     .maybeSingle();

@@ -84,7 +84,7 @@ function buildDefaultFixture(): SupabaseFixture {
 function createSupabaseMock(fixtureOverrides?: Partial<SupabaseFixture>) {
   const fixture = { ...buildDefaultFixture(), ...fixtureOverrides };
   const byTable: Record<string, { select: (columns: string) => unknown }> = {
-    rallye: {
+    rallyes: {
       select: () => ({
         order: async () => ({ data: fixture.rallyes, error: null }),
       }),

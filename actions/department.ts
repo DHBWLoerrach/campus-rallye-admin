@@ -69,7 +69,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
 
   if (rallyeIds.length > 0) {
     const { error: rallyeAssignError } = await supabase
-      .from('rallye')
+      .from('rallyes')
       .update({ department_id: createdDepartment.id })
       .in('id', rallyeIds);
 
@@ -173,7 +173,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   );
 
   const { data: existingAssignments, error: existingAssignmentsError } =
-    await supabase.from('rallye').select('id').eq('department_id', data.id);
+    await supabase.from('rallyes').select('id').eq('department_id', data.id);
 
   if (existingAssignmentsError) {
     console.error(
@@ -197,7 +197,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
   if (rallyeIdsToInsert.length > 0) {
     const { error: insertError } = await supabase
-      .from('rallye')
+      .from('rallyes')
       .update({ department_id: data.id })
       .in('id', rallyeIdsToInsert);
 
@@ -209,7 +209,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
   if (rallyeIdsToDelete.length > 0) {
     const { error: deleteError } = await supabase
-      .from('rallye')
+      .from('rallyes')
       .update({ department_id: null })
       .eq('department_id', data.id)
       .in('id', rallyeIdsToDelete);
@@ -292,7 +292,7 @@ export async function deleteDepartment(
   // department that still has rallyes fails with an opaque database error.
   // Surface an actionable message instead of the generic delete failure.
   const { data: assignedRallyes, error: assignedError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('department_id', idResult.data);
 
@@ -339,7 +339,7 @@ export async function getRallyeAssignmentsByDepartment(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('department_id', departmentId);
 

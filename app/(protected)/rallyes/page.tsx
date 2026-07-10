@@ -61,7 +61,7 @@ export default async function Home() {
   const userDepartmentId = await getUserDepartmentId();
 
   const { data: rallyes } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name, status, end_time, password, created_at, department_id')
     .order('name');
   const typedRallyes = (rallyes || []) as RallyeRow[];

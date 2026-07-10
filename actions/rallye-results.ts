@@ -56,7 +56,7 @@ export async function getRallyeResults(
 
   const supabase = await createClient();
   const { data: rallye, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, status')
     .eq('id', rallyeIdResult.data)
     .maybeSingle();

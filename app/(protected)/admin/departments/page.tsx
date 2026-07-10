@@ -27,7 +27,7 @@ export default async function DepartmentsPage() {
 
   // Load rallye options
   const { data: rallyeOptions } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name')
     .order('name');
 
@@ -44,7 +44,7 @@ export default async function DepartmentsPage() {
   if (departments && departments.length > 0) {
     const departmentIds = departments.map((dept) => dept.id);
     const { data: assignmentRows } = await supabase
-      .from('rallye')
+      .from('rallyes')
       .select('id, department_id')
       .in('department_id', departmentIds);
 

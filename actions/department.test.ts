@@ -120,7 +120,7 @@ describe('createDepartment', () => {
       if (table === 'location') return { select: locationSelect };
       if (table === 'department')
         return { insert: deptInsert, select: locationSelect };
-      if (table === 'rallye') return { update: rallyeUpdate };
+      if (table === 'rallyes') return { update: rallyeUpdate };
       return {};
     });
     mockCreateClient.mockResolvedValue({ from });
@@ -162,7 +162,7 @@ describe('createDepartment', () => {
       if (table === 'location') return { select: locationSelect };
       if (table === 'department')
         return { insert: deptInsert, select: locationSelect };
-      if (table === 'rallye') return { update: rallyeUpdate };
+      if (table === 'rallyes') return { update: rallyeUpdate };
       return {};
     });
     mockCreateClient.mockResolvedValue({ from });
@@ -210,7 +210,7 @@ describe('createDepartment', () => {
           select: locationSelect,
         };
       }
-      if (table === 'rallye') return { update: rallyeUpdate };
+      if (table === 'rallyes') return { update: rallyeUpdate };
       return {};
     });
     mockCreateClient.mockResolvedValue({ from });
@@ -309,7 +309,7 @@ describe('updateDepartment', () => {
         return { select: deptSelect, update };
       }
       if (table === 'location') return { select: orgSelect };
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return {
           select: rallyeSelect,
           update: (payload: { department_id: number | null }) =>
@@ -369,7 +369,7 @@ describe('updateDepartment', () => {
     const from = vi.fn((table: string) => {
       if (table === 'department') return { select: deptSelect, update };
       if (table === 'location') return { select: orgSelect };
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return {
           select: rallyeSelect,
           update: (payload: { department_id: number | null }) =>
@@ -430,7 +430,7 @@ describe('updateDepartment', () => {
     const from = vi.fn((table: string) => {
       if (table === 'department') return { select: deptSelect, update };
       if (table === 'location') return { select: orgSelect };
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return {
           select: rallyeSelect,
           update: (payload: { department_id: number | null }) =>
@@ -503,7 +503,7 @@ describe('deleteDepartment', () => {
     const rallyeSelectEq = vi.fn().mockResolvedValue({ data: [], error: null });
     const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
     const from = vi.fn((table: string) =>
-      table === 'rallye'
+      table === 'rallyes'
         ? { select: rallyeSelect }
         : { select: departmentSelect, delete: deleteFn }
     );
@@ -531,7 +531,7 @@ describe('deleteDepartment', () => {
       .mockResolvedValue({ data: [{ id: 1 }], error: null });
     const rallyeSelect = vi.fn(() => ({ eq: rallyeSelectEq }));
     const from = vi.fn((table: string) =>
-      table === 'rallye'
+      table === 'rallyes'
         ? { select: rallyeSelect }
         : { select: departmentSelect, delete: deleteFn }
     );
@@ -595,7 +595,7 @@ describe('getRallyeAssignmentsByDepartment', () => {
     expect(result.success).toBe(true);
     if (!result.success) throw new Error('Expected success');
     expect(result.data).toEqual([10, 20, 30]);
-    expect(from).toHaveBeenCalledWith('rallye');
+    expect(from).toHaveBeenCalledWith('rallyes');
     expect(eq).toHaveBeenCalledWith('department_id', 5);
   });
 

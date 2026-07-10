@@ -148,7 +148,7 @@ describe('getRallyeResults', () => {
 
     mockCreateClient.mockResolvedValue({
       from: vi.fn((table: string) => {
-        if (table === 'rallye') return rallyeQuery;
+        if (table === 'rallyes') return rallyeQuery;
         if (table === 'rallye_team') return teamQuery;
         if (table === 'team_questions') return teamQuestionsRouter;
         throw new Error(`Unexpected table ${table}`);
@@ -245,7 +245,7 @@ describe('getRallyeResults', () => {
 
     mockCreateClient.mockResolvedValue({
       from: vi.fn((table: string) => {
-        if (table === 'rallye') return rallyeQuery;
+        if (table === 'rallyes') return rallyeQuery;
         if (table === 'rallye_team') return teamQuery;
         if (table === 'team_questions') return teamQuestionsRouter;
         throw new Error(`Unexpected table ${table}`);
@@ -287,7 +287,7 @@ describe('getRallyeResults', () => {
 
     mockCreateClient.mockResolvedValue({
       from: vi.fn((table: string) => {
-        if (table === 'rallye') return rallyeQuery;
+        if (table === 'rallyes') return rallyeQuery;
         if (table === 'rallye_team') return teamQuery;
         throw new Error(`Unexpected table ${table}`);
       }),

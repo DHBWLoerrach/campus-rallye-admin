@@ -146,7 +146,7 @@ describe('updateRallye', () => {
     const rallyeUpdate = vi.fn(() => ({ eq: rallyeUpdateEq }));
 
     const from = vi.fn((table: string) => {
-      if (table === 'rallye')
+      if (table === 'rallyes')
         return { select: rallyeSelect, update: rallyeUpdate };
       return {};
     });
@@ -188,7 +188,7 @@ describe('updateRallye', () => {
     const rallyeUpdate = vi.fn(() => ({ eq: rallyeUpdateEq }));
 
     const from = vi.fn((table: string) => {
-      if (table === 'rallye')
+      if (table === 'rallyes')
         return { select: rallyeSelect, update: rallyeUpdate };
       return {};
     });
@@ -232,7 +232,7 @@ describe('updateRallye', () => {
     const rallyeUpdate = vi.fn(() => ({ eq: rallyeUpdateEq }));
 
     const from = vi.fn((table: string) => {
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return { select: rallyeSelect, update: rallyeUpdate };
       }
       return {};
@@ -278,7 +278,7 @@ describe('advanceRallyeStatus', () => {
     const updateEq = vi.fn().mockResolvedValue({ error: updateError });
     const update = vi.fn(() => ({ eq: updateEq }));
     const from = vi.fn((table: string) => {
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
@@ -417,7 +417,7 @@ describe('duplicateRallye', () => {
     const rallyeInsert = vi.fn(() => ({ select: insertSelect }));
     const joinInsert = vi.fn().mockResolvedValue({ error: null });
     const from = vi.fn((table: string) => {
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
@@ -544,7 +544,7 @@ describe('createRallyeWithQuestions', () => {
           })),
         };
       }
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return { insert: rallyeInsert };
       }
       return { insert: joinInsert };

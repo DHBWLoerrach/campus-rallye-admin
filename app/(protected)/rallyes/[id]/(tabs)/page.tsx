@@ -21,7 +21,7 @@ export default async function RallyeQuestionsTab(props: PageProps) {
 
   const supabase = await createClient();
   const { data: rallye } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', rallyeId)
     .maybeSingle();

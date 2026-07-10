@@ -66,7 +66,7 @@ export async function getRallyeUploadAnswers(
   const supabase = await createClient();
 
   const { data: existingRallye, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', rallyeIdResult.data)
     .maybeSingle();

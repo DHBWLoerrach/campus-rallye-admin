@@ -46,7 +46,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
   const data = parsed.data;
 
   const { data: existingRallye, error: existingError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', data.id)
     .maybeSingle();
@@ -94,7 +94,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
   }
 
   const { error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .update({
       ...updatePayload,
     })
@@ -114,7 +114,7 @@ export async function getRallyes(): Promise<ActionResult<Rallye[]>> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name, status, end_time, password, created_at')
     .order('created_at', { ascending: false });
 
@@ -132,7 +132,7 @@ export async function getRallyeOptions(): Promise<
   await requireProfile();
   const supabase = await createClient();
 
-  const { data, error } = await supabase.from('rallye').select('id, name');
+  const { data, error } = await supabase.from('rallyes').select('id, name');
 
   if (error) {
     console.error('Error fetching rallye options:', error);
@@ -158,7 +158,7 @@ export async function deleteRallye(
   }
 
   const { data: existingRallye, error: existingError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id')
     .eq('id', idResult.data)
     .maybeSingle();
@@ -173,7 +173,7 @@ export async function deleteRallye(
   }
 
   const { error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .delete()
     .eq('id', idResult.data);
 
@@ -210,7 +210,7 @@ export async function advanceRallyeStatus(
   const supabase = await createClient();
 
   const { data: rallye, error: rallyeError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, status')
     .eq('id', idResult.data)
     .maybeSingle();
@@ -254,7 +254,7 @@ export async function advanceRallyeStatus(
   }
 
   const { error } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .update(updatePayload)
     .eq('id', idResult.data);
 
@@ -281,7 +281,7 @@ export async function duplicateRallye(
   const supabase = await createClient();
 
   const { data: source, error: sourceError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .select('id, name, department_id')
     .eq('id', idResult.data)
     .maybeSingle();
@@ -304,7 +304,7 @@ export async function duplicateRallye(
 
   // The copy starts as a fresh draft with no planned end or password.
   const { data: created, error: insertError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .insert({
       name: `${source.name} (Kopie)`,
       status: 'draft' as RallyeStatus,
@@ -387,7 +387,7 @@ export async function createRallyeWithQuestions(input: {
   }
 
   const { data: created, error: insertError } = await supabase
-    .from('rallye')
+    .from('rallyes')
     .insert({
       name: nameResult.data.name,
       status: 'draft' as RallyeStatus,

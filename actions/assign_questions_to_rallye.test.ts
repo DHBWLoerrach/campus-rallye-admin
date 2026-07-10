@@ -61,7 +61,7 @@ describe('assignQuestionsToRallye', () => {
 
     const supabase = {
       from: vi.fn((table: string) => {
-        if (table === 'rallye') {
+        if (table === 'rallyes') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
@@ -105,7 +105,7 @@ describe('assignQuestionsToRallye', () => {
 
     const supabase = {
       from: vi.fn((table: string) => {
-        if (table === 'rallye') {
+        if (table === 'rallyes') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
@@ -156,7 +156,7 @@ describe('assignQuestionsToRallye', () => {
 
     const supabase = {
       from: vi.fn((table: string) => {
-        if (table === 'rallye') {
+        if (table === 'rallyes') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
@@ -264,7 +264,7 @@ describe('addQuestionToRallye', () => {
       .fn()
       .mockResolvedValue({ error: opts.insertError ?? null });
     const from = vi.fn((table: string) => {
-      if (table === 'rallye') {
+      if (table === 'rallyes') {
         return {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
