@@ -43,17 +43,6 @@ CREATE TYPE "public"."rallye_status" AS ENUM (
 ALTER TYPE "public"."rallye_status" OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."join_question_answer"("rallye_id" bigint) RETURNS "record"
-    LANGUAGE "sql"
-    AS $$SELECT *
-FROM solution_options A, rallye_questions RQ
-WHERE RQ.rallye_id = rallye_id
-AND RQ.question_id = A.question_id$$;
-
-
-ALTER FUNCTION "public"."join_question_answer"("rallye_id" bigint) OWNER TO "postgres";
-
-
 CREATE OR REPLACE FUNCTION "public"."auto_finalize_voting"() RETURNS trigger
         LANGUAGE "plpgsql" SECURITY DEFINER
         SET search_path TO 'public'
@@ -709,12 +698,6 @@ GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
-
-
-
-GRANT ALL ON FUNCTION "public"."join_question_answer"("rallye_id" bigint) TO "anon";
-GRANT ALL ON FUNCTION "public"."join_question_answer"("rallye_id" bigint) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."join_question_answer"("rallye_id" bigint) TO "service_role";
 
 
 
