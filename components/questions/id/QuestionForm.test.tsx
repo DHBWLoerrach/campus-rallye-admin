@@ -279,7 +279,7 @@ describe('QuestionForm', () => {
 
     expect(
       screen.getByRole('radio', { name: /Antwort eingeben/ })
-    ).toBeDisabled();
+    ).toHaveAttribute('data-disabled');
     expect(
       screen.getByText(
         'Die Aufgabenart kann nach dem Erstellen nicht geändert werden.'
@@ -326,7 +326,7 @@ describe('QuestionForm', () => {
       screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
     ).getAllByRole('radio');
     expect(radios).toHaveLength(1);
-    expect(radios[0]).toHaveAttribute('data-state', 'checked');
+    expect(radios[0]).toHaveAttribute('data-checked');
   });
 
   it('reassigns the correct answer when removing the selected one', () => {
@@ -356,7 +356,7 @@ describe('QuestionForm', () => {
       screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
     ).getAllByRole('radio');
     expect(radios).toHaveLength(2);
-    expect(radios[1]).toHaveAttribute('data-state', 'checked');
+    expect(radios[1]).toHaveAttribute('data-checked');
   });
 
   it('requires at least two answers for multiple choice', () => {
