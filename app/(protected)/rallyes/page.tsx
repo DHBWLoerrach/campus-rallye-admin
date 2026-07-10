@@ -174,8 +174,12 @@ export default async function Home() {
               : 'Alle Rallyes, gruppiert nach Phase.'}
           </p>
         </div>
-        <Button asChild variant="dhbwStyle" className="w-full sm:w-auto">
-          <Link href="/rallyes/new">+ Neue Rallye</Link>
+        <Button
+          render={<Link href="/rallyes/new" />}
+          variant="dhbwStyle"
+          className="w-full sm:w-auto"
+        >
+          + Neue Rallye
         </Button>
       </section>
 

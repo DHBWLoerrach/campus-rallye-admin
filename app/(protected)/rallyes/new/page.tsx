@@ -42,8 +42,8 @@ export default async function NewRallyePage() {
     <main className="mx-auto flex w-full max-w-350 flex-col gap-4 px-4 py-6">
       <section className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/rallyes">← Zurück zu Rallyes</Link>
+          <Button render={<Link href="/rallyes" />} variant="outline" size="sm">
+            ← Zurück zu Rallyes
           </Button>
         </div>
         <div className="space-y-1">

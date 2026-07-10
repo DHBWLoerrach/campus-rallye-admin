@@ -35,8 +35,12 @@ export default async function LandingPage() {
           </p>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button asChild variant="dhbwStyle" size="lg">
-            <Link href="/rallyes">Anmelden mit DHBW-Account</Link>
+          <Button
+            render={<Link href="/rallyes" />}
+            variant="dhbwStyle"
+            size="lg"
+          >
+            Anmelden mit DHBW-Account
           </Button>
           <span className="text-xs text-muted-foreground">
             Zugriff nur für Mitarbeitende der DHBW Lörrach.

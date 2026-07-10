@@ -168,11 +168,13 @@ export default function RallyeQuestionsManager({
                   Eine neue Aufgabe wird nach dem Speichern direkt hinzugefügt.
                 </p>
               </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href={createQuestionHref}>
-                  <CirclePlus className="size-4" aria-hidden="true" />
-                  Neue Aufgabe erstellen
-                </Link>
+              <Button
+                render={<Link href={createQuestionHref} />}
+                variant="outline"
+                size="sm"
+              >
+                <CirclePlus className="size-4" aria-hidden="true" />
+                Neue Aufgabe erstellen
               </Button>
             </div>
             <SearchFilters
@@ -271,15 +273,13 @@ export default function RallyeQuestionsManager({
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button
-                      asChild
+                      render={<Link href={`/questions/${entry.question.id}`} />}
                       variant="ghost"
                       size="icon"
                       aria-label="Frage bearbeiten"
                       className="text-muted-foreground hover:text-foreground"
                     >
-                      <Link href={`/questions/${entry.question.id}`}>
-                        <Pencil className="h-4 w-4" aria-hidden="true" />
-                      </Link>
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"

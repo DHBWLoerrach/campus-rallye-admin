@@ -53,11 +53,9 @@ export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
           </SheetContent>
         </Sheet>
         <div className="flex flex-1 flex-row justify-end gap-2">
-          <Button asChild variant="outline">
-            <a href={signOutUrl}>
-              <span className="hidden sm:block">Abmelden</span>
-              <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
-            </a>
+          <Button render={<a href={signOutUrl} />} variant="outline">
+            <span className="hidden sm:block">Abmelden</span>
+            <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
           </Button>
           <DarkModeToggle />
         </div>

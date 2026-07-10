@@ -66,11 +66,13 @@ export default function QuestionManagement({
             Suchen, filtern und bearbeiten.
           </p>
         </div>
-        <Button asChild variant="dhbwStyle" className="w-full sm:w-auto">
-          <Link href="/questions/new">
-            <Plus className="w-4 h-4" />
-            Erstellen
-          </Link>
+        <Button
+          render={<Link href="/questions/new" />}
+          variant="dhbwStyle"
+          className="w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4" />
+          Erstellen
         </Button>
       </section>
 

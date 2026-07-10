@@ -135,23 +135,31 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                       </TableCell>
                       <TableCell className="align-top text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button asChild variant="outline" size="sm">
-                            <Link
-                              href={buildQuestionCopyHref(question.id)}
-                              aria-label={`„${question.content}“ als neue Aufgabe verwenden`}
-                            >
-                              <Copy aria-hidden="true" />
-                              Als neue Aufgabe
-                            </Link>
+                          <Button
+                            render={
+                              <Link
+                                href={buildQuestionCopyHref(question.id)}
+                                aria-label={`„${question.content}“ als neue Aufgabe verwenden`}
+                              />
+                            }
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Copy aria-hidden="true" />
+                            Als neue Aufgabe
                           </Button>
-                          <Button asChild variant="ghost" size="sm">
-                            <Link
-                              href={`/questions/${question.id}`}
-                              aria-label={`Aufgabe „${question.content}“ bearbeiten`}
-                            >
-                              <Pencil aria-hidden="true" />
-                              Bearbeiten
-                            </Link>
+                          <Button
+                            render={
+                              <Link
+                                href={`/questions/${question.id}`}
+                                aria-label={`Aufgabe „${question.content}“ bearbeiten`}
+                              />
+                            }
+                            variant="ghost"
+                            size="sm"
+                          >
+                            <Pencil aria-hidden="true" />
+                            Bearbeiten
                           </Button>
                         </div>
                       </TableCell>

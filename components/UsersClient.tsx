@@ -52,8 +52,13 @@ export default function UsersClient({
 
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
-      <Button asChild variant="outline" size="sm" className="w-fit">
-        <Link href="/admin">← Zurück zur Verwaltung</Link>
+      <Button
+        render={<Link href="/admin" />}
+        variant="outline"
+        size="sm"
+        className="w-fit"
+      >
+        ← Zurück zur Verwaltung
       </Button>
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Nutzer</h1>

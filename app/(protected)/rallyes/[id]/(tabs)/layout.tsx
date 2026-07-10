@@ -60,8 +60,8 @@ export default async function RallyeDetailLayout({
     <main className="mx-auto flex w-full max-w-350 flex-col gap-4 px-4 py-6">
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/rallyes">← Zurück zu Rallyes</Link>
+          <Button render={<Link href="/rallyes" />} variant="outline" size="sm">
+            ← Zurück zu Rallyes
           </Button>
         </div>
         <div className="flex flex-wrap items-start justify-between gap-4">

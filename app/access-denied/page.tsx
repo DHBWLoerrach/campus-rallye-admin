@@ -29,9 +29,7 @@ export default function AccessDeniedPage() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button asChild>
-            <a href={signOutUrl}>Abmelden</a>
-          </Button>
+          <Button render={<a href={signOutUrl} />}>Abmelden</Button>
           <span className="text-xs text-muted-foreground">
             Falls Sie Zugriff benötigen, wenden Sie sich an das Admin-Team.
           </span>

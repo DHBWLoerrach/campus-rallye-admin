@@ -28,8 +28,8 @@ export default function NotFound() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button asChild variant="dhbwStyle">
-            <Link href="/rallyes">Zur Übersicht</Link>
+          <Button render={<Link href="/rallyes" />} variant="dhbwStyle">
+            Zur Übersicht
           </Button>
         </div>
       </section>

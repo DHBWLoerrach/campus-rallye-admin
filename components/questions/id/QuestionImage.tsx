@@ -119,10 +119,12 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
             className="hidden"
             id="image-upload"
           />
-          <Button asChild variant="outline" size="sm">
-            <Label htmlFor="image-upload" className="cursor-pointer">
-              {uploading ? 'Wird hochgeladen...' : 'Bild hochladen'}
-            </Label>
+          <Button
+            render={<Label htmlFor="image-upload" className="cursor-pointer" />}
+            variant="outline"
+            size="sm"
+          >
+            {uploading ? 'Wird hochgeladen...' : 'Bild hochladen'}
           </Button>
         </div>
       )}
