@@ -41,7 +41,7 @@ export default async function RallyeDetailLayout({
   let departmentName: string | null = null;
   if (rallye.department_id) {
     const { data: department } = await supabase
-      .from('department')
+      .from('departments')
       .select('name')
       .eq('id', rallye.department_id)
       .maybeSingle();

@@ -36,7 +36,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
 
   // Verify that the location exists
   const { data: existingLocation, error: locationError } = await supabase
-    .from('location')
+    .from('locations')
     .select('id')
     .eq('id', data.location_id)
     .maybeSingle();
@@ -51,7 +51,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
   }
 
   const { data: createdDepartment, error } = await supabase
-    .from('department')
+    .from('departments')
     .insert(data)
     .select('id')
     .single();
@@ -76,7 +76,7 @@ export async function createDepartment(state: FormState, formData: FormData) {
     if (rallyeAssignError) {
       console.error('Error saving rallye assignments:', rallyeAssignError);
       const { error: rollbackError } = await supabase
-        .from('department')
+        .from('departments')
         .delete()
         .eq('id', createdDepartment.id);
 
@@ -117,7 +117,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
   // Verify that the department exists
   const { data: existingDepartment, error: existingError } = await supabase
-    .from('department')
+    .from('departments')
     .select('id')
     .eq('id', data.id)
     .maybeSingle();
@@ -133,7 +133,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
 
   // Verify that the location exists
   const { data: existingLocation, error: locationError } = await supabase
-    .from('location')
+    .from('locations')
     .select('id')
     .eq('id', data.location_id)
     .maybeSingle();
@@ -153,7 +153,7 @@ export async function updateDepartment(state: FormState, formData: FormData) {
   };
 
   const { error } = await supabase
-    .from('department')
+    .from('departments')
     .update(updatePayload)
     .eq('id', data.id);
 
@@ -230,7 +230,7 @@ export async function getDepartments(): Promise<ActionResult<Department[]>> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('department')
+    .from('departments')
     .select('id, name, created_at, location_id')
     .order('created_at', { ascending: false });
 
@@ -248,7 +248,7 @@ export async function getDepartmentOptions(): Promise<
   await requireAdmin();
   const supabase = await createClient();
 
-  const { data, error } = await supabase.from('department').select('id, name');
+  const { data, error } = await supabase.from('departments').select('id, name');
 
   if (error) {
     console.error('Error fetching department options:', error);
@@ -274,7 +274,7 @@ export async function deleteDepartment(
   }
 
   const { data: existingDepartment, error: existingError } = await supabase
-    .from('department')
+    .from('departments')
     .select('id')
     .eq('id', idResult.data)
     .maybeSingle();
@@ -308,7 +308,7 @@ export async function deleteDepartment(
   }
 
   const { error } = await supabase
-    .from('department')
+    .from('departments')
     .delete()
     .eq('id', idResult.data);
 

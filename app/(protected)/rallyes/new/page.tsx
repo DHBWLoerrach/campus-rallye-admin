@@ -21,7 +21,7 @@ export default async function NewRallyePage() {
   const defaultDepartmentId = await getUserDepartmentId();
 
   const [{ data: departments }, { data: questionRows }] = await Promise.all([
-    supabase.from('department').select('id, name').order('name'),
+    supabase.from('departments').select('id, name').order('name'),
     supabase
       .from('questions')
       .select(

@@ -18,7 +18,7 @@ export default async function LocationsPage() {
 
   // Load locations
   const { data: locations } = await supabase
-    .from('location')
+    .from('locations')
     .select('id, name, created_at, default_rallye_id')
     .order('name');
 

@@ -15,13 +15,13 @@ export default async function DepartmentsPage() {
 
   // Load departments
   const { data: departments } = await supabase
-    .from('department')
+    .from('departments')
     .select('id, name, created_at, location_id')
     .order('name');
 
   // Load location options
   const { data: locationOptions } = await supabase
-    .from('location')
+    .from('locations')
     .select('id, name')
     .order('name');
 

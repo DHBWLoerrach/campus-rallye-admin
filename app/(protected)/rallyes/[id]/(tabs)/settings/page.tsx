@@ -28,7 +28,7 @@ export default async function RallyeSettingsPage(props: PageProps) {
   }
 
   const { data: departments } = await supabase
-    .from('department')
+    .from('departments')
     .select('id, name')
     .order('name');
 

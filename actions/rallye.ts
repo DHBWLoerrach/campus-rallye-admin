@@ -374,7 +374,7 @@ export async function createRallyeWithQuestions(input: {
   const supabase = await createClient();
 
   const { data: department, error: departmentError } = await supabase
-    .from('department')
+    .from('departments')
     .select('id')
     .eq('id', departmentIdResult.data)
     .maybeSingle();

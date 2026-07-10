@@ -69,12 +69,12 @@ export default async function Home() {
   const typedRallyes = (rallyes || []) as RallyeRow[];
 
   const { data: locations } = await supabase
-    .from('location')
+    .from('locations')
     .select('id, name, default_rallye_id');
   const typedLocations = (locations || []) as LocationRow[];
 
   const { data: departmentRows } = await supabase
-    .from('department')
+    .from('departments')
     .select('id, name, location_id')
     .order('name');
   const typedDepartmentRows = (departmentRows || []) as DepartmentRow[];

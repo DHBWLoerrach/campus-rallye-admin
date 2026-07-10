@@ -37,7 +37,7 @@ export async function createLocation(state: FormState, formData: FormData) {
   };
 
   const { data: createdLocation, error } = await supabase
-    .from('location')
+    .from('locations')
     .insert(data)
     .select('id')
     .single();
@@ -73,7 +73,7 @@ export async function updateLocation(state: FormState, formData: FormData) {
   const data = parsed.data;
 
   const { data: existingLocation, error: existingError } = await supabase
-    .from('location')
+    .from('locations')
     .select('id')
     .eq('id', data.id)
     .maybeSingle();
@@ -93,7 +93,7 @@ export async function updateLocation(state: FormState, formData: FormData) {
   };
 
   const { error } = await supabase
-    .from('location')
+    .from('locations')
     .update(updatePayload)
     .eq('id', data.id);
 
@@ -111,7 +111,7 @@ export async function getLocations(): Promise<ActionResult<Location[]>> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('location')
+    .from('locations')
     .select('id, name, created_at, default_rallye_id')
     .order('created_at', { ascending: false });
 
@@ -129,7 +129,7 @@ export async function getLocationOptions(): Promise<
   await requireAdmin();
   const supabase = await createClient();
 
-  const { data, error } = await supabase.from('location').select('id, name');
+  const { data, error } = await supabase.from('locations').select('id, name');
 
   if (error) {
     console.error('Error fetching location options:', error);
@@ -155,7 +155,7 @@ export async function deleteLocation(
   }
 
   const { data: existingLocation, error: existingError } = await supabase
-    .from('location')
+    .from('locations')
     .select('id')
     .eq('id', idResult.data)
     .maybeSingle();
@@ -170,7 +170,7 @@ export async function deleteLocation(
   }
 
   const { error } = await supabase
-    .from('location')
+    .from('locations')
     .delete()
     .eq('id', idResult.data);
 

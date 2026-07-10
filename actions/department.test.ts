@@ -117,8 +117,8 @@ describe('createDepartment', () => {
     const rallyeUpdate = vi.fn(() => ({ in: rallyeUpdateIn }));
 
     const from = vi.fn((table: string) => {
-      if (table === 'location') return { select: locationSelect };
-      if (table === 'department')
+      if (table === 'locations') return { select: locationSelect };
+      if (table === 'departments')
         return { insert: deptInsert, select: locationSelect };
       if (table === 'rallyes') return { update: rallyeUpdate };
       return {};
@@ -159,8 +159,8 @@ describe('createDepartment', () => {
     const rallyeUpdate = vi.fn();
 
     const from = vi.fn((table: string) => {
-      if (table === 'location') return { select: locationSelect };
-      if (table === 'department')
+      if (table === 'locations') return { select: locationSelect };
+      if (table === 'departments')
         return { insert: deptInsert, select: locationSelect };
       if (table === 'rallyes') return { update: rallyeUpdate };
       return {};
@@ -202,8 +202,8 @@ describe('createDepartment', () => {
     const rallyeUpdate = vi.fn(() => ({ in: rallyeUpdateIn }));
 
     const from = vi.fn((table: string) => {
-      if (table === 'location') return { select: locationSelect };
-      if (table === 'department') {
+      if (table === 'locations') return { select: locationSelect };
+      if (table === 'departments') {
         return {
           insert: deptInsert,
           delete: deptDelete,
@@ -305,10 +305,10 @@ describe('updateDepartment', () => {
     const rallyeUnassignUpdate = vi.fn(() => ({ eq: rallyeUnassignEq }));
 
     const from = vi.fn((table: string) => {
-      if (table === 'department') {
+      if (table === 'departments') {
         return { select: deptSelect, update };
       }
-      if (table === 'location') return { select: orgSelect };
+      if (table === 'locations') return { select: orgSelect };
       if (table === 'rallyes') {
         return {
           select: rallyeSelect,
@@ -367,8 +367,8 @@ describe('updateDepartment', () => {
     const rallyeUnassignUpdate = vi.fn();
 
     const from = vi.fn((table: string) => {
-      if (table === 'department') return { select: deptSelect, update };
-      if (table === 'location') return { select: orgSelect };
+      if (table === 'departments') return { select: deptSelect, update };
+      if (table === 'locations') return { select: orgSelect };
       if (table === 'rallyes') {
         return {
           select: rallyeSelect,
@@ -428,8 +428,8 @@ describe('updateDepartment', () => {
     const rallyeAssignUpdate = vi.fn();
 
     const from = vi.fn((table: string) => {
-      if (table === 'department') return { select: deptSelect, update };
-      if (table === 'location') return { select: orgSelect };
+      if (table === 'departments') return { select: deptSelect, update };
+      if (table === 'locations') return { select: orgSelect };
       if (table === 'rallyes') {
         return {
           select: rallyeSelect,

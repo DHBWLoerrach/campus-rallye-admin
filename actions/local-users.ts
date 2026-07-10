@@ -29,7 +29,7 @@ export async function assignUserDepartment(
   if (departmentId !== null) {
     const supabase = await createClient();
     const { data: department, error } = await supabase
-      .from('department')
+      .from('departments')
       .select('id')
       .eq('id', departmentId)
       .maybeSingle();

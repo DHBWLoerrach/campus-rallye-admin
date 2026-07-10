@@ -532,7 +532,7 @@ describe('createRallyeWithQuestions', () => {
     const rallyeInsert = vi.fn(() => ({ select: insertSelect }));
     const joinInsert = vi.fn().mockResolvedValue({ error: null });
     const from = vi.fn((table: string) => {
-      if (table === 'department') {
+      if (table === 'departments') {
         return {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({

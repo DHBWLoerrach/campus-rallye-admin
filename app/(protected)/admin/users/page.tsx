@@ -13,7 +13,7 @@ export default async function UsersPage() {
 
   const supabase = await createClient();
   const { data: departmentOptions } = await supabase
-    .from('department')
+    .from('departments')
     .select('id, name')
     .order('name');
 

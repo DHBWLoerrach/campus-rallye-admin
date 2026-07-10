@@ -89,10 +89,10 @@ function createSupabaseMock(fixtureOverrides?: Partial<SupabaseFixture>) {
         order: async () => ({ data: fixture.rallyes, error: null }),
       }),
     },
-    location: {
+    locations: {
       select: async () => ({ data: fixture.locations, error: null }),
     },
-    department: {
+    departments: {
       select: () => ({
         order: async () => ({ data: fixture.departments, error: null }),
       }),
