@@ -24,7 +24,7 @@ type TeamRow = {
   id: number;
   name: string;
   created_at: string;
-  time_played: string | null;
+  play_time: string | null;
 };
 
 type UploadRow = {
@@ -36,9 +36,9 @@ type UploadRow = {
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 const formatDurationMs = (team: TeamRow): number | null => {
-  if (!team.time_played) return null;
+  if (!team.play_time) return null;
   const start = new Date(team.created_at).getTime();
-  const end = new Date(team.time_played).getTime();
+  const end = new Date(team.play_time).getTime();
   if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
     return null;
   }
@@ -76,8 +76,8 @@ export async function getRallyeResults(
   }
 
   const { data: teamRows, error: teamError } = await supabase
-    .from('rallye_team')
-    .select('id, name, created_at, time_played')
+    .from('teams')
+    .select('id, name, created_at, play_time')
     .eq('rallye_id', rallyeIdResult.data);
 
   if (teamError) {

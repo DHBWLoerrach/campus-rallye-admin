@@ -79,13 +79,13 @@ describe('getRallyeResults', () => {
         id: 10,
         name: 'Team Alpha',
         created_at: '2024-01-01T00:00:00.000Z',
-        time_played: '2024-01-01T00:20:00.000Z',
+        play_time: '2024-01-01T00:20:00.000Z',
       },
       {
         id: 11,
         name: 'Team Beta',
         created_at: '2024-01-01T00:00:00.000Z',
-        time_played: '2024-01-01T00:15:00.000Z',
+        play_time: '2024-01-01T00:15:00.000Z',
       },
     ];
 
@@ -149,7 +149,7 @@ describe('getRallyeResults', () => {
     mockCreateClient.mockResolvedValue({
       from: vi.fn((table: string) => {
         if (table === 'rallyes') return rallyeQuery;
-        if (table === 'rallye_team') return teamQuery;
+        if (table === 'teams') return teamQuery;
         if (table === 'team_questions') return teamQuestionsRouter;
         throw new Error(`Unexpected table ${table}`);
       }),
@@ -192,19 +192,19 @@ describe('getRallyeResults', () => {
         id: 20,
         name: 'Team Beta',
         created_at: '2024-01-01T00:00:00.000Z',
-        time_played: '2024-01-01T00:10:00.000Z',
+        play_time: '2024-01-01T00:10:00.000Z',
       },
       {
         id: 21,
         name: 'Team Alpha',
         created_at: '2024-01-01T00:00:00.000Z',
-        time_played: '2024-01-01T00:30:00.000Z',
+        play_time: '2024-01-01T00:30:00.000Z',
       },
       {
         id: 22,
         name: 'Team Gamma',
         created_at: '2024-01-01T00:00:00.000Z',
-        time_played: '2024-01-01T00:05:00.000Z',
+        play_time: '2024-01-01T00:05:00.000Z',
       },
     ];
 
@@ -246,7 +246,7 @@ describe('getRallyeResults', () => {
     mockCreateClient.mockResolvedValue({
       from: vi.fn((table: string) => {
         if (table === 'rallyes') return rallyeQuery;
-        if (table === 'rallye_team') return teamQuery;
+        if (table === 'teams') return teamQuery;
         if (table === 'team_questions') return teamQuestionsRouter;
         throw new Error(`Unexpected table ${table}`);
       }),
@@ -288,7 +288,7 @@ describe('getRallyeResults', () => {
     mockCreateClient.mockResolvedValue({
       from: vi.fn((table: string) => {
         if (table === 'rallyes') return rallyeQuery;
-        if (table === 'rallye_team') return teamQuery;
+        if (table === 'teams') return teamQuery;
         throw new Error(`Unexpected table ${table}`);
       }),
     });

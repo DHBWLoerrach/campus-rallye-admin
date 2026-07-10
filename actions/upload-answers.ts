@@ -108,7 +108,7 @@ export async function getRallyeUploadAnswers(
   }
 
   const { data: teamRows, error: teamError } = await supabase
-    .from('rallye_team')
+    .from('teams')
     .select('id, name')
     .eq('rallye_id', rallyeIdResult.data);
 
