@@ -37,14 +37,15 @@ describe('RallyeSettingsForm', () => {
     );
 
     expect(screen.getByLabelText('Name')).toHaveValue('Test Rallye');
+    expect(screen.getByLabelText('Rallye-Code')).toHaveAttribute(
+      'type',
+      'text'
+    );
     expect(screen.getByLabelText('Rallye-Code')).toHaveValue('');
     expect(
       screen.getByText(
-        'Diesen Code geben Teams ein, um der Rallye beizutreten.'
+        'Teams benötigen diesen Code, um der Rallye beizutreten.'
       )
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Rallye-Code anzeigen' })
     ).toBeInTheDocument();
     expect(
       container.querySelector('input[name="status"][value="ready"]')

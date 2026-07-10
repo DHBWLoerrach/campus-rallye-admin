@@ -3,7 +3,7 @@
 import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { updateRallye, deleteRallye } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import {
@@ -64,7 +64,6 @@ export default function RallyeSettingsForm({
     initialEnd.kind === 'time' ? initialEnd.value : ''
   );
   const [rallyeCode, setRallyeCode] = useState<string>(rallye.rallye_code);
-  const [showRallyeCode, setShowRallyeCode] = useState(false);
   const normalizedAssignedDepartmentIds = Array.from(
     new Set(assignedDepartmentIds)
   );
@@ -157,35 +156,16 @@ export default function RallyeSettingsForm({
               Rallye-Code
             </Label>
             <p className="text-sm text-muted-foreground">
-              Diesen Code geben Teams ein, um der Rallye beizutreten.
+              Teams benötigen diesen Code, um der Rallye beizutreten.
             </p>
-            <div className="flex max-w-sm items-center gap-2">
-              <Input
-                id={`rallye-${rallye.id}-rallye-code`}
-                name="rallye_code"
-                type={showRallyeCode ? 'text' : 'password'}
-                value={rallyeCode}
-                onChange={(e) => setRallyeCode(e.target.value)}
-                className="flex-1 min-w-0"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label={
-                  showRallyeCode
-                    ? 'Rallye-Code verbergen'
-                    : 'Rallye-Code anzeigen'
-                }
-                onClick={() => setShowRallyeCode((prev) => !prev)}
-              >
-                {showRallyeCode ? (
-                  <EyeOff className="h-4 w-4" aria-hidden="true" />
-                ) : (
-                  <Eye className="h-4 w-4" aria-hidden="true" />
-                )}
-              </Button>
-            </div>
+            <Input
+              id={`rallye-${rallye.id}-rallye-code`}
+              name="rallye_code"
+              type="text"
+              value={rallyeCode}
+              onChange={(e) => setRallyeCode(e.target.value)}
+              className="max-w-sm"
+            />
           </div>
 
           <div className="grid gap-2">
