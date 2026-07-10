@@ -54,8 +54,8 @@ const makeRallye = (
   id,
   name,
   status,
-  end_time: '18:00:00',
-  password: '',
+  rallye_end: '18:00:00',
+  rallye_code: '',
   created_at: '2026-01-01T00:00:00.000Z',
   department_id: departmentId,
 });
@@ -216,22 +216,22 @@ describe('/rallyes page', () => {
     mockCreateClient.mockResolvedValue(
       createSupabaseMock({
         rallyes: [
-          { ...makeRallye(1, 'Ohne Ende', 'running', 100), end_time: null },
+          { ...makeRallye(1, 'Ohne Ende', 'running', 100), rallye_end: null },
           {
             ...makeRallye(2, 'Später', 'running', 100),
-            end_time: '18:00:00',
+            rallye_end: '18:00:00',
           },
           {
             ...makeRallye(3, 'Früher', 'running', 100),
-            end_time: '09:00:00',
+            rallye_end: '09:00:00',
           },
           {
             ...makeRallye(4, 'Früh beendet', 'ended', 100),
-            end_time: '09:00:00',
+            rallye_end: '09:00:00',
           },
           {
             ...makeRallye(5, 'Spät beendet', 'ended', 100),
-            end_time: '18:00:00',
+            rallye_end: '18:00:00',
           },
         ],
         locations: [],

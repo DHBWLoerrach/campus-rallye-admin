@@ -29,8 +29,8 @@ describe('updateRallye', () => {
   type UpdatePayload = {
     name: string;
     status: string;
-    password: string;
-    end_time: string | null;
+    rallye_code: string;
+    rallye_end: string | null;
   };
 
   const setupSupabaseUpdate = () => {
@@ -64,7 +64,7 @@ describe('updateRallye', () => {
     return formData;
   };
 
-  it('clears end_time when input is empty', async () => {
+  it('clears rallye_end when input is empty', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const { update } = setupSupabaseUpdate();
 
@@ -75,20 +75,20 @@ describe('updateRallye', () => {
         id: '1',
         name: 'Test',
         status: 'running',
-        end_time: '',
-        password: 'secret',
+        rallye_end: '',
+        rallye_code: 'secret',
       })
     );
 
     expect(update).toHaveBeenCalledWith({
       name: 'Test',
       status: 'running',
-      password: 'secret',
-      end_time: null,
+      rallye_code: 'secret',
+      rallye_end: null,
     });
   });
 
-  it('returns an error for invalid end_time', async () => {
+  it('returns an error for invalid rallye_end', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const { update } = setupSupabaseUpdate();
 
@@ -99,8 +99,8 @@ describe('updateRallye', () => {
         id: '1',
         name: 'Test',
         status: 'running',
-        end_time: 'not-a-time',
-        password: 'secret',
+        rallye_end: 'not-a-time',
+        rallye_code: 'secret',
       })
     );
 
@@ -108,7 +108,7 @@ describe('updateRallye', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it('updates end_time when valid', async () => {
+  it('updates rallye_end when valid', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const { update } = setupSupabaseUpdate();
 
@@ -119,8 +119,8 @@ describe('updateRallye', () => {
         id: '1',
         name: 'Test',
         status: 'running',
-        end_time: '10:11',
-        password: 'secret',
+        rallye_end: '10:11',
+        rallye_code: 'secret',
       })
     );
 
@@ -129,9 +129,9 @@ describe('updateRallye', () => {
     expect(payload).toMatchObject({
       name: 'Test',
       status: 'running',
-      password: 'secret',
+      rallye_code: 'secret',
     });
-    expect(payload.end_time).toBe('10:11');
+    expect(payload.rallye_end).toBe('10:11');
   });
 
   it('does not sync department assignments without department_sync marker', async () => {
@@ -160,8 +160,8 @@ describe('updateRallye', () => {
           id: '1',
           name: 'Test',
           status: 'running',
-          end_time: '',
-          password: 'secret',
+          rallye_end: '',
+          rallye_code: 'secret',
         },
         { department_ids: ['10', '20'] }
       )
@@ -171,8 +171,8 @@ describe('updateRallye', () => {
     expect(rallyeUpdate).toHaveBeenCalledWith({
       name: 'Test',
       status: 'running',
-      password: 'secret',
-      end_time: null,
+      rallye_code: 'secret',
+      rallye_end: null,
     });
   });
 
@@ -202,8 +202,8 @@ describe('updateRallye', () => {
           id: '1',
           name: 'Test',
           status: 'running',
-          end_time: '',
-          password: 'secret',
+          rallye_end: '',
+          rallye_code: 'secret',
           department_sync: '1',
         },
         { department_ids: ['20'] }
@@ -214,8 +214,8 @@ describe('updateRallye', () => {
     expect(rallyeUpdate).toHaveBeenCalledWith({
       name: 'Test',
       status: 'running',
-      password: 'secret',
-      end_time: null,
+      rallye_code: 'secret',
+      rallye_end: null,
       department_id: 20,
     });
   });
@@ -247,8 +247,8 @@ describe('updateRallye', () => {
           id: '1',
           name: 'Test',
           status: 'running',
-          end_time: '',
-          password: 'secret',
+          rallye_end: '',
+          rallye_code: 'secret',
           department_sync: '1',
         },
         { department_ids: ['10', '20'] }
@@ -324,7 +324,7 @@ describe('advanceRallyeStatus', () => {
     expect(result.success).toBe(true);
     expect(supabase.update).toHaveBeenCalledWith({
       status: 'running',
-      end_time: '16:00',
+      rallye_end: '16:00',
     });
   });
 
@@ -465,7 +465,7 @@ describe('duplicateRallye', () => {
       expect.objectContaining({
         name: 'Studieninfotag (Kopie)',
         status: 'draft',
-        password: '',
+        rallye_code: '',
         department_id: 7,
       })
     );
@@ -562,7 +562,7 @@ describe('createRallyeWithQuestions', () => {
       name: "Girl's Day 2027",
       departmentId: 7,
       endTime: '13:00',
-      password: 'geheim',
+      rallyeCode: 'geheim',
       questionIds: [1, 2],
     });
 
@@ -573,7 +573,7 @@ describe('createRallyeWithQuestions', () => {
       expect.objectContaining({
         name: "Girl's Day 2027",
         status: 'draft',
-        password: 'geheim',
+        rallye_code: 'geheim',
         department_id: 7,
       })
     );
@@ -593,13 +593,13 @@ describe('createRallyeWithQuestions', () => {
       name: 'Ohne Ende',
       departmentId: 7,
       endTime: null,
-      password: '',
+      rallyeCode: '',
       questionIds: [],
     });
 
     expect(result.success).toBe(true);
     expect(supabase.rallyeInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ end_time: null })
+      expect.objectContaining({ rallye_end: null })
     );
   });
 
@@ -614,7 +614,7 @@ describe('createRallyeWithQuestions', () => {
       name: 'X',
       departmentId: 99,
       endTime: null,
-      password: '',
+      rallyeCode: '',
       questionIds: [],
     });
     expect(result.success).toBe(false);
@@ -629,7 +629,7 @@ describe('createRallyeWithQuestions', () => {
       name: '',
       departmentId: 7,
       endTime: null,
-      password: '',
+      rallyeCode: '',
       questionIds: [],
     });
     expect(result.success).toBe(false);
@@ -643,7 +643,7 @@ describe('createRallyeWithQuestions', () => {
       name: 'X',
       departmentId: 7,
       endTime: 'keine-zeit',
-      password: '',
+      rallyeCode: '',
       questionIds: [],
     });
     expect(result.success).toBe(false);

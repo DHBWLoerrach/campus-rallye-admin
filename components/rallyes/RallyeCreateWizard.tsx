@@ -84,7 +84,7 @@ export default function RallyeCreateWizard({
   );
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [filters, setFilters] = useState<Filters>({});
-  const [password, setPassword] = useState('');
+  const [rallyeCode, setRallyeCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -111,7 +111,7 @@ export default function RallyeCreateWizard({
         name: name.trim(),
         departmentId: Number(departmentId),
         endTime: null,
-        password,
+        rallyeCode,
         questionIds: Array.from(selectedIds),
       });
       if (!result.success) {
@@ -225,11 +225,11 @@ export default function RallyeCreateWizard({
       {step === 2 && (
         <div className="flex max-w-xl flex-col gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="wizard-password">Passwort (optional)</Label>
+            <Label htmlFor="wizard-rallye-code">Passwort (optional)</Label>
             <Input
-              id="wizard-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="wizard-rallye-code"
+              value={rallyeCode}
+              onChange={(e) => setRallyeCode(e.target.value)}
               className="max-w-sm"
             />
           </div>

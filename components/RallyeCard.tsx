@@ -52,7 +52,7 @@ export default function RallyeCard({
               Geplant bis
             </span>
             <span className="font-medium text-foreground">
-              <FormattedEndTime value={rallye.end_time} />
+              <FormattedEndTime value={rallye.rallye_end} />
             </span>
           </div>
           <p className="text-sm text-muted-foreground">{questionLabel}</p>

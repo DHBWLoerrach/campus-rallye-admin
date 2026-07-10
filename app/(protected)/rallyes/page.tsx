@@ -37,8 +37,8 @@ const PHASE_SYMBOLS: Record<RallyePhaseGroup, string> = {
 // Rallyes without a planned end sort to the very bottom of their group.
 const sortForGroup = (group: RallyePhaseGroup, rallyes: RallyeRow[]) =>
   [...rallyes].sort((a, b) => {
-    const aTime = plannedEndToMinutes(a.end_time);
-    const bTime = plannedEndToMinutes(b.end_time);
+    const aTime = plannedEndToMinutes(a.rallye_end);
+    const bTime = plannedEndToMinutes(b.rallye_end);
     if (aTime === null || bTime === null) {
       if (aTime === bTime) return 0;
       return aTime === null ? 1 : -1;
@@ -62,7 +62,9 @@ export default async function Home() {
 
   const { data: rallyes } = await supabase
     .from('rallyes')
-    .select('id, name, status, end_time, password, created_at, department_id')
+    .select(
+      'id, name, status, rallye_end, rallye_code, created_at, department_id'
+    )
     .order('name');
   const typedRallyes = (rallyes || []) as RallyeRow[];
 

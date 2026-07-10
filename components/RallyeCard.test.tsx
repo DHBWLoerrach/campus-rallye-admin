@@ -6,8 +6,8 @@ const baseRallye = {
   id: 12,
   name: 'Studieninfotag',
   status: 'running' as const,
-  end_time: '13:15:00',
-  password: '',
+  rallye_end: '13:15:00',
+  rallye_code: '',
   created_at: '2026-01-01T00:00:00.000Z',
 };
 

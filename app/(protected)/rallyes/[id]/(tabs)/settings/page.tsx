@@ -18,7 +18,9 @@ export default async function RallyeSettingsPage(props: PageProps) {
   const supabase = await createClient();
   const { data: rallye } = await supabase
     .from('rallyes')
-    .select('id, name, status, end_time, password, created_at, department_id')
+    .select(
+      'id, name, status, rallye_end, rallye_code, created_at, department_id'
+    )
     .eq('id', rallyeId)
     .maybeSingle();
   if (!rallye) {

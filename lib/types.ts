@@ -19,8 +19,8 @@ export interface Rallye {
   id: number;
   name: string;
   status: RallyeStatus;
-  end_time: string | null;
-  password: string;
+  rallye_end: string | null;
+  rallye_code: string;
   created_at: string;
 }
 

@@ -21,8 +21,8 @@ const baseRallye = {
   id: 1,
   name: 'Test Rallye',
   status: 'ready' as const,
-  end_time: '18:30:00',
-  password: '',
+  rallye_end: '18:30:00',
+  rallye_code: '',
   created_at: '2026-01-01T00:00:00.000Z',
 };
 
@@ -66,7 +66,7 @@ describe('RallyeSettingsForm', () => {
   it('leaves the time input empty when no end is planned', () => {
     render(
       <RallyeSettingsForm
-        rallye={{ ...baseRallye, end_time: null }}
+        rallye={{ ...baseRallye, rallye_end: null }}
         departmentOptions={[{ id: 10, name: 'Informatik' }]}
         assignedDepartmentIds={[10]}
       />
@@ -90,7 +90,7 @@ describe('RallyeSettingsForm', () => {
   it('submits the chosen local time', () => {
     render(
       <RallyeSettingsForm
-        rallye={{ ...baseRallye, end_time: null }}
+        rallye={{ ...baseRallye, rallye_end: null }}
         departmentOptions={[{ id: 10, name: 'Informatik' }]}
         assignedDepartmentIds={[10]}
       />

@@ -28,8 +28,8 @@ export async function updateRallye(state: FormState, formData: FormData) {
     id: formData.get('id'),
     name: formData.get('name'),
     status: formData.get('status'),
-    password: formData.get('password') ?? '',
-    end_time: formData.get('end_time'),
+    rallye_code: formData.get('rallye_code') ?? '',
+    rallye_end: formData.get('rallye_end'),
   });
 
   if (!parsed.success) {
@@ -38,7 +38,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
 
   // An empty time field clears the planned end (sets it to null) rather than
   // leaving the stored value untouched.
-  const endTimeRaw = parsed.data.end_time?.trim() ?? '';
+  const endTimeRaw = parsed.data.rallye_end?.trim() ?? '';
   const plannedEnd = parsePlannedEnd(endTimeRaw);
   if (plannedEnd.kind === 'invalid') return fail('Ungültige Uhrzeit');
   const endTime = plannedEnd.kind === 'time' ? plannedEnd.value : null;
@@ -63,14 +63,14 @@ export async function updateRallye(state: FormState, formData: FormData) {
   const updatePayload: {
     name: string;
     status: RallyeStatus;
-    password: string;
-    end_time: string | null;
+    rallye_code: string;
+    rallye_end: string | null;
     department_id?: number;
   } = {
     name: data.name,
     status: data.status,
-    password: data.password,
-    end_time: endTime,
+    rallye_code: data.rallye_code,
+    rallye_end: endTime,
   };
 
   // Only sync department assignment when the form explicitly opts in.
@@ -115,7 +115,7 @@ export async function getRallyes(): Promise<ActionResult<Rallye[]>> {
 
   const { data, error } = await supabase
     .from('rallyes')
-    .select('id, name, status, end_time, password, created_at')
+    .select('id, name, status, rallye_end, rallye_code, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -246,11 +246,11 @@ export async function advanceRallyeStatus(
     return fail('Ungültiger Statuswechsel');
   }
 
-  const updatePayload: { status: RallyeStatus; end_time?: string } = {
+  const updatePayload: { status: RallyeStatus; rallye_end?: string } = {
     status: target,
   };
   if (parsedEndTime !== undefined) {
-    updatePayload.end_time = parsedEndTime;
+    updatePayload.rallye_end = parsedEndTime;
   }
 
   const { error } = await supabase
@@ -302,14 +302,14 @@ export async function duplicateRallye(
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  // The copy starts as a fresh draft with no planned end or password.
+  // The copy starts as a fresh draft with no planned end or rallye code.
   const { data: created, error: insertError } = await supabase
     .from('rallyes')
     .insert({
       name: `${source.name} (Kopie)`,
       status: 'draft' as RallyeStatus,
-      end_time: null,
-      password: '',
+      rallye_end: null,
+      rallye_code: '',
       department_id: source.department_id,
     })
     .select('id')
@@ -343,7 +343,7 @@ export async function createRallyeWithQuestions(input: {
   name: string;
   departmentId: number;
   endTime: string | null;
-  password: string;
+  rallyeCode: string;
   questionIds: number[];
 }): Promise<ActionResult<{ rallyeId: number; message: string }>> {
   await requireProfile();
@@ -391,8 +391,8 @@ export async function createRallyeWithQuestions(input: {
     .insert({
       name: nameResult.data.name,
       status: 'draft' as RallyeStatus,
-      end_time: endTime,
-      password: input.password,
+      rallye_end: endTime,
+      rallye_code: input.rallyeCode,
       department_id: departmentIdResult.data,
     })
     .select('id')

@@ -59,11 +59,11 @@ export default function RallyeSettingsForm({
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
-  const initialEnd = parsePlannedEnd(rallye.end_time ?? '');
+  const initialEnd = parsePlannedEnd(rallye.rallye_end ?? '');
   const [endTime, setEndTime] = useState(
     initialEnd.kind === 'time' ? initialEnd.value : ''
   );
-  const [password, setPassword] = useState<string>(rallye.password);
+  const [rallyeCode, setRallyeCode] = useState<string>(rallye.rallye_code);
   const [showPassword, setShowPassword] = useState(false);
   const normalizedAssignedDepartmentIds = Array.from(
     new Set(assignedDepartmentIds)
@@ -136,7 +136,7 @@ export default function RallyeSettingsForm({
             <div className="flex items-center gap-2">
               <Input
                 id={`rallye-${rallye.id}-endtime`}
-                name="end_time"
+                name="rallye_end"
                 type="time"
                 step="60"
                 value={endTime}
@@ -153,14 +153,14 @@ export default function RallyeSettingsForm({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor={`rallye-${rallye.id}-password`}>Passwort</Label>
+            <Label htmlFor={`rallye-${rallye.id}-rallye-code`}>Passwort</Label>
             <div className="flex max-w-sm items-center gap-2">
               <Input
-                id={`rallye-${rallye.id}-password`}
-                name="password"
+                id={`rallye-${rallye.id}-rallye-code`}
+                name="rallye_code"
                 type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={rallyeCode}
+                onChange={(e) => setRallyeCode(e.target.value)}
                 className="flex-1 min-w-0"
               />
               <Button

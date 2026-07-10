@@ -33,8 +33,8 @@ export const rallyeUpdateSchema = z.object({
   id: idSchema,
   name: z.string().trim().min(1, 'Name ist erforderlich'),
   status: rallyeStatusSchema,
-  password: z.string().optional().default(''),
-  end_time: z.string().optional(),
+  rallye_code: z.string().optional().default(''),
+  rallye_end: z.string().optional(),
 });
 
 export const locationCreateSchema = z.object({
