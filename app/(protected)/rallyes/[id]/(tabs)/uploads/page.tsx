@@ -44,11 +44,11 @@ export default async function Page(props: PageProps) {
         <section className="flex flex-col gap-6">
           {uploadQuestions.map((question) => {
             const teamIdsWithPhoto = new Set(
-              question.answers.map((answer) => answer.teamId)
+              question.uploadAnswers.map((answer) => answer.teamId)
             );
             const totalTeams =
               teamIdsWithPhoto.size + question.teamsWithoutPhoto.length;
-            const hasUploads = question.answers.length > 0;
+            const hasUploads = question.uploadAnswers.length > 0;
             return (
               <div
                 key={question.id}
@@ -66,7 +66,7 @@ export default async function Page(props: PageProps) {
                   {hasUploads && (
                     <UploadPhotoSlideshow
                       questionContent={question.content}
-                      photos={question.answers.map((answer) => ({
+                      photos={question.uploadAnswers.map((answer) => ({
                         signedUrl: answer.signedUrl,
                         teamName: answer.teamName,
                       }))}
@@ -76,7 +76,7 @@ export default async function Page(props: PageProps) {
 
                 {hasUploads ? (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                    {question.answers.map((answer) => (
+                    {question.uploadAnswers.map((answer) => (
                       <UploadPhotoTile
                         key={answer.teamQuestionId}
                         signedUrl={answer.signedUrl}

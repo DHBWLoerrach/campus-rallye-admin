@@ -21,7 +21,7 @@ export type UploadAnswer = {
 export type UploadAnswerQuestion = {
   id: number;
   content: string;
-  answers: UploadAnswer[];
+  uploadAnswers: UploadAnswer[];
   teamsWithoutPhoto: UploadAnswerTeam[];
 };
 
@@ -41,7 +41,7 @@ type TeamQuestionRow = {
   id: number;
   team_id: number;
   question_id: number;
-  team_answer: string | null;
+  answer: string | null;
 };
 
 type AnswerCandidate = {
@@ -124,8 +124,8 @@ export async function getRallyeUploadAnswers(
   let teamQuestionRows: TeamQuestionRow[] = [];
   if (teamIds.length > 0 && questionIds.length > 0) {
     const { data: teamQuestionData, error: teamQuestionError } = await supabase
-      .from('team_questions')
-      .select('id, team_id, question_id, team_answer')
+      .from('team_answers')
+      .select('id, team_id, question_id, answer')
       .in('question_id', questionIds)
       .in('team_id', teamIds);
 
@@ -141,7 +141,7 @@ export async function getRallyeUploadAnswers(
   const answerCandidates: AnswerCandidate[] = [];
 
   teamQuestionRows.forEach((row) => {
-    const fileName = (row.team_answer ?? '').trim();
+    const fileName = (row.answer ?? '').trim();
     if (!fileName) return;
     const team = teamsById.get(row.team_id);
     if (!team) return;
@@ -205,7 +205,7 @@ export async function getRallyeUploadAnswers(
     return {
       id: question.id,
       content: question.content,
-      answers: answersByQuestionId.get(question.id) ?? [],
+      uploadAnswers: answersByQuestionId.get(question.id) ?? [],
       teamsWithoutPhoto,
     };
   });

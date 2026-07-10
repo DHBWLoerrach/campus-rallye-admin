@@ -85,13 +85,13 @@ describe('getRallyeUploadAnswers', () => {
         id: 5,
         team_id: 1,
         question_id: 10,
-        team_answer: 'photo.png',
+        answer: 'photo.png',
       },
       {
         id: 6,
         team_id: 2,
         question_id: 10,
-        team_answer: '   ',
+        answer: '   ',
       },
     ];
     const teamQuestionQuery = {
@@ -108,7 +108,7 @@ describe('getRallyeUploadAnswers', () => {
       if (table === 'rallyes') return rallyeQuery;
       if (table === 'rallye_questions') return joinQuery;
       if (table === 'teams') return teamQuery;
-      if (table === 'team_questions') return teamQuestionQuery;
+      if (table === 'team_answers') return teamQuestionQuery;
       throw new Error(`Unexpected table ${table}`);
     });
 
@@ -130,7 +130,7 @@ describe('getRallyeUploadAnswers', () => {
       throw new Error('Expected query to succeed');
     }
     expect(result.data).toHaveLength(1);
-    expect(result.data?.[0].answers).toEqual([
+    expect(result.data?.[0].uploadAnswers).toEqual([
       {
         teamQuestionId: 5,
         teamId: 1,

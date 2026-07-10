@@ -29,7 +29,7 @@ type TeamRow = {
 
 type UploadRow = {
   team_id: number;
-  team_answer: string | null;
+  answer: string | null;
   created_at: string;
 };
 
@@ -92,8 +92,8 @@ export async function getRallyeResults(
 
   const teamIds = teams.map((team) => team.id);
   const { data: teamQuestionRows, error: teamQuestionError } = await supabase
-    .from('team_questions')
-    .select('team_id, points')
+    .from('team_answers')
+    .select('team_id, team_points')
     .in('team_id', teamIds);
 
   if (teamQuestionError) {
@@ -104,14 +104,14 @@ export async function getRallyeResults(
   const pointsByTeam = new Map<number, number>();
   (teamQuestionRows || []).forEach((row) => {
     const teamId = row.team_id;
-    const points = Number(row.points ?? 0);
+    const points = Number(row.team_points ?? 0);
     const current = pointsByTeam.get(teamId) ?? 0;
     pointsByTeam.set(teamId, current + (Number.isNaN(points) ? 0 : points));
   });
 
   const { data: uploadRows, error: uploadError } = await supabase
-    .from('team_questions')
-    .select('team_id, team_answer, created_at, questions!inner(type)')
+    .from('team_answers')
+    .select('team_id, answer, created_at, questions!inner(type)')
     .in('team_id', teamIds)
     .eq('questions.type', 'upload');
 
@@ -126,7 +126,7 @@ export async function getRallyeResults(
   >();
   (uploadRows || []).forEach((row) => {
     const upload = row as UploadRow;
-    const fileName = (upload.team_answer ?? '').trim();
+    const fileName = (upload.answer ?? '').trim();
     if (!fileName) return;
     const createdAt = new Date(upload.created_at).getTime();
     if (Number.isNaN(createdAt)) return;

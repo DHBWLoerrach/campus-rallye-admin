@@ -95,8 +95,8 @@ describe('getRallyeResults', () => {
     };
 
     const teamQuestionRows = [
-      { team_id: 10, points: 5 },
-      { team_id: 11, points: 5 },
+      { team_id: 10, team_points: 5 },
+      { team_id: 11, team_points: 5 },
     ];
 
     const teamQuestionQuery = {
@@ -107,17 +107,17 @@ describe('getRallyeResults', () => {
     const uploadRows = [
       {
         team_id: 10,
-        team_answer: 'older.png',
+        answer: 'older.png',
         created_at: '2024-01-01T00:10:00.000Z',
       },
       {
         team_id: 10,
-        team_answer: 'newer.png',
+        answer: 'newer.png',
         created_at: '2024-01-01T00:12:00.000Z',
       },
       {
         team_id: 11,
-        team_answer: 'team-b.png',
+        answer: 'team-b.png',
         created_at: '2024-01-01T00:05:00.000Z',
       },
     ];
@@ -139,7 +139,7 @@ describe('getRallyeResults', () => {
 
     const teamQuestionsRouter = {
       select: vi.fn((fields: string) => {
-        if (fields.includes('team_answer')) {
+        if (fields.includes('answer')) {
           return uploadQuery;
         }
         return teamQuestionQuery;
@@ -150,7 +150,7 @@ describe('getRallyeResults', () => {
       from: vi.fn((table: string) => {
         if (table === 'rallyes') return rallyeQuery;
         if (table === 'teams') return teamQuery;
-        if (table === 'team_questions') return teamQuestionsRouter;
+        if (table === 'team_answers') return teamQuestionsRouter;
         throw new Error(`Unexpected table ${table}`);
       }),
       storage: { from: storageFrom },
@@ -215,9 +215,9 @@ describe('getRallyeResults', () => {
 
     // Alpha and Beta tie on 8 points; Gamma trails with 3.
     const teamQuestionRows = [
-      { team_id: 20, points: 8 },
-      { team_id: 21, points: 8 },
-      { team_id: 22, points: 3 },
+      { team_id: 20, team_points: 8 },
+      { team_id: 21, team_points: 8 },
+      { team_id: 22, team_points: 3 },
     ];
 
     const teamQuestionQuery = {
@@ -236,7 +236,7 @@ describe('getRallyeResults', () => {
 
     const teamQuestionsRouter = {
       select: vi.fn((fields: string) => {
-        if (fields.includes('team_answer')) {
+        if (fields.includes('answer')) {
           return uploadQuery;
         }
         return teamQuestionQuery;
@@ -247,7 +247,7 @@ describe('getRallyeResults', () => {
       from: vi.fn((table: string) => {
         if (table === 'rallyes') return rallyeQuery;
         if (table === 'teams') return teamQuery;
-        if (table === 'team_questions') return teamQuestionsRouter;
+        if (table === 'team_answers') return teamQuestionsRouter;
         throw new Error(`Unexpected table ${table}`);
       }),
       storage: { from: storageFrom },
