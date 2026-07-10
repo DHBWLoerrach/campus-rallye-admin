@@ -127,7 +127,7 @@ describe('assignQuestionsToRallye', () => {
             })),
           };
         }
-        if (table === 'join_rallye_questions') {
+        if (table === 'rallye_questions') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(async () => ({ data: [], error: null })),
@@ -178,7 +178,7 @@ describe('assignQuestionsToRallye', () => {
             })),
           };
         }
-        if (table === 'join_rallye_questions') {
+        if (table === 'rallye_questions') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(async () => ({
@@ -291,7 +291,7 @@ describe('addQuestionToRallye', () => {
           })),
         };
       }
-      // join_rallye_questions
+      // rallye_questions
       return {
         select: vi.fn(() => ({
           eq: vi.fn(() => ({

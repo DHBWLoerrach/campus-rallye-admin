@@ -106,7 +106,7 @@ describe('getRallyeUploadAnswers', () => {
 
     const from = vi.fn((table: string) => {
       if (table === 'rallyes') return rallyeQuery;
-      if (table === 'join_rallye_questions') return joinQuery;
+      if (table === 'rallye_questions') return joinQuery;
       if (table === 'teams') return teamQuery;
       if (table === 'team_questions') return teamQuestionQuery;
       throw new Error(`Unexpected table ${table}`);

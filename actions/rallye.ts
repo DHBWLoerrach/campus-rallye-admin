@@ -225,7 +225,7 @@ export async function advanceRallyeStatus(
   }
 
   const { count: votingCount, error: votingError } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id', { count: 'exact', head: true })
     .eq('rallye_id', idResult.data)
     .eq('is_voting', true);
@@ -294,7 +294,7 @@ export async function duplicateRallye(
   }
 
   const { data: joins, error: joinsError } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id, is_voting')
     .eq('rallye_id', idResult.data);
   if (joinsError) {
@@ -321,7 +321,7 @@ export async function duplicateRallye(
 
   if ((joins ?? []).length > 0) {
     const { error: joinInsertError } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .insert(
         (joins ?? []).map((row) => ({
           rallye_id: created.id,
@@ -404,15 +404,13 @@ export async function createRallyeWithQuestions(input: {
 
   const uniqueQuestionIds = Array.from(new Set(questionIdsResult.data));
   if (uniqueQuestionIds.length > 0) {
-    const { error: joinError } = await supabase
-      .from('join_rallye_questions')
-      .insert(
-        uniqueQuestionIds.map((questionId) => ({
-          rallye_id: created.id,
-          question_id: questionId,
-          is_voting: false,
-        }))
-      );
+    const { error: joinError } = await supabase.from('rallye_questions').insert(
+      uniqueQuestionIds.map((questionId) => ({
+        rallye_id: created.id,
+        question_id: questionId,
+        is_voting: false,
+      }))
+    );
     if (joinError) {
       console.error('Error assigning questions:', joinError);
       return fail('Fragen konnten nicht zugeordnet werden');

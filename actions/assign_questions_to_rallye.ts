@@ -91,7 +91,7 @@ export async function assignQuestionsToRallye(
   }
 
   const { data: existingAssignments, error: existingError } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id, is_voting')
     .eq('rallye_id', rallyeIdResult.data);
 
@@ -124,7 +124,7 @@ export async function assignQuestionsToRallye(
   // Remove unselected
   if (questionsToRemove.length > 0) {
     const { error: deleteError } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .delete()
       .eq('rallye_id', rallyeIdResult.data)
       .in('question_id', questionsToRemove);
@@ -144,7 +144,7 @@ export async function assignQuestionsToRallye(
     }));
 
     const { error: insertError } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .insert(newAssignments);
 
     if (insertError) {
@@ -166,7 +166,7 @@ export async function assignQuestionsToRallye(
 
   if (votingQuestionsToEnable.length > 0) {
     const { error: updateError } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .update({ is_voting: true })
       .eq('rallye_id', rallyeIdResult.data)
       .in('question_id', votingQuestionsToEnable);
@@ -179,7 +179,7 @@ export async function assignQuestionsToRallye(
 
   if (votingQuestionsToDisable.length > 0) {
     const { error: updateError } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .update({ is_voting: false })
       .eq('rallye_id', rallyeIdResult.data)
       .in('question_id', votingQuestionsToDisable);
@@ -270,7 +270,7 @@ export async function addQuestionToRallye(
   }
 
   const { data: existingJoin, error: joinError } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id')
     .eq('rallye_id', ids.rallyeId)
     .eq('question_id', ids.questionId)
@@ -284,7 +284,7 @@ export async function addQuestionToRallye(
   }
 
   const { error: insertError } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .insert({
       rallye_id: ids.rallyeId,
       question_id: ids.questionId,
@@ -309,7 +309,7 @@ export async function removeQuestionFromRallye(
 
   const supabase = await createClient();
   const { error } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .delete()
     .eq('rallye_id', ids.rallyeId)
     .eq('question_id', ids.questionId);
@@ -350,7 +350,7 @@ export async function setQuestionVoting(
   }
 
   const { data: updatedRows, error } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .update({ is_voting: isVoting })
     .eq('rallye_id', ids.rallyeId)
     .eq('question_id', ids.questionId)
@@ -393,7 +393,7 @@ export async function getRallyeQuestions(
   }
 
   const { data, error } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id')
     .eq('rallye_id', rallyeIdResult.data);
 
@@ -431,7 +431,7 @@ export async function getVotingQuestions(
   }
 
   const { data, error } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id')
     .eq('rallye_id', rallyeIdResult.data)
     .eq('is_voting', true);
@@ -499,7 +499,7 @@ export async function assignRallyesToQuestion(
   }
 
   const { data: existingAssignments, error: existingError } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('rallye_id')
     .eq('question_id', questionIdResult.data);
 
@@ -519,7 +519,7 @@ export async function assignRallyesToQuestion(
 
   if (rallyesToRemove.length > 0) {
     const { error: deleteError } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .delete()
       .eq('question_id', questionIdResult.data)
       .in('rallye_id', rallyesToRemove);
@@ -537,7 +537,7 @@ export async function assignRallyesToQuestion(
     }));
 
     const { error: insertError } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .insert(newAssignments);
 
     if (insertError) {
@@ -581,7 +581,7 @@ export async function getQuestionRallyes(
   }
 
   const { data, error } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('rallye_id')
     .eq('question_id', questionIdResult.data);
 
@@ -630,7 +630,7 @@ export async function getQuestionRallyeMap(
   }
 
   const { data: joins, error: joinError } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id, rallye_id')
     .in('question_id', normalizedQuestionIds);
 

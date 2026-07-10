@@ -97,7 +97,7 @@ function createSupabaseMock(fixtureOverrides?: Partial<SupabaseFixture>) {
         order: async () => ({ data: fixture.departments, error: null }),
       }),
     },
-    join_rallye_questions: {
+    rallye_questions: {
       select: () => ({
         in: async () => ({ data: fixture.questionAssignments, error: null }),
       }),

@@ -85,7 +85,7 @@ export default async function Home() {
   const questionCounts = new Map<number, number>();
   if (typedRallyes.length > 0) {
     const { data: joins } = await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .select('rallye_id, question_id')
       .in(
         'rallye_id',

@@ -49,7 +49,7 @@ export default async function RallyeDetailLayout({
   }
 
   const { count: votingCount } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id', { count: 'exact', head: true })
     .eq('rallye_id', rallyeId)
     .eq('is_voting', true);

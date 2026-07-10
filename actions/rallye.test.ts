@@ -291,7 +291,7 @@ describe('advanceRallyeStatus', () => {
           update,
         };
       }
-      // join_rallye_questions voting count
+      // rallye_questions voting count
       const countEq2 = vi
         .fn()
         .mockResolvedValue({ count: votingCount, error: null });
@@ -437,7 +437,7 @@ describe('duplicateRallye', () => {
           insert: rallyeInsert,
         };
       }
-      // join_rallye_questions
+      // rallye_questions
       return {
         select: vi.fn(() => ({
           eq: vi

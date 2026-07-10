@@ -335,7 +335,7 @@ describe('getRallyeMaxPoints', () => {
 
     mockCreateClient.mockResolvedValue({
       from: vi.fn((table: string) => {
-        if (table === 'join_rallye_questions') return joinQuery;
+        if (table === 'rallye_questions') return joinQuery;
         if (table === 'questions') return questionQuery;
         throw new Error(`Unexpected table ${table}`);
       }),

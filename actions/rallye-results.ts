@@ -197,7 +197,7 @@ export async function getRallyeMaxPoints(
 
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('join_rallye_questions')
+    .from('rallye_questions')
     .select('question_id')
     .eq('rallye_id', rallyeIdResult.data);
 

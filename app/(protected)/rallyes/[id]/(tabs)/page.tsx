@@ -31,7 +31,7 @@ export default async function RallyeQuestionsTab(props: PageProps) {
 
   const [assignmentsRes, questionsRes] = await Promise.all([
     supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .select('question_id, is_voting')
       .eq('rallye_id', rallyeId),
     supabase

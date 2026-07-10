@@ -97,7 +97,7 @@ export async function getQuestions(filters: {
     const rallyeId = Number(filters.rallyeId);
     if (!Number.isNaN(rallyeId)) {
       const { data: rallyeRows, error: rallyeErr } = await supabase
-        .from('join_rallye_questions')
+        .from('rallye_questions')
         .select('question_id')
         .eq('rallye_id', rallyeId);
 

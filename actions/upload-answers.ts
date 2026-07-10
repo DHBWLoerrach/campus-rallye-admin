@@ -82,7 +82,7 @@ export async function getRallyeUploadAnswers(
 
   const { data: uploadQuestionRows, error: uploadQuestionError } =
     await supabase
-      .from('join_rallye_questions')
+      .from('rallye_questions')
       .select('question_id, questions!inner(id, content, type)')
       .eq('rallye_id', rallyeIdResult.data)
       .eq('questions.type', 'upload');
