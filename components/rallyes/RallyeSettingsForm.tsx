@@ -64,7 +64,7 @@ export default function RallyeSettingsForm({
     initialEnd.kind === 'time' ? initialEnd.value : ''
   );
   const [rallyeCode, setRallyeCode] = useState<string>(rallye.rallye_code);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showRallyeCode, setShowRallyeCode] = useState(false);
   const normalizedAssignedDepartmentIds = Array.from(
     new Set(assignedDepartmentIds)
   );
@@ -153,12 +153,17 @@ export default function RallyeSettingsForm({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor={`rallye-${rallye.id}-rallye-code`}>Passwort</Label>
+            <Label htmlFor={`rallye-${rallye.id}-rallye-code`}>
+              Rallye-Code
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Diesen Code geben Teams ein, um der Rallye beizutreten.
+            </p>
             <div className="flex max-w-sm items-center gap-2">
               <Input
                 id={`rallye-${rallye.id}-rallye-code`}
                 name="rallye_code"
-                type={showPassword ? 'text' : 'password'}
+                type={showRallyeCode ? 'text' : 'password'}
                 value={rallyeCode}
                 onChange={(e) => setRallyeCode(e.target.value)}
                 className="flex-1 min-w-0"
@@ -168,11 +173,13 @@ export default function RallyeSettingsForm({
                 variant="outline"
                 size="icon"
                 aria-label={
-                  showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'
+                  showRallyeCode
+                    ? 'Rallye-Code verbergen'
+                    : 'Rallye-Code anzeigen'
                 }
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={() => setShowRallyeCode((prev) => !prev)}
               >
-                {showPassword ? (
+                {showRallyeCode ? (
                   <EyeOff className="h-4 w-4" aria-hidden="true" />
                 ) : (
                   <Eye className="h-4 w-4" aria-hidden="true" />

@@ -33,7 +33,7 @@ interface RallyeCreateWizardProps {
   categories: string[];
 }
 
-const STEPS = ['Name & Bereich', 'Fragen wählen', 'Passwort'];
+const STEPS = ['Name & Bereich', 'Fragen wählen', 'Rallye-Code'];
 
 const getTypeLabel = (type: string | null | undefined): string =>
   questionTypes.find((t) => t.id === type)?.name ?? '—';
@@ -227,7 +227,7 @@ export default function RallyeCreateWizard({
       {step === 2 && (
         <div className="flex max-w-xl flex-col gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="wizard-rallye-code">Passwort (optional)</Label>
+            <Label htmlFor="wizard-rallye-code">Rallye-Code (optional)</Label>
             <Input
               id="wizard-rallye-code"
               value={rallyeCode}
