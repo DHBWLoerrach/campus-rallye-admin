@@ -41,7 +41,7 @@ describe('LandingPage', () => {
     render(await LandingPage());
 
     expect(
-      screen.getByRole('link', { name: 'Login mit DHBW-Account' })
+      screen.getByRole('link', { name: 'Anmelden mit DHBW-Account' })
     ).toHaveAttribute('href', '/rallyes');
     expect(mockRedirect).not.toHaveBeenCalled();
   });

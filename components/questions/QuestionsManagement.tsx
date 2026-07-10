@@ -55,7 +55,7 @@ export default function QuestionManagement({
   };
 
   if (!questions) {
-    return <div>Loading...</div>;
+    return <div>Wird geladen…</div>;
   }
 
   return (
