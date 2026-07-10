@@ -220,24 +220,6 @@ CREATE TABLE IF NOT EXISTS "public"."team_answers" (
 ALTER TABLE "public"."team_answers" OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) RETURNS "public"."team_answers"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    AS $$
-DECLARE
-  updated_row team_answers%ROWTYPE;
-BEGIN
-  UPDATE team_answers
-  SET team_points = team_points + 1
-  WHERE id = target_answer_id
-  RETURNING * INTO updated_row;
-  RETURN updated_row;
-END;
-$$;
-
-
-ALTER FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."solution_options" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
@@ -724,12 +706,6 @@ GRANT ALL ON FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_param"
 GRANT ALL ON TABLE "public"."team_answers" TO "anon";
 GRANT ALL ON TABLE "public"."team_answers" TO "authenticated";
 GRANT ALL ON TABLE "public"."team_answers" TO "service_role";
-
-
-
-GRANT ALL ON FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) TO "anon";
-GRANT ALL ON FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) TO "service_role";
 
 
 
