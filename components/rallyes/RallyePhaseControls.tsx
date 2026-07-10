@@ -42,6 +42,9 @@ export default function RallyePhaseControls({
   const plannedEnd = showEndTime
     ? parsePlannedEnd(endTime)
     : ({ kind: 'none' } as const);
+  // A native time input only ever yields '' or a valid HH:MM value, so this
+  // guard is a fallback for browsers that render type="time" as a plain text
+  // field; the server action validates again regardless.
   const endIsInvalid = plannedEnd.kind === 'invalid';
   const plannedEndTime =
     plannedEnd.kind === 'time' ? plannedEnd.value : undefined;
@@ -131,7 +134,7 @@ export default function RallyePhaseControls({
               </div>
               {endIsInvalid && (
                 <p className="text-xs text-destructive">
-                  Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).
+                  Bitte eine gültige Uhrzeit angeben, z. B. 18:30.
                 </p>
               )}
               <p className="text-xs text-muted-foreground">

@@ -76,8 +76,9 @@ export default function RallyeSettingsForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Empty clears the planned end. Invalid values are blocked client-side and
-  // validated again by the server action.
+  // Empty clears the planned end. A native time input only ever yields '' or a
+  // valid HH:MM value, so endIsInvalid is a fallback for browsers that render
+  // type="time" as a plain text field; the server action validates again.
   const plannedEnd = parsePlannedEnd(endTime);
   const endIsInvalid = plannedEnd.kind === 'invalid';
   const isSaveDisabled =
@@ -146,7 +147,7 @@ export default function RallyeSettingsForm({
             </div>
             {endIsInvalid && (
               <p className="text-xs text-destructive">
-                Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).
+                Bitte eine gültige Uhrzeit angeben, z. B. 18:30.
               </p>
             )}
           </div>
