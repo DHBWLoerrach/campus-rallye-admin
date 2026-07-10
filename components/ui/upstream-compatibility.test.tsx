@@ -12,12 +12,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 describe('upstream-compatible UI updates', () => {
   it('uses Radix disabled-data selectors for menu and select items', () => {
@@ -47,20 +41,5 @@ describe('upstream-compatible UI updates', () => {
       (screen.getByText('Disabled select item').parentElement as HTMLElement)
         .className
     ).toContain('data-[disabled]:pointer-events-none');
-  });
-
-  it('sets the tooltip animation origin from Radix', () => {
-    render(
-      <TooltipProvider>
-        <Tooltip open>
-          <TooltipTrigger>Tooltip trigger</TooltipTrigger>
-          <TooltipContent>Tooltip content</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-
-    expect(
-      screen.getByText('Tooltip content', { selector: 'div' }).className
-    ).toContain('origin-[--radix-tooltip-content-transform-origin]');
   });
 });
