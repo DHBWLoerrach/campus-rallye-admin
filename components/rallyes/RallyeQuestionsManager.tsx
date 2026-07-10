@@ -101,7 +101,7 @@ export default function RallyeQuestionsManager({
   const [isPending, startTransition] = useTransition();
 
   const totalPoints = assigned.reduce(
-    (sum, entry) => sum + (entry.question.points ?? 0),
+    (sum, entry) => sum + (entry.question.point_value ?? 0),
     0
   );
 
@@ -205,7 +205,9 @@ export default function RallyeQuestionsManager({
                         <span className="line-clamp-2">{question.content}</span>
                         <span className="mt-1 block text-xs text-muted-foreground">
                           {getTypeLabel(question.type)}
-                          {question.points ? ` · ${question.points} P` : ''}
+                          {question.point_value
+                            ? ` · ${question.point_value} P`
+                            : ''}
                         </span>
                       </TableCell>
                       <TableCell className="w-12 text-right">
@@ -260,7 +262,7 @@ export default function RallyeQuestionsManager({
                   {getTypeLabel(entry.question.type)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {entry.question.points ?? '—'}
+                  {entry.question.point_value ?? '—'}
                 </TableCell>
                 <TableCell>
                   {entry.question.type === 'upload' ? (

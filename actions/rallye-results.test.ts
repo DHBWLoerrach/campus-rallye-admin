@@ -327,7 +327,7 @@ describe('getRallyeMaxPoints', () => {
       select: vi.fn(() => questionQuery),
       in: vi.fn(() =>
         Promise.resolve({
-          data: [{ points: 5 }, { points: 3 }, { points: 2 }],
+          data: [{ point_value: 5 }, { point_value: 3 }, { point_value: 2 }],
           error: null,
         })
       ),

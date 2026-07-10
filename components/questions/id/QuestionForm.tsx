@@ -30,7 +30,7 @@ interface FormErrors {
   content?: string;
   type?: string;
   category?: string;
-  points?: string;
+  point_value?: string;
   answers?: string;
 }
 
@@ -39,7 +39,7 @@ const buildInitialFormData = (
 ): QuestionFormData => ({
   content: initialData?.content ?? '',
   type: initialData?.type ?? '',
-  points: initialData?.points ?? 0,
+  point_value: initialData?.point_value ?? 0,
   hint: initialData?.hint ?? undefined,
   category: initialData?.category ?? undefined,
   bucket_path: initialData?.bucket_path ?? undefined,
@@ -51,7 +51,7 @@ const buildInitialFormData = (
 const normalizeFormData = (data: QuestionFormData) => ({
   content: data.content ?? '',
   type: data.type ?? '',
-  points: data.points ?? 0,
+  point_value: data.point_value ?? 0,
   hint: data.hint ?? '',
   category: data.category ?? '',
   bucket_path: data.bucket_path ?? '',
@@ -232,8 +232,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         'Bitte eine Kategorie wählen oder eine neue eingeben';
     }
 
-    if ((data.points ?? 0) < 0) {
-      newErrors.points = 'Punkte müssen größer oder gleich 0 sein';
+    if ((data.point_value ?? 0) < 0) {
+      newErrors.point_value = 'Punkte müssen größer oder gleich 0 sein';
     }
 
     const validAnswers = data.answers?.filter((a) => a.text?.trim()) ?? [];
@@ -336,25 +336,25 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             </div>
             {hasType && (
               <div className="space-y-2">
-                <Label htmlFor="points">Punkte</Label>
+                <Label htmlFor="point_value">Punkte</Label>
                 <Input
                   type="number"
-                  id="points"
-                  value={formData.points}
+                  id="point_value"
+                  value={formData.point_value}
                   onChange={(e) =>
-                    handleFormChange('points', Number(e.target.value))
+                    handleFormChange('point_value', Number(e.target.value))
                   }
                   placeholder="0"
                   min={0}
                   className={`w-full ${
-                    errors.points
+                    errors.point_value
                       ? 'border-destructive focus-visible:ring-destructive/40'
                       : ''
                   }`}
                 />
-                {errors.points && (
+                {errors.point_value && (
                   <span className="text-sm text-destructive">
-                    {errors.points}
+                    {errors.point_value}
                   </span>
                 )}
               </div>

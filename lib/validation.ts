@@ -14,7 +14,7 @@ export const questionTypeSchema = z.enum(questionTypeIds);
 export const idSchema = z.coerce.number().int().positive();
 export const idArraySchema = z.array(idSchema);
 
-const pointsSchema = z.preprocess((value) => {
+const pointValueSchema = z.preprocess((value) => {
   if (typeof value === 'number' && Number.isNaN(value)) return undefined;
   if (typeof value === 'string') {
     const trimmed = value.trim();
@@ -106,7 +106,7 @@ const validateAnswers = (
 export const questionBaseSchema = z.object({
   content: z.string().trim().min(1, 'Bitte geben Sie eine Frage ein'),
   type: questionTypeSchema,
-  points: pointsSchema,
+  point_value: pointValueSchema,
   hint: z.string().optional().nullable(),
   category: z.string().optional().nullable(),
   bucket_path: z.string().optional().nullable(),

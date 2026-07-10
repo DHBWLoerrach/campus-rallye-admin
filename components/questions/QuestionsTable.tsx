@@ -86,7 +86,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                         {questionTypeLabels[question.type] ?? '—'}
                       </TableCell>
                       <TableCell className="text-right">
-                        {question.points ?? '—'}
+                        {question.point_value ?? '—'}
                       </TableCell>
                       <TableCell>
                         {rallyeNames.length === 0 ? (

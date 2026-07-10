@@ -34,7 +34,7 @@ describe('question write actions', () => {
     const result = await createQuestion({
       content: '',
       type: 'knowledge',
-      points: 1,
+      point_value: 1,
       answers: [{ correct: true, text: 'Antwort' }],
     });
 
@@ -55,7 +55,7 @@ describe('question write actions', () => {
     const result = await updateQuestion(1, {
       content: 'Frage',
       type: 'knowledge',
-      points: -1,
+      point_value: -1,
       answers: [{ id: 1, correct: true, text: 'Antwort' }],
     });
 
@@ -64,7 +64,7 @@ describe('question write actions', () => {
       throw new Error('Expected validation to fail');
     }
     expect(result.error).toBe('Ungültige Eingaben');
-    expect(result.issues?.points).toBe(
+    expect(result.issues?.point_value).toBe(
       'Punkte müssen größer oder gleich 0 sein'
     );
     expect(mockCreateClient).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe('question write actions', () => {
       createQuestion({
         content: 'Question',
         type: 'knowledge',
-        points: 1,
+        point_value: 1,
         hint: 'Hint',
         category: 'Category',
         answers: [{ correct: true, text: 'Answer' }],
@@ -243,7 +243,7 @@ describe('getQuestions', () => {
           id: 42,
           content: 'Question',
           type: 'multiple_choice',
-          points: 2,
+          point_value: 2,
           hint: null,
           category: 'Allgemein',
           bucket_path: null,

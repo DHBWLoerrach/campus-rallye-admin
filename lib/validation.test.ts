@@ -6,7 +6,7 @@ describe('questionUpdateSchema', () => {
     const result = questionUpdateSchema.safeParse({
       content: 'Frage',
       type: 'knowledge',
-      points: 1,
+      point_value: 1,
       hint: null,
       category: null,
       bucket_path: null,

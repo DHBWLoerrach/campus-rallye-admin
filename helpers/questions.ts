@@ -9,7 +9,7 @@ export interface Question {
   id: number;
   content: string;
   type: string;
-  points?: number;
+  point_value?: number;
   hint?: string;
   category?: string;
   bucket_path?: string;

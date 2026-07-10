@@ -25,7 +25,7 @@ const questions = [
     id: 1,
     content: 'Wo ist die Mensa?',
     type: 'knowledge',
-    points: 3,
+    point_value: 3,
     category: 'Campus',
     answers: [],
   },

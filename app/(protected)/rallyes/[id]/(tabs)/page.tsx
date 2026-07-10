@@ -37,7 +37,7 @@ export default async function RallyeQuestionsTab(props: PageProps) {
     supabase
       .from('questions')
       .select(
-        'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
+        'id, content, type, point_value, hint, category, bucket_path, answers(id, correct, text)'
       ),
   ]);
 

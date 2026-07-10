@@ -212,7 +212,9 @@ export default function RallyeCreateWizard({
                     {question.content}
                     <span className="ml-2 text-xs text-muted-foreground">
                       {getTypeLabel(question.type)}
-                      {question.points ? ` · ${question.points} P` : ''}
+                      {question.point_value
+                        ? ` · ${question.point_value} P`
+                        : ''}
                     </span>
                   </Label>
                 </div>

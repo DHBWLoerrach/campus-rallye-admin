@@ -51,7 +51,7 @@ export async function getQuestionById(
   const { data, error } = await supabase
     .from('questions')
     .select(
-      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, point_value, hint, category, bucket_path, answers(id, correct, text)'
     )
     .eq('id', idResult.data)
     .maybeSingle();
@@ -78,7 +78,7 @@ export async function getQuestions(filters: {
   let query = supabase
     .from('questions')
     .select(
-      'id, content, type, points, hint, category, bucket_path, answers(id, correct, text)'
+      'id, content, type, point_value, hint, category, bucket_path, answers(id, correct, text)'
     );
 
   if (filters.question && filters.question.trim().length > 0) {
@@ -164,7 +164,7 @@ export async function getQuestions(filters: {
 export async function createQuestion(data: {
   content: string;
   type: string;
-  points?: number;
+  point_value?: number;
   hint?: string;
   category?: string;
   bucket_path?: string;
@@ -188,7 +188,7 @@ export async function createQuestion(data: {
         {
           content: parsed.data.content,
           type: parsed.data.type,
-          points: parsed.data.points,
+          point_value: parsed.data.point_value,
           hint: parsed.data.hint,
           category: parsed.data.category,
           bucket_path: parsed.data.bucket_path,
@@ -255,7 +255,7 @@ export async function updateQuestion(
   data: {
     content: string;
     type: string;
-    points?: number;
+    point_value?: number;
     hint?: string;
     category?: string;
     bucket_path?: string;
@@ -300,7 +300,7 @@ export async function updateQuestion(
       .update({
         content: parsed.data.content,
         type: parsed.data.type,
-        points: parsed.data.points,
+        point_value: parsed.data.point_value,
         hint: parsed.data.hint,
         category: parsed.data.category || null,
         bucket_path: parsed.data.bucket_path || null,

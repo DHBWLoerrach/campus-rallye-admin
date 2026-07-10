@@ -11,7 +11,7 @@ describe('QuestionsTable', () => {
             id: 1,
             content: 'Testfrage',
             type: 'knowledge',
-            points: 2,
+            point_value: 2,
             hint: 'Hinweistext',
             bucket_path: 'questions/1.png',
             answers: [

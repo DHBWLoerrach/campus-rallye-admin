@@ -213,7 +213,7 @@ export async function getRallyeMaxPoints(
 
   const { data: questions, error: questionsError } = await supabase
     .from('questions')
-    .select('points')
+    .select('point_value')
     .in('id', questionIds);
 
   if (questionsError) {
@@ -222,7 +222,7 @@ export async function getRallyeMaxPoints(
   }
 
   const totalPoints = (questions ?? []).reduce((sum, q) => {
-    const points = q.points;
+    const points = q.point_value;
     return sum + (typeof points === 'number' ? points : 0);
   }, 0);
 

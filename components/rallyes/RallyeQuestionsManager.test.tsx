@@ -24,7 +24,7 @@ const makeQuestion = (overrides: Partial<Question>): Question => ({
   id: 1,
   content: 'Wo ist die Mensa?',
   type: 'knowledge',
-  points: 3,
+  point_value: 3,
   category: 'Campus',
   answers: [],
   ...overrides,
@@ -34,7 +34,7 @@ const uploadQuestion = makeQuestion({
   id: 2,
   content: 'Macht ein Gruppenfoto',
   type: 'upload',
-  points: 8,
+  point_value: 8,
 });
 
 describe('RallyeQuestionsManager', () => {
