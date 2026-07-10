@@ -30,7 +30,7 @@ describe('updateRallye', () => {
     name: string;
     status: string;
     password: string;
-    end_time: Date | null;
+    end_time: string | null;
   };
 
   const setupSupabaseUpdate = () => {
@@ -99,12 +99,12 @@ describe('updateRallye', () => {
         id: '1',
         name: 'Test',
         status: 'running',
-        end_time: 'not-a-date',
+        end_time: 'not-a-time',
         password: 'secret',
       })
     );
 
-    expect(result).toEqual({ success: false, error: 'Ungültiges Datum' });
+    expect(result).toEqual({ success: false, error: 'Ungültige Uhrzeit' });
     expect(update).not.toHaveBeenCalled();
   });
 
@@ -119,7 +119,7 @@ describe('updateRallye', () => {
         id: '1',
         name: 'Test',
         status: 'running',
-        end_time: '2024-02-10T10:11:12.000Z',
+        end_time: '10:11',
         password: 'secret',
       })
     );
@@ -131,12 +131,7 @@ describe('updateRallye', () => {
       status: 'running',
       password: 'secret',
     });
-    const endTime = payload.end_time;
-    expect(endTime).toBeInstanceOf(Date);
-    if (!(endTime instanceof Date)) {
-      throw new Error('Expected end_time to be a Date');
-    }
-    expect(endTime.toISOString()).toBe('2024-02-10T10:11:12.000Z');
+    expect(payload.end_time).toBe('10:11');
   });
 
   it('does not sync department assignments without department_sync marker', async () => {
@@ -324,16 +319,12 @@ describe('advanceRallyeStatus', () => {
     mockCreateClient.mockResolvedValue(supabase);
 
     const { advanceRallyeStatus } = await import('./rallye');
-    const result = await advanceRallyeStatus(
-      5,
-      'running',
-      '2027-06-01T16:00:00.000Z'
-    );
+    const result = await advanceRallyeStatus(5, 'running', '16:00');
 
     expect(result.success).toBe(true);
     expect(supabase.update).toHaveBeenCalledWith({
       status: 'running',
-      end_time: new Date('2027-06-01T16:00:00.000Z'),
+      end_time: '16:00',
     });
   });
 
@@ -343,11 +334,11 @@ describe('advanceRallyeStatus', () => {
     mockCreateClient.mockResolvedValue(supabase);
 
     const { advanceRallyeStatus } = await import('./rallye');
-    const result = await advanceRallyeStatus(5, 'running', 'kein-datum');
+    const result = await advanceRallyeStatus(5, 'running', 'keine-zeit');
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
-    expect(result.error).toBe('Ungültiges Datum');
+    expect(result.error).toBe('Ungültige Uhrzeit');
     expect(supabase.update).not.toHaveBeenCalled();
   });
 
@@ -570,7 +561,7 @@ describe('createRallyeWithQuestions', () => {
     const result = await createRallyeWithQuestions({
       name: "Girl's Day 2027",
       departmentId: 7,
-      endTime: '2027-04-22T13:00:00.000Z',
+      endTime: '13:00',
       password: 'geheim',
       questionIds: [1, 2],
     });
@@ -651,7 +642,7 @@ describe('createRallyeWithQuestions', () => {
     const result = await createRallyeWithQuestions({
       name: 'X',
       departmentId: 7,
-      endTime: 'kein-datum',
+      endTime: 'keine-zeit',
       password: '',
       questionIds: [],
     });

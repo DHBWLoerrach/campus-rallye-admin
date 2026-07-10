@@ -33,22 +33,18 @@ export default function RallyePhaseControls({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [endHour, setEndHour] = useState('');
-  const [endMinute, setEndMinute] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [isPending, startTransition] = useTransition();
 
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
   // Only the start step offers a "geplant bis" time; other transitions don't.
   const showEndTime = status === 'inactive';
   const plannedEnd = showEndTime
-    ? parsePlannedEnd(endHour, endMinute)
+    ? parsePlannedEnd(endTime)
     : ({ kind: 'none' } as const);
   const endIsInvalid = plannedEnd.kind === 'invalid';
-  const plannedEndIso = plannedEnd.kind === 'time' ? plannedEnd.iso : undefined;
-  // Purely informational nudge; entering a past time never blocks the start.
-  const endIsPast =
-    plannedEnd.kind === 'time' &&
-    new Date(plannedEnd.iso).getTime() < new Date().getTime();
+  const plannedEndTime =
+    plannedEnd.kind === 'time' ? plannedEnd.value : undefined;
 
   const handleDuplicate = () => {
     setError(null);
@@ -93,7 +89,7 @@ export default function RallyePhaseControls({
       const result = await advanceRallyeStatus(
         rallyeId,
         transition.target,
-        plannedEndIso
+        plannedEndTime
       );
       if (!result.success) {
         setError(result.error);
@@ -121,44 +117,21 @@ export default function RallyePhaseControls({
           </DialogHeader>
           {showEndTime && (
             <div className="grid gap-2">
-              <Label htmlFor="phase-endtime-hour">
-                Endet heute um (optional)
-              </Label>
+              <Label htmlFor="phase-endtime">Endet um (optional)</Label>
               <div className="flex items-center gap-2">
                 <Input
-                  id="phase-endtime-hour"
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={23}
-                  placeholder="18"
-                  value={endHour}
-                  onChange={(e) => setEndHour(e.target.value)}
-                  className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  aria-label="Stunde"
-                />
-                <span className="select-none">:</span>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={59}
-                  placeholder="00"
-                  value={endMinute}
-                  onChange={(e) => setEndMinute(e.target.value)}
-                  className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  aria-label="Minute"
+                  id="phase-endtime"
+                  type="time"
+                  step="60"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-32"
                 />
                 <span className="text-sm text-muted-foreground">Uhr</span>
               </div>
               {endIsInvalid && (
                 <p className="text-xs text-destructive">
                   Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).
-                </p>
-              )}
-              {endIsPast && (
-                <p className="text-xs text-amber-600 dark:text-amber-500">
-                  Diese Uhrzeit liegt bereits in der Vergangenheit.
                 </p>
               )}
               <p className="text-xs text-muted-foreground">

@@ -5,6 +5,7 @@ import ExplorationRow from '@/components/rallyes/ExplorationRow';
 import { Button } from '@/components/ui/button';
 import { getUserContext } from '@/lib/user-context';
 import { getLocalUser } from '@/lib/db/local-user';
+import { plannedEndToMinutes } from '@/lib/planned-end';
 import {
   RALLYE_PHASE_GROUPS,
   getRallyePhaseGroup,
@@ -36,8 +37,8 @@ const PHASE_SYMBOLS: Record<RallyePhaseGroup, string> = {
 // Rallyes without a planned end sort to the very bottom of their group.
 const sortForGroup = (group: RallyePhaseGroup, rallyes: RallyeRow[]) =>
   [...rallyes].sort((a, b) => {
-    const aTime = a.end_time ? new Date(a.end_time).getTime() : null;
-    const bTime = b.end_time ? new Date(b.end_time).getTime() : null;
+    const aTime = plannedEndToMinutes(a.end_time);
+    const bTime = plannedEndToMinutes(b.end_time);
     if (aTime === null || bTime === null) {
       if (aTime === bTime) return 0;
       return aTime === null ? 1 : -1;

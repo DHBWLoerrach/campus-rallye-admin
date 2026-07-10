@@ -1,132 +1,25 @@
-// A rallye's planned end is a 24-hour time (hour:minute) pinned to a day. The
-// three outcomes must stay distinct: empty means "no planned end", while an
-// out-of-range or non-integer entry is invalid and must never be silently
-// dropped (which would start/save without the end the user tried to set).
+// A planned end is a local wall-clock time. Empty means no planned end, while
+// malformed values must never be silently dropped before they reach the server.
 export type PlannedEnd =
   | { kind: 'none' }
   | { kind: 'invalid' }
-  | { kind: 'time'; iso: string };
+  | { kind: 'time'; value: string };
 
-// Planned-end times are interpreted in a single fixed organizer timezone so
-// that display (see FormattedEndTime) and input/conversion always agree,
-// regardless of the admin's browser timezone. The audience is a German
-// university, so the wall-clock the organizer means is Europe/Berlin.
-export const PLANNED_END_TIME_ZONE = 'Europe/Berlin';
+const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?$/;
 
-const WALL_CLOCK_FORMAT = new Intl.DateTimeFormat('en-US', {
-  timeZone: PLANNED_END_TIME_ZONE,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hour12: false,
-});
+export function parsePlannedEnd(value: string): PlannedEnd {
+  if (value === '') return { kind: 'none' };
+  if (!TIME_PATTERN.test(value)) return { kind: 'invalid' };
 
-type WallClock = {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
-};
-
-// The wall-clock fields of an instant as seen in PLANNED_END_TIME_ZONE.
-function wallClockInZone(instant: Date): WallClock {
-  const parts = WALL_CLOCK_FORMAT.formatToParts(instant);
-  const read = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((part) => part.type === type)?.value ?? '0');
-  return {
-    year: read('year'),
-    month: read('month'),
-    day: read('day'),
-    hour: read('hour') % 24, // some ICU builds emit '24' for midnight
-    minute: read('minute'),
-    second: read('second'),
-  };
+  return { kind: 'time', value: value.slice(0, 5) };
 }
 
-// The zone's UTC offset (ms) at a given instant.
-function zoneOffsetMs(instant: Date): number {
-  const wall = wallClockInZone(instant);
-  const asUtc = Date.UTC(
-    wall.year,
-    wall.month - 1,
-    wall.day,
-    wall.hour,
-    wall.minute,
-    wall.second
-  );
-  return asUtc - instant.getTime();
-}
+export function plannedEndToMinutes(value: string | null): number | null {
+  if (value === null) return null;
 
-// Convert a wall-clock time in PLANNED_END_TIME_ZONE to the matching instant.
-function zonedWallTimeToInstant(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  minute: number
-): Date {
-  const utcGuess = Date.UTC(year, month - 1, day, hour, minute, 0, 0);
-  // Probe the offset twice: once at the naive guess and once at the instant it
-  // implies. Around a DST change the two differ (the guess sampled the wrong
-  // side of the transition), and the offset at the implied instant is the
-  // correct one. A single pass is not reliable at the spring-forward boundary.
-  const offsetAtGuess = zoneOffsetMs(new Date(utcGuess));
-  const candidate = utcGuess - offsetAtGuess;
-  const offsetAtCandidate = zoneOffsetMs(new Date(candidate));
-  const offset =
-    offsetAtGuess === offsetAtCandidate ? offsetAtGuess : offsetAtCandidate;
-  return new Date(utcGuess - offset);
-}
+  const parsed = parsePlannedEnd(value);
+  if (parsed.kind !== 'time') return null;
 
-// The hour and minute of an instant as shown in PLANNED_END_TIME_ZONE. Used to
-// seed the editor fields so that what the user edits matches what is displayed.
-export function getZonedHourMinute(instant: Date): {
-  hour: number;
-  minute: number;
-} {
-  const wall = wallClockInZone(instant);
-  return { hour: wall.hour, minute: wall.minute };
-}
-
-export function parsePlannedEnd(
-  hour: string,
-  minute: string,
-  base?: Date
-): PlannedEnd {
-  if (hour === '' && minute === '') return { kind: 'none' };
-  const h = Number(hour === '' ? '0' : hour);
-  const m = Number(minute === '' ? '0' : minute);
-  if (
-    !Number.isInteger(h) ||
-    !Number.isInteger(m) ||
-    h < 0 ||
-    h > 23 ||
-    m < 0 ||
-    m > 59
-  ) {
-    return { kind: 'invalid' };
-  }
-  // Pin the time to the base's calendar day in the fixed zone (today if absent).
-  const { year, month, day } = wallClockInZone(base ?? new Date());
-  const end = zonedWallTimeToInstant(year, month, day, h, m);
-  // Verify the instant maps back to exactly the requested wall-clock. It will
-  // not when the time falls into the spring-forward gap (e.g. 02:30 on the DST
-  // switch day in Berlin does not exist); reject it instead of silently
-  // shifting it to an adjacent hour.
-  const check = wallClockInZone(end);
-  if (
-    check.year !== year ||
-    check.month !== month ||
-    check.day !== day ||
-    check.hour !== h ||
-    check.minute !== m
-  ) {
-    return { kind: 'invalid' };
-  }
-  return { kind: 'time', iso: end.toISOString() };
+  const [hour, minute] = parsed.value.split(':').map(Number);
+  return hour * 60 + minute;
 }

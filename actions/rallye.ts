@@ -16,6 +16,7 @@ import {
   rallyeCreateSchema,
   rallyeUpdateSchema,
 } from '@/lib/validation';
+import { parsePlannedEnd } from '@/lib/planned-end';
 
 type FormState = ActionResult<{ message: string; rallyeId?: number }> | null;
 
@@ -38,14 +39,9 @@ export async function updateRallye(state: FormState, formData: FormData) {
   // An empty time field clears the planned end (sets it to null) rather than
   // leaving the stored value untouched.
   const endTimeRaw = parsed.data.end_time?.trim() ?? '';
-  let endTime: Date | null = null;
-  if (endTimeRaw) {
-    const parsedDate = new Date(endTimeRaw);
-    if (Number.isNaN(parsedDate.getTime())) {
-      return fail('Ungültiges Datum');
-    }
-    endTime = parsedDate;
-  }
+  const plannedEnd = parsePlannedEnd(endTimeRaw);
+  if (plannedEnd.kind === 'invalid') return fail('Ungültige Uhrzeit');
+  const endTime = plannedEnd.kind === 'time' ? plannedEnd.value : null;
 
   const data = parsed.data;
 
@@ -68,7 +64,7 @@ export async function updateRallye(state: FormState, formData: FormData) {
     name: string;
     status: RallyeStatus;
     password: string;
-    end_time: Date | null;
+    end_time: string | null;
     department_id?: number;
   } = {
     name: data.name,
@@ -204,13 +200,11 @@ export async function advanceRallyeStatus(
 
   // An optional planned end can be set alongside the transition, typically the
   // "geplant bis" time chosen when the rallye is started.
-  let parsedEndTime: Date | undefined;
+  let parsedEndTime: string | undefined;
   if (endTime !== undefined && endTime !== '') {
-    const parsed = new Date(endTime);
-    if (Number.isNaN(parsed.getTime())) {
-      return fail('Ungültiges Datum');
-    }
-    parsedEndTime = parsed;
+    const plannedEnd = parsePlannedEnd(endTime);
+    if (plannedEnd.kind !== 'time') return fail('Ungültige Uhrzeit');
+    parsedEndTime = plannedEnd.value;
   }
 
   const supabase = await createClient();
@@ -252,7 +246,7 @@ export async function advanceRallyeStatus(
     return fail('Ungültiger Statuswechsel');
   }
 
-  const updatePayload: { status: RallyeStatus; end_time?: Date } = {
+  const updatePayload: { status: RallyeStatus; end_time?: string } = {
     status: target,
   };
   if (parsedEndTime !== undefined) {
@@ -370,13 +364,11 @@ export async function createRallyeWithQuestions(input: {
   }
 
   // A fresh draft has no planned end; the time is set later, ideally at start.
-  let endTime: Date | null = null;
+  let endTime: string | null = null;
   if (input.endTime !== null) {
-    const parsed = new Date(input.endTime);
-    if (Number.isNaN(parsed.getTime())) {
-      return fail('Ungültiges Datum');
-    }
-    endTime = parsed;
+    const plannedEnd = parsePlannedEnd(input.endTime);
+    if (plannedEnd.kind !== 'time') return fail('Ungültige Uhrzeit');
+    endTime = plannedEnd.value;
   }
 
   const supabase = await createClient();

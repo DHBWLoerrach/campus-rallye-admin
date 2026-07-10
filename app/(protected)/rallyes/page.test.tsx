@@ -54,7 +54,7 @@ const makeRallye = (
   id,
   name,
   status,
-  end_time: '2026-01-01T00:00:00.000Z',
+  end_time: '18:00:00',
   password: '',
   created_at: '2026-01-01T00:00:00.000Z',
   department_id: departmentId,
@@ -210,5 +210,54 @@ describe('/rallyes page', () => {
     expect(
       screen.queryByRole('heading', { name: '✓ Abgeschlossen' })
     ).not.toBeInTheDocument();
+  });
+
+  it('sorts planned ends by local clock time within each phase group', async () => {
+    mockCreateClient.mockResolvedValue(
+      createSupabaseMock({
+        rallyes: [
+          { ...makeRallye(1, 'Ohne Ende', 'running', 100), end_time: null },
+          {
+            ...makeRallye(2, 'Später', 'running', 100),
+            end_time: '18:00:00',
+          },
+          {
+            ...makeRallye(3, 'Früher', 'running', 100),
+            end_time: '09:00:00',
+          },
+          {
+            ...makeRallye(4, 'Früh beendet', 'ended', 100),
+            end_time: '09:00:00',
+          },
+          {
+            ...makeRallye(5, 'Spät beendet', 'ended', 100),
+            end_time: '18:00:00',
+          },
+        ],
+        locations: [],
+        departments: [{ id: 100, name: 'HoKo/Marketing', location_id: 10 }],
+        questionAssignments: [],
+      })
+    );
+
+    render(await Home());
+
+    const live = screen
+      .getByRole('heading', { name: '● Läuft gerade' })
+      .closest('section') as HTMLElement;
+    const done = screen
+      .getByRole('heading', { name: '✓ Abgeschlossen' })
+      .closest('section') as HTMLElement;
+
+    expect(
+      within(live)
+        .getAllByTestId('rallye-card')
+        .map((card) => card.textContent)
+    ).toEqual(['Früher', 'Später', 'Ohne Ende']);
+    expect(
+      within(done)
+        .getAllByTestId('rallye-card')
+        .map((card) => card.textContent)
+    ).toEqual(['Spät beendet', 'Früh beendet']);
   });
 });

@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getZonedHourMinute, parsePlannedEnd } from '@/lib/planned-end';
+import { parsePlannedEnd } from '@/lib/planned-end';
 import { RALLYE_STATUSES, getRallyeStatusLabel } from '@/lib/types';
 import type { DepartmentOption, Rallye, RallyeStatus } from '@/lib/types';
 
@@ -59,16 +59,9 @@ export default function RallyeSettingsForm({
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
-  // Seed the fields from the stored end in the fixed organizer timezone so the
-  // editable value matches what FormattedEndTime shows the admin.
-  const initialEnd = rallye.end_time
-    ? getZonedHourMinute(new Date(rallye.end_time))
-    : null;
-  const [endHour, setEndHour] = useState(
-    initialEnd ? String(initialEnd.hour) : ''
-  );
-  const [endMinute, setEndMinute] = useState(
-    initialEnd ? String(initialEnd.minute) : ''
+  const initialEnd = parsePlannedEnd(rallye.end_time ?? '');
+  const [endTime, setEndTime] = useState(
+    initialEnd.kind === 'time' ? initialEnd.value : ''
   );
   const [password, setPassword] = useState<string>(rallye.password);
   const [showPassword, setShowPassword] = useState(false);
@@ -83,24 +76,13 @@ export default function RallyeSettingsForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // The planned end is a 24-hour time on the rallye's day (today for a fresh
-  // one). Empty submits nothing (clears the end); an invalid entry blocks saving
-  // rather than being silently dropped.
-  const plannedEnd = parsePlannedEnd(
-    endHour,
-    endMinute,
-    rallye.end_time ? new Date(rallye.end_time) : undefined
-  );
-  const endTimeValue = plannedEnd.kind === 'time' ? plannedEnd.iso : '';
+  // Empty clears the planned end. Invalid values are blocked client-side and
+  // validated again by the server action.
+  const plannedEnd = parsePlannedEnd(endTime);
   const endIsInvalid = plannedEnd.kind === 'invalid';
   const isSaveDisabled =
     (departmentOptions.length > 0 && selectedDepartmentId.length === 0) ||
     endIsInvalid;
-
-  // Purely informational nudge; a past time never blocks saving.
-  const endIsPast =
-    plannedEnd.kind === 'time' &&
-    new Date(plannedEnd.iso).getTime() < new Date().getTime();
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -124,7 +106,6 @@ export default function RallyeSettingsForm({
       <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <form action={formAction} className="flex max-w-xl flex-col gap-4">
           <input type="hidden" name="id" value={rallye.id} />
-          <input type="hidden" name="end_time" value={endTimeValue} />
           <input type="hidden" name="status" value={status} />
           {/* Only opt into department sync when there is something to assign.
               With no departments the select is hidden and no id can be chosen,
@@ -154,38 +135,18 @@ export default function RallyeSettingsForm({
             <div className="flex items-center gap-2">
               <Input
                 id={`rallye-${rallye.id}-endtime`}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={23}
-                placeholder="18"
-                value={endHour}
-                onChange={(e) => setEndHour(e.target.value)}
-                className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                aria-label="Stunde"
-              />
-              <span className="select-none">:</span>
-              <Input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={59}
-                placeholder="00"
-                value={endMinute}
-                onChange={(e) => setEndMinute(e.target.value)}
-                className="w-16 text-center appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                aria-label="Minute"
+                name="end_time"
+                type="time"
+                step="60"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-32"
               />
               <span className="text-sm text-muted-foreground">Uhr</span>
             </div>
             {endIsInvalid && (
               <p className="text-xs text-destructive">
                 Bitte eine gültige Uhrzeit angeben (Stunde 0–23, Minute 0–59).
-              </p>
-            )}
-            {endIsPast && (
-              <p className="text-xs text-amber-600 dark:text-amber-500">
-                Diese Uhrzeit liegt bereits in der Vergangenheit.
               </p>
             )}
           </div>
