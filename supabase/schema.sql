@@ -43,15 +43,15 @@ CREATE TYPE "public"."rallye_status" AS ENUM (
 ALTER TYPE "public"."rallye_status" OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) RETURNS "record"
+CREATE OR REPLACE FUNCTION "public"."join_question_answer"("rallye_id" bigint) RETURNS "record"
     LANGUAGE "sql"
     AS $$SELECT *
-FROM answers A, join_rallye_questions RQ
+FROM solution_options A, rallye_questions RQ
 WHERE RQ.rallye_id = rallye_id
 AND RQ.question_id = A.question_id$$;
 
 
-ALTER FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) OWNER TO "postgres";
+ALTER FUNCTION "public"."join_question_answer"("rallye_id" bigint) OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."auto_finalize_voting"() RETURNS trigger
@@ -64,14 +64,13 @@ BEGIN
     IF OLD."status" = 'voting' AND NEW."status" IN ('results', 'ended') THEN
         FOR voting_question IN
             SELECT "question_id"
-            FROM "public"."join_rallye_questions"
+            FROM "public"."rallye_questions"
             WHERE "rallye_id" = NEW."id"
                 AND "is_voting" = true
         LOOP
             PERFORM "public"."finalize_voting_for_question"(NEW."id", voting_question."question_id");
         END LOOP;
     END IF;
-
     RETURN NEW;
 END;
 $$;
@@ -91,22 +90,18 @@ BEGIN
         RAISE EXCEPTION 'Voting team cannot vote for itself.';
     END IF;
 
-    SELECT "status"
-    INTO rallye_status
-    FROM "public"."rallye"
-    WHERE "id" = "rallye_id_param";
+    SELECT "status" INTO rallye_status
+    FROM "public"."rallyes" WHERE "id" = "rallye_id_param";
 
     IF rallye_status IS NULL THEN
         RAISE EXCEPTION 'Rallye % does not exist.', "rallye_id_param";
     END IF;
-
     IF rallye_status <> 'voting' THEN
         RAISE EXCEPTION 'Rallye % is not in voting status.', "rallye_id_param";
     END IF;
 
     IF NOT EXISTS (
-        SELECT 1
-        FROM "public"."join_rallye_questions"
+        SELECT 1 FROM "public"."rallye_questions"
         WHERE "rallye_id" = "rallye_id_param"
             AND "question_id" = "question_id_param"
             AND "is_voting" = true
@@ -115,45 +110,34 @@ BEGIN
     END IF;
 
     IF NOT EXISTS (
-        SELECT 1
-        FROM "public"."rallye_team"
-        WHERE "id" = "voting_team_id_param"
-            AND "rallye_id" = "rallye_id_param"
+        SELECT 1 FROM "public"."teams"
+        WHERE "id" = "voting_team_id_param" AND "rallye_id" = "rallye_id_param"
     ) THEN
         RAISE EXCEPTION 'Voting team % does not belong to rallye %.', "voting_team_id_param", "rallye_id_param";
     END IF;
 
     IF NOT EXISTS (
-        SELECT 1
-        FROM "public"."rallye_team"
-        WHERE "id" = "voted_for_team_id_param"
-            AND "rallye_id" = "rallye_id_param"
+        SELECT 1 FROM "public"."teams"
+        WHERE "id" = "voted_for_team_id_param" AND "rallye_id" = "rallye_id_param"
     ) THEN
         RAISE EXCEPTION 'Voted-for team % does not belong to rallye %.', "voted_for_team_id_param", "rallye_id_param";
     END IF;
 
     IF NOT EXISTS (
-        SELECT 1
-        FROM "public"."team_questions"
+        SELECT 1 FROM "public"."team_answers"
         WHERE "team_id" = "voted_for_team_id_param"
             AND "question_id" = "question_id_param"
-            AND "team_answer" IS NOT NULL
-            AND btrim("team_answer") <> ''
+            AND "answer" IS NOT NULL
+            AND btrim("answer") <> ''
     ) THEN
         RAISE EXCEPTION 'Voted-for team % has no answer for question %.', "voted_for_team_id_param", "question_id_param";
     END IF;
 
     INSERT INTO "public"."voting_votes" (
-        "rallye_id",
-        "question_id",
-        "voting_team_id",
-        "voted_for_team_id"
+        "rallye_id", "question_id", "voting_team_id", "voted_for_team_id"
     )
     VALUES (
-        "rallye_id_param",
-        "question_id_param",
-        "voting_team_id_param",
-        "voted_for_team_id_param"
+        "rallye_id_param", "question_id_param", "voting_team_id_param", "voted_for_team_id_param"
     )
     ON CONFLICT ("rallye_id", "question_id", "voting_team_id") DO NOTHING;
 END;
@@ -172,7 +156,7 @@ DECLARE
     winner_team_id bigint;
     question_points bigint := 0;
 BEGIN
-    INSERT INTO "public"."voting_finalization" ("rallye_id", "question_id")
+    INSERT INTO "public"."voting_finalizations" ("rallye_id", "question_id")
     VALUES ("rallye_id_param", "question_id_param")
     ON CONFLICT ("rallye_id", "question_id") DO NOTHING;
 
@@ -181,21 +165,18 @@ BEGIN
         RETURN;
     END IF;
 
-    SELECT COALESCE("questions"."points", 0)
-    INTO question_points
-    FROM "public"."questions"
-    WHERE "questions"."id" = "question_id_param";
+    SELECT COALESCE("questions"."point_value", 0) INTO question_points
+    FROM "public"."questions" WHERE "questions"."id" = "question_id_param";
 
-    SELECT "voting_votes"."voted_for_team_id"
-    INTO winner_team_id
+    SELECT "voting_votes"."voted_for_team_id" INTO winner_team_id
     FROM "public"."voting_votes"
-    INNER JOIN "public"."team_questions"
-        ON "team_questions"."team_id" = "voting_votes"."voted_for_team_id"
-     AND "team_questions"."question_id" = "voting_votes"."question_id"
+    INNER JOIN "public"."team_answers"
+        ON "team_answers"."team_id" = "voting_votes"."voted_for_team_id"
+     AND "team_answers"."question_id" = "voting_votes"."question_id"
     WHERE "voting_votes"."rallye_id" = "rallye_id_param"
         AND "voting_votes"."question_id" = "question_id_param"
-        AND "team_questions"."team_answer" IS NOT NULL
-        AND btrim("team_questions"."team_answer") <> ''
+        AND "team_answers"."answer" IS NOT NULL
+        AND btrim("team_answers"."answer") <> ''
     GROUP BY "voting_votes"."voted_for_team_id"
     ORDER BY COUNT(*) DESC, MIN("voting_votes"."created_at") ASC, "voting_votes"."voted_for_team_id" ASC
     LIMIT 1;
@@ -204,12 +185,9 @@ BEGIN
         RETURN;
     END IF;
 
-    UPDATE "public"."team_questions"
-    SET
-        "correct" = true,
-        "points" = question_points
-    WHERE "team_id" = winner_team_id
-        AND "question_id" = "question_id_param";
+    UPDATE "public"."team_answers"
+    SET "correct" = true, "team_points" = question_points
+    WHERE "team_id" = winner_team_id AND "question_id" = "question_id_param";
 END;
 $$;
 
@@ -223,9 +201,9 @@ CREATE OR REPLACE FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_p
         AS $$
         SELECT "voting_votes"."question_id"
         FROM "public"."voting_votes"
-        INNER JOIN "public"."rallye_team"
-            ON "rallye_team"."id" = "voting_votes"."voting_team_id"
-         AND "rallye_team"."rallye_id" = "voting_votes"."rallye_id"
+        INNER JOIN "public"."teams"
+            ON "teams"."id" = "voting_votes"."voting_team_id"
+         AND "teams"."rallye_id" = "voting_votes"."rallye_id"
         WHERE "voting_votes"."rallye_id" = "rallye_id_param"
             AND "voting_votes"."voting_team_id" = "voting_team_id_param";
 $$;
@@ -239,40 +217,39 @@ SET default_tablespace = '';
 SET default_table_access_method = "heap";
 
 
-CREATE TABLE IF NOT EXISTS "public"."team_questions" (
+CREATE TABLE IF NOT EXISTS "public"."team_answers" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "question_id" bigint NOT NULL,
     "team_id" bigint NOT NULL,
     "correct" boolean NOT NULL,
-    "points" bigint NOT NULL,
-    "team_answer" "text"
+    "team_points" bigint NOT NULL,
+    "answer" "text"
 );
 
 
-ALTER TABLE "public"."team_questions" OWNER TO "postgres";
+ALTER TABLE "public"."team_answers" OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) RETURNS "public"."team_questions"
+CREATE OR REPLACE FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) RETURNS "public"."team_answers"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 DECLARE
-  updated_row team_questions%ROWTYPE;
+  updated_row team_answers%ROWTYPE;
 BEGIN
-  UPDATE team_questions
-  SET points = points + 1
+  UPDATE team_answers
+  SET team_points = team_points + 1
   WHERE id = target_answer_id
   RETURNING * INTO updated_row;
-  
   RETURN updated_row;
 END;
 $$;
 
 
-ALTER FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) OWNER TO "postgres";
+ALTER FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."answers" (
+CREATE TABLE IF NOT EXISTS "public"."solution_options" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "text" "text",
@@ -281,11 +258,11 @@ CREATE TABLE IF NOT EXISTS "public"."answers" (
 );
 
 
-ALTER TABLE "public"."answers" OWNER TO "postgres";
+ALTER TABLE "public"."solution_options" OWNER TO "postgres";
 
 
-ALTER TABLE "public"."answers" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."answers_id_seq"
+ALTER TABLE "public"."solution_options" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."solution_options_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -295,7 +272,7 @@ ALTER TABLE "public"."answers" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDE
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."join_rallye_questions" (
+CREATE TABLE IF NOT EXISTS "public"."rallye_questions" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "rallye_id" bigint NOT NULL,
     "question_id" bigint NOT NULL,
@@ -303,7 +280,7 @@ CREATE TABLE IF NOT EXISTS "public"."join_rallye_questions" (
 );
 
 
-ALTER TABLE "public"."join_rallye_questions" OWNER TO "postgres";
+ALTER TABLE "public"."rallye_questions" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."questions" (
@@ -311,7 +288,7 @@ CREATE TABLE IF NOT EXISTS "public"."questions" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "content" "text" NOT NULL,
     "type" "public"."question_type" NOT NULL,
-    "points" bigint,
+    "point_value" bigint,
     "hint" "text",
     "category" "text",
     "bucket_path" "text"
@@ -321,17 +298,17 @@ CREATE TABLE IF NOT EXISTS "public"."questions" (
 ALTER TABLE "public"."questions" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."questions_geocaching" (
+CREATE TABLE IF NOT EXISTS "public"."geocaching_questions" (
     "question_id" bigint NOT NULL,
     "target_latitude" double precision NOT NULL,
     "target_longitude" double precision NOT NULL,
     "proximity_radius" integer DEFAULT 10 NOT NULL,
-    "geocaching_input_type" text DEFAULT 'text'::text NOT NULL,
-    CONSTRAINT "questions_geocaching_input_type_check" CHECK (("geocaching_input_type" = ANY (ARRAY['text'::text, 'qr'::text])))
+    "input_type" text DEFAULT 'text'::text NOT NULL,
+    CONSTRAINT "geocaching_questions_input_type_check" CHECK (("input_type" = ANY (ARRAY['text'::text, 'qr'::text])))
 );
 
 
-ALTER TABLE "public"."questions_geocaching" OWNER TO "postgres";
+ALTER TABLE "public"."geocaching_questions" OWNER TO "postgres";
 
 
 ALTER TABLE "public"."questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
@@ -345,22 +322,22 @@ ALTER TABLE "public"."questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS I
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."rallye" (
+CREATE TABLE IF NOT EXISTS "public"."rallyes" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "end_time" time without time zone,
+    "rallye_end" time without time zone,
     "status" "public"."rallye_status" DEFAULT 'draft'::"public"."rallye_status" NOT NULL,
     "name" "text" NOT NULL,
-    "password" "text",
+    "rallye_code" "text",
     "department_id" bigint
 );
 
 
-ALTER TABLE "public"."rallye" OWNER TO "postgres";
+ALTER TABLE "public"."rallyes" OWNER TO "postgres";
 
 
-ALTER TABLE "public"."rallye" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."rallye_id_seq"
+ALTER TABLE "public"."rallyes" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."rallyes_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -370,20 +347,20 @@ ALTER TABLE "public"."rallye" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDEN
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."rallye_team" (
+CREATE TABLE IF NOT EXISTS "public"."teams" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "name" "text" NOT NULL,
     "rallye_id" bigint,
-    "time_played" timestamp with time zone
+    "play_time" timestamp with time zone
 );
 
 
-ALTER TABLE "public"."rallye_team" OWNER TO "postgres";
+ALTER TABLE "public"."teams" OWNER TO "postgres";
 
 
-ALTER TABLE "public"."rallye_team" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."rallye_team_id_seq"
+ALTER TABLE "public"."teams" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."teams_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -393,8 +370,8 @@ ALTER TABLE "public"."rallye_team" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS
 
 
 
-ALTER TABLE "public"."team_questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."team_questions_id_seq"
+ALTER TABLE "public"."team_answers" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."team_answers_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -404,14 +381,14 @@ ALTER TABLE "public"."team_questions" ALTER COLUMN "id" ADD GENERATED BY DEFAULT
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."voting_finalization" (
+CREATE TABLE IF NOT EXISTS "public"."voting_finalizations" (
     "rallye_id" bigint NOT NULL,
     "question_id" bigint NOT NULL,
     "finalized_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
 
-ALTER TABLE "public"."voting_finalization" OWNER TO "postgres";
+ALTER TABLE "public"."voting_finalizations" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."voting_votes" (
@@ -428,7 +405,7 @@ ALTER TABLE "public"."voting_votes" OWNER TO "postgres";
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."location" (
+CREATE TABLE IF NOT EXISTS "public"."locations" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "name" text NOT NULL,
@@ -436,11 +413,11 @@ CREATE TABLE IF NOT EXISTS "public"."location" (
 );
 
 
-ALTER TABLE "public"."location" OWNER TO "postgres";
+ALTER TABLE "public"."locations" OWNER TO "postgres";
 
 
-ALTER TABLE "public"."location" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."location_id_seq"
+ALTER TABLE "public"."locations" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."locations_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -449,7 +426,7 @@ ALTER TABLE "public"."location" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS ID
 );
 
 
-CREATE TABLE IF NOT EXISTS "public"."department" (
+CREATE TABLE IF NOT EXISTS "public"."departments" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "name" text NOT NULL,
@@ -457,11 +434,11 @@ CREATE TABLE IF NOT EXISTS "public"."department" (
 );
 
 
-ALTER TABLE "public"."department" OWNER TO "postgres";
+ALTER TABLE "public"."departments" OWNER TO "postgres";
 
 
-ALTER TABLE "public"."department" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
-    SEQUENCE NAME "public"."department_id_seq"
+ALTER TABLE "public"."departments" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."departments_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -470,13 +447,13 @@ ALTER TABLE "public"."department" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS 
 );
 
 
-ALTER TABLE ONLY "public"."join_rallye_questions"
-    ADD CONSTRAINT "JOIN_rallye_questions_pkey" PRIMARY KEY ("rallye_id", "question_id");
+ALTER TABLE ONLY "public"."rallye_questions"
+    ADD CONSTRAINT "rallye_questions_pkey" PRIMARY KEY ("rallye_id", "question_id");
 
 
 
-ALTER TABLE ONLY "public"."answers"
-    ADD CONSTRAINT "answers_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."solution_options"
+    ADD CONSTRAINT "solution_options_pkey" PRIMARY KEY ("id");
 
 
 
@@ -485,33 +462,33 @@ ALTER TABLE ONLY "public"."questions"
 
 
 
-ALTER TABLE ONLY "public"."rallye_team"
-    ADD CONSTRAINT "rallyeTeam_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."teams"
+    ADD CONSTRAINT "teams_pkey" PRIMARY KEY ("id");
 
 
 
-ALTER TABLE ONLY "public"."rallye"
-    ADD CONSTRAINT "rallye_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."rallyes"
+    ADD CONSTRAINT "rallyes_pkey" PRIMARY KEY ("id");
 
 
 
-ALTER TABLE ONLY "public"."team_questions"
-    ADD CONSTRAINT "teamQuestions_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."team_answers"
+    ADD CONSTRAINT "team_answers_pkey" PRIMARY KEY ("id");
 
 
 
-ALTER TABLE ONLY "public"."questions_geocaching"
-    ADD CONSTRAINT "questions_geocaching_pkey" PRIMARY KEY ("question_id");
+ALTER TABLE ONLY "public"."geocaching_questions"
+    ADD CONSTRAINT "geocaching_questions_pkey" PRIMARY KEY ("question_id");
 
 
 
-ALTER TABLE ONLY "public"."team_questions"
-    ADD CONSTRAINT "team_questions_team_id_question_id_key" UNIQUE ("team_id", "question_id");
+ALTER TABLE ONLY "public"."team_answers"
+    ADD CONSTRAINT "team_answers_team_id_question_id_key" UNIQUE ("team_id", "question_id");
 
 
 
-ALTER TABLE ONLY "public"."voting_finalization"
-    ADD CONSTRAINT "voting_finalization_pkey" PRIMARY KEY ("rallye_id", "question_id");
+ALTER TABLE ONLY "public"."voting_finalizations"
+    ADD CONSTRAINT "voting_finalizations_pkey" PRIMARY KEY ("rallye_id", "question_id");
 
 
 
@@ -528,52 +505,52 @@ CREATE INDEX "voting_votes_target_idx" ON "public"."voting_votes" USING btree ("
 
 
 
-CREATE TRIGGER "trigger_auto_finalize_voting" AFTER UPDATE OF "status" ON "public"."rallye" FOR EACH ROW WHEN ((old."status" IS DISTINCT FROM new."status")) EXECUTE FUNCTION "public"."auto_finalize_voting"();
+CREATE TRIGGER "trigger_auto_finalize_voting" AFTER UPDATE OF "status" ON "public"."rallyes" FOR EACH ROW WHEN ((old."status" IS DISTINCT FROM new."status")) EXECUTE FUNCTION "public"."auto_finalize_voting"();
 
 
 
-ALTER TABLE ONLY "public"."join_rallye_questions"
-    ADD CONSTRAINT "JOIN_rallye_questions_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."rallye_questions"
+    ADD CONSTRAINT "rallye_questions_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."join_rallye_questions"
-    ADD CONSTRAINT "JOIN_rallye_questions_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallye"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."rallye_questions"
+    ADD CONSTRAINT "rallye_questions_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallyes"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."answers"
-    ADD CONSTRAINT "answers_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."solution_options"
+    ADD CONSTRAINT "solution_options_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."rallye_team"
-    ADD CONSTRAINT "rallyeTeam_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallye"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."teams"
+    ADD CONSTRAINT "teams_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallyes"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."team_questions"
-    ADD CONSTRAINT "teamQuestions_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id");
+ALTER TABLE ONLY "public"."team_answers"
+    ADD CONSTRAINT "team_answers_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id");
 
 
 
-ALTER TABLE ONLY "public"."team_questions"
-    ADD CONSTRAINT "teamQuestions_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "public"."rallye_team"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."team_answers"
+    ADD CONSTRAINT "team_answers_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."questions_geocaching"
-    ADD CONSTRAINT "questions_geocaching_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."geocaching_questions"
+    ADD CONSTRAINT "geocaching_questions_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."voting_finalization"
-    ADD CONSTRAINT "voting_finalization_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."voting_finalizations"
+    ADD CONSTRAINT "voting_finalizations_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."voting_finalization"
-    ADD CONSTRAINT "voting_finalization_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallye"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."voting_finalizations"
+    ADD CONSTRAINT "voting_finalizations_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallyes"("id") ON DELETE CASCADE;
 
 
 
@@ -583,47 +560,47 @@ ALTER TABLE ONLY "public"."voting_votes"
 
 
 ALTER TABLE ONLY "public"."voting_votes"
-    ADD CONSTRAINT "voting_votes_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallye"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "voting_votes_rallye_id_fkey" FOREIGN KEY ("rallye_id") REFERENCES "public"."rallyes"("id") ON DELETE CASCADE;
 
 
 
 ALTER TABLE ONLY "public"."voting_votes"
-    ADD CONSTRAINT "voting_votes_voted_for_team_id_fkey" FOREIGN KEY ("voted_for_team_id") REFERENCES "public"."rallye_team"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "voting_votes_voted_for_team_id_fkey" FOREIGN KEY ("voted_for_team_id") REFERENCES "public"."teams"("id") ON DELETE CASCADE;
 
 
 
 ALTER TABLE ONLY "public"."voting_votes"
-    ADD CONSTRAINT "voting_votes_voting_team_id_fkey" FOREIGN KEY ("voting_team_id") REFERENCES "public"."rallye_team"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "voting_votes_voting_team_id_fkey" FOREIGN KEY ("voting_team_id") REFERENCES "public"."teams"("id") ON DELETE CASCADE;
 
 
 
-ALTER TABLE ONLY "public"."location"
-    ADD CONSTRAINT "location_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."locations"
+    ADD CONSTRAINT "locations_pkey" PRIMARY KEY ("id");
 
 
-ALTER TABLE ONLY "public"."department"
-    ADD CONSTRAINT "department_pkey" PRIMARY KEY ("id");
-ALTER TABLE ONLY "public"."location"
-    ADD CONSTRAINT "location_default_rallye_id_fkey" FOREIGN KEY ("default_rallye_id") REFERENCES "public"."rallye"("id") ON DELETE SET NULL;
+ALTER TABLE ONLY "public"."departments"
+    ADD CONSTRAINT "departments_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."locations"
+    ADD CONSTRAINT "locations_default_rallye_id_fkey" FOREIGN KEY ("default_rallye_id") REFERENCES "public"."rallyes"("id") ON DELETE SET NULL;
 
 
-ALTER TABLE ONLY "public"."department"
-    ADD CONSTRAINT "department_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "public"."location"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."departments"
+    ADD CONSTRAINT "departments_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "public"."locations"("id") ON DELETE CASCADE;
 
 
-ALTER TABLE ONLY "public"."rallye"
-    ADD CONSTRAINT "rallye_department_id_fkey" FOREIGN KEY ("department_id") REFERENCES "public"."department"("id") ON DELETE RESTRICT;
+ALTER TABLE ONLY "public"."rallyes"
+    ADD CONSTRAINT "rallyes_department_id_fkey" FOREIGN KEY ("department_id") REFERENCES "public"."departments"("id") ON DELETE RESTRICT;
 
 
-CREATE INDEX "rallye_department_id_idx" ON "public"."rallye" USING btree ("department_id");
-
-
-
-CREATE POLICY "Enable insert access for all users" ON "public"."rallye_team" FOR INSERT WITH CHECK (true);
+CREATE INDEX "rallyes_department_id_idx" ON "public"."rallyes" USING btree ("department_id");
 
 
 
-CREATE POLICY "Enable read access for all users" ON "public"."answers" FOR SELECT USING (true);
+CREATE POLICY "Enable insert access for all users" ON "public"."teams" FOR INSERT WITH CHECK (true);
+
+
+
+CREATE POLICY "Enable read access for all users" ON "public"."solution_options" FOR SELECT USING (true);
 
 
 
@@ -631,19 +608,19 @@ CREATE POLICY "Enable read access for all users" ON "public"."questions" FOR SEL
 
 
 
-CREATE POLICY "Enable read access for all users" ON "public"."questions_geocaching" FOR SELECT USING (true);
+CREATE POLICY "Enable read access for all users" ON "public"."geocaching_questions" FOR SELECT USING (true);
 
 
 
-CREATE POLICY "Enable update access for all users" ON "public"."rallye_team" FOR UPDATE USING (true);
+CREATE POLICY "Enable update access for all users" ON "public"."teams" FOR UPDATE USING (true);
 
 
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."answers" TO "authenticated" USING (true) WITH CHECK (true);
+CREATE POLICY "Enable write for authenticated users only" ON "public"."solution_options" TO "authenticated" USING (true) WITH CHECK (true);
 
 
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."join_rallye_questions" TO "authenticated" USING (true) WITH CHECK (true);
+CREATE POLICY "Enable write for authenticated users only" ON "public"."rallye_questions" TO "authenticated" USING (true) WITH CHECK (true);
 
 
 
@@ -651,80 +628,80 @@ CREATE POLICY "Enable write for authenticated users only" ON "public"."questions
 
 
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."questions_geocaching" TO "authenticated" USING (true) WITH CHECK (true);
+CREATE POLICY "Enable write for authenticated users only" ON "public"."geocaching_questions" TO "authenticated" USING (true) WITH CHECK (true);
 
 
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."rallye" TO "authenticated" USING (true) WITH CHECK (true);
+CREATE POLICY "Enable write for authenticated users only" ON "public"."rallyes" TO "authenticated" USING (true) WITH CHECK (true);
 
 
 
-CREATE POLICY "Enabled read access for all users" ON "public"."join_rallye_questions" FOR SELECT USING (true);
+CREATE POLICY "Enabled read access for all users" ON "public"."rallye_questions" FOR SELECT USING (true);
 
 
 
-CREATE POLICY "Enabled read access for all users" ON "public"."rallye" FOR SELECT USING (true);
+CREATE POLICY "Enabled read access for all users" ON "public"."rallyes" FOR SELECT USING (true);
 
 
 
-CREATE POLICY "Enabled read access for all users" ON "public"."rallye_team" FOR SELECT USING (true);
+CREATE POLICY "Enabled read access for all users" ON "public"."teams" FOR SELECT USING (true);
 
 
 
-CREATE POLICY "Enabled read access for all users" ON "public"."team_questions" FOR SELECT USING (true);
+CREATE POLICY "Enabled read access for all users" ON "public"."team_answers" FOR SELECT USING (true);
 
 
 
-CREATE POLICY "Enabled write access for all users" ON "public"."rallye_team" FOR INSERT TO "authenticated" WITH CHECK (true);
+CREATE POLICY "Enabled write access for all users" ON "public"."teams" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
 
-CREATE POLICY "Enabled write access for all users" ON "public"."team_questions" FOR INSERT WITH CHECK (true);
+CREATE POLICY "Enabled write access for all users" ON "public"."team_answers" FOR INSERT WITH CHECK (true);
 
 
 
-ALTER TABLE "public"."answers" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."solution_options" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."join_rallye_questions" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."rallye_questions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."questions" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."questions_geocaching" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."geocaching_questions" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."rallye" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."rallyes" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."rallye_team" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."teams" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."team_questions" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."team_answers" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."voting_finalization" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."voting_finalizations" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."voting_votes" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."location" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."locations" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."department" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."departments" ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Enable read access for all users" ON "public"."location" FOR SELECT USING (true);
-
-
-CREATE POLICY "Enable write for authenticated users only" ON "public"."location" TO "authenticated" USING (true) WITH CHECK (true);
+CREATE POLICY "Enable read access for all users" ON "public"."locations" FOR SELECT USING (true);
 
 
-CREATE POLICY "Enable read access for all users" ON "public"."department" FOR SELECT USING (true);
+CREATE POLICY "Enable write for authenticated users only" ON "public"."locations" TO "authenticated" USING (true) WITH CHECK (true);
 
 
-CREATE POLICY "Enable write for authenticated users only" ON "public"."department" TO "authenticated" USING (true) WITH CHECK (true);
+CREATE POLICY "Enable read access for all users" ON "public"."departments" FOR SELECT USING (true);
+
+
+CREATE POLICY "Enable write for authenticated users only" ON "public"."departments" TO "authenticated" USING (true) WITH CHECK (true);
 
 
 REVOKE USAGE ON SCHEMA "public" FROM PUBLIC;
@@ -735,9 +712,9 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) TO "anon";
-GRANT ALL ON FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."JOIN_question_answer"("rallye_id" bigint) TO "service_role";
+GRANT ALL ON FUNCTION "public"."join_question_answer"("rallye_id" bigint) TO "anon";
+GRANT ALL ON FUNCTION "public"."join_question_answer"("rallye_id" bigint) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."join_question_answer"("rallye_id" bigint) TO "service_role";
 
 
 
@@ -761,33 +738,33 @@ GRANT ALL ON FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_param"
 GRANT ALL ON FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_param" bigint, "voting_team_id_param" bigint) TO "service_role";
 
 
-GRANT ALL ON TABLE "public"."team_questions" TO "anon";
-GRANT ALL ON TABLE "public"."team_questions" TO "authenticated";
-GRANT ALL ON TABLE "public"."team_questions" TO "service_role";
+GRANT ALL ON TABLE "public"."team_answers" TO "anon";
+GRANT ALL ON TABLE "public"."team_answers" TO "authenticated";
+GRANT ALL ON TABLE "public"."team_answers" TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) TO "anon";
-GRANT ALL ON FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."increment_team_question_points"("target_answer_id" integer) TO "service_role";
+GRANT ALL ON FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."increment_team_answer_points"("target_answer_id" integer) TO "service_role";
 
 
 
-GRANT SELECT ON TABLE "public"."answers" TO "anon";
-GRANT ALL ON TABLE "public"."answers" TO "authenticated";
-GRANT ALL ON TABLE "public"."answers" TO "service_role";
+GRANT SELECT ON TABLE "public"."solution_options" TO "anon";
+GRANT ALL ON TABLE "public"."solution_options" TO "authenticated";
+GRANT ALL ON TABLE "public"."solution_options" TO "service_role";
 
 
 
-GRANT SELECT ON SEQUENCE "public"."answers_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."answers_id_seq" TO "service_role";
+GRANT SELECT ON SEQUENCE "public"."solution_options_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."solution_options_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."solution_options_id_seq" TO "service_role";
 
 
 
-GRANT SELECT ON TABLE "public"."join_rallye_questions" TO "anon";
-GRANT ALL ON TABLE "public"."join_rallye_questions" TO "authenticated";
-GRANT ALL ON TABLE "public"."join_rallye_questions" TO "service_role";
+GRANT SELECT ON TABLE "public"."rallye_questions" TO "anon";
+GRANT ALL ON TABLE "public"."rallye_questions" TO "authenticated";
+GRANT ALL ON TABLE "public"."rallye_questions" TO "service_role";
 
 GRANT SELECT ON TABLE "public"."questions" TO "anon";
 GRANT ALL ON TABLE "public"."questions" TO "authenticated";
@@ -795,9 +772,9 @@ GRANT ALL ON TABLE "public"."questions" TO "service_role";
 
 
 
-GRANT SELECT ON TABLE "public"."questions_geocaching" TO "anon";
-GRANT ALL ON TABLE "public"."questions_geocaching" TO "authenticated";
-GRANT ALL ON TABLE "public"."questions_geocaching" TO "service_role";
+GRANT SELECT ON TABLE "public"."geocaching_questions" TO "anon";
+GRANT ALL ON TABLE "public"."geocaching_questions" TO "authenticated";
+GRANT ALL ON TABLE "public"."geocaching_questions" TO "service_role";
 
 
 
@@ -807,37 +784,37 @@ GRANT ALL ON SEQUENCE "public"."questions_id_seq" TO "service_role";
 
 
 
-GRANT SELECT ON TABLE "public"."rallye" TO "anon";
-GRANT ALL ON TABLE "public"."rallye" TO "authenticated";
-GRANT ALL ON TABLE "public"."rallye" TO "service_role";
+GRANT SELECT ON TABLE "public"."rallyes" TO "anon";
+GRANT ALL ON TABLE "public"."rallyes" TO "authenticated";
+GRANT ALL ON TABLE "public"."rallyes" TO "service_role";
 
 
 
-GRANT SELECT ON SEQUENCE "public"."rallye_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."rallye_id_seq" TO "service_role";
+GRANT SELECT ON SEQUENCE "public"."rallyes_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."rallyes_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."rallyes_id_seq" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."rallye_team" TO "anon";
-GRANT ALL ON TABLE "public"."rallye_team" TO "authenticated";
-GRANT ALL ON TABLE "public"."rallye_team" TO "service_role";
+GRANT ALL ON TABLE "public"."teams" TO "anon";
+GRANT ALL ON TABLE "public"."teams" TO "authenticated";
+GRANT ALL ON TABLE "public"."teams" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."rallye_team_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."rallye_team_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."rallye_team_id_seq" TO "service_role";
+GRANT ALL ON SEQUENCE "public"."teams_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."teams_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."teams_id_seq" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."team_questions_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."team_questions_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."team_questions_id_seq" TO "service_role";
+GRANT ALL ON SEQUENCE "public"."team_answers_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."team_answers_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."team_answers_id_seq" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."voting_finalization" TO "service_role";
+GRANT ALL ON TABLE "public"."voting_finalizations" TO "service_role";
 
 
 
@@ -845,24 +822,24 @@ GRANT ALL ON TABLE "public"."voting_votes" TO "service_role";
 
 
 
-GRANT SELECT ON TABLE "public"."location" TO "anon";
-GRANT ALL ON TABLE "public"."location" TO "authenticated";
-GRANT ALL ON TABLE "public"."location" TO "service_role";
+GRANT SELECT ON TABLE "public"."locations" TO "anon";
+GRANT ALL ON TABLE "public"."locations" TO "authenticated";
+GRANT ALL ON TABLE "public"."locations" TO "service_role";
 
 
-GRANT SELECT ON SEQUENCE "public"."location_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."location_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."location_id_seq" TO "service_role";
+GRANT SELECT ON SEQUENCE "public"."locations_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."locations_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."locations_id_seq" TO "service_role";
 
 
-GRANT SELECT ON TABLE "public"."department" TO "anon";
-GRANT ALL ON TABLE "public"."department" TO "authenticated";
-GRANT ALL ON TABLE "public"."department" TO "service_role";
+GRANT SELECT ON TABLE "public"."departments" TO "anon";
+GRANT ALL ON TABLE "public"."departments" TO "authenticated";
+GRANT ALL ON TABLE "public"."departments" TO "service_role";
 
 
-GRANT SELECT ON SEQUENCE "public"."department_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."department_id_seq" TO "service_role";
+GRANT SELECT ON SEQUENCE "public"."departments_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."departments_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."departments_id_seq" TO "service_role";
 
 
 
