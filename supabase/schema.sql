@@ -31,11 +31,11 @@ ALTER TYPE "public"."question_type" OWNER TO "postgres";
 
 
 CREATE TYPE "public"."rallye_status" AS ENUM (
-    'preparing',
-    'inactive',
+    'draft',
+    'ready',
     'running',
     'voting',
-    'ranking',
+    'results',
     'ended'
 );
 
@@ -61,7 +61,7 @@ CREATE OR REPLACE FUNCTION "public"."auto_finalize_voting"() RETURNS trigger
 DECLARE
     voting_question record;
 BEGIN
-    IF OLD."status" = 'voting' AND NEW."status" IN ('ranking', 'ended') THEN
+    IF OLD."status" = 'voting' AND NEW."status" IN ('results', 'ended') THEN
         FOR voting_question IN
             SELECT "question_id"
             FROM "public"."join_rallye_questions"
@@ -349,7 +349,7 @@ CREATE TABLE IF NOT EXISTS "public"."rallye" (
     "id" bigint NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "end_time" time without time zone,
-    "status" "public"."rallye_status" DEFAULT 'preparing'::"public"."rallye_status" NOT NULL,
+    "status" "public"."rallye_status" DEFAULT 'draft'::"public"."rallye_status" NOT NULL,
     "name" "text" NOT NULL,
     "password" "text",
     "department_id" bigint

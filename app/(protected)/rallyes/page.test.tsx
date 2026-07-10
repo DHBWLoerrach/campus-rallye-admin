@@ -63,9 +63,9 @@ const makeRallye = (
 function buildDefaultFixture(): SupabaseFixture {
   return {
     rallyes: [
-      makeRallye(1, 'Campus Tour A', 'inactive', 101),
+      makeRallye(1, 'Campus Tour A', 'ready', 101),
       makeRallye(2, 'Marketing läuft', 'running', 100),
-      makeRallye(3, 'Marketing Entwurf', 'preparing', 100),
+      makeRallye(3, 'Marketing Entwurf', 'draft', 100),
       makeRallye(4, 'Marketing fertig', 'ended', 100),
       makeRallye(5, 'Informatik 1', 'running', 101),
     ],

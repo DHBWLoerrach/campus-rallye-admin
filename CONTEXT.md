@@ -188,15 +188,15 @@ _Vermeiden_: Gestartet
 Die Lebenszyklusphase einer Team-Rallye.
 _Vermeiden_: Rallye-Status, State
 
-**Vorbereitung**:
+**Entwurf**:
 Ein Team-Rallye-Status, in dem die Team-Rallye eingerichtet wird und noch unvollständig sein kann.
-_Vermeiden_: Preparing
+_Vermeiden_: Draft
 
-**Inaktiv**:
-Ein Campus-Tour-Status oder Team-Rallye-Status, in dem die Rallye nicht sichtbar oder nicht aktiv spielbar ist.
-_Vermeiden_: Inactive
+**Bereit**:
+Ein Team-Rallye-Status, in dem die Rallye in der Rallye-App sichtbar, aber noch nicht spielbar ist.
+_Vermeiden_: Ready
 
-**Gestartet**:
+**Läuft**:
 Ein Team-Rallye-Status, in dem Teams die Team-Rallye aktiv spielen können.
 _Vermeiden_: Running
 
@@ -208,11 +208,11 @@ _Vermeiden_: Voting
 Eine Rallye-Frage, deren Team-Antworten in der Abstimmung bewertet werden.
 _Vermeiden_: Voting question
 
-**Ranking**:
+**Ergebnisse**:
 Ein Team-Rallye-Status, in dem das Ergebnis sichtbar, aber noch nicht final ist.
-_Vermeiden_: Ranking phase
+_Vermeiden_: Results
 
-**Beendet**:
+**Abgeschlossen**:
 Ein Team-Rallye-Status, in dem die Team-Rallye geschlossen und der Endstand final ist.
 _Vermeiden_: Ended
 
@@ -304,14 +304,15 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 | Spielzeit              | `playTime`                 | `play_time`                 | Dauer eines Teams in der Team-Rallye.            |
 | Campus-Tour-Status     | `campusTourStatus`         | `campus_tour_status`        | Statuskonzept nur für Campus-Touren.             |
 | Team-Rallye-Status     | `teamRallyeStatus`         | `team_rallye_status`        | Statuskonzept nur für Team-Rallyes.              |
-| Aktiv                  | `active`                   | `active`                    | Campus-Tour-Statuswert.                          |
-| Inaktiv                | `inactive`                 | `inactive`                  | Campus-Tour- oder Team-Rallye-Statuswert.        |
-| Vorbereitung           | `preparing`                | `preparing`                 | Team-Rallye-Statuswert.                          |
-| Gestartet              | `running`                  | `running`                   | Team-Rallye-Statuswert.                          |
+| Aktiv                  | —                          | —                           | Fachlicher Campus-Tour-Status; noch nicht separat im Schema modelliert. |
+| Inaktiv                | —                          | —                           | Fachlicher Campus-Tour-Status; noch nicht separat im Schema modelliert. |
+| Entwurf                | `draft`                    | `draft`                     | Team-Rallye-Statuswert.                          |
+| Bereit                 | `ready`                    | `ready`                     | Team-Rallye-Statuswert.                          |
+| Läuft                  | `running`                  | `running`                   | Team-Rallye-Statuswert.                          |
 | Abstimmung             | `voting`                   | `voting`                    | Team-Rallye-Statuswert und Bewertungsphase.      |
 | Abstimmungsfrage       | `votingQuestion`           | `voting_question`           | Rallye-Frage in der Abstimmung.                  |
-| Ranking                | `ranking`                  | `ranking`                   | Team-Rallye-Statuswert.                          |
-| Beendet                | `ended`                    | `ended`                     | Finaler Team-Rallye-Statuswert.                  |
+| Ergebnisse             | `results`                  | `results`                   | Team-Rallye-Statuswert.                          |
+| Abgeschlossen          | `ended`                    | `ended`                     | Finaler Team-Rallye-Statuswert.                  |
 | Admin-App              | `adminApp`                 | `admin_app`                 | Webanwendung für Bearbeitende.                   |
 | Rallye-App             | `rallyeApp`                | `rallye_app`                | App für Teilnehmende.                            |
 | Bearbeitende           | `editor`                   | `editor`                    | Nicht `staff user`.                              |
@@ -411,16 +412,16 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Campus-Tour** hat genau einen **Campus-Tour-Status**.
 - **Aktiv** und **Inaktiv** sind **Campus-Tour-Status**-Werte.
 - Eine **Team-Rallye** hat genau einen **Team-Rallye-Status**.
-- **Vorbereitung**, **Inaktiv**, **Gestartet**, **Abstimmung**, **Ranking** und **Beendet** sind **Team-Rallye-Status**-Werte.
-- Eine **Team-Rallye** startet fachlich durch den Statuswechsel zu **Gestartet**, nicht durch einen eigenen Startzeitpunkt.
-- Eine **Team-Rallye** in **Vorbereitung** kann keinen **Rallye-Code** haben.
-- Eine **Team-Rallye** im Status **Gestartet** braucht genau einen **Rallye-Code**.
+- **Entwurf**, **Bereit**, **Läuft**, **Abstimmung**, **Ergebnisse** und **Abgeschlossen** sind **Team-Rallye-Status**-Werte.
+- Eine **Team-Rallye** startet fachlich durch den Statuswechsel zu **Läuft**, nicht durch einen eigenen Startzeitpunkt.
+- Eine **Team-Rallye** im **Entwurf** kann keinen **Rallye-Code** haben.
+- Eine **Team-Rallye** im Status **Läuft** braucht genau einen **Rallye-Code**.
 - Eine **Team-Rallye** hat genau ein **Rallye-Ende**.
 - Das **Rallye-Ende** markiert den regulären Spielschluss, löst aber keinen automatischen Statuswechsel aus.
-- Nach dem **Rallye-Ende** steuert der **Organisator** die Übergänge in **Abstimmung**, **Ranking** und **Beendet**.
-- Im Status **Ranking** ist das **Ergebnis** sichtbar, aber noch nicht der **Endstand**.
-- Im Status **Beendet** ist das **Ergebnis** der **Endstand**.
-- **Beendet** ist für eine konkrete **Team-Rallye** final.
+- Nach dem **Rallye-Ende** steuert der **Organisator** die Übergänge in **Abstimmung**, **Ergebnisse** und **Abgeschlossen**.
+- Im Status **Ergebnisse** ist das **Ergebnis** sichtbar, aber noch nicht der **Endstand**.
+- Im Status **Abgeschlossen** ist das **Ergebnis** der **Endstand**.
+- **Abgeschlossen** ist für eine konkrete **Team-Rallye** final.
 - Eine beendete **Team-Rallye** wird nicht wieder geöffnet; Wiederverwendung erfolgt über eine neue **Team-Rallye** aus einer **Rallye-Vorlage**.
 - Eine **Abstimmungsfrage** ist eine **Rallye-Frage** und gehört nur in eine **Team-Rallye**.
 - Eine **Campus-Tour** hat keine **Abstimmungsfragen**, keinen **Rallye-Code** und kein **Rallye-Ende**.
@@ -473,5 +474,5 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - "Event-Rallye" und **Event-Bereich** wurden als eigene Konzepte erwogen. Geklärt: Eine Team-Rallye ist eine **Bereichs-Rallye**; ein Event-Kontext sollte erst modelliert werden, wenn er ein echtes Konzept wird.
 - Eine eigene Organisator-Bewertung gibt es aktuell nicht; nicht automatisch bewertete **Team-Antworten** werden über **Abstimmung** bewertet.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
-- Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**.
+- Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
 - Die **Geocaching-Frage** wurde im Datenmodell (Fragetyp `geocaching`, Tabelle `questions_geocaching`) eingeführt, bevor sie in dieser Fachsprache stand. Geklärt: Sie ist ein eigener Fragetyp, wird automatisch bewertet, braucht kein **Team** und ist in **Campus-Touren** erlaubt. Sie wird aktuell noch nicht in der **Admin-App** gepflegt.

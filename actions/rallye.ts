@@ -302,12 +302,12 @@ export async function duplicateRallye(
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  // The copy starts as a fresh draft: preparing, no planned end, no password.
+  // The copy starts as a fresh draft with no planned end or password.
   const { data: created, error: insertError } = await supabase
     .from('rallye')
     .insert({
       name: `${source.name} (Kopie)`,
-      status: 'preparing' as RallyeStatus,
+      status: 'draft' as RallyeStatus,
       end_time: null,
       password: '',
       department_id: source.department_id,
@@ -390,7 +390,7 @@ export async function createRallyeWithQuestions(input: {
     .from('rallye')
     .insert({
       name: nameResult.data.name,
-      status: 'preparing' as RallyeStatus,
+      status: 'draft' as RallyeStatus,
       end_time: endTime,
       password: input.password,
       department_id: departmentIdResult.data,

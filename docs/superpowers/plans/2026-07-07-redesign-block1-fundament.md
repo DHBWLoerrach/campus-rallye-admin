@@ -27,7 +27,7 @@ Die sechs DB-Status bekommen nutzerverständliche Phasen-Namen (Spec Abschnitt 4
 - Modify: `lib/types.ts:30-47` (`getRallyeStatusLabel`)
 
 **Interfaces:**
-- Produces: `getRallyeStatusLabel(status: RallyeStatus): string` mit neuen Labels: preparing→`'Entwurf'`, inactive→`'Bereit'`, running→`'Läuft'`, voting→`'Abstimmung'`, ranking→`'Ranking'`, ended→`'Abgeschlossen'`.
+- Produces: `getRallyeStatusLabel(status: RallyeStatus): string` mit neuen Labels: draft→`'Entwurf'`, ready→`'Bereit'`, running→`'Läuft'`, voting→`'Abstimmung'`, results→`'Ergebnisse'`, ended→`'Abgeschlossen'`.
 
 - [ ] **Step 1: Failing Test schreiben** — neue Datei `lib/types.test.ts`:
 
@@ -37,11 +37,11 @@ import { getRallyeStatusLabel, RALLYE_STATUSES } from './types';
 
 describe('getRallyeStatusLabel', () => {
   it.each([
-    ['preparing', 'Entwurf'],
-    ['inactive', 'Bereit'],
+    ['draft', 'Entwurf'],
+    ['ready', 'Bereit'],
     ['running', 'Läuft'],
     ['voting', 'Abstimmung'],
-    ['ranking', 'Ranking'],
+    ['results', 'Ergebnisse'],
     ['ended', 'Abgeschlossen'],
   ] as const)('maps %s to %s', (status, label) => {
     expect(getRallyeStatusLabel(status)).toBe(label);
@@ -65,16 +65,16 @@ Expected: FAIL — `'Vorbereitung'` statt `'Entwurf'` etc.
 ```ts
 export const getRallyeStatusLabel = (status: RallyeStatus): string => {
   switch (status) {
-    case 'preparing':
+    case 'draft':
       return 'Entwurf';
-    case 'inactive':
+    case 'ready':
       return 'Bereit';
     case 'running':
       return 'Läuft';
     case 'voting':
       return 'Abstimmung';
-    case 'ranking':
-      return 'Ranking';
+    case 'results':
+      return 'Ergebnisse';
     case 'ended':
       return 'Abgeschlossen';
     default:
@@ -99,7 +99,7 @@ git commit -m "Rename rallye status labels to user-facing phase names"
 
 ### Task 2: Phasen-Übergangs-Helper `getNextRallyeTransition`
 
-Kapselt „welche Aktion kommt als Nächstes" für den späteren Phasen-Button (Block 2). Sonderfall: von `running` geht es nur nach `voting`, wenn die Rallye Abstimmungs-Fragen hat, sonst direkt nach `ranking`.
+Kapselt „welche Aktion kommt als Nächstes" für den späteren Phasen-Button (Block 2). Sonderfall: von `running` geht es nur nach `voting`, wenn die Rallye Abstimmungs-Fragen hat, sonst direkt nach `results`.
 
 **Files:**
 - Modify: `lib/types.ts` (neuer Typ + Funktion, unter `isRallyeActive`)
@@ -129,14 +129,14 @@ import {
 } from './types';
 
 describe('getNextRallyeTransition', () => {
-  it('advances preparing to inactive', () => {
-    const t = getNextRallyeTransition('preparing', false);
-    expect(t?.target).toBe('inactive');
-    expect(t?.actionLabel).toBe('Vorbereitung abschließen');
+  it('advances draft to ready', () => {
+    const t = getNextRallyeTransition('draft', false);
+    expect(t?.target).toBe('ready');
+    expect(t?.actionLabel).toBe('Entwurf abschließen');
   });
 
-  it('advances inactive to running', () => {
-    const t = getNextRallyeTransition('inactive', false);
+  it('advances ready to running', () => {
+    const t = getNextRallyeTransition('ready', false);
     expect(t?.target).toBe('running');
     expect(t?.actionLabel).toBe('Rallye starten');
   });
@@ -149,16 +149,16 @@ describe('getNextRallyeTransition', () => {
 
   it('skips voting when no voting questions exist', () => {
     const t = getNextRallyeTransition('running', false);
-    expect(t?.target).toBe('ranking');
-    expect(t?.actionLabel).toBe('Ranking zeigen');
+    expect(t?.target).toBe('results');
+    expect(t?.actionLabel).toBe('Ergebnisse anzeigen');
   });
 
-  it('advances voting to ranking', () => {
-    expect(getNextRallyeTransition('voting', true)?.target).toBe('ranking');
+  it('advances voting to results', () => {
+    expect(getNextRallyeTransition('voting', true)?.target).toBe('results');
   });
 
-  it('advances ranking to ended', () => {
-    const t = getNextRallyeTransition('ranking', false);
+  it('advances results to ended', () => {
+    const t = getNextRallyeTransition('results', false);
     expect(t?.target).toBe('ended');
     expect(t?.actionLabel).toBe('Rallye beenden');
   });
@@ -197,14 +197,14 @@ export const getNextRallyeTransition = (
   hasVotingQuestions: boolean
 ): RallyeTransition | null => {
   switch (status) {
-    case 'preparing':
+    case 'draft':
       return {
-        target: 'inactive',
-        actionLabel: 'Vorbereitung abschließen',
+        target: 'ready',
+        actionLabel: 'Entwurf abschließen',
         confirmText:
           'Die Rallye ist danach bereit zum Start. Teams können noch nicht beitreten.',
       };
-    case 'inactive':
+    case 'ready':
       return {
         target: 'running',
         actionLabel: 'Rallye starten',
@@ -220,19 +220,19 @@ export const getNextRallyeTransition = (
               'Teams können nicht mehr antworten und stimmen über die eingereichten Fotos ab.',
           }
         : {
-            target: 'ranking',
-            actionLabel: 'Ranking zeigen',
+            target: 'results',
+            actionLabel: 'Ergebnisse anzeigen',
             confirmText:
-              'Teams können nicht mehr antworten. Das Ergebnis-Ranking wird sichtbar.',
+              'Teams können nicht mehr antworten. Die Ergebnisse werden sichtbar.',
           };
     case 'voting':
       return {
-        target: 'ranking',
-        actionLabel: 'Ranking zeigen',
+        target: 'results',
+        actionLabel: 'Ergebnisse anzeigen',
         confirmText:
-          'Die Abstimmung wird beendet und das Ergebnis-Ranking sichtbar.',
+          'Die Abstimmung wird beendet und die Ergebnisse werden sichtbar.',
       };
-    case 'ranking':
+    case 'results':
       return {
         target: 'ended',
         actionLabel: 'Rallye beenden',

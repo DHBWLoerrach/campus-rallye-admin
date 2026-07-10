@@ -71,7 +71,7 @@ export async function getRallyeResults(
   }
 
   const status = (rallye as RallyeRow).status;
-  if (status !== 'ended' && status !== 'ranking') {
+  if (status !== 'ended' && status !== 'results') {
     return fail('Rallye ist nicht beendet');
   }
 

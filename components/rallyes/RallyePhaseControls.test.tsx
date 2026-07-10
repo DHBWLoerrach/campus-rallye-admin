@@ -26,7 +26,7 @@ describe('RallyePhaseControls', () => {
     render(
       <RallyePhaseControls
         rallyeId={5}
-        status="inactive"
+        status="ready"
         hasVotingQuestions={false}
       />
     );
@@ -44,7 +44,7 @@ describe('RallyePhaseControls', () => {
       />
     );
     expect(
-      screen.getByRole('button', { name: 'Ranking zeigen' })
+      screen.getByRole('button', { name: 'Ergebnisse anzeigen' })
     ).toBeInTheDocument();
   });
 
@@ -83,7 +83,7 @@ describe('RallyePhaseControls', () => {
     render(
       <RallyePhaseControls
         rallyeId={5}
-        status="inactive"
+        status="ready"
         hasVotingQuestions={false}
       />
     );
@@ -100,7 +100,7 @@ describe('RallyePhaseControls', () => {
     render(
       <RallyePhaseControls
         rallyeId={5}
-        status="inactive"
+        status="ready"
         hasVotingQuestions={false}
       />
     );
@@ -122,7 +122,9 @@ describe('RallyePhaseControls', () => {
         hasVotingQuestions={false}
       />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Ranking zeigen' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ergebnisse anzeigen' })
+    );
     expect(screen.queryByText('Endet um (optional)')).not.toBeInTheDocument();
   });
 });

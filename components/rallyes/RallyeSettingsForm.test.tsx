@@ -20,7 +20,7 @@ vi.mock('next/navigation', () => ({
 const baseRallye = {
   id: 1,
   name: 'Test Rallye',
-  status: 'inactive' as const,
+  status: 'ready' as const,
   end_time: '18:30:00',
   password: '',
   created_at: '2026-01-01T00:00:00.000Z',
@@ -38,7 +38,7 @@ describe('RallyeSettingsForm', () => {
 
     expect(screen.getByLabelText('Name')).toHaveValue('Test Rallye');
     expect(
-      container.querySelector('input[name="status"][value="inactive"]')
+      container.querySelector('input[name="status"][value="ready"]')
     ).not.toBeNull();
     expect(
       container.querySelector('input[name="department_sync"][value="1"]')

@@ -3,13 +3,13 @@ export interface Route {
   label: string;
 }
 
-// Rallye Status - Single State Pattern
+// Team-rallye lifecycle states.
 export const RALLYE_STATUSES = [
-  'preparing',
-  'inactive',
+  'draft',
+  'ready',
   'running',
   'voting',
-  'ranking',
+  'results',
   'ended',
 ] as const;
 
@@ -29,17 +29,17 @@ export type RallyeOption = Pick<Rallye, 'id' | 'name'>;
 // Helper functions for status logic
 export const getRallyeStatusLabel = (status: RallyeStatus): string => {
   switch (status) {
-    case 'preparing':
+    case 'draft':
       return 'Entwurf';
     case 'running':
       return 'Läuft';
     case 'voting':
       return 'Abstimmung';
-    case 'ranking':
-      return 'Ranking';
+    case 'results':
+      return 'Ergebnisse';
     case 'ended':
       return 'Abgeschlossen';
-    case 'inactive':
+    case 'ready':
       return 'Bereit';
     default:
       return 'Unbekannt';
@@ -62,14 +62,14 @@ export const getNextRallyeTransition = (
   hasVotingQuestions: boolean
 ): RallyeTransition | null => {
   switch (status) {
-    case 'preparing':
+    case 'draft':
       return {
-        target: 'inactive',
-        actionLabel: 'Vorbereitung abschließen',
+        target: 'ready',
+        actionLabel: 'Entwurf abschließen',
         confirmText:
           'Die Rallye ist danach bereit zum Start. Teams können noch nicht beitreten.',
       };
-    case 'inactive':
+    case 'ready':
       return {
         target: 'running',
         actionLabel: 'Rallye starten',
@@ -85,19 +85,19 @@ export const getNextRallyeTransition = (
               'Teams können nicht mehr antworten und stimmen über die eingereichten Fotos ab.',
           }
         : {
-            target: 'ranking',
-            actionLabel: 'Ranking zeigen',
+            target: 'results',
+            actionLabel: 'Ergebnisse anzeigen',
             confirmText:
-              'Teams können nicht mehr antworten. Das Ergebnis-Ranking wird sichtbar.',
+              'Teams können nicht mehr antworten. Die Ergebnisse werden sichtbar.',
           };
     case 'voting':
       return {
-        target: 'ranking',
-        actionLabel: 'Ranking zeigen',
+        target: 'results',
+        actionLabel: 'Ergebnisse anzeigen',
         confirmText:
-          'Die Abstimmung wird beendet und das Ergebnis-Ranking sichtbar.',
+          'Die Abstimmung wird beendet und die Ergebnisse werden sichtbar.',
       };
-    case 'ranking':
+    case 'results':
       return {
         target: 'ended',
         actionLabel: 'Rallye beenden',
@@ -125,8 +125,8 @@ export const getRallyePhaseGroup = (status: RallyeStatus): RallyePhaseGroup => {
   switch (status) {
     case 'ended':
       return 'done';
-    case 'preparing':
-    case 'inactive':
+    case 'draft':
+    case 'ready':
       return 'preparation';
     default:
       return 'live';

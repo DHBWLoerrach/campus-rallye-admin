@@ -4,7 +4,7 @@
 
 **Goal:** Die Rallye-Übersicht gruppiert nach Phase (● Läuft gerade / ○ In Vorbereitung / ✓ Abgeschlossen), zeigt den eigenen Bereich zuerst und klappt „Andere Bereiche" und „Campus-Touren" ein; die Karten werden zu schlanken Links auf die Detailseite.
 
-**Architecture:** Ein neuer Helper `getRallyePhaseGroup` in `lib/types.ts` mappt die sechs Status auf drei Gruppen (Spec Abschnitt 2: live = running/voting/ranking, preparation = preparing/inactive, done = ended). Der Bereichs-Fokus nutzt `getUserContext()` (UUID) + `getLocalUser()` (SQLite, `department_id` aus Block 1) — kein neues Rechtemodell, nur Sortierung/Sichtbarkeit. `RallyeCard` wird zur Server-Komponente ohne Client-Fallback-Fetch und ohne Icon-Link-Sammlung: die ganze Karte ist ein Link auf `/rallyes/[id]`. Eingeklappte Sektionen als natives `<details>`/`<summary>` (server-renderbar, kein JS nötig).
+**Architecture:** Ein neuer Helper `getRallyePhaseGroup` in `lib/types.ts` mappt die sechs Status auf drei Gruppen (Spec Abschnitt 2: live = running/voting/results, preparation = draft/ready, done = ended). Der Bereichs-Fokus nutzt `getUserContext()` (UUID) + `getLocalUser()` (SQLite, `department_id` aus Block 1) — kein neues Rechtemodell, nur Sortierung/Sichtbarkeit. `RallyeCard` wird zur Server-Komponente ohne Client-Fallback-Fetch und ohne Icon-Link-Sammlung: die ganze Karte ist ein Link auf `/rallyes/[id]`. Eingeklappte Sektionen als natives `<details>`/`<summary>` (server-renderbar, kein JS nötig).
 
 **Tech Stack:** Next.js 16 App Router (Server Components), better-sqlite3 (`lib/db/local-user.ts`), Vitest + RTL.
 
@@ -39,9 +39,9 @@ describe('getRallyePhaseGroup', () => {
   it.each([
     ['running', 'live'],
     ['voting', 'live'],
-    ['ranking', 'live'],
-    ['preparing', 'preparation'],
-    ['inactive', 'preparation'],
+    ['results', 'live'],
+    ['draft', 'preparation'],
+    ['ready', 'preparation'],
     ['ended', 'done'],
   ] as const)('maps %s to %s', (status, group) => {
     expect(getRallyePhaseGroup(status)).toBe(group);
@@ -85,8 +85,8 @@ export const getRallyePhaseGroup = (
   switch (status) {
     case 'ended':
       return 'done';
-    case 'preparing':
-    case 'inactive':
+    case 'draft':
+    case 'ready':
       return 'preparation';
     default:
       return 'live';
@@ -334,9 +334,9 @@ const makeRallye = (
 function buildDefaultFixture(): SupabaseFixture {
   return {
     rallyes: [
-      makeRallye(1, 'Campus Tour A', 'inactive', 101),
+      makeRallye(1, 'Campus Tour A', 'ready', 101),
       makeRallye(2, 'Marketing läuft', 'running', 100),
-      makeRallye(3, 'Marketing Entwurf', 'preparing', 100),
+      makeRallye(3, 'Marketing Entwurf', 'draft', 100),
       makeRallye(4, 'Marketing fertig', 'ended', 100),
       makeRallye(5, 'Informatik 1', 'running', 101),
     ],
@@ -521,7 +521,7 @@ const PHASE_SYMBOLS: Record<RallyePhaseGroup, string> = {
   done: '✓',
 };
 
-// Live and preparing rallyes: nearest end first; finished: latest end first.
+// Live and draft rallyes: nearest end first; finished: latest end first.
 const sortForGroup = (group: RallyePhaseGroup, rallyes: RallyeRow[]) =>
   [...rallyes].sort((a, b) => {
     const diff =

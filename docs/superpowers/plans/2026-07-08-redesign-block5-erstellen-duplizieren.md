@@ -4,7 +4,7 @@
 
 **Goal:** Neue Rallyes entstehen über einen geführten 3-Schritte-Flow (`/rallyes/new`: Name+Bereich → Fragen wählen → Termin+Passwort), abgeschlossene Rallyes lassen sich duplizieren; die beiden Alt-Dialoge (`RallyeDialog`, `ProgramRallyeDialog`) und die alte `createRallye`-Action entfallen.
 
-**Architecture:** Eine neue Server-Action `createRallyeWithQuestions` legt Rallye (Status `preparing` = Entwurf) und Fragen-Zuordnungen in einem Aufruf an; der Client-Wizard `RallyeCreateWizard` sammelt die Eingaben lokal (Fragen-Auswahl mit den bestehenden `SearchFilters`) und leitet nach Erfolg auf die Detailseite. `duplicateRallye` kopiert Rallye + `join_rallye_questions` inkl. `is_voting` (Status `preparing`, Name „… (Kopie)", Endzeit = jetzt, Passwort leer). **Abweichung von der Spec:** Der „Duplizieren"-Button sitzt im Detail-Header (als Primäraktion der Phase „Abgeschlossen", konsistent mit der Phasen-Tabelle in Spec Abschnitt 4) statt auf der Startseiten-Karte — die Karte ist seit Block 4 ein reiner Link, und interaktive Buttons in Links sind invalides HTML.
+**Architecture:** Eine neue Server-Action `createRallyeWithQuestions` legt Rallye (Status `draft` = Entwurf) und Fragen-Zuordnungen in einem Aufruf an; der Client-Wizard `RallyeCreateWizard` sammelt die Eingaben lokal (Fragen-Auswahl mit den bestehenden `SearchFilters`) und leitet nach Erfolg auf die Detailseite. `duplicateRallye` kopiert Rallye + `join_rallye_questions` inkl. `is_voting` (Status `draft`, Name „… (Kopie)", Endzeit = jetzt, Passwort leer). **Abweichung von der Spec:** Der „Duplizieren"-Button sitzt im Detail-Header (als Primäraktion der Phase „Abgeschlossen", konsistent mit der Phasen-Tabelle in Spec Abschnitt 4) statt auf der Startseiten-Karte — die Karte ist seit Block 4 ein reiner Link, und interaktive Buttons in Links sind invalides HTML.
 
 **Tech Stack:** Next.js 16 App Router, Supabase-JS, Vitest + RTL (`fireEvent`), shadcn/ui (`DateTimePicker`, `Checkbox`, `Select`), `SearchFilters` (compact).
 
@@ -13,7 +13,7 @@
 - Nach jedem Task: `npm run lint`, `npm run check:format`, `npx tsc --noEmit`, `npm test` — alle grün, sonst kein Commit (AGENTS.md Hard Rule).
 - Commits gemäß Block-Freigabe des Nutzers.
 - Code-Kommentare Englisch, UI-Texte Deutsch, Prettier, Aliasse `@/…`.
-- Neue Rallyes und Kopien starten im Status `preparing` (Entwurf) — der Phasen-Button führt dann durch „Vorbereitung abschließen".
+- Neue Rallyes und Kopien starten im Status `draft` (Entwurf) — der Phasen-Button führt dann durch „Entwurf abschließen".
 - `/rallyes/new` ist eine statische Route neben `[id]` — Next.js priorisiert statische Segmente, die `[id]`-Seiten guarden ohnehin mit `/^\d+$/`.
 
 ---
@@ -25,7 +25,7 @@
 - Modify: `actions/rallye.test.ts` (neuer describe-Block; Mocks `mockRequireProfile`/`mockCreateClient`/`mockRevalidatePath` existieren)
 
 **Interfaces:**
-- Produces: `duplicateRallye(rallyeId: number): Promise<ActionResult<{ rallyeId: number; message: string }>>` — Kopie mit `status: 'preparing'`, Name `${name} (Kopie)`, `end_time: new Date()`, `password: ''`, gleicher `department_id`; kopiert alle `join_rallye_questions`-Zeilen inkl. `is_voting`.
+- Produces: `duplicateRallye(rallyeId: number): Promise<ActionResult<{ rallyeId: number; message: string }>>` — Kopie mit `status: 'draft'`, Name `${name} (Kopie)`, `end_time: new Date()`, `password: ''`, gleicher `department_id`; kopiert alle `join_rallye_questions`-Zeilen inkl. `is_voting`.
 
 - [ ] **Step 1: Failing Tests** in `actions/rallye.test.ts`:
 
@@ -84,7 +84,7 @@ describe('duplicateRallye', () => {
     return { from, rallyeInsert, joinInsert };
   };
 
-  it('creates a preparing copy with suffixed name', async () => {
+  it('creates a draft copy with suffixed name', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const supabase = makeSupabase({});
     mockCreateClient.mockResolvedValue(supabase);
@@ -98,7 +98,7 @@ describe('duplicateRallye', () => {
     expect(supabase.rallyeInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Studieninfotag (Kopie)',
-        status: 'preparing',
+        status: 'draft',
         password: '',
         department_id: 7,
       })
@@ -192,12 +192,12 @@ export async function duplicateRallye(
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  // The copy starts as a fresh draft: preparing, end time to be set, no password.
+  // The copy starts as a fresh draft with an end time to be set and no password.
   const { data: created, error: insertError } = await supabase
     .from('rallye')
     .insert({
       name: `${source.name} (Kopie)`,
-      status: 'preparing' as RallyeStatus,
+      status: 'draft' as RallyeStatus,
       end_time: new Date(),
       password: '',
       department_id: source.department_id,
@@ -416,7 +416,7 @@ describe('createRallyeWithQuestions', () => {
     return { from, rallyeInsert, joinInsert };
   };
 
-  it('creates a preparing rallye with question assignments', async () => {
+  it('creates a draft rallye with question assignments', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const supabase = makeSupabase({});
     mockCreateClient.mockResolvedValue(supabase);
@@ -436,7 +436,7 @@ describe('createRallyeWithQuestions', () => {
     expect(supabase.rallyeInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Girl's Day 2027",
-        status: 'preparing',
+        status: 'draft',
         password: 'geheim',
         department_id: 7,
       })
@@ -551,7 +551,7 @@ export async function createRallyeWithQuestions(input: {
     .from('rallye')
     .insert({
       name: nameResult.data.name,
-      status: 'preparing' as RallyeStatus,
+      status: 'draft' as RallyeStatus,
       end_time: endTime,
       password: input.password,
       department_id: departmentIdResult.data,
@@ -1150,7 +1150,7 @@ git commit -m "Remove legacy create dialogs in favor of guided wizard"
 
 - [ ] Dev-Server, per agent-browser:
   1. `/rallyes` → „+ Neue Rallye" → Wizard: Name „E2E Wizard-Test", Bereich wählen, Weiter; eine Frage anhaken, Weiter; Endzeit offen lassen, „Rallye erstellen" → landet auf `/rallyes/<neu>` im Status Entwurf mit 1 zugeordneter Frage.
-  2. Die neue Rallye per Phasen-Button bis „Abgeschlossen" durchschalten (Vorbereitung abschließen → Starten → Ranking zeigen → Beenden).
+  2. Die neue Rallye per Phasen-Button bis „Abgeschlossen" durchschalten (Entwurf abschließen → Starten → Ergebnisse anzeigen → Beenden).
   3. „Duplizieren" klicken → landet auf der Kopie („… (Kopie)", Entwurf, 1 Frage übernommen).
   4. Beide Test-Rallyes über Einstellungen → Löschen entfernen (Ausgangszustand).
 - [ ] `npm run build` → erfolgreich, Route `/rallyes/new` im Output.

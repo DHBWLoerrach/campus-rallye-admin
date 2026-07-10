@@ -70,9 +70,9 @@ describe('advanceRallyeStatus', () => {
     return { from, update, updateEq };
   };
 
-  it('advances inactive to running', async () => {
+  it('advances ready to running', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    const supabase = makeSupabase('inactive', 0);
+    const supabase = makeSupabase('ready', 0);
     mockCreateClient.mockResolvedValue(supabase);
 
     const { advanceRallyeStatus } = await import('./rallye');
@@ -84,7 +84,7 @@ describe('advanceRallyeStatus', () => {
 
   it('rejects a target that does not match the guided transition', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    mockCreateClient.mockResolvedValue(makeSupabase('inactive', 0));
+    mockCreateClient.mockResolvedValue(makeSupabase('ready', 0));
 
     const { advanceRallyeStatus } = await import('./rallye');
     const result = await advanceRallyeStatus(5, 'ended');
@@ -103,7 +103,7 @@ describe('advanceRallyeStatus', () => {
     expect(result.success).toBe(true);
   });
 
-  it('goes running→ranking when no voting questions exist', async () => {
+  it('goes running→results when no voting questions exist', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     mockCreateClient.mockResolvedValue(makeSupabase('running', 0));
 
@@ -112,7 +112,7 @@ describe('advanceRallyeStatus', () => {
     vi.resetModules();
     mockCreateClient.mockResolvedValue(makeSupabase('running', 0));
     const { advanceRallyeStatus: advance2 } = await import('./rallye');
-    expect((await advance2(5, 'ranking')).success).toBe(true);
+    expect((await advance2(5, 'results')).success).toBe(true);
   });
 
   it('fails for unknown rallye', async () => {
@@ -502,7 +502,7 @@ describe('RallyePhaseControls', () => {
     render(
       <RallyePhaseControls
         rallyeId={5}
-        status="inactive"
+        status="ready"
         hasVotingQuestions={false}
       />
     );
@@ -520,7 +520,7 @@ describe('RallyePhaseControls', () => {
       />
     );
     expect(
-      screen.getByRole('button', { name: 'Ranking zeigen' })
+      screen.getByRole('button', { name: 'Ergebnisse anzeigen' })
     ).toBeInTheDocument();
   });
 
@@ -541,7 +541,7 @@ describe('RallyePhaseControls', () => {
     render(
       <RallyePhaseControls
         rallyeId={5}
-        status="inactive"
+        status="ready"
         hasVotingQuestions={false}
       />
     );
@@ -616,7 +616,7 @@ export default function RallyePhaseControls({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="dhbwStyle" className="cursor-pointer">
-            {status === 'inactive' && (
+            {status === 'ready' && (
               <Play className="mr-2 h-4 w-4" aria-hidden="true" />
             )}
             {transition.actionLabel}
@@ -957,7 +957,7 @@ git commit -m "Move rallye editing to settings tab, card links to detail page"
 
 - [ ] Dev-Server (`DEV_AUTH_BYPASS=true`, laufende Instanz des Nutzers nicht killen — ggf. deren Port nutzen), per agent-browser:
   1. `/rallyes`: Karte einer Test-Rallye → Titel-Klick öffnet `/rallyes/<id>` mit Header, Stepper, Tabs, Fragenliste.
-  2. Phasen-Button: Test-Rallye mit Status `preparing` durchschalten: „Vorbereitung abschließen" → „Rallye starten" → (ohne Abstimmungs-Fragen) „Ranking zeigen" → „Rallye beenden"; Stepper/Badge aktualisieren sich nach jedem Bestätigen; bei `ended` verschwindet der Button.
+  2. Phasen-Button: Test-Rallye mit Status `draft` durchschalten: „Entwurf abschließen" → „Rallye starten" → (ohne Abstimmungs-Fragen) „Ergebnisse anzeigen" → „Rallye beenden"; Stepper/Badge aktualisieren sich nach jedem Bestätigen; bei `ended` verschwindet der Button.
   3. Abstimmungs-Pfad: Rallye mit Upload-Frage + Abstimmungs-Flag → in `running` heißt der Button „Abstimmung starten".
   4. Einstellungen-Tab: Name ändern + speichern; Experten-Status-Select zurück auf `Entwurf` setzen (für Wiederholbarkeit); Lösch-Dialog öffnen und abbrechen.
   5. Ergebnisse/Fotos-Tabs: Inhalte erscheinen unter dem gemeinsamen Header; alte URLs funktionieren.

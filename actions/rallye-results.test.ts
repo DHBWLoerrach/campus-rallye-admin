@@ -33,7 +33,7 @@ describe('getRallyeResults', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
-  it('fails when the rallye is not in ranking or ended', async () => {
+  it('fails when the rallye is not in results or ended', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const rallyeQuery = {
@@ -67,7 +67,7 @@ describe('getRallyeResults', () => {
       select: vi.fn(() => rallyeQuery),
       eq: vi.fn(() => ({
         maybeSingle: vi.fn().mockResolvedValue({
-          data: { id: 1, status: 'ranking' },
+          data: { id: 1, status: 'results' },
           error: null,
         }),
       })),

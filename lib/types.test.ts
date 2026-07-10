@@ -9,11 +9,11 @@ import {
 
 describe('getRallyeStatusLabel', () => {
   it.each([
-    ['preparing', 'Entwurf'],
-    ['inactive', 'Bereit'],
+    ['draft', 'Entwurf'],
+    ['ready', 'Bereit'],
     ['running', 'Läuft'],
     ['voting', 'Abstimmung'],
-    ['ranking', 'Ranking'],
+    ['results', 'Ergebnisse'],
     ['ended', 'Abgeschlossen'],
   ] as const)('maps %s to %s', (status, label) => {
     expect(getRallyeStatusLabel(status)).toBe(label);
@@ -27,14 +27,14 @@ describe('getRallyeStatusLabel', () => {
 });
 
 describe('getNextRallyeTransition', () => {
-  it('advances preparing to inactive', () => {
-    const t = getNextRallyeTransition('preparing', false);
-    expect(t?.target).toBe('inactive');
-    expect(t?.actionLabel).toBe('Vorbereitung abschließen');
+  it('advances draft to ready', () => {
+    const t = getNextRallyeTransition('draft', false);
+    expect(t?.target).toBe('ready');
+    expect(t?.actionLabel).toBe('Entwurf abschließen');
   });
 
-  it('advances inactive to running', () => {
-    const t = getNextRallyeTransition('inactive', false);
+  it('advances ready to running', () => {
+    const t = getNextRallyeTransition('ready', false);
     expect(t?.target).toBe('running');
     expect(t?.actionLabel).toBe('Rallye starten');
   });
@@ -47,16 +47,16 @@ describe('getNextRallyeTransition', () => {
 
   it('skips voting when no voting questions exist', () => {
     const t = getNextRallyeTransition('running', false);
-    expect(t?.target).toBe('ranking');
-    expect(t?.actionLabel).toBe('Ranking zeigen');
+    expect(t?.target).toBe('results');
+    expect(t?.actionLabel).toBe('Ergebnisse anzeigen');
   });
 
-  it('advances voting to ranking', () => {
-    expect(getNextRallyeTransition('voting', true)?.target).toBe('ranking');
+  it('advances voting to results', () => {
+    expect(getNextRallyeTransition('voting', true)?.target).toBe('results');
   });
 
-  it('advances ranking to ended', () => {
-    const t = getNextRallyeTransition('ranking', false);
+  it('advances results to ended', () => {
+    const t = getNextRallyeTransition('results', false);
     expect(t?.target).toBe('ended');
     expect(t?.actionLabel).toBe('Rallye beenden');
   });
@@ -77,9 +77,9 @@ describe('getRallyePhaseGroup', () => {
   it.each([
     ['running', 'live'],
     ['voting', 'live'],
-    ['ranking', 'live'],
-    ['preparing', 'preparation'],
-    ['inactive', 'preparation'],
+    ['results', 'live'],
+    ['draft', 'preparation'],
+    ['ready', 'preparation'],
     ['ended', 'done'],
   ] as const)('maps %s to %s', (status, group) => {
     expect(getRallyePhaseGroup(status)).toBe(group);

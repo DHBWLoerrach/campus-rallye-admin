@@ -38,7 +38,7 @@ export default function RallyePhaseControls({
 
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
   // Only the start step offers a "geplant bis" time; other transitions don't.
-  const showEndTime = status === 'inactive';
+  const showEndTime = status === 'ready';
   const plannedEnd = showEndTime
     ? parsePlannedEnd(endTime)
     : ({ kind: 'none' } as const);
@@ -104,7 +104,7 @@ export default function RallyePhaseControls({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="dhbwStyle" className="cursor-pointer">
-            {status === 'inactive' && (
+            {status === 'ready' && (
               <Play className="mr-2 h-4 w-4" aria-hidden="true" />
             )}
             {transition.actionLabel}

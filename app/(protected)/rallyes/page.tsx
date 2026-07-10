@@ -33,7 +33,7 @@ const PHASE_SYMBOLS: Record<RallyePhaseGroup, string> = {
   done: '✓',
 };
 
-// Live and preparing rallyes: nearest end first; finished: latest end first.
+// Live and draft rallyes: nearest end first; finished: latest end first.
 // Rallyes without a planned end sort to the very bottom of their group.
 const sortForGroup = (group: RallyePhaseGroup, rallyes: RallyeRow[]) =>
   [...rallyes].sort((a, b) => {

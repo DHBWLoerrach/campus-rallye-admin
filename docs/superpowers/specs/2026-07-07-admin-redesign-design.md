@@ -37,7 +37,7 @@ Top-Navigation (`components/Navigation.tsx`):
 
 `app/(protected)/rallyes/page.tsx` neu strukturiert:
 
-- **Gruppierung nach Phase**, nicht nach Bereich: „● Läuft gerade" (Status running/voting/ranking) → „○ In Vorbereitung" (preparing/inactive) → „✓ Abgeschlossen" (ended).
+- **Gruppierung nach Phase**, nicht nach Bereich: „● Läuft gerade" (Status running/voting/results) → „○ In Vorbereitung" (draft/ready) → „✓ Abgeschlossen" (ended).
 - **Eigener Bereich zuerst**: Rallyes des dem Nutzer zugeordneten Bereichs prominent; „Andere Bereiche" und „Campus-Touren (Erkundungsmodus)" als eingeklappte Sektionen. Nutzer ohne Bereichszuordnung sehen alle gleichrangig.
 - Jede Karte: Name, Phase, Fragenzahl, Endzeit; Klick → Rallye-Detailseite. Kein Inline-Edit, keine Icon-Link-Sammlung.
 - Abgeschlossene Rallyes bieten „Duplizieren" direkt auf der Karte.
@@ -49,7 +49,7 @@ Zentrale Arbeitsfläche, ersetzt Inline-Edit und verstreute Links:
 
 ```
 ┌─ Studieninfotag 2026 · Bereich: HoKo/Marketing ─────────┐
-│  Phase: Entwurf → Bereit → Läuft → Abstimmung → Fertig  │
+│  Phase: Entwurf → Bereit → Läuft → Abstimmung → Ergebnisse → Abgeschlossen  │
 │  [ ▶ Rallye starten ]        (primärer Phasen-Button)   │
 ├─────────────────────────────────────────────────────────┤
 │  Tabs:  Fragen (12) · Einstellungen · Ergebnisse · Fotos│
@@ -63,20 +63,20 @@ Zentrale Arbeitsfläche, ersetzt Inline-Edit und verstreute Links:
 
 ### 4. Phasenmodell & Live-Steuerung
 
-Das DB-Enum `rallye_status` bleibt unverändert; nur die Präsentation ändert sich:
+Das DB-Enum `rallye_status` bildet die fachlichen Phasen direkt ab:
 
 | DB-Status | Nutzer-Phase | Primärer Button danach |
 |---|---|---|
-| preparing | Entwurf | „Vorbereitung abschließen" → inactive |
-| inactive | Bereit | „▶ Rallye starten" → running |
-| running | Läuft | „Abstimmung starten" (nur falls Abstimmungs-Fragen; sonst „Ranking zeigen") |
-| voting | Abstimmung | „Ranking zeigen" → ranking |
-| ranking | Ranking | „Rallye beenden" → ended |
+| draft | Entwurf | „Entwurf abschließen" → ready |
+| ready | Bereit | „▶ Rallye starten" → running |
+| running | Läuft | „Abstimmung starten" (nur falls Abstimmungs-Fragen; sonst „Ergebnisse anzeigen") |
+| voting | Abstimmung | „Ergebnisse anzeigen" → results |
+| results | Ergebnisse | „Rallye beenden" → ended |
 | ended | Abgeschlossen | „Duplizieren" |
 
 - Jeder Übergang mit kurzem Bestätigungsdialog inkl. Klartext-Erklärung („Teams können ab jetzt beitreten …").
 - Labels und Phasenlogik zentral in `lib/types.ts` (`getRallyeStatusLabel`, `RALLYE_STATUSES`): Reihenfolge, nächste Aktion, Erklärtexte.
-- Vote-Finalisierung beim Übergang voting→ranking/ended läuft weiter über den bestehenden DB-Trigger.
+- Vote-Finalisierung beim Übergang voting→results/ended läuft weiter über den bestehenden DB-Trigger.
 - Campus-Touren (ADR-0003) behalten ihren einfachen Aktiv/Inaktiv-Schalter (`components/rallyes/ExplorationRow.tsx`).
 
 ### 5. Geführte Erstellung + Duplizieren
@@ -85,7 +85,7 @@ Das DB-Enum `rallye_status` bleibt unverändert; nur die Präsentation ändert s
   1. Name + Bereich (Bereich vorbelegt aus Nutzer-Zuordnung).
   2. Fragen wählen (gleiche Katalog-Auswahl wie Tab „Fragen"; überspringbar).
   3. Endzeit + Passwort → „Erstellen" → weiter zur Detailseite.
-- **Duplizieren**: neue Server-Action `duplicateRallye` in `actions/rallye.ts` — kopiert die Rallye (Status `preparing`, Name „… (Kopie)", Endzeit neu zu setzen) samt `join_rallye_questions`-Zuordnungen inkl. `is_voting`.
+- **Duplizieren**: neue Server-Action `duplicateRallye` in `actions/rallye.ts` — kopiert die Rallye (Status `draft`, Name „… (Kopie)", Endzeit neu zu setzen) samt `join_rallye_questions`-Zuordnungen inkl. `is_voting`.
 - Ersetzt beide Alt-Dialoge; `RallyeDialog.tsx` und `ProgramRallyeDialog.tsx` entfallen.
 
 ### 6. Fragenkatalog & Frage-Editor
@@ -129,4 +129,4 @@ Nutzer-Daten liegen lokal in SQLite (`lib/db/local-user.ts`, Tabelle `local_user
 
 - Nach jedem Schritt: `npm run lint`, `npm run check:format`, `npx tsc --noEmit`, `npm test`.
 - Neue Unit-Tests: Phasenmodell-Übergänge, `duplicateRallye`, Bereichs-Sortierung der Startseite.
-- End-to-End: Dev-Server mit `DEV_AUTH_BYPASS=true`, Kernflow durchklicken: Neue Rallye anlegen → Fragen zuordnen → Phasen durchschalten bis Beendet → Duplizieren.
+- End-to-End: Dev-Server mit `DEV_AUTH_BYPASS=true`, Kernflow durchklicken: Neue Rallye anlegen → Fragen zuordnen → Phasen durchschalten bis Abgeschlossen → Duplizieren.

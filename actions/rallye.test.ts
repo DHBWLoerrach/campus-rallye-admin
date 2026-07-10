@@ -301,9 +301,9 @@ describe('advanceRallyeStatus', () => {
     return { from, update, updateEq };
   };
 
-  it('advances inactive to running', async () => {
+  it('advances ready to running', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    const supabase = makeSupabase('inactive', 0);
+    const supabase = makeSupabase('ready', 0);
     mockCreateClient.mockResolvedValue(supabase);
 
     const { advanceRallyeStatus } = await import('./rallye');
@@ -315,7 +315,7 @@ describe('advanceRallyeStatus', () => {
 
   it('sets the planned end time when starting the rallye', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    const supabase = makeSupabase('inactive', 0);
+    const supabase = makeSupabase('ready', 0);
     mockCreateClient.mockResolvedValue(supabase);
 
     const { advanceRallyeStatus } = await import('./rallye');
@@ -330,7 +330,7 @@ describe('advanceRallyeStatus', () => {
 
   it('rejects an invalid planned end time', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    const supabase = makeSupabase('inactive', 0);
+    const supabase = makeSupabase('ready', 0);
     mockCreateClient.mockResolvedValue(supabase);
 
     const { advanceRallyeStatus } = await import('./rallye');
@@ -344,7 +344,7 @@ describe('advanceRallyeStatus', () => {
 
   it('rejects a target that does not match the guided transition', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    mockCreateClient.mockResolvedValue(makeSupabase('inactive', 0));
+    mockCreateClient.mockResolvedValue(makeSupabase('ready', 0));
 
     const { advanceRallyeStatus } = await import('./rallye');
     const result = await advanceRallyeStatus(5, 'ended');
@@ -363,7 +363,7 @@ describe('advanceRallyeStatus', () => {
     expect(result.success).toBe(true);
   });
 
-  it('goes running to ranking when no voting questions exist', async () => {
+  it('goes running to results when no voting questions exist', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     mockCreateClient.mockResolvedValue(makeSupabase('running', 0));
 
@@ -372,7 +372,7 @@ describe('advanceRallyeStatus', () => {
     vi.resetModules();
     mockCreateClient.mockResolvedValue(makeSupabase('running', 0));
     const { advanceRallyeStatus: advance2 } = await import('./rallye');
-    expect((await advance2(5, 'ranking')).success).toBe(true);
+    expect((await advance2(5, 'results')).success).toBe(true);
   });
 
   it('fails for unknown rallye', async () => {
@@ -450,7 +450,7 @@ describe('duplicateRallye', () => {
     return { from, rallyeInsert, joinInsert };
   };
 
-  it('creates a preparing copy with suffixed name', async () => {
+  it('creates a draft copy with suffixed name', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const supabase = makeSupabase({});
     mockCreateClient.mockResolvedValue(supabase);
@@ -464,7 +464,7 @@ describe('duplicateRallye', () => {
     expect(supabase.rallyeInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Studieninfotag (Kopie)',
-        status: 'preparing',
+        status: 'draft',
         password: '',
         department_id: 7,
       })
@@ -552,7 +552,7 @@ describe('createRallyeWithQuestions', () => {
     return { from, rallyeInsert, joinInsert };
   };
 
-  it('creates a preparing rallye with question assignments', async () => {
+  it('creates a draft rallye with question assignments', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const supabase = makeSupabase({});
     mockCreateClient.mockResolvedValue(supabase);
@@ -572,7 +572,7 @@ describe('createRallyeWithQuestions', () => {
     expect(supabase.rallyeInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Girl's Day 2027",
-        status: 'preparing',
+        status: 'draft',
         password: 'geheim',
         department_id: 7,
       })
