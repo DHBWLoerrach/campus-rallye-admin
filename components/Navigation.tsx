@@ -36,16 +36,18 @@ export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
           <NavItems routes={routes} />
         </nav>
         <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 sm:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Navigationsmenü ein-/ausblenden</span>
-            </Button>
-          </SheetTrigger>
+          <SheetTrigger
+            render={
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 sm:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Navigationsmenü ein-/ausblenden</span>
+              </Button>
+            }
+          />
           <SheetContent side="left">
             <nav className="grid gap-6 font-medium">
               <NavItems routes={routes} />
