@@ -67,6 +67,71 @@ describe('QuestionPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('explains that copied content creates an independent question', () => {
+    mockSearchParams.get.mockImplementation(() => '');
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+        }}
+        isCopy
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('explains that an image must be uploaded again for a picture copy', () => {
+    mockSearchParams.get.mockImplementation(() => '');
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={{
+          content: 'Welches Gebäude ist zu sehen?',
+          type: 'picture',
+          solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+        }}
+        isCopy
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(
+      screen.getByText(/Das Bild muss neu hochgeladen werden/)
+    ).toBeInTheDocument();
+  });
+
+  it('shows why a requested copy opened an empty form', () => {
+    render(
+      <QuestionPage
+        id="new"
+        initialData={null}
+        copyError="Die Kopiervorlage konnte nicht geladen werden. Es wurde ein leeres Formular geöffnet."
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Die Kopiervorlage konnte nicht geladen werden. Es wurde ein leeres Formular geöffnet.'
+    );
+  });
+
   it('assigns a new question and derives the rallye return target', async () => {
     mockSearchParams.get.mockImplementation((key) => {
       if (key === 'rallyeId') return '5';

@@ -166,6 +166,27 @@ describe('QuestionForm', () => {
     expect(details).not.toContainElement(imageLabel);
   });
 
+  it('requires an image before submitting a picture question', () => {
+    const handleSubmit = vi.fn();
+    render(
+      <QuestionForm
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Welches Gebäude ist zu sehen?',
+          type: 'picture',
+          solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Bitte ein Bild hochladen')).toBeInTheDocument();
+  });
+
   it('opens further details when an optional field is invalid', () => {
     render(
       <QuestionForm

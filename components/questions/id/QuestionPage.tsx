@@ -19,7 +19,9 @@ import QuestionForm from '@/components/questions/id/QuestionForm';
 
 interface Props {
   id: string;
-  initialData: Question | null;
+  initialData: Partial<Question> | null;
+  isCopy?: boolean;
+  copyError?: string | null;
   categories: string[];
   rallyes: RallyeOption[];
   initialRallyeIds: number[];
@@ -28,6 +30,8 @@ interface Props {
 const QuestionPage: React.FC<Props> = ({
   id,
   initialData,
+  isCopy = false,
+  copyError = null,
   categories,
   rallyes,
   initialRallyeIds,
@@ -168,6 +172,21 @@ const QuestionPage: React.FC<Props> = ({
           </p>
         </div>
       </section>
+
+      {copyError ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-foreground"
+        >
+          {copyError}
+        </div>
+      ) : isCopy ? (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+          {initialData?.type === 'picture'
+            ? 'Text und Antworten wurden übernommen. Das Bild muss neu hochgeladen werden. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
+            : 'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'}
+        </div>
+      ) : null}
 
       {!isNew && (
         <div className="rounded-2xl border border-border/60 bg-muted/40 px-4 py-3 text-sm">

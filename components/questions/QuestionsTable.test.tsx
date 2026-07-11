@@ -52,6 +52,9 @@ describe('QuestionsTable', () => {
       'href',
       '/questions/1'
     );
+    expect(
+      screen.getByRole('link', { name: 'Als neue Aufgabe verwenden' })
+    ).toHaveAttribute('href', '/questions/new?copyFrom=1');
 
     expect(screen.queryByText('Hinweistext')).not.toBeInTheDocument();
     const toggle = container.querySelector('tbody tr td svg');

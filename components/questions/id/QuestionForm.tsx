@@ -50,6 +50,7 @@ interface FormErrors {
   type?: string;
   category?: string;
   point_value?: string;
+  bucket_path?: string;
   solutionOptions?: string;
 }
 
@@ -265,6 +266,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.point_value = 'Punkte müssen größer oder gleich 0 sein';
     }
 
+    if (data.type === 'picture' && !data.bucket_path?.trim()) {
+      newErrors.bucket_path = 'Bitte ein Bild hochladen';
+    }
+
     const validAnswers =
       data.solutionOptions?.filter((a) => a.text?.trim()) ?? [];
     if (data.type === 'multiple_choice') {
@@ -444,12 +449,23 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             )}
           </div>
           {isPicture && (
-            <QuestionImage
-              bucketPath={formData.bucket_path}
-              onImageChange={(newPath) =>
-                handleFormChange('bucket_path', newPath)
-              }
-            />
+            <div className="space-y-2">
+              <QuestionImage
+                bucketPath={formData.bucket_path}
+                onImageChange={(newPath) => {
+                  handleFormChange('bucket_path', newPath);
+                  setErrors((current) => ({
+                    ...current,
+                    bucket_path: undefined,
+                  }));
+                }}
+              />
+              {errors.bucket_path && (
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.bucket_path}
+                </p>
+              )}
+            </div>
           )}
         </section>
 

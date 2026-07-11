@@ -1,3 +1,5 @@
+import { parsePositiveSafeInteger } from '@/lib/positive-safe-integer';
+
 export const QUESTION_RALLYE_ID_PARAM = 'rallyeId';
 
 export type QuestionCreationContext =
@@ -11,12 +13,8 @@ export const parseQuestionCreationContext = (
   if (rallyeIdParam === null || rallyeIdParam === '') {
     return { kind: 'none' };
   }
-  if (!/^\d+$/.test(rallyeIdParam)) {
-    return { kind: 'invalid' };
-  }
-
-  const rallyeId = Number(rallyeIdParam);
-  if (!Number.isSafeInteger(rallyeId) || rallyeId <= 0) {
+  const rallyeId = parsePositiveSafeInteger(rallyeIdParam);
+  if (rallyeId === undefined) {
     return { kind: 'invalid' };
   }
 
