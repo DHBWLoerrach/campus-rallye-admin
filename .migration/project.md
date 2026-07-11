@@ -44,13 +44,17 @@ each. Non-Radix wrappers left untouched: badge, card, input, table.
   (unused here).
 - Native `<label>` no longer suppresses double-click text selection.
 
-## Open item for the user (FLAG, not changed)
+## shadcn config switched to Base UI (resolved)
 
-`components.json` still uses the legacy schema (`"style": "default"`, no `base`
-field), so the shadcn CLI will still resolve **Radix** variants for future
-`shadcn add`. The code is fully on Base UI. Decide whether to switch the
-config to a Base UI base/style or to add future components manually. This was
-intentionally left untouched.
+`components.json` `style` was flipped from the legacy `"default"` to
+`"base-nova"` (there is no `base` field; the base is encoded in the style
+prefix — valid Base UI styles are `base-{vega,nova,maia,lyra,mira,luma,sera,
+rhea}`). `shadcn info` now resolves `base: base`, `style: nova`, and the
+registry URLs point at `bases/base/ui/`; `shadcn view` returns `@base-ui/react`
+components. Future `shadcn add` therefore delivers Base UI variants. Our own
+DHBW classes are still re-applied per component as during this migration. The
+named style only affects the defaults of newly added components; the existing
+globals.css theme is untouched.
 
 ## Verify by hand (cross-cutting)
 
