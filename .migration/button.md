@@ -43,6 +43,23 @@ the real Base UI Button primitive, 14 consumers moved from `asChild` to
   Button renders a native `<button>` by default, so the cva `disabled:*`
   variants keep working via the native `disabled` attribute.
 
+## Follow-up fix (link/label buttons)
+
+The initial pass migrated `<Button asChild><Link/></Button>` to
+`<Button render={<Link/>}>`. That routes a non-button through the Base UI
+Button primitive, which (a) logs a runtime warning ("expected a native
+<button> … set nativeButton to false") and (b) with `nativeButton={false}`
+stamps `role="button"` on the anchor — degrading navigation links to buttons
+for assistive tech. Corrected: the 16 non-button call sites (links + one file
+upload `<label>`) now apply `buttonVariants({ variant, size, className })`
+classes directly to the `<Link>` / `<a>` / `<Label>` element — the idiomatic
+shadcn pattern for "looks like a button, is semantically a link/label". No
+Base UI Button primitive, no warning, `role` stays link/label (verified: the
+CTA renders `<a role=none href>` with the button classes and no nativeButton
+warning). Button-rendering triggers (`DialogTrigger`/`SheetTrigger`/
+`DropdownMenuTrigger render={<Button/>}`) were left as-is — they render a real
+`<button>`.
+
 ## Verify by hand
 
 - Click each migrated link-button and confirm it navigates (they render as

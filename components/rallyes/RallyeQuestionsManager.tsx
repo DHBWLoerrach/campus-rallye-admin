@@ -18,7 +18,7 @@ import {
   type QuestionContentFilters,
 } from '@/lib/question-filters';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -170,14 +170,13 @@ export default function RallyeQuestionsManager({
                   Eine neue Aufgabe wird nach dem Speichern direkt hinzugefügt.
                 </p>
               </div>
-              <Button
-                render={<Link href={createQuestionHref} />}
-                variant="outline"
-                size="sm"
+              <Link
+                href={createQuestionHref}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
               >
                 <CirclePlus className="size-4" aria-hidden="true" />
                 Neue Aufgabe erstellen
-              </Button>
+              </Link>
             </div>
             <SearchFilters
               onFilterChange={setFilters}
@@ -274,15 +273,18 @@ export default function RallyeQuestionsManager({
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Button
-                      render={<Link href={`/questions/${entry.question.id}`} />}
-                      variant="ghost"
-                      size="icon"
+                    <Link
+                      href={`/questions/${entry.question.id}`}
                       aria-label="Frage bearbeiten"
-                      className="text-muted-foreground hover:text-foreground"
+                      className={buttonVariants({
+                        variant: 'ghost',
+                        size: 'icon',
+                        className:
+                          'text-muted-foreground hover:text-foreground',
+                      })}
                     >
                       <Pencil className="h-4 w-4" aria-hidden="true" />
-                    </Button>
+                    </Link>
                     <Button
                       variant="ghost"
                       size="icon"

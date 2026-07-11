@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { ChevronDown, CircleHelp, Copy, Pencil } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '../ui/button';
+import { Button, buttonVariants } from '../ui/button';
 import { questionTypes } from '../../helpers/questionTypes';
 import { buildQuestionCopyHref } from '@/lib/question-copy-context';
 import { Question } from '@/helpers/questions';
@@ -135,32 +135,28 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                       </TableCell>
                       <TableCell className="align-top text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button
-                            render={
-                              <Link
-                                href={buildQuestionCopyHref(question.id)}
-                                aria-label={`„${question.content}“ als neue Aufgabe verwenden`}
-                              />
-                            }
-                            variant="outline"
-                            size="sm"
+                          <Link
+                            href={buildQuestionCopyHref(question.id)}
+                            aria-label={`„${question.content}“ als neue Aufgabe verwenden`}
+                            className={buttonVariants({
+                              variant: 'outline',
+                              size: 'sm',
+                            })}
                           >
                             <Copy aria-hidden="true" />
                             Als neue Aufgabe
-                          </Button>
-                          <Button
-                            render={
-                              <Link
-                                href={`/questions/${question.id}`}
-                                aria-label={`Aufgabe „${question.content}“ bearbeiten`}
-                              />
-                            }
-                            variant="ghost"
-                            size="sm"
+                          </Link>
+                          <Link
+                            href={`/questions/${question.id}`}
+                            aria-label={`Aufgabe „${question.content}“ bearbeiten`}
+                            className={buttonVariants({
+                              variant: 'ghost',
+                              size: 'sm',
+                            })}
                           >
                             <Pencil aria-hidden="true" />
                             Bearbeiten
-                          </Button>
+                          </Link>
                         </div>
                       </TableCell>
                     </TableRow>

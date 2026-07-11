@@ -6,7 +6,7 @@ import { assignUserDepartment } from '@/actions/local-users';
 import type { LocalUser } from '@/lib/db/local-user';
 import type { DepartmentOption } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -52,14 +52,16 @@ export default function UsersClient({
 
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
-      <Button
-        render={<Link href="/admin" />}
-        variant="outline"
-        size="sm"
-        className="w-fit"
+      <Link
+        href="/admin"
+        className={buttonVariants({
+          variant: 'outline',
+          size: 'sm',
+          className: 'w-fit',
+        })}
       >
         ← Zurück zur Verwaltung
-      </Button>
+      </Link>
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Nutzer</h1>
         <p className="text-muted-foreground">

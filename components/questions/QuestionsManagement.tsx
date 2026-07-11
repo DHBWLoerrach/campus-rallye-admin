@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { getQuestionRallyeMap } from '@/actions/assign_questions_to_rallye';
 import { getQuestions } from '@/actions/question';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import QuestionsTable from './QuestionsTable';
 import type { Question } from '@/helpers/questions';
 import SearchFilters from './SearchFilters';
@@ -66,14 +66,16 @@ export default function QuestionManagement({
             Suchen, filtern und bearbeiten.
           </p>
         </div>
-        <Button
-          render={<Link href="/questions/new" />}
-          variant="dhbwStyle"
-          className="w-full sm:w-auto"
+        <Link
+          href="/questions/new"
+          className={buttonVariants({
+            variant: 'dhbwStyle',
+            className: 'w-full sm:w-auto',
+          })}
         >
           <Plus className="w-4 h-4" />
           Erstellen
-        </Button>
+        </Link>
       </section>
 
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">

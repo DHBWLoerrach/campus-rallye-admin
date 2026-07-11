@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { getSignOutUrl } from '@/lib/sign-out-url';
 
 export default function AccessDeniedPage() {
@@ -29,7 +29,9 @@ export default function AccessDeniedPage() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button render={<a href={signOutUrl} />}>Abmelden</Button>
+          <a href={signOutUrl} className={buttonVariants()}>
+            Abmelden
+          </a>
           <span className="text-xs text-muted-foreground">
             Falls Sie Zugriff benötigen, wenden Sie sich an das Admin-Team.
           </span>

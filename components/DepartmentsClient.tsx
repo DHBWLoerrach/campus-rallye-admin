@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 import Department from '@/components/Department';
 import DepartmentDialog from '@/components/DepartmentDialog';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type {
   Department as DepartmentType,
@@ -49,14 +49,16 @@ export default function DepartmentsClient({
 
   return (
     <div className="mx-auto w-full max-w-350 space-y-6 px-4 py-8">
-      <Button
-        render={<Link href="/admin" />}
-        variant="outline"
-        size="sm"
-        className="w-fit"
+      <Link
+        href="/admin"
+        className={buttonVariants({
+          variant: 'outline',
+          size: 'sm',
+          className: 'w-fit',
+        })}
       >
         ← Zurück zur Verwaltung
-      </Button>
+      </Link>
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">Bereiche</h1>

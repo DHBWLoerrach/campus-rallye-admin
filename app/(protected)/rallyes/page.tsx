@@ -2,7 +2,7 @@ import Link from 'next/link';
 import createClient from '@/lib/supabase';
 import RallyeCard from '@/components/RallyeCard';
 import ExplorationRow from '@/components/rallyes/ExplorationRow';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { getUserContext } from '@/lib/user-context';
 import { getLocalUser } from '@/lib/db/local-user';
 import { plannedEndToMinutes } from '@/lib/planned-end';
@@ -174,13 +174,15 @@ export default async function Home() {
               : 'Alle Rallyes, gruppiert nach Phase.'}
           </p>
         </div>
-        <Button
-          render={<Link href="/rallyes/new" />}
-          variant="dhbwStyle"
-          className="w-full sm:w-auto"
+        <Link
+          href="/rallyes/new"
+          className={buttonVariants({
+            variant: 'dhbwStyle',
+            className: 'w-full sm:w-auto',
+          })}
         >
           + Neue Rallye
-        </Button>
+        </Link>
       </section>
 
       {myGroups.length === 0 ? (

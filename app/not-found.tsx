@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Compass } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 
 export default function NotFound() {
   return (
@@ -28,9 +28,12 @@ export default function NotFound() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button render={<Link href="/rallyes" />} variant="dhbwStyle">
+          <Link
+            href="/rallyes"
+            className={buttonVariants({ variant: 'dhbwStyle' })}
+          >
             Zur Übersicht
-          </Button>
+          </Link>
         </div>
       </section>
     </main>

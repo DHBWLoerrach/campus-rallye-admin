@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import {
   AUTH_SESSION_COOKIE,
   AUTH_SESSION_COOKIE_VALUE,
@@ -35,13 +35,12 @@ export default async function LandingPage() {
           </p>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button
-            render={<Link href="/rallyes" />}
-            variant="dhbwStyle"
-            size="lg"
+          <Link
+            href="/rallyes"
+            className={buttonVariants({ variant: 'dhbwStyle', size: 'lg' })}
           >
             Anmelden mit DHBW-Account
-          </Button>
+          </Link>
           <span className="text-xs text-muted-foreground">
             Zugriff nur für Mitarbeitende der DHBW Lörrach.
           </span>

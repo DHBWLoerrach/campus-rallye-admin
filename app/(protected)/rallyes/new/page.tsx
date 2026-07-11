@@ -3,7 +3,7 @@ import createClient from '@/lib/supabase';
 import RallyeCreateWizard from '@/components/rallyes/RallyeCreateWizard';
 import { getUserContext } from '@/lib/user-context';
 import { getLocalUser } from '@/lib/db/local-user';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import type { DepartmentOption } from '@/lib/types';
 import type { Question } from '@/helpers/questions';
 
@@ -42,9 +42,12 @@ export default async function NewRallyePage() {
     <main className="mx-auto flex w-full max-w-350 flex-col gap-4 px-4 py-6">
       <section className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <div>
-          <Button render={<Link href="/rallyes" />} variant="outline" size="sm">
+          <Link
+            href="/rallyes"
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
             ← Zurück zu Rallyes
-          </Button>
+          </Link>
         </div>
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">

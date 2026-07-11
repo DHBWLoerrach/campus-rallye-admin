@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { uploadImage, deleteImage } from '@/actions/upload';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { getQuestionMediaPublicUrl } from '@/lib/supabase-public';
 
@@ -119,13 +119,16 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
             className="hidden"
             id="image-upload"
           />
-          <Button
-            render={<Label htmlFor="image-upload" className="cursor-pointer" />}
-            variant="outline"
-            size="sm"
+          <Label
+            htmlFor="image-upload"
+            className={buttonVariants({
+              variant: 'outline',
+              size: 'sm',
+              className: 'cursor-pointer',
+            })}
           >
             {uploading ? 'Wird hochgeladen...' : 'Bild hochladen'}
-          </Button>
+          </Label>
         </div>
       )}
     </div>

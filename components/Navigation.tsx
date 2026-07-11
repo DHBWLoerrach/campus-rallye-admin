@@ -1,6 +1,6 @@
 import { LogOut, Menu } from 'lucide-react';
 import { Route } from '@/lib/types';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NavItems from '@/components/NavItems';
 import DarkModeToggle from '@/components/DarkModeToggle';
@@ -55,10 +55,13 @@ export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
           </SheetContent>
         </Sheet>
         <div className="flex flex-1 flex-row justify-end gap-2">
-          <Button render={<a href={signOutUrl} />} variant="outline">
+          <a
+            href={signOutUrl}
+            className={buttonVariants({ variant: 'outline' })}
+          >
             <span className="hidden sm:block">Abmelden</span>
             <LogOut className="sm:ml-2 h-[1.2rem] w-[1.2rem]" />
-          </Button>
+          </a>
           <DarkModeToggle />
         </div>
       </div>
