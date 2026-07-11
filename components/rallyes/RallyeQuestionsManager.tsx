@@ -146,11 +146,13 @@ export default function RallyeQuestionsManager({
             : `${assigned.length} ${assigned.length === 1 ? 'Frage' : 'Fragen'} · ${totalPoints} Punkte gesamt`}
         </p>
         <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="dhbwStyle" size="sm" className="cursor-pointer">
-              + Fragen hinzufügen
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button variant="dhbwStyle" size="sm" className="cursor-pointer">
+                + Fragen hinzufügen
+              </Button>
+            }
+          />
           <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Fragen aus dem Katalog hinzufügen</DialogTitle>

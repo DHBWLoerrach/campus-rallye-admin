@@ -105,14 +105,16 @@ export default function RallyePhaseControls({
   return (
     <div className="flex flex-col items-start gap-2">
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="dhbwStyle" className="cursor-pointer">
-            {status === 'ready' && (
-              <Play className="mr-2 h-4 w-4" aria-hidden="true" />
-            )}
-            {transition.actionLabel}
-          </Button>
-        </DialogTrigger>
+        <DialogTrigger
+          render={
+            <Button variant="dhbwStyle" className="cursor-pointer">
+              {status === 'ready' && (
+                <Play className="mr-2 h-4 w-4" aria-hidden="true" />
+              )}
+              {transition.actionLabel}
+            </Button>
+          }
+        />
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{transition.actionLabel}</DialogTitle>

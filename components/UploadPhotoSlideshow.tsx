@@ -89,11 +89,13 @@ export default function UploadPhotoSlideshow({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Slideshow starten
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button variant="outline" size="sm">
+            Slideshow starten
+          </Button>
+        }
+      />
       <DialogContent className="flex h-dvh w-screen max-w-none flex-col gap-0 overflow-hidden border-0 p-0 shadow-none sm:rounded-none">
         <DialogHeader className="border-b border-border/60 bg-card/95 pl-4 pr-12 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">

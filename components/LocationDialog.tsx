@@ -63,11 +63,13 @@ export default function LocationDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button className={buttonStyle} variant="dhbwStyle" size="default">
-          Standort erstellen
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button className={buttonStyle} variant="dhbwStyle" size="default">
+            Standort erstellen
+          </Button>
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Neuen Standort erstellen</DialogTitle>

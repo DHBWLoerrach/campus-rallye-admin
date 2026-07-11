@@ -270,16 +270,18 @@ export default function RallyeSettingsForm({
           </p>
         </div>
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Löschen
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Löschen
+              </Button>
+            }
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Rallye löschen</DialogTitle>

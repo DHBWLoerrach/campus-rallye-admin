@@ -99,11 +99,13 @@ export default function DepartmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button className={buttonStyle} variant="dhbwStyle" size="default">
-          Bereich erstellen
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button className={buttonStyle} variant="dhbwStyle" size="default">
+            Bereich erstellen
+          </Button>
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Neuen Bereich erstellen</DialogTitle>

@@ -166,12 +166,14 @@ export default function LocationForm({
 
           <div className="flex justify-between pt-4">
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-              <DialogTrigger asChild>
-                <Button type="button" variant="destructive" size="sm">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Löschen
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger
+                render={
+                  <Button type="button" variant="destructive" size="sm">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Löschen
+                  </Button>
+                }
+              />
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Standort löschen</DialogTitle>
