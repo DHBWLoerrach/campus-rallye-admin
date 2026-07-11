@@ -176,6 +176,7 @@ export async function createQuestion(data: {
   if (!parsed.success) {
     return fail('Ungültige Eingaben', formatZodError(parsed.error));
   }
+  let rollbackCreatedQuestion: (() => Promise<void>) | undefined;
   try {
     const supabase = await createClient();
     const answers = parsed.data.solutionOptions.filter(
@@ -202,6 +203,19 @@ export async function createQuestion(data: {
     }
 
     const questionId = questionData[0].id;
+    rollbackCreatedQuestion = async () => {
+      try {
+        const { error: rollbackError } = await supabase
+          .from('questions')
+          .delete()
+          .eq('id', questionId);
+        if (rollbackError) {
+          console.error('Error rolling back question:', rollbackError);
+        }
+      } catch (rollbackError) {
+        console.error('Error rolling back question:', rollbackError);
+      }
+    };
 
     type SolutionOptionInsert = {
       correct: boolean;
@@ -228,6 +242,7 @@ export async function createQuestion(data: {
 
       if (answersError) {
         console.error('Error adding solution options:', answersError);
+        await rollbackCreatedQuestion();
         return fail('Antworten konnten nicht gespeichert werden');
       }
     }
@@ -238,6 +253,7 @@ export async function createQuestion(data: {
         parsed.data.rallyeIds
       );
       if (!assignResult.success) {
+        await rollbackCreatedQuestion();
         return fail(assignResult.error, assignResult.issues);
       }
     }
@@ -245,6 +261,7 @@ export async function createQuestion(data: {
     console.log('Question and solution options added successfully');
     return ok({ message: 'Frage erfolgreich gespeichert' });
   } catch (err) {
+    await rollbackCreatedQuestion?.();
     console.error('Error processing request:', err);
     return fail('Frage konnte nicht gespeichert werden');
   }
@@ -300,7 +317,7 @@ export async function updateQuestion(
       .update({
         content: parsed.data.content,
         type: parsed.data.type,
-        point_value: parsed.data.point_value,
+        point_value: parsed.data.point_value ?? null,
         hint: parsed.data.hint,
         category: parsed.data.category || null,
         bucket_path: parsed.data.bucket_path || null,

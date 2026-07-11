@@ -12,12 +12,14 @@ import {
 import SearchFilters from '@/components/questions/SearchFilters';
 import { questionTypes } from '@/helpers/questionTypes';
 import type { Question } from '@/helpers/questions';
+import { buildRallyeQuestionCreationHref } from '@/lib/question-creation-context';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -99,6 +101,7 @@ export default function RallyeQuestionsManager({
   const [filters, setFilters] = useState<Filters>({});
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const createQuestionHref = buildRallyeQuestionCreationHref(rallyeId);
 
   const totalPoints = assigned.reduce(
     (sum, entry) => sum + (entry.question.point_value ?? 0),
@@ -185,7 +188,27 @@ export default function RallyeQuestionsManager({
           <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Fragen aus dem Katalog hinzufügen</DialogTitle>
+              <DialogDescription>
+                Bestehende Aufgaben auswählen oder eine neue Aufgabe für diese
+                Rallye erstellen.
+              </DialogDescription>
             </DialogHeader>
+            <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border/70 bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">
+                  Keine passende Aufgabe dabei?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Eine neue Aufgabe wird nach dem Speichern direkt hinzugefügt.
+                </p>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href={createQuestionHref}>
+                  <CirclePlus className="size-4" aria-hidden="true" />
+                  Neue Aufgabe erstellen
+                </Link>
+              </Button>
+            </div>
             <SearchFilters
               onFilterChange={setFilters}
               categories={categories}

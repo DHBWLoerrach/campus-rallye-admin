@@ -1,5 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Plus, Minus, Trash2 } from 'lucide-react';
+import {
+  Camera,
+  ChevronDown,
+  ImageIcon,
+  ListChecks,
+  Minus,
+  Plus,
+  QrCode,
+  TextCursorInput,
+  Trash2,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -13,8 +23,17 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { questionTypes } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
+import { cn } from '@/lib/utils';
 import QuestionImage from './QuestionImage';
 import QuestionQRCode from './QuestionQRCode';
+
+const questionTypeIcons = {
+  knowledge: TextCursorInput,
+  multiple_choice: ListChecks,
+  picture: ImageIcon,
+  qr_code: QrCode,
+  upload: Camera,
+};
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -31,6 +50,7 @@ interface FormErrors {
   type?: string;
   category?: string;
   point_value?: string;
+  bucket_path?: string;
   solutionOptions?: string;
 }
 
@@ -39,7 +59,7 @@ const buildInitialFormData = (
 ): QuestionFormData => ({
   content: initialData?.content ?? '',
   type: initialData?.type ?? '',
-  point_value: initialData?.point_value ?? 0,
+  point_value: initialData?.point_value ?? undefined,
   hint: initialData?.hint ?? undefined,
   category: initialData?.category ?? undefined,
   bucket_path: initialData?.bucket_path ?? undefined,
@@ -51,7 +71,7 @@ const buildInitialFormData = (
 const normalizeFormData = (data: QuestionFormData) => ({
   content: data.content ?? '',
   type: data.type ?? '',
-  point_value: data.point_value ?? 0,
+  point_value: data.point_value ?? null,
   hint: data.hint ?? '',
   category: data.category ?? '',
   bucket_path: data.bucket_path ?? '',
@@ -78,6 +98,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   );
 
   const [isNewCategory, setIsNewCategory] = useState(false);
+  const [optionalDetailsOpen, setOptionalDetailsOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
@@ -225,7 +246,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     });
   };
 
-  const validateForm = (data: QuestionFormData): boolean => {
+  const getFormErrors = (data: QuestionFormData): FormErrors => {
     const newErrors: FormErrors = {};
 
     if (!data.content.trim()) {
@@ -243,6 +264,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
     if ((data.point_value ?? 0) < 0) {
       newErrors.point_value = 'Punkte müssen größer oder gleich 0 sein';
+    }
+
+    if (data.type === 'picture' && !data.bucket_path?.trim()) {
+      newErrors.bucket_path = 'Bitte ein Bild hochladen';
     }
 
     const validAnswers =
@@ -263,8 +288,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.solutionOptions =
         'Mindestens eine Antwort muss eingegeben werden';
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -282,7 +306,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         })),
     };
 
-    if (!validateForm(cleanedData)) {
+    const nextErrors = getFormErrors(cleanedData);
+    setErrors(nextErrors);
+    if (nextErrors.category || nextErrors.point_value) {
+      setOptionalDetailsOpen(true);
+    }
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
     onSubmit(cleanedData);
@@ -294,12 +323,115 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const isPicture = formData.type === 'picture';
   const isQRCode = formData.type === 'qr_code';
   const showAnswers = hasType && !isUpload;
+  const filledOptionalDetailsCount = [
+    formData.point_value !== undefined,
+    Boolean(formData.hint?.trim()),
+    Boolean(formData.category?.trim()),
+  ].filter(Boolean).length;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset disabled={isSubmitting} className="space-y-6 border-0 p-0 m-0">
-        <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
-          <div className="space-y-2 md:col-span-2">
+        <section
+          aria-labelledby="question-type-heading"
+          className="space-y-5 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6"
+        >
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <h2
+                id="question-type-heading"
+                className="text-base font-semibold text-foreground"
+              >
+                Aufgabenart
+              </h2>
+              <p id="question-type-label" className="text-sm font-medium">
+                Was sollen die Teams tun?*
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Die Auswahl bestimmt, wie Teams diese Aufgabe lösen.
+              </p>
+            </div>
+            <RadioGroup
+              value={formData.type}
+              onValueChange={(value) => handleFormChange('type', value)}
+              disabled={initialData?.id !== undefined}
+              aria-labelledby="question-type-label"
+              aria-invalid={Boolean(errors.type)}
+              className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {questionTypes.map((type) => {
+                const Icon =
+                  questionTypeIcons[type.id as keyof typeof questionTypeIcons];
+                const selected = formData.type === type.id;
+                const optionId = `question-type-${type.id}`;
+
+                return (
+                  <Label
+                    key={type.id}
+                    htmlFor={optionId}
+                    aria-disabled={initialData?.id !== undefined}
+                    className={cn(
+                      'flex min-h-40 cursor-pointer flex-col gap-3 rounded-xl border bg-background/80 p-4 shadow-sm transition-colors hover:border-primary/50 hover:bg-background',
+                      selected &&
+                        'border-primary bg-primary/5 ring-2 ring-primary/15',
+                      errors.type && 'border-destructive/60',
+                      initialData?.id !== undefined &&
+                        'cursor-not-allowed opacity-65 hover:border-border'
+                    )}
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span
+                        className={cn(
+                          'flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground',
+                          selected && 'bg-primary/10 text-primary'
+                        )}
+                      >
+                        <Icon className="size-5" aria-hidden="true" />
+                      </span>
+                      <RadioGroupItem value={type.id} id={optionId} />
+                    </span>
+                    <span className="space-y-1">
+                      <span className="block font-semibold text-foreground">
+                        {type.action}
+                      </span>
+                      <span className="block text-sm font-normal leading-5 text-muted-foreground">
+                        {type.description}
+                      </span>
+                    </span>
+                    <span className="mt-auto block text-xs font-normal leading-4 text-muted-foreground/90">
+                      {type.example}
+                    </span>
+                  </Label>
+                );
+              })}
+            </RadioGroup>
+            {errors.type && (
+              <span className="text-sm text-destructive">{errors.type}</span>
+            )}
+            {initialData?.id !== undefined && (
+              <p className="text-xs text-muted-foreground">
+                Die Aufgabenart kann nach dem Erstellen nicht geändert werden.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="question-content-heading"
+          className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6"
+        >
+          <div className="space-y-1">
+            <h2
+              id="question-content-heading"
+              className="text-base font-semibold text-foreground"
+            >
+              Aufgabe formulieren
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Dieser Text wird den Teams in der Rallye angezeigt.
+            </p>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="question">Frage*</Label>
             <Input
               id="question"
@@ -316,76 +448,51 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <span className="text-sm text-destructive">{errors.content}</span>
             )}
           </div>
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
+          {isPicture && (
             <div className="space-y-2">
-              <Label htmlFor="type">Fragetyp*</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => handleFormChange('type', value)}
-                disabled={initialData?.id !== undefined}
-              >
-                <SelectTrigger
-                  className={
-                    errors.type
-                      ? 'border-destructive focus:ring-destructive/40'
-                      : ''
-                  }
-                >
-                  <SelectValue placeholder="Fragetyp wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {questionTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.type && (
-                <span className="text-sm text-destructive">{errors.type}</span>
+              <QuestionImage
+                bucketPath={formData.bucket_path}
+                onImageChange={(newPath) => {
+                  handleFormChange('bucket_path', newPath);
+                  setErrors((current) => ({
+                    ...current,
+                    bucket_path: undefined,
+                  }));
+                }}
+              />
+              {errors.bucket_path && (
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.bucket_path}
+                </p>
               )}
             </div>
-            {hasType && (
-              <div className="space-y-2">
-                <Label htmlFor="point_value">Punkte</Label>
-                <Input
-                  type="number"
-                  id="point_value"
-                  value={formData.point_value}
-                  onChange={(e) =>
-                    handleFormChange('point_value', Number(e.target.value))
-                  }
-                  placeholder="0"
-                  min={0}
-                  className={`w-full ${
-                    errors.point_value
-                      ? 'border-destructive focus-visible:ring-destructive/40'
-                      : ''
-                  }`}
-                />
-                {errors.point_value && (
-                  <span className="text-sm text-destructive">
-                    {errors.point_value}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          {!hasType && (
-            <p className="text-sm text-muted-foreground md:col-span-2">
-              Zuerst einen Fragetyp wählen — danach erscheinen die passenden
-              Felder.
-            </p>
           )}
-        </div>
+        </section>
 
         {showAnswers && (
-          <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
+          <section
+            aria-labelledby="question-solution-heading"
+            className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6"
+          >
+            <div className="space-y-1">
+              <h2
+                id="question-solution-heading"
+                className="text-base font-semibold text-foreground"
+              >
+                Lösung festlegen
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {isMultipleChoice
+                  ? 'Antwortmöglichkeiten eingeben und die richtige Antwort markieren.'
+                  : 'Die Lösung eingeben, die Teams erreichen oder finden sollen.'}
+              </p>
+            </div>
             <Label>{isMultipleChoice ? 'Antworten*' : 'Antwort*'}</Label>
             {isMultipleChoice ? (
               <RadioGroup
                 value={getCorrectAnswerIndex().toString()}
                 onValueChange={handleCorrectAnswerSelect}
+                aria-label="Richtige Antwort"
                 className="space-y-3"
               >
                 {formData.solutionOptions?.map((answer, index) => (
@@ -467,70 +574,121 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 />
               </div>
             )}
-          </div>
+          </section>
         )}
 
         {hasType && (
-          <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="hint">Hinweis</Label>
-              <Input
-                id="hint"
-                value={formData.hint ?? ''}
-                onChange={(e) => handleFormChange('hint', e.target.value)}
-                placeholder="Hinweis eingeben (optional)"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="category">Kategorie</Label>
-              <Select
-                value={isNewCategory ? 'new' : formData.category || ''}
-                onValueChange={handleCategoryChange}
-              >
-                <SelectTrigger
-                  className={
-                    errors.category
-                      ? 'border-destructive focus:ring-destructive/40'
-                      : ''
-                  }
-                >
-                  <SelectValue placeholder="Kategorie wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Bitte auswählen</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="new">+ Neue Kategorie</SelectItem>
-                </SelectContent>
-              </Select>
-              {isNewCategory && (
-                <Input
-                  type="text"
-                  value={formData.category ?? ''}
-                  placeholder="Neue Kategorie eingeben"
-                  onChange={(e) => handleFormChange('category', e.target.value)}
-                />
-              )}
-              {errors.category && (
-                <span className="text-sm text-destructive">
-                  {errors.category}
+          <details
+            open={optionalDetailsOpen}
+            onToggle={(event) =>
+              setOptionalDetailsOpen(event.currentTarget.open)
+            }
+            className="group overflow-hidden rounded-xl border border-border/60 bg-muted/30"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 marker:content-none sm:p-6 [&::-webkit-details-marker]:hidden">
+              <span className="space-y-1">
+                <span className="block text-base font-semibold text-foreground">
+                  Weitere Angaben
                 </span>
-              )}
-            </div>
-            {isPicture && (
-              <div className="md:col-span-2">
-                <QuestionImage
-                  bucketPath={formData.bucket_path}
-                  onImageChange={(newPath) =>
-                    handleFormChange('bucket_path', newPath)
-                  }
+                <span className="block text-sm font-normal text-muted-foreground">
+                  Punkte, Hinweis und Kategorie
+                </span>
+              </span>
+              <span className="flex items-center gap-3">
+                {filledOptionalDetailsCount > 0 && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {filledOptionalDetailsCount}{' '}
+                    {filledOptionalDetailsCount === 1
+                      ? 'Angabe ausgefüllt'
+                      : 'Angaben ausgefüllt'}
+                  </span>
+                )}
+                <ChevronDown
+                  className="size-4 text-muted-foreground transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                />
+              </span>
+            </summary>
+            <div className="grid gap-4 border-t border-border/60 bg-card/50 p-4 sm:p-6 md:grid-cols-2">
+              <div className="max-w-28 space-y-2">
+                <Label htmlFor="point_value">Punkte</Label>
+                <Input
+                  type="number"
+                  id="point_value"
+                  value={formData.point_value ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleFormChange(
+                      'point_value',
+                      value === '' ? undefined : Number(value)
+                    );
+                  }}
+                  placeholder="0"
+                  min={0}
+                  className={`w-full ${
+                    errors.point_value
+                      ? 'border-destructive focus-visible:ring-destructive/40'
+                      : ''
+                  }`}
+                />
+                {errors.point_value && (
+                  <span className="text-sm text-destructive">
+                    {errors.point_value}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="hint">Hinweis</Label>
+                <Input
+                  id="hint"
+                  value={formData.hint ?? ''}
+                  onChange={(e) => handleFormChange('hint', e.target.value)}
+                  placeholder="Hinweis eingeben (optional)"
                 />
               </div>
-            )}
-          </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="category">Kategorie</Label>
+                <Select
+                  value={isNewCategory ? 'new' : formData.category || ''}
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger
+                    className={
+                      errors.category
+                        ? 'border-destructive focus:ring-destructive/40'
+                        : ''
+                    }
+                  >
+                    <SelectValue placeholder="Kategorie wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Bitte auswählen</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="new">+ Neue Kategorie</SelectItem>
+                  </SelectContent>
+                </Select>
+                {isNewCategory && (
+                  <Input
+                    type="text"
+                    value={formData.category ?? ''}
+                    placeholder="Neue Kategorie eingeben"
+                    onChange={(e) =>
+                      handleFormChange('category', e.target.value)
+                    }
+                  />
+                )}
+                {errors.category && (
+                  <span className="text-sm text-destructive">
+                    {errors.category}
+                  </span>
+                )}
+              </div>
+            </div>
+          </details>
         )}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4">

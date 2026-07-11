@@ -7,10 +7,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ChevronDown, Pencil } from 'lucide-react';
+import { ChevronDown, Copy, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { questionTypes } from '../../helpers/questionTypes';
+import { buildQuestionCopyHref } from '@/lib/question-copy-context';
 import { Question } from '@/helpers/questions';
 import QuestionSummary from '@/components/questions/QuestionSummary';
 import QuestionDetailsRows from '@/components/questions/QuestionDetailsRows';
@@ -52,7 +53,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
               <TableHead>Typ</TableHead>
               <TableHead className="w-20 text-right">Punkte</TableHead>
               <TableHead className="w-32">Verwendet in</TableHead>
-              <TableHead className="w-12 text-center">Aktionen</TableHead>
+              <TableHead className="w-20 text-center">Aktionen</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -102,17 +103,32 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                        >
-                          <Link href={`/questions/${question.id}`}>
-                            <Pencil className="h-4 w-4" aria-hidden="true" />
-                            <span className="sr-only">Bearbeiten</span>
-                          </Link>
-                        </Button>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          >
+                            <Link href={buildQuestionCopyHref(question.id)}>
+                              <Copy className="h-4 w-4" aria-hidden="true" />
+                              <span className="sr-only">
+                                Als neue Aufgabe verwenden
+                              </span>
+                            </Link>
+                          </Button>
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          >
+                            <Link href={`/questions/${question.id}`}>
+                              <Pencil className="h-4 w-4" aria-hidden="true" />
+                              <span className="sr-only">Bearbeiten</span>
+                            </Link>
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                     {expandedRows.includes(question.id) && (

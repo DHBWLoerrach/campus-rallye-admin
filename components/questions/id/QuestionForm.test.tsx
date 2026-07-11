@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import QuestionForm from './QuestionForm';
 import type {
@@ -67,17 +67,222 @@ describe('QuestionForm', () => {
     expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
 
-  it('shows only question and type until a type is chosen', () => {
+  it('offers task-oriented question type cards', () => {
     render(
       <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
     );
+
+    expect(
+      screen.getByRole('radiogroup', { name: /Was sollen die Teams tun/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Antwort eingeben/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Antwort auswählen/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Bild ansehen und antworten/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /QR-Code finden/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Foto hochladen/ })
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Frage*')).toBeInTheDocument();
     expect(screen.queryByLabelText('Punkte')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Hinweis')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Kategorie')).not.toBeInTheDocument();
+    expect(screen.queryByText('Fragetyp wählen')).not.toBeInTheDocument();
+  });
+
+  it('shows the matching fields after selecting a task', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
+    );
+
+    const knowledgeType = screen.getByRole('radio', {
+      name: /Antwort eingeben/,
+    });
+    fireEvent.click(knowledgeType);
+
+    expect(knowledgeType).toBeChecked();
+    expect(screen.getByLabelText('Punkte')).toBeInTheDocument();
+    expect(screen.getByText('Antwort*')).toBeInTheDocument();
+  });
+
+  it('structures the editor and keeps further details collapsed', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={['Campus']}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: 5,
+          hint: 'Folgt den Schildern.',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Aufgabenart' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Aufgabe formulieren' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Lösung festlegen' })
+    ).toBeInTheDocument();
+
+    const summary = screen.getByText('Weitere Angaben');
+    const details = summary.closest('details');
+    expect(details).not.toHaveAttribute('open');
+    expect(screen.getByText('2 Angaben ausgefüllt')).toBeInTheDocument();
+
+    fireEvent.click(summary.closest('summary')!);
+    expect(details).toHaveAttribute('open');
+  });
+
+  it('keeps the image field outside the optional details', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Welches Gebäude ist zu sehen?',
+          type: 'picture',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    const details = screen.getByText('Weitere Angaben').closest('details');
+    const imageLabel = screen.getByText('Bild');
+    expect(details).not.toContainElement(imageLabel);
+  });
+
+  it('requires an image before submitting a picture question', () => {
+    const handleSubmit = vi.fn();
+    render(
+      <QuestionForm
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Welches Gebäude ist zu sehen?',
+          type: 'picture',
+          solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Bitte ein Bild hochladen')).toBeInTheDocument();
+  });
+
+  it('opens further details when an optional field is invalid', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: -1,
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    const details = screen.getByText('Weitere Angaben').closest('details');
+    expect(details).not.toHaveAttribute('open');
+
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Speichern' }).closest('form')!
+    );
+
+    expect(details).toHaveAttribute('open');
+    expect(
+      screen.getByText('Punkte müssen größer oder gleich 0 sein')
+    ).toBeInTheDocument();
+  });
+
+  it('allows clearing points and submits them as unset', () => {
+    const handleSubmit = vi.fn();
+
+    render(
+      <QuestionForm
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: 5,
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
+    const pointsInput = screen.getByLabelText('Punkte');
+    fireEvent.change(pointsInput, { target: { value: '' } });
+
+    expect(pointsInput).toHaveDisplayValue('');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+    expect(handleSubmit.mock.calls[0][0].point_value).toBeUndefined();
+  });
+
+  it('counts explicitly set zero points as a filled detail', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: 0,
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    expect(screen.getByText('1 Angabe ausgefüllt')).toBeInTheDocument();
+  });
+
+  it('keeps the task type locked for an existing question', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          id: 1,
+          content: 'X',
+          type: 'knowledge',
+          solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
+        }}
+      />
+    );
+
+    expect(
+      screen.getByRole('radio', { name: /Antwort eingeben/ })
+    ).toBeDisabled();
     expect(
       screen.getByText(
-        'Zuerst einen Fragetyp wählen — danach erscheinen die passenden Felder.'
+        'Die Aufgabenart kann nach dem Erstellen nicht geändert werden.'
       )
     ).toBeInTheDocument();
   });
@@ -117,7 +322,9 @@ describe('QuestionForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Antwort entfernen' }));
 
-    const radios = screen.getAllByRole('radio');
+    const radios = within(
+      screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
+    ).getAllByRole('radio');
     expect(radios).toHaveLength(1);
     expect(radios[0]).toHaveAttribute('data-state', 'checked');
   });
@@ -145,7 +352,9 @@ describe('QuestionForm', () => {
     });
     fireEvent.click(removeButtons[1]);
 
-    const radios = screen.getAllByRole('radio');
+    const radios = within(
+      screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
+    ).getAllByRole('radio');
     expect(radios).toHaveLength(2);
     expect(radios[1]).toHaveAttribute('data-state', 'checked');
   });

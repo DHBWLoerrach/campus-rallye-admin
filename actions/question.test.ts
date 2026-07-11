@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockRequireProfile, mockCreateClient, mockDeleteImage } = vi.hoisted(
-  () => ({
-    mockRequireProfile: vi.fn(),
-    mockCreateClient: vi.fn(),
-    mockDeleteImage: vi.fn(),
-  })
-);
+const {
+  mockRequireProfile,
+  mockCreateClient,
+  mockDeleteImage,
+  mockAssignRallyesToQuestion,
+} = vi.hoisted(() => ({
+  mockRequireProfile: vi.fn(),
+  mockCreateClient: vi.fn(),
+  mockDeleteImage: vi.fn(),
+  mockAssignRallyesToQuestion: vi.fn(),
+}));
 
 vi.mock('@/lib/require-profile', () => ({
   requireProfile: mockRequireProfile,
@@ -20,11 +24,39 @@ vi.mock('@/actions/upload', () => ({
   deleteImage: mockDeleteImage,
 }));
 
+vi.mock('@/actions/assign_questions_to_rallye', () => ({
+  assignRallyesToQuestion: mockAssignRallyesToQuestion,
+}));
+
 describe('question write actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
   });
+
+  const buildCreateClient = (answersError: Error | null = null) => {
+    const questionDeleteEq = vi.fn().mockResolvedValue({ error: null });
+    const questionsQuery = {
+      insert: vi.fn(() => ({
+        select: vi.fn().mockResolvedValue({
+          data: [{ id: 42 }],
+          error: null,
+        }),
+      })),
+      delete: vi.fn(() => ({ eq: questionDeleteEq })),
+    };
+    const answersQuery = {
+      insert: vi.fn().mockResolvedValue({ error: answersError }),
+    };
+    const from = vi.fn((table: string) => {
+      if (table === 'questions') return questionsQuery;
+      if (table === 'solution_options') return answersQuery;
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    mockCreateClient.mockResolvedValue({ from });
+    return { questionDeleteEq };
+  };
 
   it('returns validation errors before touching Supabase', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
@@ -68,6 +100,93 @@ describe('question write actions', () => {
       'Punkte müssen größer oder gleich 0 sein'
     );
     expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+
+  it('clears stored points when update omits point_value', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const questionUpdate = vi.fn(() => ({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    }));
+    const questionsQuery = {
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: { id: 1 },
+            error: null,
+          }),
+        })),
+      })),
+      update: questionUpdate,
+    };
+    const answersQuery = {
+      select: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({
+          data: [{ id: 1 }],
+          error: null,
+        }),
+      })),
+      update: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          eq: vi.fn().mockResolvedValue({ error: null }),
+        })),
+      })),
+    };
+    const from = vi.fn((table: string) => {
+      if (table === 'questions') return questionsQuery;
+      if (table === 'solution_options') return answersQuery;
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateQuestion } = await import('./question');
+    const result = await updateQuestion(1, {
+      content: 'Frage',
+      type: 'knowledge',
+      solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(questionUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ point_value: null })
+    );
+  });
+
+  it('removes the inserted question when saving answers fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { questionDeleteEq } = buildCreateClient(new Error('Answer failed'));
+
+    const { createQuestion } = await import('./question');
+    const result = await createQuestion({
+      content: 'Frage',
+      type: 'knowledge',
+      solutionOptions: [{ correct: true, text: 'Antwort' }],
+    });
+
+    expect(result.success).toBe(false);
+    expect(questionDeleteEq).toHaveBeenCalledWith('id', 42);
+  });
+
+  it('removes the inserted question when rallye assignment fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { questionDeleteEq } = buildCreateClient();
+    mockAssignRallyesToQuestion.mockResolvedValue({
+      success: false,
+      error: 'Rallye nicht gefunden',
+    });
+
+    const { createQuestion } = await import('./question');
+    const result = await createQuestion({
+      content: 'Frage',
+      type: 'knowledge',
+      solutionOptions: [{ correct: true, text: 'Antwort' }],
+      rallyeIds: [5],
+    });
+
+    expect(result.success).toBe(false);
+    expect(mockAssignRallyesToQuestion).toHaveBeenCalledWith(42, [5]);
+    expect(questionDeleteEq).toHaveBeenCalledWith('id', 42);
   });
 
   it('createQuestion requires a profile before touching Supabase', async () => {

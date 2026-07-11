@@ -10,12 +10,18 @@ import {
 } from '@/actions/question';
 import { Question, QuestionFormData } from '@/helpers/questions';
 import type { RallyeOption } from '@/lib/types';
+import {
+  parseQuestionCreationContext,
+  QUESTION_RALLYE_ID_PARAM,
+} from '@/lib/question-creation-context';
 import { Button } from '@/components/ui/button';
 import QuestionForm from '@/components/questions/id/QuestionForm';
 
 interface Props {
   id: string;
-  initialData: Question | null;
+  initialData: Partial<Question> | null;
+  isCopy?: boolean;
+  copyError?: string | null;
   categories: string[];
   rallyes: RallyeOption[];
   initialRallyeIds: number[];
@@ -24,6 +30,8 @@ interface Props {
 const QuestionPage: React.FC<Props> = ({
   id,
   initialData,
+  isCopy = false,
+  copyError = null,
   categories,
   rallyes,
   initialRallyeIds,
@@ -32,9 +40,28 @@ const QuestionPage: React.FC<Props> = ({
   const searchParams = useSearchParams();
   const isNew = id === 'new';
   const returnToParam = searchParams.get('returnTo') ?? '';
-  const returnTo = returnToParam.startsWith('/') ? returnToParam : '/questions';
-  const hasReturnTarget = returnToParam.startsWith('/');
-  const isRallyeContext = returnToParam.startsWith('/rallyes/');
+  const creationContext = parseQuestionCreationContext(
+    searchParams.get(QUESTION_RALLYE_ID_PARAM)
+  );
+  const creationRallyeId =
+    isNew && creationContext.kind === 'rallye'
+      ? creationContext.rallyeId
+      : undefined;
+  const returnTo =
+    creationRallyeId !== undefined
+      ? `/rallyes/${creationRallyeId}`
+      : returnToParam.startsWith('/')
+        ? returnToParam
+        : '/questions';
+  const invalidRallyeCreationContext =
+    isNew &&
+    (creationContext.kind === 'invalid' ||
+      (creationContext.kind === 'none' &&
+        returnToParam.startsWith('/rallyes/')));
+  const hasReturnTarget =
+    creationRallyeId !== undefined || returnToParam.startsWith('/');
+  const isRallyeContext =
+    creationRallyeId !== undefined || returnToParam.startsWith('/rallyes/');
   const returnLabel = isRallyeContext ? '← Zurück zu Rallye' : '← Zurück';
   const assignedRallyeIds = new Set(initialRallyeIds);
   const assignedRallyes = rallyes.filter((rallye) =>
@@ -51,6 +78,12 @@ const QuestionPage: React.FC<Props> = ({
   useUnsavedChangesGuard(isDirty, unsavedChangesMessage);
 
   const handleSubmit = async (data: QuestionFormData) => {
+    if (invalidRallyeCreationContext) {
+      setSubmitError(
+        'Rallye-Kontext ist ungültig. Aufgabe wurde nicht gespeichert.'
+      );
+      return;
+    }
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -69,6 +102,9 @@ const QuestionPage: React.FC<Props> = ({
         const result = await createQuestion({
           ...data,
           solutionOptions: data.solutionOptions || [],
+          ...(creationRallyeId !== undefined
+            ? { rallyeIds: [creationRallyeId] }
+            : {}),
         });
         if (!result.success) {
           setSubmitError(result.error);
@@ -136,6 +172,21 @@ const QuestionPage: React.FC<Props> = ({
           </p>
         </div>
       </section>
+
+      {copyError ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-foreground"
+        >
+          {copyError}
+        </div>
+      ) : isCopy ? (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+          {initialData?.type === 'picture'
+            ? 'Text und Antworten wurden übernommen. Das Bild muss neu hochgeladen werden. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
+            : 'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'}
+        </div>
+      ) : null}
 
       {!isNew && (
         <div className="rounded-2xl border border-border/60 bg-muted/40 px-4 py-3 text-sm">

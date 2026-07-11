@@ -64,13 +64,22 @@ const solutionOptionSchema = z.object({
   text: z.string().optional(),
 });
 
-const validateAnswers = (
+const validateQuestionDetails = (
   data: {
     type: string;
+    bucket_path?: string | null;
     solutionOptions: { correct: boolean; text?: string }[];
   },
   ctx: z.RefinementCtx
 ) => {
+  if (data.type === 'picture' && !data.bucket_path?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['bucket_path'],
+      message: 'Bitte ein Bild hochladen',
+    });
+  }
+
   const normalizedAnswers = data.solutionOptions
     .map((answer) => (answer.text ?? '').trim())
     .filter((text) => text.length > 0);
@@ -114,8 +123,9 @@ export const questionBaseSchema = z.object({
   rallyeIds: idArraySchema.optional(),
 });
 
-export const questionCreateSchema =
-  questionBaseSchema.superRefine(validateAnswers);
+export const questionCreateSchema = questionBaseSchema.superRefine(
+  validateQuestionDetails
+);
 
 export const questionUpdateSchema = questionBaseSchema
   .extend({
@@ -127,7 +137,7 @@ export const questionUpdateSchema = questionBaseSchema
       })
     ),
   })
-  .superRefine(validateAnswers);
+  .superRefine(validateQuestionDetails);
 
 export const formatZodError = (error: z.ZodError): Record<string, string> => {
   const issues: Record<string, string> = {};
