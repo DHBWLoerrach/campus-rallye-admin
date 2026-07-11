@@ -117,9 +117,16 @@ export default function UsersClient({
                           : user.department_id.toString()
                       }
                       onValueChange={(value) =>
-                        handleChange(user.user_id, value)
+                        handleChange(user.user_id, value ?? NO_DEPARTMENT)
                       }
                       disabled={isPending}
+                      items={[
+                        { value: NO_DEPARTMENT, label: 'Kein Bereich' },
+                        ...departmentOptions.map((department) => ({
+                          value: department.id.toString(),
+                          label: department.name,
+                        })),
+                      ]}
                     >
                       <SelectTrigger className="w-56">
                         <SelectValue />

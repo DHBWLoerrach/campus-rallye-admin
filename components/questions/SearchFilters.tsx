@@ -104,7 +104,14 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         </div>
         <Select
           value={filters.type}
-          onValueChange={(value) => handleChange('type', value)}
+          onValueChange={(value) => handleChange('type', value ?? 'all')}
+          items={[
+            { value: 'all', label: 'Alle Aufgabenarten' },
+            ...questionTypes.map((type) => ({
+              value: type.id,
+              label: type.action,
+            })),
+          ]}
         >
           <SelectTrigger aria-label="Aufgabenart">
             <SelectValue placeholder="Alle Aufgabenarten" />
@@ -120,7 +127,14 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         </Select>
         <Select
           value={filters.category}
-          onValueChange={(value) => handleChange('category', value)}
+          onValueChange={(value) => handleChange('category', value ?? 'all')}
+          items={[
+            { value: 'all', label: 'Alle Kategorien' },
+            ...categories.map((category) => ({
+              value: category,
+              label: category,
+            })),
+          ]}
         >
           <SelectTrigger aria-label="Kategorie">
             <SelectValue placeholder="Alle Kategorien" />
@@ -137,7 +151,14 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         {rallyes && (
           <Select
             value={filters.rallyeId}
-            onValueChange={(value) => handleChange('rallyeId', value)}
+            onValueChange={(value) => handleChange('rallyeId', value ?? 'all')}
+            items={[
+              { value: 'all', label: 'Alle Rallyes' },
+              ...rallyes.map((rallye) => ({
+                value: rallye.id.toString(),
+                label: rallye.name,
+              })),
+            ]}
           >
             <SelectTrigger className="w-full" aria-label="Rallye">
               <SelectValue placeholder="Alle Rallyes" />

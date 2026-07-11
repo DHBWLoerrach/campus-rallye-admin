@@ -148,7 +148,14 @@ export default function LocationForm({
             <Select
               name="default_rallye_id"
               value={defaultRallyeId}
-              onValueChange={setDefaultRallyeId}
+              onValueChange={(value) => setDefaultRallyeId(value ?? '')}
+              items={[
+                { value: 'none', label: 'Keine Campus-Tour' },
+                ...rallyeOptions.map((rallye) => ({
+                  value: rallye.id.toString(),
+                  label: rallye.name,
+                })),
+              ]}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Keine Campus-Tour" />

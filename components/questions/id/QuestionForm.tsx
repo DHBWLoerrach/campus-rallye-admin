@@ -632,7 +632,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 <Label htmlFor="category">Kategorie</Label>
                 <Select
                   value={isNewCategory ? 'new' : formData.category || ''}
-                  onValueChange={handleCategoryChange}
+                  onValueChange={(value) => handleCategoryChange(value ?? '')}
+                  items={[
+                    { value: 'none', label: 'Bitte auswählen' },
+                    ...categories.map((category) => ({
+                      value: category,
+                      label: category,
+                    })),
+                    { value: 'new', label: '+ Neue Kategorie' },
+                  ]}
                 >
                   <SelectTrigger
                     className={

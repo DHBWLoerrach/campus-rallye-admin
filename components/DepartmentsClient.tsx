@@ -84,7 +84,14 @@ export default function DepartmentsClient({
           </Label>
           <Select
             value={selectedLocationId}
-            onValueChange={setSelectedLocationId}
+            onValueChange={(value) => setSelectedLocationId(value ?? '')}
+            items={[
+              { value: 'all', label: 'Alle Standorte' },
+              ...locationOptions.map((location) => ({
+                value: location.id.toString(),
+                label: location.name,
+              })),
+            ]}
           >
             <SelectTrigger className="w-62.5">
               <SelectValue />

@@ -49,8 +49,16 @@ describe('SearchFilters', () => {
     const typeTrigger = screen.getByRole('combobox', {
       name: 'Aufgabenart',
     });
-    fireEvent.keyDown(typeTrigger, { key: 'ArrowDown' });
-    fireEvent.click(screen.getByText('Antwort auswählen'));
+    fireEvent.click(typeTrigger);
+
+    // Base UI Select commits on a full pointer tap of the option, not a bare
+    // click (the way Radix did).
+    const option = screen.getByRole('option', { name: 'Antwort auswählen' });
+    fireEvent.pointerDown(option, { button: 0, pointerId: 1 });
+    fireEvent.mouseDown(option, { button: 0 });
+    fireEvent.pointerUp(option, { button: 0, pointerId: 1 });
+    fireEvent.mouseUp(option, { button: 0 });
+    fireEvent.click(option, { button: 0 });
 
     const activeFilters = screen.getByRole('region', {
       name: 'Aktive Filter',
@@ -83,8 +91,16 @@ describe('SearchFilters', () => {
     );
 
     const rallyeTrigger = screen.getByRole('combobox', { name: 'Rallye' });
-    fireEvent.keyDown(rallyeTrigger, { key: 'ArrowDown' });
-    fireEvent.click(screen.getByText('Rallye A'));
+    fireEvent.click(rallyeTrigger);
+
+    // Base UI Select commits on a full pointer tap of the option, not a bare
+    // click (the way Radix did).
+    const option = screen.getByRole('option', { name: 'Rallye A' });
+    fireEvent.pointerDown(option, { button: 0, pointerId: 1 });
+    fireEvent.mouseDown(option, { button: 0 });
+    fireEvent.pointerUp(option, { button: 0, pointerId: 1 });
+    fireEvent.mouseUp(option, { button: 0 });
+    fireEvent.click(option, { button: 0 });
 
     expect(onFilterChange).toHaveBeenCalled();
     const lastCall = onFilterChange.mock.calls.at(-1)?.[0];

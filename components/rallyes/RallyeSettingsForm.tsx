@@ -178,7 +178,13 @@ export default function RallyeSettingsForm({
               <>
                 <Select
                   value={selectedDepartmentId}
-                  onValueChange={setSelectedDepartmentId}
+                  onValueChange={(value) =>
+                    setSelectedDepartmentId(value ?? '')
+                  }
+                  items={departmentOptions.map((department) => ({
+                    value: String(department.id),
+                    label: department.name,
+                  }))}
                 >
                   <SelectTrigger
                     id={`rallye-${rallye.id}-department`}
@@ -226,6 +232,10 @@ export default function RallyeSettingsForm({
             <Select
               value={status}
               onValueChange={(value) => setStatus(value as RallyeStatus)}
+              items={RALLYE_STATUSES.map((statusOption) => ({
+                value: statusOption,
+                label: getRallyeStatusLabel(statusOption),
+              }))}
             >
               <SelectTrigger
                 id={`rallye-${rallye.id}-status`}

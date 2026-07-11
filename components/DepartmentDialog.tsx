@@ -160,7 +160,11 @@ export default function DepartmentDialog({
                   <Select
                     name="location_id"
                     value={locationId}
-                    onValueChange={setLocationId}
+                    onValueChange={(value) => setLocationId(value ?? '')}
+                    items={locationOptions.map((location) => ({
+                      value: location.id.toString(),
+                      label: location.name,
+                    }))}
                     required
                   >
                     <SelectTrigger>

@@ -127,7 +127,14 @@ export default function RallyeCreateWizard({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="wizard-department">Bereich</Label>
-            <Select value={departmentId} onValueChange={setDepartmentId}>
+            <Select
+              value={departmentId}
+              onValueChange={(value) => setDepartmentId(value ?? '')}
+              items={departmentOptions.map((department) => ({
+                value: String(department.id),
+                label: department.name,
+              }))}
+            >
               <SelectTrigger id="wizard-department" className="max-w-sm">
                 <SelectValue placeholder="Bereich auswählen" />
               </SelectTrigger>
