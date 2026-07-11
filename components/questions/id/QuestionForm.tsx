@@ -1,15 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Camera,
-  ChevronDown,
-  ImageIcon,
-  ListChecks,
-  Minus,
-  Plus,
-  QrCode,
-  TextCursorInput,
-  Trash2,
-} from 'lucide-react';
+import { ChevronDown, Minus, Plus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -26,14 +16,7 @@ import { Question, QuestionFormData } from '@/helpers/questions';
 import { cn } from '@/lib/utils';
 import QuestionImage from './QuestionImage';
 import QuestionQRCode from './QuestionQRCode';
-
-const questionTypeIcons = {
-  knowledge: TextCursorInput,
-  multiple_choice: ListChecks,
-  picture: ImageIcon,
-  qr_code: QrCode,
-  upload: Camera,
-};
+import { questionTypeIcons } from '@/components/questions/question-type-icons';
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -360,8 +343,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
             >
               {questionTypes.map((type) => {
-                const Icon =
-                  questionTypeIcons[type.id as keyof typeof questionTypeIcons];
+                const Icon = questionTypeIcons[type.icon];
                 const selected = formData.type === type.id;
                 const optionId = `question-type-${type.id}`;
 

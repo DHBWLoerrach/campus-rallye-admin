@@ -4,7 +4,7 @@ import QuestionsTable from './QuestionsTable';
 
 describe('QuestionsTable', () => {
   it('renders a compact questions table with meta indicators', () => {
-    const { container } = render(
+    render(
       <QuestionsTable
         questions={[
           {
@@ -25,10 +25,10 @@ describe('QuestionsTable', () => {
     );
 
     expect(
-      screen.getByRole('columnheader', { name: 'Frage' })
+      screen.getByRole('columnheader', { name: 'Aufgabe' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('columnheader', { name: 'Typ' })
+      screen.getByRole('columnheader', { name: 'Was Teams tun' })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('columnheader', { name: 'Aktionen' })
@@ -40,37 +40,46 @@ describe('QuestionsTable', () => {
       screen.getByRole('columnheader', { name: 'Verwendet in' })
     ).toBeInTheDocument();
     expect(screen.getByText('Testfrage')).toBeInTheDocument();
-    expect(screen.getByText('Wissensfrage')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText('Antwort eingeben')).toBeInTheDocument();
+    expect(screen.getByText('Lösung:')).toBeInTheDocument();
+    expect(screen.getByText('Antwort A')).toBeInTheDocument();
+    expect(screen.getByText('2 Punkte')).toBeInTheDocument();
     expect(screen.getByTitle('Bild vorhanden')).toBeInTheDocument();
     expect(screen.getByTitle('Hinweis vorhanden')).toBeInTheDocument();
     expect(screen.getByText('2 Rallyes')).toHaveAttribute(
       'title',
       'Rallye A, Rallye B'
     );
-    expect(screen.getByRole('link', { name: 'Bearbeiten' })).toHaveAttribute(
-      'href',
-      '/questions/1'
-    );
     expect(
-      screen.getByRole('link', { name: 'Als neue Aufgabe verwenden' })
+      screen.getByRole('link', { name: 'Aufgabe „Testfrage“ bearbeiten' })
+    ).toHaveAttribute('href', '/questions/1');
+    expect(
+      screen.getByRole('link', {
+        name: '„Testfrage“ als neue Aufgabe verwenden',
+      })
     ).toHaveAttribute('href', '/questions/new?copyFrom=1');
 
     expect(screen.queryByText('Hinweistext')).not.toBeInTheDocument();
-    const toggle = container.querySelector('tbody tr td svg');
-    expect(toggle).not.toBeNull();
-    fireEvent.click(toggle as SVGElement);
+    const toggle = screen.getByRole('button', {
+      name: 'Details zu „Testfrage“ anzeigen',
+    });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).not.toHaveAttribute('aria-controls');
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle).toHaveAttribute('aria-controls', 'question-1-details');
+    expect(document.getElementById('question-1-details')).toBeInTheDocument();
     expect(screen.getByText('Hinweis:')).toBeInTheDocument();
     expect(screen.getByText('Hinweistext')).toBeInTheDocument();
     expect(screen.getByText('Rallyes:')).toBeInTheDocument();
     expect(screen.getByText('Rallye A, Rallye B')).toBeInTheDocument();
     expect(screen.getByText('Antworten:')).toBeInTheDocument();
-    expect(screen.getByText('Antwort A')).toBeInTheDocument();
+    expect(screen.getAllByText('Antwort A')).toHaveLength(2);
     expect(screen.getByText('Antwort B')).toBeInTheDocument();
   });
 
   it('uses singular label when there is only one answer', () => {
-    const { container } = render(
+    render(
       <QuestionsTable
         questions={[
           {
@@ -83,14 +92,16 @@ describe('QuestionsTable', () => {
       />
     );
 
-    const toggle = container.querySelector('tbody tr td svg');
-    expect(toggle).not.toBeNull();
-    fireEvent.click(toggle as SVGElement);
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Details zu „Testfrage“ anzeigen',
+      })
+    );
     expect(screen.getByText('Antwort:')).toBeInTheDocument();
-    expect(screen.getByText('Einzelantwort')).toBeInTheDocument();
+    expect(screen.getAllByText('Einzelantwort')).toHaveLength(2);
   });
 
-  it('shows dashes for missing type, points and rallye usage', () => {
+  it('explains missing type, points and rallye usage', () => {
     render(
       <QuestionsTable
         questions={[
@@ -100,6 +111,28 @@ describe('QuestionsTable', () => {
     );
 
     const rows = screen.getAllByRole('row');
-    expect(within(rows[1]).getAllByText('—').length).toBeGreaterThanOrEqual(2);
+    const questionRow = within(rows[1]);
+    expect(questionRow.getByText('Aufgabenart fehlt')).toBeInTheDocument();
+    expect(questionRow.getByText('Keine Punkte')).toBeInTheDocument();
+    expect(questionRow.getByText('Noch nicht verwendet')).toBeInTheDocument();
+  });
+
+  it('labels the stored value of a QR task as QR code content', () => {
+    render(
+      <QuestionsTable
+        questions={[
+          {
+            id: 3,
+            content: 'Findet den Code am Eingang',
+            type: 'qr_code',
+            solutionOptions: [{ id: 4, correct: true, text: 'campus-library' }],
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText('QR-Code-Inhalt:')).toBeInTheDocument();
+    expect(screen.getByText('campus-library')).toBeInTheDocument();
+    expect(screen.queryByText('Lösung:')).not.toBeInTheDocument();
   });
 });

@@ -1,6 +1,23 @@
+export type QuestionTypeIconName =
+  | 'text-input'
+  | 'list-checks'
+  | 'image'
+  | 'qr-code'
+  | 'camera';
+
+interface QuestionTypeDefinition {
+  id: string;
+  name: string;
+  action: string;
+  description: string;
+  example: string;
+  icon: QuestionTypeIconName;
+}
+
 export const questionTypes = [
   {
     id: 'knowledge',
+    icon: 'text-input',
     name: 'Wissensfrage',
     action: 'Antwort eingeben',
     description: 'Teams geben eine kurze Lösung als Text ein.',
@@ -8,6 +25,7 @@ export const questionTypes = [
   },
   {
     id: 'multiple_choice',
+    icon: 'list-checks',
     name: 'Multiple Choice',
     action: 'Antwort auswählen',
     description: 'Teams wählen die richtige aus mehreren Antworten.',
@@ -15,6 +33,7 @@ export const questionTypes = [
   },
   {
     id: 'picture',
+    icon: 'image',
     name: 'Bild',
     action: 'Bild ansehen und antworten',
     description: 'Teams sehen ein Bild und geben die passende Lösung ein.',
@@ -22,6 +41,7 @@ export const questionTypes = [
   },
   {
     id: 'qr_code',
+    icon: 'qr-code',
     name: 'QR Code',
     action: 'QR-Code finden',
     description: 'Teams finden einen ausgedruckten QR-Code und scannen ihn.',
@@ -29,9 +49,10 @@ export const questionTypes = [
   },
   {
     id: 'upload',
+    icon: 'camera',
     name: 'Upload',
     action: 'Foto hochladen',
     description: 'Teams nehmen ein Foto auf und reichen es zur Bewertung ein.',
     example: 'Zum Beispiel: Fotografiert das DHBW-Logo am Eingang.',
   },
-];
+] satisfies QuestionTypeDefinition[];

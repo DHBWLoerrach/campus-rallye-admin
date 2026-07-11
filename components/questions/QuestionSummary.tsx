@@ -8,26 +8,50 @@ interface QuestionSummaryProps {
 const QuestionSummary = ({ question }: QuestionSummaryProps) => {
   const hasImage = Boolean(question.bucket_path);
   const hasHint = Boolean(question.hint?.trim());
-  const showMeta = hasImage || hasHint;
+  const category = question.category?.trim();
+  const solutionPreview = question.solutionOptions
+    ?.find((answer) => answer.correct && answer.text?.trim())
+    ?.text?.trim();
+  const solutionPreviewLabel =
+    question.type === 'qr_code' ? 'QR-Code-Inhalt' : 'Lösung';
+  const showMeta = hasImage || hasHint || Boolean(category);
 
   return (
-    <div className="flex flex-col gap-1">
-      <span className="truncate">{question.content}</span>
+    <div className="flex min-w-60 flex-col gap-1.5">
+      <span className="line-clamp-2 font-medium text-foreground">
+        {question.content}
+      </span>
+      {solutionPreview && question.type !== 'upload' && (
+        <span className="truncate text-xs text-muted-foreground">
+          <span className="font-medium text-foreground/75">
+            {solutionPreviewLabel}:
+          </span>{' '}
+          {solutionPreview}
+        </span>
+      )}
       {showMeta && (
-        <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-1.5 text-[0.7rem] text-muted-foreground">
+          {category && (
+            <span className="rounded-full bg-muted px-2 py-0.5">
+              {category}
+            </span>
+          )}
           {hasImage && (
-            <span className="inline-flex items-center" title="Bild vorhanden">
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5"
+              title="Bild vorhanden"
+            >
               <ImageIcon className="h-3 w-3" aria-hidden="true" />
-              <span className="sr-only">Bild vorhanden</span>
+              Mit Bild
             </span>
           )}
           {hasHint && (
             <span
-              className="inline-flex items-center"
+              className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5"
               title="Hinweis vorhanden"
             >
               <Lightbulb className="h-3 w-3" aria-hidden="true" />
-              <span className="sr-only">Hinweis vorhanden</span>
+              Mit Hinweis
             </span>
           )}
         </div>
