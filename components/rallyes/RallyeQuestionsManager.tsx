@@ -13,6 +13,10 @@ import SearchFilters from '@/components/questions/SearchFilters';
 import { questionTypes } from '@/helpers/questionTypes';
 import type { Question } from '@/helpers/questions';
 import { buildRallyeQuestionCreationHref } from '@/lib/question-creation-context';
+import {
+  matchesQuestionFilters,
+  type QuestionContentFilters,
+} from '@/lib/question-filters';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -35,13 +39,6 @@ import {
 
 export type AssignedQuestion = { question: Question; isVoting: boolean };
 
-type Filters = {
-  question?: string;
-  answer?: string;
-  type?: string;
-  category?: string;
-};
-
 interface RallyeQuestionsManagerProps {
   rallyeId: number;
   initialAssigned: AssignedQuestion[];
@@ -49,45 +46,13 @@ interface RallyeQuestionsManagerProps {
   categories: string[];
 }
 
-const getTypeLabel = (type: string | null | undefined): string =>
-  questionTypes.find((t) => t.id === type)?.name ?? '—';
+const getTypeActionLabel = (type: string | null | undefined): string =>
+  questionTypes.find((t) => t.id === type)?.action ?? '—';
 
 const byContent = (a: Question, b: Question) =>
   (a.content ?? '').localeCompare(b.content ?? '', 'de', {
     sensitivity: 'base',
   });
-
-const matchesFilters = (question: Question, filters: Filters): boolean => {
-  if (
-    filters.question &&
-    !question.content?.toLowerCase().includes(filters.question.toLowerCase())
-  ) {
-    return false;
-  }
-  if (
-    filters.answer &&
-    !(question.solutionOptions ?? []).some((answer) =>
-      answer.text?.toLowerCase().includes(filters.answer!.toLowerCase())
-    )
-  ) {
-    return false;
-  }
-  if (
-    filters.type &&
-    filters.type !== 'all' &&
-    question.type !== filters.type
-  ) {
-    return false;
-  }
-  if (
-    filters.category &&
-    filters.category !== 'all' &&
-    question.category !== filters.category
-  ) {
-    return false;
-  }
-  return true;
-};
 
 export default function RallyeQuestionsManager({
   rallyeId,
@@ -98,7 +63,7 @@ export default function RallyeQuestionsManager({
   const router = useRouter();
   const [assigned, setAssigned] = useState<AssignedQuestion[]>(initialAssigned);
   const [available, setAvailable] = useState<Question[]>(initialAvailable);
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<QuestionContentFilters>({});
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const createQuestionHref = buildRallyeQuestionCreationHref(rallyeId);
@@ -109,7 +74,8 @@ export default function RallyeQuestionsManager({
   );
 
   const filteredAvailable = useMemo(
-    () => available.filter((question) => matchesFilters(question, filters)),
+    () =>
+      available.filter((question) => matchesQuestionFilters(question, filters)),
     [available, filters]
   );
 
@@ -212,7 +178,6 @@ export default function RallyeQuestionsManager({
             <SearchFilters
               onFilterChange={setFilters}
               categories={categories}
-              showAssignedToggle={false}
               compact
             />
             {filteredAvailable.length === 0 ? (
@@ -227,7 +192,7 @@ export default function RallyeQuestionsManager({
                       <TableCell className="max-w-md">
                         <span className="line-clamp-2">{question.content}</span>
                         <span className="mt-1 block text-xs text-muted-foreground">
-                          {getTypeLabel(question.type)}
+                          {getTypeActionLabel(question.type)}
                           {question.point_value
                             ? ` · ${question.point_value} P`
                             : ''}
@@ -282,7 +247,7 @@ export default function RallyeQuestionsManager({
                   <span className="line-clamp-2">{entry.question.content}</span>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {getTypeLabel(entry.question.type)}
+                  {getTypeActionLabel(entry.question.type)}
                 </TableCell>
                 <TableCell className="text-right">
                   {entry.question.point_value ?? '—'}

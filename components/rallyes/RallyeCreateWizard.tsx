@@ -7,6 +7,10 @@ import SearchFilters from '@/components/questions/SearchFilters';
 import { questionTypes } from '@/helpers/questionTypes';
 import type { Question } from '@/helpers/questions';
 import type { DepartmentOption } from '@/lib/types';
+import {
+  matchesQuestionFilters,
+  type QuestionContentFilters,
+} from '@/lib/question-filters';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -19,13 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-type Filters = {
-  question?: string;
-  answer?: string;
-  type?: string;
-  category?: string;
-};
-
 interface RallyeCreateWizardProps {
   departmentOptions: DepartmentOption[];
   defaultDepartmentId: number | null;
@@ -35,40 +32,8 @@ interface RallyeCreateWizardProps {
 
 const STEPS = ['Name & Bereich', 'Fragen wählen', 'Rallye-Code'];
 
-const getTypeLabel = (type: string | null | undefined): string =>
-  questionTypes.find((t) => t.id === type)?.name ?? '—';
-
-const matchesFilters = (question: Question, filters: Filters): boolean => {
-  if (
-    filters.question &&
-    !question.content?.toLowerCase().includes(filters.question.toLowerCase())
-  ) {
-    return false;
-  }
-  if (
-    filters.answer &&
-    !(question.solutionOptions ?? []).some((answer) =>
-      answer.text?.toLowerCase().includes(filters.answer!.toLowerCase())
-    )
-  ) {
-    return false;
-  }
-  if (
-    filters.type &&
-    filters.type !== 'all' &&
-    question.type !== filters.type
-  ) {
-    return false;
-  }
-  if (
-    filters.category &&
-    filters.category !== 'all' &&
-    question.category !== filters.category
-  ) {
-    return false;
-  }
-  return true;
-};
+const getTypeActionLabel = (type: string | null | undefined): string =>
+  questionTypes.find((t) => t.id === type)?.action ?? '—';
 
 export default function RallyeCreateWizard({
   departmentOptions,
@@ -83,13 +48,14 @@ export default function RallyeCreateWizard({
     defaultDepartmentId ? String(defaultDepartmentId) : ''
   );
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<QuestionContentFilters>({});
   const [rallyeCode, setRallyeCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const filteredQuestions = useMemo(
-    () => questions.filter((question) => matchesFilters(question, filters)),
+    () =>
+      questions.filter((question) => matchesQuestionFilters(question, filters)),
     [questions, filters]
   );
 
@@ -187,7 +153,6 @@ export default function RallyeCreateWizard({
           <SearchFilters
             onFilterChange={setFilters}
             categories={categories}
-            showAssignedToggle={false}
             compact
           />
           <div className="max-h-96 space-y-2 overflow-y-auto rounded-xl border border-border/60 bg-muted/30 p-3">
@@ -211,7 +176,7 @@ export default function RallyeCreateWizard({
                   >
                     {question.content}
                     <span className="ml-2 text-xs text-muted-foreground">
-                      {getTypeLabel(question.type)}
+                      {getTypeActionLabel(question.type)}
                       {question.point_value
                         ? ` · ${question.point_value} P`
                         : ''}

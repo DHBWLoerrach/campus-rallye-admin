@@ -57,6 +57,9 @@ describe('RallyeQuestionsManager', () => {
     expect(screen.getByText('2 Fragen · 11 Punkte gesamt')).toBeInTheDocument();
     expect(screen.getByText('Wo ist die Mensa?')).toBeInTheDocument();
     expect(screen.getByText('Macht ein Gruppenfoto')).toBeInTheDocument();
+    expect(screen.getByText('Antwort eingeben')).toBeInTheDocument();
+    expect(screen.getByText('Foto hochladen')).toBeInTheDocument();
+    expect(screen.queryByText('Wissensfrage')).not.toBeInTheDocument();
   });
 
   it('shows the voting checkbox only for upload questions', () => {

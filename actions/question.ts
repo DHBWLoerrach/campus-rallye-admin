@@ -11,6 +11,7 @@ import {
   questionCreateSchema,
   questionUpdateSchema,
 } from '@/lib/validation';
+import type { QuestionCatalogFilters } from '@/lib/question-filters';
 
 export async function getCategories(): Promise<ActionResult<string[]>> {
   await requireProfile();
@@ -64,15 +65,45 @@ export async function getQuestionById(
   return ok(data as Question);
 }
 
-export async function getQuestions(filters: {
-  question?: string;
-  answer?: string;
-  type?: string;
-  category?: string;
-  rallyeId?: string;
-}): Promise<ActionResult<Question[]>> {
+export async function getQuestions(
+  filters: QuestionCatalogFilters
+): Promise<ActionResult<Question[]>> {
   await requireProfile();
   const supabase = await createClient();
+
+  const searchTerm = filters.search?.trim();
+  let searchQuestionIds: number[] | undefined;
+  if (searchTerm) {
+    const [questionMatches, answerMatches] = await Promise.all([
+      supabase
+        .from('questions')
+        .select('id')
+        .ilike('content', `%${searchTerm}%`),
+      supabase
+        .from('solution_options')
+        .select('question_id')
+        .ilike('text', `%${searchTerm}%`),
+    ]);
+
+    if (questionMatches.error || answerMatches.error) {
+      console.error(
+        'Error searching questions:',
+        questionMatches.error ?? answerMatches.error
+      );
+      return fail('Fragen konnten nicht durchsucht werden');
+    }
+
+    searchQuestionIds = Array.from(
+      new Set([
+        ...(questionMatches.data ?? []).map((row) => row.id),
+        ...(answerMatches.data ?? []).map((row) => row.question_id),
+      ])
+    ).filter((id): id is number => typeof id === 'number');
+
+    if (searchQuestionIds.length === 0) {
+      return ok([]);
+    }
+  }
 
   // Build base query with nested solution options to avoid N+1
   let query = supabase
@@ -81,8 +112,8 @@ export async function getQuestions(filters: {
       'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text)'
     );
 
-  if (filters.question && filters.question.trim().length > 0) {
-    query = query.ilike('content', `%${filters.question.trim()}%`);
+  if (searchQuestionIds) {
+    query = query.in('id', searchQuestionIds);
   }
 
   if (filters.type && filters.type !== 'all') {
@@ -120,33 +151,6 @@ export async function getQuestions(filters: {
 
       query = query.in('id', ids);
     }
-  }
-
-  // If filtering by answer text, narrow by question IDs that match
-  if (filters.answer && filters.answer.trim().length > 0) {
-    const { data: answerRows, error: answerErr } = await supabase
-      .from('solution_options')
-      .select('question_id')
-      .ilike('text', `%${filters.answer.trim()}%`);
-
-    if (answerErr) {
-      console.error('Error filtering by answer text:', answerErr);
-      return fail('Fragen konnten nicht geladen werden');
-    }
-
-    const ids = Array.from(
-      new Set(
-        (answerRows || [])
-          .map((row) => row.question_id)
-          .filter((id): id is number => typeof id === 'number')
-      )
-    );
-
-    if (ids.length === 0) {
-      return ok([]);
-    }
-
-    query = query.in('id', ids);
   }
 
   query = query.order('created_at', { ascending: false });

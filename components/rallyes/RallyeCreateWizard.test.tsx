@@ -55,6 +55,8 @@ describe('RallyeCreateWizard', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
 
+    expect(screen.getByText(/Antwort eingeben/)).toBeInTheDocument();
+    expect(screen.queryByText('Wissensfrage')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: /Wo ist die Mensa/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
 

@@ -349,9 +349,13 @@ describe('getQuestions', () => {
     return query;
   };
 
-  it('filters by answer text when answer ids are numbers', async () => {
+  it('searches question and answer text with one term', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
+    const questionIdsQuery = makeQuery({
+      data: [{ id: 7 }],
+      error: null,
+    });
     const answersQuery = makeQuery({
       data: [{ question_id: 42 }],
       error: null,
@@ -373,24 +377,30 @@ describe('getQuestions', () => {
     };
     const questionsQuery = makeQuery(questionsResponse);
 
+    let questionQueryCount = 0;
     const from = vi.fn((table: string) => {
       if (table === 'solution_options') return answersQuery;
-      if (table === 'questions') return questionsQuery;
+      if (table === 'questions') {
+        questionQueryCount += 1;
+        return questionQueryCount === 1 ? questionIdsQuery : questionsQuery;
+      }
       throw new Error(`Unexpected table: ${table}`);
     });
 
     mockCreateClient.mockResolvedValue({ from });
 
     const { getQuestions } = await import('./question');
-    const result = await getQuestions({ answer: 'Antwort' });
+    const result = await getQuestions({ search: 'Campus' });
 
     expect(result).toEqual({ success: true, data: questionsResponse.data });
+    expect(questionIdsQuery.select).toHaveBeenCalledWith('id');
+    expect(questionIdsQuery.ilike).toHaveBeenCalledWith('content', '%Campus%');
     expect(questionsQuery.select).toHaveBeenCalledWith(
       'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text)'
     );
     expect(answersQuery.select).toHaveBeenCalledWith('question_id');
-    expect(answersQuery.ilike).toHaveBeenCalledWith('text', '%Antwort%');
-    expect(questionsQuery.in).toHaveBeenCalledWith('id', [42]);
+    expect(answersQuery.ilike).toHaveBeenCalledWith('text', '%Campus%');
+    expect(questionsQuery.in).toHaveBeenCalledWith('id', [7, 42]);
   });
 });
 

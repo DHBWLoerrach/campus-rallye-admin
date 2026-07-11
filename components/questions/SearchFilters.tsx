@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { questionTypes } from '../../helpers/questionTypes';
+import { Search, X } from 'lucide-react';
+import { questionTypes } from '@/helpers/questionTypes';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -8,82 +10,123 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import type { RallyeOption } from '@/lib/types';
+import type { QuestionCatalogFilters } from '@/lib/question-filters';
 
 interface SearchFiltersProps {
-  onFilterChange: (filters: {
-    question?: string;
-    answer?: string;
-    type?: string;
-    category?: string;
-    rallyeId?: string;
-    assigned?: boolean;
-  }) => void;
+  onFilterChange: (filters: QuestionCatalogFilters) => void;
   categories: string[];
   rallyes?: RallyeOption[];
-  showAssignedToggle?: boolean;
   compact?: boolean;
 }
+
+type FilterState = {
+  search: string;
+  type: string;
+  category: string;
+  rallyeId: string;
+};
+
+const initialFilters: FilterState = {
+  search: '',
+  type: 'all',
+  category: 'all',
+  rallyeId: 'all',
+};
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
   onFilterChange,
   categories,
   rallyes,
-  showAssignedToggle = true,
   compact = false,
 }) => {
-  const [filters, setFilters] = useState({
-    question: '',
-    answer: '',
-    type: '',
-    category: '',
-    rallyeId: '',
-    assigned: undefined,
-  });
+  const [filters, setFilters] = useState<FilterState>(initialFilters);
 
-  const handleChange = (field: string, value: string | boolean | undefined) => {
+  const handleChange = <K extends keyof FilterState>(
+    field: K,
+    value: FilterState[K]
+  ) => {
     const newFilters = { ...filters, [field]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
+  const clearFilter = (field: keyof FilterState) => {
+    if (field === 'type' || field === 'category' || field === 'rallyeId') {
+      handleChange(field, 'all');
+    } else {
+      handleChange(field, '');
+    }
+  };
+
+  const typeLabel = questionTypes.find(
+    (type) => type.id === filters.type
+  )?.action;
+  const rallyeLabel = rallyes?.find(
+    (rallye) => String(rallye.id) === filters.rallyeId
+  )?.name;
+  const normalizedSearch = filters.search.trim();
+  const activeFilters = [
+    normalizedSearch
+      ? { field: 'search' as const, label: `Suche: ${normalizedSearch}` }
+      : null,
+    typeLabel ? { field: 'type' as const, label: typeLabel } : null,
+    filters.category !== 'all'
+      ? { field: 'category' as const, label: `Kategorie: ${filters.category}` }
+      : null,
+    rallyeLabel
+      ? { field: 'rallyeId' as const, label: `Rallye: ${rallyeLabel}` }
+      : null,
+  ].filter((filter) => filter !== null);
+
   const gridClassName = compact
-    ? 'grid gap-2 grid-cols-1 sm:grid-cols-2'
-    : rallyes?.length
-      ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px_220px]'
-      : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_200px_200px]';
+    ? 'grid grid-cols-1 gap-2 sm:grid-cols-2'
+    : rallyes !== undefined
+      ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(16rem,1fr)_repeat(3,minmax(0,13rem))]'
+      : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(16rem,1fr)_repeat(2,minmax(0,13rem))]';
 
   return (
     <div className="flex flex-col gap-3">
       <div className={gridClassName}>
-        <Input
-          placeholder="Suche (Frage)"
-          onChange={(e) => handleChange('question', e.target.value)}
-        />
-        <Input
-          placeholder="Suche (Antwort)"
-          onChange={(e) => handleChange('answer', e.target.value)}
-        />
-        <Select onValueChange={(value) => handleChange('type', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Typ" />
+        <div className={`relative ${compact ? 'sm:col-span-2' : ''}`}>
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            type="search"
+            aria-label="Aufgabe oder Antwort suchen"
+            placeholder="Aufgabe oder Antwort suchen …"
+            value={filters.search}
+            onChange={(event) => handleChange('search', event.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select
+          value={filters.type}
+          onValueChange={(value) => handleChange('type', value)}
+        >
+          <SelectTrigger aria-label="Aufgabenart">
+            <SelectValue placeholder="Alle Aufgabenarten" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Alle</SelectItem>
+            <SelectItem value="all">Alle Aufgabenarten</SelectItem>
             {questionTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
-                {type.name}
+                {type.action}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select onValueChange={(value) => handleChange('category', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Kategorie" />
+        <Select
+          value={filters.category}
+          onValueChange={(value) => handleChange('category', value)}
+        >
+          <SelectTrigger aria-label="Kategorie">
+            <SelectValue placeholder="Alle Kategorien" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Alle</SelectItem>
+            <SelectItem value="all">Alle Kategorien</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
@@ -92,9 +135,12 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           </SelectContent>
         </Select>
         {rallyes && (
-          <Select onValueChange={(value) => handleChange('rallyeId', value)}>
+          <Select
+            value={filters.rallyeId}
+            onValueChange={(value) => handleChange('rallyeId', value)}
+          >
             <SelectTrigger className="w-full" aria-label="Rallye">
-              <SelectValue placeholder="Rallye" />
+              <SelectValue placeholder="Alle Rallyes" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle Rallyes</SelectItem>
@@ -107,16 +153,29 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           </Select>
         )}
       </div>
-      {showAssignedToggle && (
-        <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          <Checkbox
-            id="assigned-toggle"
-            checked={filters.assigned === true}
-            onCheckedChange={(checked) =>
-              handleChange('assigned', checked === true ? true : undefined)
-            }
-          />
-          <label htmlFor="assigned-toggle">Nur ausgewählte Fragen</label>
+      {activeFilters.length > 0 && (
+        <div
+          role="region"
+          aria-label="Aktive Filter"
+          className="flex flex-wrap items-center gap-2"
+        >
+          <span className="text-xs font-medium text-muted-foreground">
+            Aktiv:
+          </span>
+          {activeFilters.map((filter) => (
+            <Button
+              key={filter.field}
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => clearFilter(filter.field)}
+              aria-label={`Filter „${filter.label}“ entfernen`}
+              className="h-7 max-w-full px-2.5 text-xs"
+            >
+              <span className="max-w-64 truncate">{filter.label}</span>
+              <X aria-hidden="true" className="size-3" />
+            </Button>
+          ))}
         </div>
       )}
     </div>

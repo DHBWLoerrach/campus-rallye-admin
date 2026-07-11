@@ -9,6 +9,7 @@ import QuestionsTable from './QuestionsTable';
 import type { Question } from '@/helpers/questions';
 import SearchFilters from './SearchFilters';
 import type { RallyeOption } from '@/lib/types';
+import type { QuestionCatalogFilters } from '@/lib/question-filters';
 
 interface Props {
   initialQuestions: Question[];
@@ -27,14 +28,7 @@ export default function QuestionManagement({
   const [rallyeMap, setRallyeMap] =
     useState<Record<number, string[]>>(initialRallyeMap);
 
-  const handleFilterChange = async (filters: {
-    question?: string;
-    answer?: string;
-    type?: string;
-    category?: string;
-    rallyeId?: string;
-    assigned?: boolean;
-  }) => {
+  const handleFilterChange = async (filters: QuestionCatalogFilters) => {
     const questionsResult = await getQuestions(filters);
     if (!questionsResult.success) {
       console.error(questionsResult.error);
@@ -83,7 +77,6 @@ export default function QuestionManagement({
       <section className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm">
         <SearchFilters
           onFilterChange={handleFilterChange}
-          showAssignedToggle={false}
           categories={categories}
           rallyes={rallyes}
         />
