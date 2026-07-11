@@ -70,6 +70,57 @@ describe('question write actions', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
+  it('clears stored points when update omits point_value', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const questionUpdate = vi.fn(() => ({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    }));
+    const questionsQuery = {
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: { id: 1 },
+            error: null,
+          }),
+        })),
+      })),
+      update: questionUpdate,
+    };
+    const answersQuery = {
+      select: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({
+          data: [{ id: 1 }],
+          error: null,
+        }),
+      })),
+      update: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          eq: vi.fn().mockResolvedValue({ error: null }),
+        })),
+      })),
+    };
+    const from = vi.fn((table: string) => {
+      if (table === 'questions') return questionsQuery;
+      if (table === 'solution_options') return answersQuery;
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateQuestion } = await import('./question');
+    const result = await updateQuestion(1, {
+      content: 'Frage',
+      type: 'knowledge',
+      solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(questionUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ point_value: null })
+    );
+  });
+
   it('createQuestion requires a profile before touching Supabase', async () => {
     mockRequireProfile.mockRejectedValue(new Error('Denied'));
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Camera,
+  ChevronDown,
   ImageIcon,
   ListChecks,
   Minus,
@@ -57,7 +58,7 @@ const buildInitialFormData = (
 ): QuestionFormData => ({
   content: initialData?.content ?? '',
   type: initialData?.type ?? '',
-  point_value: initialData?.point_value ?? 0,
+  point_value: initialData?.point_value ?? undefined,
   hint: initialData?.hint ?? undefined,
   category: initialData?.category ?? undefined,
   bucket_path: initialData?.bucket_path ?? undefined,
@@ -69,7 +70,7 @@ const buildInitialFormData = (
 const normalizeFormData = (data: QuestionFormData) => ({
   content: data.content ?? '',
   type: data.type ?? '',
-  point_value: data.point_value ?? 0,
+  point_value: data.point_value ?? null,
   hint: data.hint ?? '',
   category: data.category ?? '',
   bucket_path: data.bucket_path ?? '',
@@ -96,6 +97,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   );
 
   const [isNewCategory, setIsNewCategory] = useState(false);
+  const [optionalDetailsOpen, setOptionalDetailsOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
@@ -243,7 +245,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     });
   };
 
-  const validateForm = (data: QuestionFormData): boolean => {
+  const getFormErrors = (data: QuestionFormData): FormErrors => {
     const newErrors: FormErrors = {};
 
     if (!data.content.trim()) {
@@ -281,8 +283,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.solutionOptions =
         'Mindestens eine Antwort muss eingegeben werden';
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -300,7 +301,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         })),
     };
 
-    if (!validateForm(cleanedData)) {
+    const nextErrors = getFormErrors(cleanedData);
+    setErrors(nextErrors);
+    if (nextErrors.category || nextErrors.point_value) {
+      setOptionalDetailsOpen(true);
+    }
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
     onSubmit(cleanedData);
@@ -312,16 +318,32 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const isPicture = formData.type === 'picture';
   const isQRCode = formData.type === 'qr_code';
   const showAnswers = hasType && !isUpload;
+  const filledOptionalDetailsCount = [
+    formData.point_value !== undefined,
+    Boolean(formData.hint?.trim()),
+    Boolean(formData.category?.trim()),
+  ].filter(Boolean).length;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset disabled={isSubmitting} className="space-y-6 border-0 p-0 m-0">
-        <div className="space-y-5 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6">
+        <section
+          aria-labelledby="question-type-heading"
+          className="space-y-5 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6"
+        >
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label id="question-type-label">Was sollen die Teams tun?*</Label>
+              <h2
+                id="question-type-heading"
+                className="text-base font-semibold text-foreground"
+              >
+                Aufgabenart
+              </h2>
+              <p id="question-type-label" className="text-sm font-medium">
+                Was sollen die Teams tun?*
+              </p>
               <p className="text-sm text-muted-foreground">
-                Die Auswahl bestimmt, wie Teams die Aufgabe lösen.
+                Die Auswahl bestimmt, wie Teams diese Aufgabe lösen.
               </p>
             </div>
             <RadioGroup
@@ -387,7 +409,23 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               </p>
             )}
           </div>
+        </section>
 
+        <section
+          aria-labelledby="question-content-heading"
+          className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6"
+        >
+          <div className="space-y-1">
+            <h2
+              id="question-content-heading"
+              className="text-base font-semibold text-foreground"
+            >
+              Aufgabe formulieren
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Dieser Text wird den Teams in der Rallye angezeigt.
+            </p>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="question">Frage*</Label>
             <Input
@@ -405,35 +443,34 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <span className="text-sm text-destructive">{errors.content}</span>
             )}
           </div>
-          {hasType && (
-            <div className="max-w-28 space-y-2">
-              <Label htmlFor="point_value">Punkte</Label>
-              <Input
-                type="number"
-                id="point_value"
-                value={formData.point_value}
-                onChange={(e) =>
-                  handleFormChange('point_value', Number(e.target.value))
-                }
-                placeholder="0"
-                min={0}
-                className={`w-full ${
-                  errors.point_value
-                    ? 'border-destructive focus-visible:ring-destructive/40'
-                    : ''
-                }`}
-              />
-              {errors.point_value && (
-                <span className="text-sm text-destructive">
-                  {errors.point_value}
-                </span>
-              )}
-            </div>
+          {isPicture && (
+            <QuestionImage
+              bucketPath={formData.bucket_path}
+              onImageChange={(newPath) =>
+                handleFormChange('bucket_path', newPath)
+              }
+            />
           )}
-        </div>
+        </section>
 
         {showAnswers && (
-          <div className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6">
+          <section
+            aria-labelledby="question-solution-heading"
+            className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6"
+          >
+            <div className="space-y-1">
+              <h2
+                id="question-solution-heading"
+                className="text-base font-semibold text-foreground"
+              >
+                Lösung festlegen
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {isMultipleChoice
+                  ? 'Antwortmöglichkeiten eingeben und die richtige Antwort markieren.'
+                  : 'Die Lösung eingeben, die Teams erreichen oder finden sollen.'}
+              </p>
+            </div>
             <Label>{isMultipleChoice ? 'Antworten*' : 'Antwort*'}</Label>
             {isMultipleChoice ? (
               <RadioGroup
@@ -521,70 +558,121 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 />
               </div>
             )}
-          </div>
+          </section>
         )}
 
         {hasType && (
-          <div className="grid gap-4 rounded-xl border border-border/60 bg-muted/30 p-4 sm:p-6 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="hint">Hinweis</Label>
-              <Input
-                id="hint"
-                value={formData.hint ?? ''}
-                onChange={(e) => handleFormChange('hint', e.target.value)}
-                placeholder="Hinweis eingeben (optional)"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="category">Kategorie</Label>
-              <Select
-                value={isNewCategory ? 'new' : formData.category || ''}
-                onValueChange={handleCategoryChange}
-              >
-                <SelectTrigger
-                  className={
-                    errors.category
-                      ? 'border-destructive focus:ring-destructive/40'
-                      : ''
-                  }
-                >
-                  <SelectValue placeholder="Kategorie wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Bitte auswählen</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="new">+ Neue Kategorie</SelectItem>
-                </SelectContent>
-              </Select>
-              {isNewCategory && (
-                <Input
-                  type="text"
-                  value={formData.category ?? ''}
-                  placeholder="Neue Kategorie eingeben"
-                  onChange={(e) => handleFormChange('category', e.target.value)}
-                />
-              )}
-              {errors.category && (
-                <span className="text-sm text-destructive">
-                  {errors.category}
+          <details
+            open={optionalDetailsOpen}
+            onToggle={(event) =>
+              setOptionalDetailsOpen(event.currentTarget.open)
+            }
+            className="group overflow-hidden rounded-xl border border-border/60 bg-muted/30"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 marker:content-none sm:p-6 [&::-webkit-details-marker]:hidden">
+              <span className="space-y-1">
+                <span className="block text-base font-semibold text-foreground">
+                  Weitere Angaben
                 </span>
-              )}
-            </div>
-            {isPicture && (
-              <div className="md:col-span-2">
-                <QuestionImage
-                  bucketPath={formData.bucket_path}
-                  onImageChange={(newPath) =>
-                    handleFormChange('bucket_path', newPath)
-                  }
+                <span className="block text-sm font-normal text-muted-foreground">
+                  Punkte, Hinweis und Kategorie
+                </span>
+              </span>
+              <span className="flex items-center gap-3">
+                {filledOptionalDetailsCount > 0 && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {filledOptionalDetailsCount}{' '}
+                    {filledOptionalDetailsCount === 1
+                      ? 'Angabe ausgefüllt'
+                      : 'Angaben ausgefüllt'}
+                  </span>
+                )}
+                <ChevronDown
+                  className="size-4 text-muted-foreground transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                />
+              </span>
+            </summary>
+            <div className="grid gap-4 border-t border-border/60 bg-card/50 p-4 sm:p-6 md:grid-cols-2">
+              <div className="max-w-28 space-y-2">
+                <Label htmlFor="point_value">Punkte</Label>
+                <Input
+                  type="number"
+                  id="point_value"
+                  value={formData.point_value ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleFormChange(
+                      'point_value',
+                      value === '' ? undefined : Number(value)
+                    );
+                  }}
+                  placeholder="0"
+                  min={0}
+                  className={`w-full ${
+                    errors.point_value
+                      ? 'border-destructive focus-visible:ring-destructive/40'
+                      : ''
+                  }`}
+                />
+                {errors.point_value && (
+                  <span className="text-sm text-destructive">
+                    {errors.point_value}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="hint">Hinweis</Label>
+                <Input
+                  id="hint"
+                  value={formData.hint ?? ''}
+                  onChange={(e) => handleFormChange('hint', e.target.value)}
+                  placeholder="Hinweis eingeben (optional)"
                 />
               </div>
-            )}
-          </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="category">Kategorie</Label>
+                <Select
+                  value={isNewCategory ? 'new' : formData.category || ''}
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger
+                    className={
+                      errors.category
+                        ? 'border-destructive focus:ring-destructive/40'
+                        : ''
+                    }
+                  >
+                    <SelectValue placeholder="Kategorie wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Bitte auswählen</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="new">+ Neue Kategorie</SelectItem>
+                  </SelectContent>
+                </Select>
+                {isNewCategory && (
+                  <Input
+                    type="text"
+                    value={formData.category ?? ''}
+                    placeholder="Neue Kategorie eingeben"
+                    onChange={(e) =>
+                      handleFormChange('category', e.target.value)
+                    }
+                  />
+                )}
+                {errors.category && (
+                  <span className="text-sm text-destructive">
+                    {errors.category}
+                  </span>
+                )}
+              </div>
+            </div>
+          </details>
         )}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4">

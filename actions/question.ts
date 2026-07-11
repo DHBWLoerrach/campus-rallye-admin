@@ -300,7 +300,7 @@ export async function updateQuestion(
       .update({
         content: parsed.data.content,
         type: parsed.data.type,
-        point_value: parsed.data.point_value,
+        point_value: parsed.data.point_value ?? null,
         hint: parsed.data.hint,
         category: parsed.data.category || null,
         bucket_path: parsed.data.bucket_path || null,

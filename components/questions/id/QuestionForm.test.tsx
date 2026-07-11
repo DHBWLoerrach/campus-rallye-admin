@@ -112,6 +112,135 @@ describe('QuestionForm', () => {
     expect(screen.getByText('Antwort*')).toBeInTheDocument();
   });
 
+  it('structures the editor and keeps further details collapsed', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={['Campus']}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: 5,
+          hint: 'Folgt den Schildern.',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Aufgabenart' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Aufgabe formulieren' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Lösung festlegen' })
+    ).toBeInTheDocument();
+
+    const summary = screen.getByText('Weitere Angaben');
+    const details = summary.closest('details');
+    expect(details).not.toHaveAttribute('open');
+    expect(screen.getByText('2 Angaben ausgefüllt')).toBeInTheDocument();
+
+    fireEvent.click(summary.closest('summary')!);
+    expect(details).toHaveAttribute('open');
+  });
+
+  it('keeps the image field outside the optional details', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Welches Gebäude ist zu sehen?',
+          type: 'picture',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    const details = screen.getByText('Weitere Angaben').closest('details');
+    const imageLabel = screen.getByText('Bild');
+    expect(details).not.toContainElement(imageLabel);
+  });
+
+  it('opens further details when an optional field is invalid', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: -1,
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    const details = screen.getByText('Weitere Angaben').closest('details');
+    expect(details).not.toHaveAttribute('open');
+
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Speichern' }).closest('form')!
+    );
+
+    expect(details).toHaveAttribute('open');
+    expect(
+      screen.getByText('Punkte müssen größer oder gleich 0 sein')
+    ).toBeInTheDocument();
+  });
+
+  it('allows clearing points and submits them as unset', () => {
+    const handleSubmit = vi.fn();
+
+    render(
+      <QuestionForm
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: 5,
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
+    const pointsInput = screen.getByLabelText('Punkte');
+    fireEvent.change(pointsInput, { target: { value: '' } });
+
+    expect(pointsInput).toHaveDisplayValue('');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+    expect(handleSubmit.mock.calls[0][0].point_value).toBeUndefined();
+  });
+
+  it('counts explicitly set zero points as a filled detail', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          point_value: 0,
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    expect(screen.getByText('1 Angabe ausgefüllt')).toBeInTheDocument();
+  });
+
   it('keeps the task type locked for an existing question', () => {
     render(
       <QuestionForm
