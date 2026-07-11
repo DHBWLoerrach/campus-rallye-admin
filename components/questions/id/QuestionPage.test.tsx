@@ -1,10 +1,17 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import QuestionPage from './QuestionPage';
 
-const { push, mockSearchParams } = vi.hoisted(() => ({
+const { push, mockSearchParams, mockCreateQuestion } = vi.hoisted(() => ({
   push: vi.fn(),
   mockSearchParams: { get: vi.fn(), toString: vi.fn(() => '') },
+  mockCreateQuestion: vi.fn(),
+}));
+
+vi.mock('@/actions/question', () => ({
+  createQuestion: mockCreateQuestion,
+  updateQuestion: vi.fn(),
+  deleteQuestion: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -58,6 +65,81 @@ describe('QuestionPage', () => {
     expect(
       screen.getByRole('button', { name: '← Zurück zu Rallye' })
     ).toBeInTheDocument();
+  });
+
+  it('assigns a new question and derives the rallye return target', async () => {
+    mockSearchParams.get.mockImplementation((key) => {
+      if (key === 'rallyeId') return '5';
+      return '';
+    });
+    mockCreateQuestion.mockResolvedValue({
+      success: true,
+      data: { message: 'ok' },
+    });
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={null}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
+    fireEvent.change(screen.getByLabelText('Frage*'), {
+      target: { value: 'Wo ist die Mensa?' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+      target: { value: 'Gebäude A' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(mockCreateQuestion).toHaveBeenCalledWith(
+        expect.objectContaining({ rallyeIds: [5] })
+      )
+    );
+    expect(push).toHaveBeenCalledWith('/rallyes/5');
+  });
+
+  it('blocks creation when the provided rallye context is invalid', async () => {
+    mockSearchParams.get.mockImplementation((key) => {
+      if (key === 'rallyeId') return 'invalid';
+      return '';
+    });
+    mockCreateQuestion.mockResolvedValue({
+      success: true,
+      data: { message: 'ok' },
+    });
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={null}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
+    fireEvent.change(screen.getByLabelText('Frage*'), {
+      target: { value: 'Wo ist die Mensa?' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+      target: { value: 'Gebäude A' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(mockCreateQuestion).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        'Rallye-Kontext ist ungültig. Aufgabe wurde nicht gespeichert.'
+      )
+    ).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
   });
 
   it('shows assigned rallyes with a global impact hint', () => {

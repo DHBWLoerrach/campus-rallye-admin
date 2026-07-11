@@ -108,7 +108,28 @@ describe('RallyeQuestionsManager', () => {
     expect(screen.getByText('Neue Frage')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Frage hinzufügen' }));
     await waitFor(() => expect(mockAdd).toHaveBeenCalledWith(5, 9));
-    expect(screen.getByText('1 Frage · 3 Punkte gesamt')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('1 Frage · 3 Punkte gesamt')).toBeInTheDocument()
+    );
+  });
+
+  it('links to creating and assigning a new question', () => {
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        initialAssigned={[]}
+        initialAvailable={[]}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '+ Fragen hinzufügen' })
+    );
+
+    expect(
+      screen.getByRole('link', { name: 'Neue Aufgabe erstellen' })
+    ).toHaveAttribute('href', '/questions/new?rallyeId=5');
   });
 
   it('toggles voting via the action', async () => {
