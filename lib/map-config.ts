@@ -19,13 +19,15 @@ export interface MapTileConfig {
 export function getMapTileConfig(): MapTileConfig {
   const customUrl = process.env.NEXT_PUBLIC_MAP_TILE_URL;
   const customAttribution = process.env.NEXT_PUBLIC_MAP_TILE_ATTRIBUTION;
-  const hasCustomUrl = Boolean(customUrl?.trim());
-  const hasCustomAttribution = Boolean(customAttribution?.trim());
+  const trimmedCustomUrl = customUrl?.trim();
+  const trimmedCustomAttribution = customAttribution?.trim();
+  const hasCustomUrl = Boolean(trimmedCustomUrl);
+  const hasCustomAttribution = Boolean(trimmedCustomAttribution);
 
-  if (customUrl?.trim() && customAttribution?.trim()) {
+  if (trimmedCustomUrl && trimmedCustomAttribution) {
     return {
-      url: customUrl,
-      attribution: customAttribution,
+      url: trimmedCustomUrl,
+      attribution: trimmedCustomAttribution,
     };
   }
 
