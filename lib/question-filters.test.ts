@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import type { Question } from '@/helpers/questions';
 import { matchesQuestionFilters } from './question-filters';
 
-const question = {
+const question: Question = {
   id: 1,
   content: 'Wo befindet sich die Mensa?',
   type: 'knowledge',

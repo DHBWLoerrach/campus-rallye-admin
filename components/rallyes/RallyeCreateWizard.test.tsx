@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Question } from '@/helpers/questions';
 import RallyeCreateWizard from './RallyeCreateWizard';
 
 const { mockCreate, mockPush } = vi.hoisted(() => ({
@@ -20,7 +21,7 @@ const departmentOptions = [
   { id: 8, name: 'SZI' },
 ];
 
-const questions = [
+const questions: Question[] = [
   {
     id: 1,
     content: 'Wo ist die Mensa?',

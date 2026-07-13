@@ -1,16 +1,14 @@
 import { z } from 'zod';
-import { questionTypes } from '@/helpers/questionTypes';
+import {
+  QUESTION_TYPE_IDS,
+  type QuestionTypeId,
+} from '@/helpers/questionTypes';
 import { RALLYE_STATUSES } from '@/lib/types';
 
 export const rallyeStatusValues = RALLYE_STATUSES;
 export const rallyeStatusSchema = z.enum(RALLYE_STATUSES);
 
-const questionTypeIds = questionTypes.map((type) => type.id) as [
-  string,
-  ...string[],
-];
-
-export const questionTypeSchema = z.enum(questionTypeIds);
+export const questionTypeSchema = z.enum(QUESTION_TYPE_IDS);
 export const idSchema = z.coerce.number().int().positive();
 export const idArraySchema = z.array(idSchema);
 
@@ -64,12 +62,38 @@ const solutionOptionSchema = z.object({
   text: z.string().optional(),
 });
 
+export const geocachingConfigSchema = z.object({
+  target_latitude: z
+    .number({ error: 'Bitte geben Sie einen gültigen Breitengrad ein' })
+    .finite('Der Breitengrad muss eine endliche Zahl sein')
+    .min(-90, 'Der Breitengrad muss mindestens -90 sein')
+    .max(90, 'Der Breitengrad darf höchstens 90 sein'),
+  target_longitude: z
+    .number({ error: 'Bitte geben Sie einen gültigen Längengrad ein' })
+    .finite('Der Längengrad muss eine endliche Zahl sein')
+    .min(-180, 'Der Längengrad muss mindestens -180 sein')
+    .max(180, 'Der Längengrad darf höchstens 180 sein'),
+  proximity_radius: z
+    .number({ error: 'Bitte geben Sie einen gültigen Näherungsradius ein' })
+    .finite('Der Näherungsradius muss eine endliche Zahl sein')
+    .int('Der Näherungsradius muss eine ganze Zahl sein')
+    .positive('Der Näherungsradius muss größer als 0 sein')
+    .default(10),
+  input_type: z
+    .enum(['text', 'qr'], {
+      error: 'Bitte wählen Sie Text oder QR-Code als Eingabeart',
+    })
+    .default('text'),
+});
+
+interface QuestionValidationData {
+  type: QuestionTypeId;
+  bucket_path?: string | null;
+  solutionOptions: { correct: boolean; text?: string }[];
+}
+
 const validateQuestionDetails = (
-  data: {
-    type: string;
-    bucket_path?: string | null;
-    solutionOptions: { correct: boolean; text?: string }[];
-  },
+  data: QuestionValidationData,
   ctx: z.RefinementCtx
 ) => {
   if (data.type === 'picture' && !data.bucket_path?.trim()) {
@@ -80,9 +104,32 @@ const validateQuestionDetails = (
     });
   }
 
-  const normalizedAnswers = data.solutionOptions
-    .map((answer) => (answer.text ?? '').trim())
-    .filter((text) => text.length > 0);
+  const nonEmptyAnswers = data.solutionOptions.filter(
+    (answer) => (answer.text ?? '').trim().length > 0
+  );
+  const normalizedAnswers = nonEmptyAnswers.map((answer) =>
+    (answer.text ?? '').trim()
+  );
+
+  if (data.type === 'geocaching') {
+    if (nonEmptyAnswers.length !== 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['solutionOptions'],
+        message: 'Genau eine Lösung muss eingegeben werden',
+      });
+      return;
+    }
+
+    if (!nonEmptyAnswers[0].correct) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['solutionOptions'],
+        message: 'Die Lösung muss als richtig markiert sein',
+      });
+    }
+    return;
+  }
 
   if (data.type === 'multiple_choice') {
     if (normalizedAnswers.length < 2) {
@@ -121,22 +168,64 @@ export const questionBaseSchema = z.object({
   bucket_path: z.string().optional().nullable(),
   solutionOptions: z.array(solutionOptionSchema).default([]),
   rallyeIds: idArraySchema.optional(),
+  geocaching: geocachingConfigSchema.optional(),
 });
 
-export const questionCreateSchema = questionBaseSchema.superRefine(
-  validateQuestionDetails
-);
+const nonGeocachingTypeSchema = z.enum([
+  'multiple_choice',
+  'knowledge',
+  'picture',
+  'qr_code',
+  'upload',
+]);
 
-export const questionUpdateSchema = questionBaseSchema
-  .extend({
-    solutionOptions: z.array(
-      z.object({
-        id: idSchema.optional(),
-        correct: z.boolean(),
-        text: z.string().optional(),
-      })
-    ),
-  })
+const createQuestionCommonShape = {
+  content: z.string().trim().min(1, 'Bitte geben Sie eine Frage ein'),
+  point_value: pointValueSchema,
+  hint: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  bucket_path: z.string().optional().nullable(),
+  solutionOptions: z.array(solutionOptionSchema).default([]),
+  rallyeIds: idArraySchema.optional(),
+};
+
+const updateSolutionOptionSchema = solutionOptionSchema.extend({
+  id: idSchema.optional(),
+});
+
+const updateQuestionCommonShape = {
+  ...createQuestionCommonShape,
+  solutionOptions: z.array(updateSolutionOptionSchema),
+};
+
+export const questionCreateSchema = z
+  .discriminatedUnion('type', [
+    z.object({
+      ...createQuestionCommonShape,
+      type: z.literal('geocaching'),
+      geocaching: geocachingConfigSchema,
+    }),
+    z.object({
+      ...createQuestionCommonShape,
+      type: nonGeocachingTypeSchema,
+      geocaching: z.never().optional(),
+    }),
+  ])
+  .superRefine(validateQuestionDetails);
+
+export const questionUpdateSchema = z
+  .discriminatedUnion('type', [
+    z.object({
+      ...updateQuestionCommonShape,
+      type: z.literal('geocaching'),
+      geocaching: geocachingConfigSchema,
+    }),
+    z.object({
+      ...updateQuestionCommonShape,
+      type: nonGeocachingTypeSchema,
+      geocaching: z.never().optional(),
+    }),
+  ])
   .superRefine(validateQuestionDetails);
 
 export const formatZodError = (error: z.ZodError): Record<string, string> => {

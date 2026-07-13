@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import type { Question } from '@/helpers/questions';
 import QuestionsTable from './QuestionsTable';
 
 describe('QuestionsTable', () => {
@@ -102,13 +103,14 @@ describe('QuestionsTable', () => {
   });
 
   it('explains missing type, points and rallye usage', () => {
-    render(
-      <QuestionsTable
-        questions={[
-          { id: 2, content: 'Ohne alles', type: '', solutionOptions: [] },
-        ]}
-      />
-    );
+    const malformedQuestion = {
+      id: 2,
+      content: 'Ohne alles',
+      type: '',
+      solutionOptions: [],
+    } as unknown as Question;
+
+    render(<QuestionsTable questions={[malformedQuestion]} />);
 
     const rows = screen.getAllByRole('row');
     const questionRow = within(rows[1]);

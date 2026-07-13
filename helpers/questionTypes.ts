@@ -5,8 +5,20 @@ export type QuestionTypeIconName =
   | 'qr-code'
   | 'camera';
 
-interface QuestionTypeDefinition {
-  id: string;
+export const QUESTION_TYPE_IDS = [
+  'multiple_choice',
+  'knowledge',
+  'picture',
+  'qr_code',
+  'upload',
+  'geocaching',
+] as const;
+
+export type QuestionTypeId = (typeof QUESTION_TYPE_IDS)[number];
+export type GeocachingInputType = 'text' | 'qr';
+
+export interface QuestionTypeDefinition {
+  id: QuestionTypeId;
   name: string;
   action: string;
   description: string;
@@ -14,7 +26,7 @@ interface QuestionTypeDefinition {
   icon: QuestionTypeIconName;
 }
 
-export const questionTypes = [
+export const questionTypes: readonly QuestionTypeDefinition[] = [
   {
     id: 'knowledge',
     icon: 'text-input',
@@ -55,4 +67,4 @@ export const questionTypes = [
     description: 'Teams nehmen ein Foto auf und reichen es zur Bewertung ein.',
     example: 'Zum Beispiel: Fotografiert das DHBW-Logo am Eingang.',
   },
-] satisfies QuestionTypeDefinition[];
+];
