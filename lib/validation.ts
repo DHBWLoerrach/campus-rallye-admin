@@ -159,18 +159,6 @@ const validateQuestionDetails = (
   }
 };
 
-export const questionBaseSchema = z.object({
-  content: z.string().trim().min(1, 'Bitte geben Sie eine Frage ein'),
-  type: questionTypeSchema,
-  point_value: pointValueSchema,
-  hint: z.string().optional().nullable(),
-  category: z.string().optional().nullable(),
-  bucket_path: z.string().optional().nullable(),
-  solutionOptions: z.array(solutionOptionSchema).default([]),
-  rallyeIds: idArraySchema.optional(),
-  geocaching: geocachingConfigSchema.optional(),
-});
-
 const nonGeocachingTypeSchema = z.enum([
   'multiple_choice',
   'knowledge',
