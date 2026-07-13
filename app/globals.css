@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -197,4 +198,29 @@
 }
 .text-dhbw {
   color: var(--dhbw-500) !important;
+}
+
+.geocaching-map {
+  height: 22rem;
+  min-height: 22rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.geocaching-map-target-icon {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+}
+
+.geocaching-map-target-marker {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0.2rem solid hsl(var(--primary-foreground));
+  border-radius: 50% 50% 50% 0;
+  background: var(--dhbw-500);
+  box-shadow: 0 0.125rem 0.5rem rgb(0 0 0 / 0.35);
+  transform: rotate(-45deg);
 }
