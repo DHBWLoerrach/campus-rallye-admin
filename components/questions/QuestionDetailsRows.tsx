@@ -23,6 +23,8 @@ const QuestionDetailsRows = ({
   const hasRallyes = rallyeNames.length > 0;
   const answers = question.solutionOptions ?? [];
   const hasAnswers = answers.length > 0;
+  const hasGeocaching =
+    question.type === 'geocaching' && Boolean(question.geocaching);
   const answersLabel = answers.length === 1 ? 'Antwort' : 'Antworten';
   const answersTitle = answers
     .map((answer) => {
@@ -33,7 +35,7 @@ const QuestionDetailsRows = ({
     .join(' | ');
   const rallyeLabel = rallyeNames.length === 1 ? 'Rallye' : 'Rallyes';
 
-  if (!hasHint && !hasRallyes && !hasAnswers && !action) {
+  if (!hasHint && !hasRallyes && !hasAnswers && !hasGeocaching && !action) {
     return null;
   }
 
@@ -64,6 +66,17 @@ const QuestionDetailsRows = ({
             </span>{' '}
             {rallyeNames.join(', ')}
           </div>
+        </div>
+      )}
+      {hasGeocaching && question.geocaching && (
+        <div className="pl-3 border-l-2 border-primary/20 text-xs">
+          <span className="font-medium text-foreground/80">Zielort:</span>{' '}
+          {question.geocaching.target_latitude.toFixed(6)},{' '}
+          {question.geocaching.target_longitude.toFixed(6)} ·{' '}
+          {question.geocaching.proximity_radius} m ·{' '}
+          {question.geocaching.input_type === 'qr'
+            ? 'QR-Code scannen'
+            : 'Texteingabe'}
         </div>
       )}
       {hasAnswers && (

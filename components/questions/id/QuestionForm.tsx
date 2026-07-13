@@ -11,12 +11,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { questionTypes } from '@/helpers/questionTypes';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+  questionTypes,
+  type GeocachingInputType,
+  type QuestionTypeId,
+} from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
 import { cn } from '@/lib/utils';
 import QuestionImage from './QuestionImage';
 import QuestionQRCode from './QuestionQRCode';
 import { questionTypeIcons } from '@/components/questions/question-type-icons';
+import GeocachingLocationField from './GeocachingLocationField';
 
 interface QuestionFormProps {
   initialData?: Partial<Question> | null;
@@ -26,6 +32,8 @@ interface QuestionFormProps {
   onDirtyChange?: (isDirty: boolean) => void;
   categories: string[];
   isSubmitting?: boolean;
+  serverErrors?: Record<string, string>;
+  onServerErrorClear?: (field: string) => void;
 }
 
 interface FormErrors {
@@ -35,21 +43,54 @@ interface FormErrors {
   point_value?: string;
   bucket_path?: string;
   solutionOptions?: string;
+  'geocaching.target_latitude'?: string;
+  'geocaching.target_longitude'?: string;
+  'geocaching.proximity_radius'?: string;
+  'geocaching.input_type'?: string;
 }
+
+const canonicalizeGeocachingSolution = (
+  solutions: QuestionFormData['solutionOptions']
+) => {
+  const existing = solutions ?? [];
+  const selected = existing.find(
+    (answer) => answer.correct && answer.text?.trim()
+  ) ??
+    existing.find((answer) => answer.text?.trim()) ??
+    existing[0] ?? { id: 0, text: '' };
+
+  return [{ ...selected, correct: true }];
+};
 
 const buildInitialFormData = (
   initialData: Partial<Question> | null | undefined
-): QuestionFormData => ({
-  content: initialData?.content ?? '',
-  type: initialData?.type ?? '',
-  point_value: initialData?.point_value ?? undefined,
-  hint: initialData?.hint ?? undefined,
-  category: initialData?.category ?? undefined,
-  bucket_path: initialData?.bucket_path ?? undefined,
-  solutionOptions: initialData?.solutionOptions?.length
+): QuestionFormData => {
+  const type = initialData?.type ?? '';
+  const isGeocaching = type === 'geocaching';
+  const solutions = initialData?.solutionOptions?.length
     ? initialData.solutionOptions
-    : [{ id: 0, correct: true, text: '' }],
-});
+    : [{ id: 0, correct: true, text: '' }];
+
+  return {
+    content: initialData?.content ?? '',
+    type,
+    point_value: initialData?.point_value ?? undefined,
+    hint: initialData?.hint ?? undefined,
+    category: initialData?.category ?? undefined,
+    bucket_path: initialData?.bucket_path ?? undefined,
+    solutionOptions: isGeocaching
+      ? canonicalizeGeocachingSolution(solutions)
+      : solutions,
+    geocaching: isGeocaching
+      ? {
+          target_latitude: initialData?.geocaching?.target_latitude,
+          target_longitude: initialData?.geocaching?.target_longitude,
+          proximity_radius: initialData?.geocaching?.proximity_radius ?? 10,
+          input_type: initialData?.geocaching?.input_type ?? 'text',
+        }
+      : undefined,
+  };
+};
 
 const normalizeFormData = (data: QuestionFormData) => ({
   content: data.content ?? '',
@@ -63,6 +104,14 @@ const normalizeFormData = (data: QuestionFormData) => ({
     correct: Boolean(answer.correct),
     text: answer.text ?? '',
   })),
+  geocaching: data.geocaching
+    ? {
+        target_latitude: data.geocaching.target_latitude ?? null,
+        target_longitude: data.geocaching.target_longitude ?? null,
+        proximity_radius: data.geocaching.proximity_radius ?? null,
+        input_type: data.geocaching.input_type,
+      }
+    : null,
 });
 
 const QuestionForm: React.FC<QuestionFormProps> = ({
@@ -73,6 +122,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   onDirtyChange,
   categories,
   isSubmitting = false,
+  serverErrors = {},
+  onServerErrorClear,
 }) => {
   const initialSerializedRef = useRef<string | null>(null);
   const dirtyStateRef = useRef(false);
@@ -83,6 +134,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const [isNewCategory, setIsNewCategory] = useState(false);
   const [optionalDetailsOpen, setOptionalDetailsOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const displayedErrors = { ...serverErrors, ...errors } as FormErrors;
+
+  const clearFieldError = (field: keyof FormErrors) => {
+    setErrors((current) => ({ ...current, [field]: undefined }));
+    onServerErrorClear?.(field);
+  };
 
   useEffect(() => {
     const nextSerialized = JSON.stringify(normalizeFormData(formData));
@@ -105,6 +162,28 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       ...prev,
       [field]: value,
     }));
+    clearFieldError(field as keyof FormErrors);
+  };
+
+  const handleTypeChange = (type: QuestionTypeId) => {
+    setFormData((current) => ({
+      ...current,
+      type,
+      geocaching:
+        type === 'geocaching'
+          ? {
+              target_latitude: undefined,
+              target_longitude: undefined,
+              proximity_radius: 10,
+              input_type: 'text',
+            }
+          : undefined,
+      solutionOptions:
+        type === 'geocaching'
+          ? canonicalizeGeocachingSolution(current.solutionOptions)
+          : current.solutionOptions,
+    }));
+    clearFieldError('type');
   };
 
   const handleCategoryChange = (value: string) => {
@@ -153,6 +232,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
       return { ...prev, solutionOptions };
     });
+    clearFieldError('solutionOptions');
   };
 
   // Helper-Funktion, um den Index der korrekten Antwort zu finden
@@ -253,9 +333,53 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.bucket_path = 'Bitte ein Bild hochladen';
     }
 
+    if (data.type === 'geocaching') {
+      const geocaching = data.geocaching;
+      if (
+        geocaching?.target_latitude === undefined ||
+        !Number.isFinite(geocaching.target_latitude) ||
+        geocaching.target_latitude < -90 ||
+        geocaching.target_latitude > 90
+      ) {
+        newErrors['geocaching.target_latitude'] =
+          'Bitte geben Sie einen gültigen Breitengrad ein';
+      }
+      if (
+        geocaching?.target_longitude === undefined ||
+        !Number.isFinite(geocaching.target_longitude) ||
+        geocaching.target_longitude < -180 ||
+        geocaching.target_longitude > 180
+      ) {
+        newErrors['geocaching.target_longitude'] =
+          'Bitte geben Sie einen gültigen Längengrad ein';
+      }
+      if (
+        geocaching?.proximity_radius === undefined ||
+        !Number.isFinite(geocaching.proximity_radius) ||
+        !Number.isInteger(geocaching.proximity_radius) ||
+        geocaching.proximity_radius <= 0
+      ) {
+        newErrors['geocaching.proximity_radius'] =
+          'Bitte geben Sie einen gültigen Näherungsradius ein';
+      }
+      if (
+        geocaching?.input_type !== 'text' &&
+        geocaching?.input_type !== 'qr'
+      ) {
+        newErrors['geocaching.input_type'] =
+          'Bitte wählen Sie Text oder QR-Code als Eingabeart';
+      }
+    }
+
     const validAnswers =
       data.solutionOptions?.filter((a) => a.text?.trim()) ?? [];
-    if (data.type === 'multiple_choice') {
+    if (data.type === 'geocaching') {
+      if (validAnswers.length !== 1) {
+        newErrors.solutionOptions = 'Genau eine Lösung muss eingegeben werden';
+      } else if (!validAnswers[0].correct) {
+        newErrors.solutionOptions = 'Die Lösung muss als richtig markiert sein';
+      }
+    } else if (data.type === 'multiple_choice') {
       if (validAnswers.length < 2) {
         newErrors.solutionOptions =
           'Mindestens zwei Antworten müssen eingegeben werden';
@@ -277,6 +401,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) return;
+    Object.keys(serverErrors).forEach((field) => onServerErrorClear?.(field));
 
     // Remove empty solutionOptions
     const cleanedData = {
@@ -305,12 +430,35 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const isUpload = formData.type === 'upload';
   const isPicture = formData.type === 'picture';
   const isQRCode = formData.type === 'qr_code';
+  const isGeocaching = formData.type === 'geocaching';
+  const geocachingInputType = formData.geocaching?.input_type ?? 'text';
   const showAnswers = hasType && !isUpload;
   const filledOptionalDetailsCount = [
     formData.point_value !== undefined,
     Boolean(formData.hint?.trim()),
     Boolean(formData.category?.trim()),
   ].filter(Boolean).length;
+  const initialGeocaching = initialData?.geocaching;
+  const initialSolution = initialData?.solutionOptions
+    ?.find((answer) => answer.correct && answer.text?.trim())
+    ?.text?.trim();
+  const currentSolution = formData.solutionOptions?.[0]?.text?.trim();
+  const inputTypeChanged =
+    initialData?.id !== undefined &&
+    initialData.type === 'geocaching' &&
+    initialGeocaching?.input_type !== geocachingInputType;
+  const solutionChangedWithQr =
+    initialData?.id !== undefined &&
+    initialData.type === 'geocaching' &&
+    initialSolution !== currentSolution &&
+    (initialGeocaching?.input_type === 'qr' || geocachingInputType === 'qr');
+  const hasValidGeocachingSummary =
+    isGeocaching &&
+    formData.geocaching?.target_latitude !== undefined &&
+    formData.geocaching.target_longitude !== undefined &&
+    formData.geocaching.proximity_radius !== undefined &&
+    Number.isInteger(formData.geocaching.proximity_radius) &&
+    formData.geocaching.proximity_radius > 0;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -328,18 +476,18 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 Aufgabenart
               </h2>
               <p id="question-type-label" className="text-sm font-medium">
-                Was sollen die Teams tun?*
+                Was sollen die Teilnehmenden tun?*
               </p>
               <p className="text-sm text-muted-foreground">
-                Die Auswahl bestimmt, wie Teams diese Aufgabe lösen.
+                Die Auswahl bestimmt, wie Teilnehmende diese Aufgabe lösen.
               </p>
             </div>
             <RadioGroup
               value={formData.type}
-              onValueChange={(value) => handleFormChange('type', value)}
+              onValueChange={(value) => handleTypeChange(value)}
               disabled={initialData?.id !== undefined}
               aria-labelledby="question-type-label"
-              aria-invalid={Boolean(errors.type)}
+              aria-invalid={Boolean(displayedErrors.type)}
               className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
             >
               {questionTypes.map((type) => {
@@ -356,7 +504,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                       'flex min-h-40 cursor-pointer flex-col gap-3 rounded-xl border bg-background/80 p-4 shadow-sm transition-colors hover:border-primary/50 hover:bg-background',
                       selected &&
                         'border-primary bg-primary/5 ring-2 ring-primary/15',
-                      errors.type && 'border-destructive/60',
+                      displayedErrors.type && 'border-destructive/60',
                       initialData?.id !== undefined &&
                         'cursor-not-allowed opacity-65 hover:border-border'
                     )}
@@ -374,6 +522,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     </span>
                     <span className="space-y-1">
                       <span className="block font-semibold text-foreground">
+                        {type.name}
+                      </span>
+                      <span className="block text-sm font-medium text-foreground/80">
                         {type.action}
                       </span>
                       <span className="block text-sm font-normal leading-5 text-muted-foreground">
@@ -387,8 +538,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 );
               })}
             </RadioGroup>
-            {errors.type && (
-              <span className="text-sm text-destructive">{errors.type}</span>
+            {displayedErrors.type && (
+              <span className="text-sm text-destructive">
+                {displayedErrors.type}
+              </span>
             )}
             {initialData?.id !== undefined && (
               <p className="text-xs text-muted-foreground">
@@ -410,7 +563,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               Aufgabe formulieren
             </h2>
             <p className="text-sm text-muted-foreground">
-              Dieser Text wird den Teams in der Rallye angezeigt.
+              Dieser Text wird den Teilnehmenden angezeigt.
             </p>
           </div>
           <div className="space-y-2">
@@ -421,13 +574,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               onChange={(e) => handleFormChange('content', e.target.value)}
               placeholder="Frage eingeben"
               className={
-                errors.content
+                displayedErrors.content
                   ? 'border-destructive focus-visible:ring-destructive/40'
                   : ''
               }
             />
-            {errors.content && (
-              <span className="text-sm text-destructive">{errors.content}</span>
+            {displayedErrors.content && (
+              <span className="text-sm text-destructive">
+                {displayedErrors.content}
+              </span>
             )}
           </div>
           {isPicture && (
@@ -442,14 +597,65 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   }));
                 }}
               />
-              {errors.bucket_path && (
+              {displayedErrors.bucket_path && (
                 <p className="text-sm text-destructive" role="alert">
-                  {errors.bucket_path}
+                  {displayedErrors.bucket_path}
                 </p>
               )}
             </div>
           )}
         </section>
+
+        {isGeocaching && formData.geocaching && (
+          <section
+            aria-labelledby="geocaching-target-heading"
+            className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6"
+          >
+            <div className="space-y-1">
+              <h2
+                id="geocaching-target-heading"
+                className="text-base font-semibold text-foreground"
+              >
+                Zielort festlegen
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Ziel per Kartenklick oder Marker festlegen und bei Bedarf über
+                die exakten Koordinaten anpassen.
+              </p>
+            </div>
+            <GeocachingLocationField
+              value={formData.geocaching}
+              disabled={isSubmitting}
+              errors={{
+                target_latitude: displayedErrors['geocaching.target_latitude'],
+                target_longitude:
+                  displayedErrors['geocaching.target_longitude'],
+                proximity_radius:
+                  displayedErrors['geocaching.proximity_radius'],
+              }}
+              onChange={(geocaching) => {
+                const previous = formData.geocaching;
+                handleFormChange('geocaching', {
+                  ...geocaching,
+                  input_type: previous?.input_type ?? 'text',
+                });
+                if (previous?.target_latitude !== geocaching.target_latitude) {
+                  clearFieldError('geocaching.target_latitude');
+                }
+                if (
+                  previous?.target_longitude !== geocaching.target_longitude
+                ) {
+                  clearFieldError('geocaching.target_longitude');
+                }
+                if (
+                  previous?.proximity_radius !== geocaching.proximity_radius
+                ) {
+                  clearFieldError('geocaching.proximity_radius');
+                }
+              }}
+            />
+          </section>
+        )}
 
         {showAnswers && (
           <section
@@ -466,9 +672,42 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               <p className="text-sm text-muted-foreground">
                 {isMultipleChoice
                   ? 'Antwortmöglichkeiten eingeben und die richtige Antwort markieren.'
-                  : 'Die Lösung eingeben, die Teams erreichen oder finden sollen.'}
+                  : 'Die erwartete Lösung eingeben.'}
               </p>
             </div>
+            {isGeocaching && (
+              <div className="flex flex-col gap-2">
+                <Label id="geocaching-input-type-label">Eingabeart*</Label>
+                <ToggleGroup
+                  aria-labelledby="geocaching-input-type-label"
+                  variant="outline"
+                  spacing={2}
+                  value={[geocachingInputType]}
+                  onValueChange={(value) => {
+                    const next = value[0] as GeocachingInputType | undefined;
+                    if (!next || !formData.geocaching) return;
+                    handleFormChange('geocaching', {
+                      ...formData.geocaching,
+                      input_type: next,
+                    });
+                    clearFieldError('geocaching.input_type');
+                  }}
+                >
+                  <ToggleGroupItem value="text">Text eingeben</ToggleGroupItem>
+                  <ToggleGroupItem value="qr">QR-Code scannen</ToggleGroupItem>
+                </ToggleGroup>
+                {displayedErrors['geocaching.input_type'] && (
+                  <p className="text-sm text-destructive">
+                    {displayedErrors['geocaching.input_type']}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {geocachingInputType === 'qr'
+                    ? 'Ein falscher QR-Code wird abgelehnt und kann erneut gescannt werden.'
+                    : 'Groß-/Kleinschreibung sowie Leerzeichen am Anfang und Ende werden bei der Prüfung ignoriert. Eine falsche Antwort beendet die Aufgabe.'}
+                </p>
+              </div>
+            )}
             <Label>{isMultipleChoice ? 'Antworten*' : 'Antwort*'}</Label>
             {isMultipleChoice ? (
               <RadioGroup
@@ -495,7 +734,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                         }
                         placeholder="Antwort eingeben"
                         className={
-                          errors.solutionOptions
+                          displayedErrors.solutionOptions
                             ? 'border-destructive focus-visible:ring-destructive/40'
                             : ''
                         }
@@ -525,7 +764,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     }
                     placeholder="Antwort eingeben"
                     className={
-                      errors.solutionOptions
+                      displayedErrors.solutionOptions
                         ? 'border-destructive focus-visible:ring-destructive/40'
                         : ''
                     }
@@ -540,12 +779,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 Antwort hinzufügen
               </Button>
             )}
-            {errors.solutionOptions && (
+            {displayedErrors.solutionOptions && (
               <span className="text-sm text-destructive">
-                {errors.solutionOptions}
+                {displayedErrors.solutionOptions}
               </span>
             )}
-            {isQRCode && (
+            {(isQRCode || (isGeocaching && geocachingInputType === 'qr')) && (
               <div className="mt-4">
                 <QuestionQRCode
                   answerText={formData.solutionOptions?.[0]?.text ?? ''}
@@ -555,6 +794,24 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   downloadSize={400}
                 />
               </div>
+            )}
+            {inputTypeChanged && initialGeocaching?.input_type === 'qr' && (
+              <p className="text-sm text-muted-foreground" role="status">
+                Zuvor gedruckte QR-Codes lösen diese Frage nach dem Wechsel zur
+                Texteingabe nicht mehr.
+              </p>
+            )}
+            {inputTypeChanged && geocachingInputType === 'qr' && (
+              <p className="text-sm text-muted-foreground" role="status">
+                Erstellen, drucken und platzieren Sie den neuen QR-Code, bevor
+                die Frage verwendet wird.
+              </p>
+            )}
+            {solutionChangedWithQr && (
+              <p className="text-sm text-muted-foreground" role="status">
+                Der QR-Code muss mit der geänderten Lösung neu generiert und
+                ausgedruckt werden.
+              </p>
             )}
           </section>
         )}
@@ -608,15 +865,21 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   placeholder="0"
                   min={0}
                   className={`w-full ${
-                    errors.point_value
+                    displayedErrors.point_value
                       ? 'border-destructive focus-visible:ring-destructive/40'
                       : ''
                   }`}
                 />
-                {errors.point_value && (
+                {displayedErrors.point_value && (
                   <span className="text-sm text-destructive">
-                    {errors.point_value}
+                    {displayedErrors.point_value}
                   </span>
+                )}
+                {isGeocaching && (
+                  <p className="text-xs text-muted-foreground">
+                    Der Punktwert wird bei einer richtigen Antwort vergeben. In
+                    Campus-Touren wird er lokal gezählt und am Ende angezeigt.
+                  </p>
                 )}
               </div>
               <div className="space-y-2 md:col-span-2">
@@ -644,7 +907,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 >
                   <SelectTrigger
                     className={
-                      errors.category
+                      displayedErrors.category
                         ? 'border-destructive focus:ring-destructive/40'
                         : ''
                     }
@@ -671,14 +934,23 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     }
                   />
                 )}
-                {errors.category && (
+                {displayedErrors.category && (
                   <span className="text-sm text-destructive">
-                    {errors.category}
+                    {displayedErrors.category}
                   </span>
                 )}
               </div>
             </div>
           </details>
+        )}
+
+        {hasValidGeocachingSummary && formData.geocaching && (
+          <p className="text-sm text-muted-foreground">
+            Ziel bei {formData.geocaching.target_latitude?.toFixed(6)},{' '}
+            {formData.geocaching.target_longitude?.toFixed(6)} · freigeschaltet
+            innerhalb von {formData.geocaching.proximity_radius} m · Antwort per{' '}
+            {geocachingInputType === 'qr' ? 'QR-Code' : 'Text'}
+          </p>
         )}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4">

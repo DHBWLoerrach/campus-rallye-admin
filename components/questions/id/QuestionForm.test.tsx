@@ -5,7 +5,68 @@ import type {
   SolutionOption,
   Question,
   QuestionFormData,
+  GeocachingFormConfig,
 } from '@/helpers/questions';
+
+interface GeocachingFieldMockProps {
+  value: GeocachingFormConfig;
+  onChange: (value: GeocachingFormConfig) => void;
+  errors: Partial<
+    Record<'target_latitude' | 'target_longitude' | 'proximity_radius', string>
+  >;
+}
+
+vi.mock('./GeocachingLocationField', () => ({
+  default: ({ value, onChange, errors }: GeocachingFieldMockProps) => (
+    <div data-testid="geocaching-location-field">
+      <button
+        type="button"
+        onClick={() =>
+          onChange({
+            ...value,
+            target_latitude: 47.123456,
+            target_longitude: 7.123456,
+          })
+        }
+      >
+        Kartenziel setzen
+      </button>
+      <label>
+        Test-Breitengrad
+        <input
+          value={value.target_latitude ?? ''}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              target_latitude:
+                event.target.value === ''
+                  ? undefined
+                  : Number(event.target.value),
+            })
+          }
+        />
+      </label>
+      <label>
+        Test-Radius
+        <input
+          value={value.proximity_radius ?? ''}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              proximity_radius:
+                event.target.value === ''
+                  ? undefined
+                  : Number(event.target.value),
+            })
+          }
+        />
+      </label>
+      {errors.target_latitude && <p>{errors.target_latitude}</p>}
+      {errors.target_longitude && <p>{errors.target_longitude}</p>}
+      {errors.proximity_radius && <p>{errors.proximity_radius}</p>}
+    </div>
+  ),
+}));
 
 describe('QuestionForm', () => {
   it('normalizes null values to empty strings for inputs', () => {
@@ -73,7 +134,9 @@ describe('QuestionForm', () => {
     );
 
     expect(
-      screen.getByRole('radiogroup', { name: /Was sollen die Teams tun/ })
+      screen.getByRole('radiogroup', {
+        name: /Was sollen die Teilnehmenden tun/,
+      })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('radio', { name: /Antwort eingeben/ })
@@ -90,6 +153,19 @@ describe('QuestionForm', () => {
     expect(
       screen.getByRole('radio', { name: /Foto hochladen/ })
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /Geocaching-Frage.*Zielort finden/ })
+    ).toBeInTheDocument();
+    for (const title of [
+      'Wissensfrage',
+      'Multiple Choice',
+      'Bild',
+      'QR Code',
+      'Upload',
+      'Geocaching-Frage',
+    ]) {
+      expect(screen.getByText(title)).toBeInTheDocument();
+    }
     expect(screen.getByLabelText('Frage*')).toBeInTheDocument();
     expect(screen.queryByLabelText('Punkte')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Hinweis')).not.toBeInTheDocument();
@@ -162,7 +238,9 @@ describe('QuestionForm', () => {
     );
 
     const details = screen.getByText('Weitere Angaben').closest('details');
-    const imageLabel = screen.getByText('Bild');
+    const imageLabel = screen
+      .getAllByText('Bild')
+      .find((element) => element.tagName === 'LABEL')!;
     expect(details).not.toContainElement(imageLabel);
   });
 
@@ -456,7 +534,7 @@ describe('QuestionForm', () => {
       />
     );
 
-    const questionInput = screen.getByLabelText(/Frage/i);
+    const questionInput = screen.getByLabelText('Frage*');
     fireEvent.change(questionInput, { target: { value: 'Neue Frage' } });
 
     expect(handleDirtyChange).toHaveBeenCalledWith(true);
@@ -464,5 +542,352 @@ describe('QuestionForm', () => {
     fireEvent.change(questionInput, { target: { value: 'Beispielfrage' } });
 
     expect(handleDirtyChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('initializes, validates and submits a geocaching question', () => {
+    const handleSubmit = vi.fn();
+    render(
+      <QuestionForm
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('radio', { name: /Geocaching-Frage.*Zielort finden/ })
+    );
+
+    expect(screen.getByTestId('geocaching-location-field')).toBeInTheDocument();
+    expect(screen.getByLabelText('Test-Radius')).toHaveValue('10');
+    expect(
+      screen.getByRole('button', { name: 'Text eingeben' })
+    ).toHaveAttribute('data-pressed');
+    expect(
+      screen.getByText(/Groß-\/Kleinschreibung sowie Leerzeichen/)
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Frage*'), {
+      target: { value: 'Finde den Eingang' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+      target: { value: 'Gebäude A' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('Bitte geben Sie einen gültigen Breitengrad ein')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Bitte geben Sie einen gültigen Längengrad ein')
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Kartenziel setzen' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'geocaching',
+        geocaching: {
+          target_latitude: 47.123456,
+          target_longitude: 7.123456,
+          proximity_radius: 10,
+          input_type: 'text',
+        },
+        solutionOptions: [
+          expect.objectContaining({ correct: true, text: 'Gebäude A' }),
+        ],
+      })
+    );
+    expect(
+      screen.getByText(
+        /Ziel bei 47\.123456, 7\.123456 · freigeschaltet innerhalb von 10 m/
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('preserves one solution when switching to geocaching and changing input mode', () => {
+    const handleSubmit = vi.fn();
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Auswahl',
+          type: 'multiple_choice',
+          solutionOptions: [
+            { correct: false, text: 'Erste Lösung' },
+            { correct: true, text: 'Zweite Lösung' },
+          ],
+        }}
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('radio', { name: /Geocaching-Frage.*Zielort finden/ })
+    );
+    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
+    expect(screen.getByPlaceholderText('Antwort eingeben')).toHaveValue(
+      'Zweite Lösung'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'QR-Code scannen' }));
+    expect(screen.getByPlaceholderText('Antwort eingeben')).toHaveValue(
+      'Zweite Lösung'
+    );
+    expect(
+      screen.getByText(
+        'Ein falscher QR-Code wird abgelehnt und kann erneut gescannt werden.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'QR-Code generieren' })
+    ).toBeInTheDocument();
+  });
+
+  it('loads and canonicalizes malformed existing geocaching data', () => {
+    render(
+      <QuestionForm
+        initialData={{
+          id: 4,
+          content: 'Legacy',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 48,
+            target_longitude: 9,
+            proximity_radius: 25,
+            input_type: 'qr',
+          },
+          solutionOptions: [
+            { correct: false, text: 'Fallback' },
+            { correct: true, text: 'Bevorzugt' },
+            { correct: true, text: 'Ignoriert' },
+          ],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    expect(screen.getByLabelText('Test-Radius')).toHaveValue('25');
+    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
+    expect(screen.getByPlaceholderText('Antwort eingeben')).toHaveValue(
+      'Bevorzugt'
+    );
+  });
+
+  it('shows and clears server target issues when the target changes', () => {
+    const clear = vi.fn();
+    render(
+      <QuestionForm
+        initialData={{ content: 'Ziel', type: 'geocaching' }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        serverErrors={{
+          'geocaching.target_latitude': 'Server-Breitengradfehler',
+        }}
+        onServerErrorClear={clear}
+      />
+    );
+
+    expect(screen.getByText('Server-Breitengradfehler')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Kartenziel setzen' }));
+    expect(clear).toHaveBeenCalledWith('geocaching.target_latitude');
+  });
+
+  it('does not submit the preceding valid target after a numeric draft is cleared', () => {
+    const handleSubmit = vi.fn();
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 10,
+            input_type: 'text',
+          },
+          solutionOptions: [{ correct: true, text: 'Eingang' }],
+        }}
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText('Test-Breitengrad'), {
+      target: { value: '' },
+    });
+    fireEvent.change(screen.getByLabelText('Test-Radius'), {
+      target: { value: '' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('Bitte geben Sie einen gültigen Breitengrad ein')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Bitte geben Sie einen gültigen Näherungsradius ein')
+    ).toBeInTheDocument();
+  });
+
+  it('opens a repairable target draft when the side-table row is missing', () => {
+    render(
+      <QuestionForm
+        initialData={{
+          id: 7,
+          content: 'Legacy-Ziel',
+          type: 'geocaching',
+          solutionOptions: [],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    expect(screen.getByTestId('geocaching-location-field')).toBeInTheDocument();
+    expect(screen.getByLabelText('Test-Breitengrad')).toHaveValue('');
+    expect(screen.getByLabelText('Test-Radius')).toHaveValue('10');
+    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
+  });
+
+  it('removes stale geocaching configuration after switching away', () => {
+    const handleSubmit = vi.fn();
+    render(
+      <QuestionForm
+        initialData={{
+          content: 'Neues Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 10,
+            input_type: 'text',
+          },
+          solutionOptions: [{ correct: true, text: 'Eingang' }],
+        }}
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Wissensfrage/ }));
+    expect(
+      screen.queryByTestId('geocaching-location-field')
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit.mock.calls[0][0].geocaching).toBeUndefined();
+  });
+
+  it('shows QR operational warnings only while editing', () => {
+    const { unmount } = render(
+      <QuestionForm
+        initialData={{
+          id: 9,
+          content: 'QR-Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 10,
+            input_type: 'qr',
+          },
+          solutionOptions: [{ correct: true, text: 'alter-code' }],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Text eingeben' }));
+    expect(screen.getByText(/Zuvor gedruckte QR-Codes/)).toBeInTheDocument();
+
+    unmount();
+    render(
+      <QuestionForm
+        initialData={{
+          id: 10,
+          content: 'Text-Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 10,
+            input_type: 'text',
+          },
+          solutionOptions: [{ correct: true, text: 'Eingang' }],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'QR-Code scannen' }));
+    expect(
+      screen.getByText(
+        /Erstellen, drucken und platzieren Sie den neuen QR-Code/
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('warns when an edited QR solution changes and tracks target changes as dirty', () => {
+    const dirty = vi.fn();
+    render(
+      <QuestionForm
+        initialData={{
+          id: 11,
+          content: 'QR-Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 48,
+            target_longitude: 9,
+            proximity_radius: 10,
+            input_type: 'qr',
+          },
+          solutionOptions: [{ correct: true, text: 'alter-code' }],
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        onDirtyChange={dirty}
+        categories={[]}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+      target: { value: 'neuer-code' },
+    });
+    expect(
+      screen.getByText(/neu generiert und ausgedruckt/)
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Kartenziel setzen' }));
+    expect(dirty).toHaveBeenCalledWith(true);
+  });
+
+  it('explains geocaching point handling in Campus tours', () => {
+    render(
+      <QuestionForm
+        initialData={{ content: 'Ziel', type: 'geocaching' }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
+    expect(
+      screen.getByText(
+        'Der Punktwert wird bei einer richtigen Antwort vergeben. In Campus-Touren wird er lokal gezählt und am Ende angezeigt.'
+      )
+    ).toBeInTheDocument();
   });
 });

@@ -3,7 +3,8 @@ export type QuestionTypeIconName =
   | 'list-checks'
   | 'image'
   | 'qr-code'
-  | 'camera';
+  | 'camera'
+  | 'map-pin';
 
 export const QUESTION_TYPE_IDS = [
   'multiple_choice',
@@ -66,5 +67,14 @@ export const questionTypes: readonly QuestionTypeDefinition[] = [
     action: 'Foto hochladen',
     description: 'Teams nehmen ein Foto auf und reichen es zur Bewertung ein.',
     example: 'Zum Beispiel: Fotografiert das DHBW-Logo am Eingang.',
+  },
+  {
+    id: 'geocaching',
+    icon: 'map-pin',
+    name: 'Geocaching-Frage',
+    action: 'Zielort finden',
+    description:
+      'Teilnehmende navigieren zu einem Zielort und lösen dort eine Aufgabe.',
+    example: 'Zum Beispiel: Finde den Haupteingang und scanne den QR-Code.',
   },
 ];

@@ -106,4 +106,14 @@ describe('SearchFilters', () => {
     const lastCall = onFilterChange.mock.calls.at(-1)?.[0];
     expect(lastCall?.rallyeId).toBe('1');
   });
+
+  it('offers geocaching as a target-finding filter', () => {
+    render(<SearchFilters onFilterChange={vi.fn()} categories={[]} />);
+
+    fireEvent.click(screen.getByRole('combobox', { name: 'Aufgabenart' }));
+
+    expect(
+      screen.getByRole('option', { name: 'Zielort finden' })
+    ).toBeInTheDocument();
+  });
 });

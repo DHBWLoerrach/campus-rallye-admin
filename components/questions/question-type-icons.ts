@@ -2,6 +2,7 @@ import {
   Camera,
   ImageIcon,
   ListChecks,
+  MapPin,
   QrCode,
   TextCursorInput,
   type LucideIcon,
@@ -14,4 +15,5 @@ export const questionTypeIcons: Record<QuestionTypeIconName, LucideIcon> = {
   image: ImageIcon,
   'qr-code': QrCode,
   camera: Camera,
+  'map-pin': MapPin,
 };

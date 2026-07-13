@@ -71,6 +71,7 @@ const QuestionPage: React.FC<Props> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
   const unsavedChangesMessage =
     'Ungespeicherte Änderungen gehen verloren. Seite wirklich verlassen?';
@@ -88,6 +89,7 @@ const QuestionPage: React.FC<Props> = ({
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
+    setServerErrors({});
     try {
       if (id !== 'new') {
         const result = await updateQuestion(Number(id), {
@@ -96,6 +98,7 @@ const QuestionPage: React.FC<Props> = ({
         });
         if (!result.success) {
           setSubmitError(result.error);
+          setServerErrors(result.issues ?? {});
           return;
         }
       } else {
@@ -108,6 +111,7 @@ const QuestionPage: React.FC<Props> = ({
         });
         if (!result.success) {
           setSubmitError(result.error);
+          setServerErrors(result.issues ?? {});
           return;
         }
       }
@@ -184,7 +188,9 @@ const QuestionPage: React.FC<Props> = ({
         <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
           {initialData?.type === 'picture'
             ? 'Text und Antworten wurden übernommen. Das Bild muss neu hochgeladen werden. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
-            : 'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'}
+            : initialData?.type === 'geocaching'
+              ? 'Zielort und Lösung wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
+              : 'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'}
         </div>
       ) : null}
 
@@ -245,6 +251,15 @@ const QuestionPage: React.FC<Props> = ({
           categories={categories}
           isSubmitting={isSubmitting}
           onDirtyChange={setIsDirty}
+          serverErrors={serverErrors}
+          onServerErrorClear={(field) =>
+            setServerErrors((current) => {
+              if (!(field in current)) return current;
+              const next = { ...current };
+              delete next[field];
+              return next;
+            })
+          }
         />
       </section>
     </div>

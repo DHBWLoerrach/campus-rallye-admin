@@ -119,9 +119,9 @@ describe('copyQuestionForCreation', () => {
     expectTypeOf(copied).toEqualTypeOf<CopiedQuestionFormData>();
   });
 
-  it('keeps the five editor definitions compatible with every question type', () => {
-    expect(questionTypes).toHaveLength(5);
-    expect(questionTypes.some((type) => type.id === 'geocaching')).toBe(false);
+  it('exposes all six editor definitions including geocaching', () => {
+    expect(questionTypes).toHaveLength(6);
+    expect(questionTypes.some((type) => type.id === 'geocaching')).toBe(true);
     expectTypeOf(questionTypes).toMatchTypeOf<
       readonly QuestionTypeDefinition[]
     >();

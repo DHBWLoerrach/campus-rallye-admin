@@ -47,7 +47,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
             <TableRow>
               <TableHead className="w-8"></TableHead>
               <TableHead>Aufgabe</TableHead>
-              <TableHead className="min-w-48">Was Teams tun</TableHead>
+              <TableHead className="min-w-48">Was Teilnehmende tun</TableHead>
               <TableHead className="w-28">Punkte</TableHead>
               <TableHead className="min-w-40">Verwendet in</TableHead>
               <TableHead className="min-w-72 text-right">Aktionen</TableHead>

@@ -29,7 +29,7 @@ describe('QuestionsTable', () => {
       screen.getByRole('columnheader', { name: 'Aufgabe' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('columnheader', { name: 'Was Teams tun' })
+      screen.getByRole('columnheader', { name: 'Was Teilnehmende tun' })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('columnheader', { name: 'Aktionen' })
@@ -136,5 +136,35 @@ describe('QuestionsTable', () => {
     expect(screen.getByText('QR-Code-Inhalt:')).toBeInTheDocument();
     expect(screen.getByText('campus-library')).toBeInTheDocument();
     expect(screen.queryByText('Lösung:')).not.toBeInTheDocument();
+  });
+
+  it('renders geocaching with its target action and details', () => {
+    render(
+      <QuestionsTable
+        questions={[
+          {
+            id: 4,
+            content: 'Finde den Eingang',
+            type: 'geocaching',
+            solutionOptions: [{ id: 5, correct: true, text: 'campus-entry' }],
+            geocaching: {
+              target_latitude: 47.123456,
+              target_longitude: 7.123456,
+              proximity_radius: 10,
+              input_type: 'qr',
+            },
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText('Zielort finden')).toBeInTheDocument();
+    expect(screen.getByText('QR-Code-Inhalt:')).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Details zu „Finde den Eingang“ anzeigen',
+      })
+    );
+    expect(screen.getByText(/47\.123456, 7\.123456/)).toBeInTheDocument();
   });
 });

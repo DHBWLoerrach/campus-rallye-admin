@@ -1,17 +1,46 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import QuestionPage from './QuestionPage';
+import type { GeocachingFormConfig } from '@/helpers/questions';
 
-const { push, mockSearchParams, mockCreateQuestion } = vi.hoisted(() => ({
-  push: vi.fn(),
-  mockSearchParams: { get: vi.fn(), toString: vi.fn(() => '') },
-  mockCreateQuestion: vi.fn(),
-}));
+interface GeocachingFieldMockProps {
+  value: GeocachingFormConfig;
+  onChange: (value: GeocachingFormConfig) => void;
+  errors: Partial<Record<'target_latitude', string>>;
+}
+
+const { push, mockSearchParams, mockCreateQuestion, mockUpdateQuestion } =
+  vi.hoisted(() => ({
+    push: vi.fn(),
+    mockSearchParams: { get: vi.fn(), toString: vi.fn(() => '') },
+    mockCreateQuestion: vi.fn(),
+    mockUpdateQuestion: vi.fn(),
+  }));
 
 vi.mock('@/actions/question', () => ({
   createQuestion: mockCreateQuestion,
-  updateQuestion: vi.fn(),
+  updateQuestion: mockUpdateQuestion,
   deleteQuestion: vi.fn(),
+}));
+
+vi.mock('./GeocachingLocationField', () => ({
+  default: ({ value, onChange, errors }: GeocachingFieldMockProps) => (
+    <div>
+      <button
+        type="button"
+        onClick={() =>
+          onChange({
+            ...value,
+            target_latitude: 47.123456,
+            target_longitude: 7.123456,
+          })
+        }
+      >
+        Test-Ziel setzen
+      </button>
+      {errors.target_latitude && <p>{errors.target_latitude}</p>}
+    </div>
+  ),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -115,6 +144,35 @@ describe('QuestionPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('mentions copied target and solution for a geocaching copy', () => {
+    mockSearchParams.get.mockImplementation(() => '');
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={{
+          content: 'Finde das Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 10,
+            input_type: 'text',
+          },
+          solutionOptions: [{ correct: true, text: 'Ziel' }],
+        }}
+        isCopy
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(
+      screen.getByText(/Zielort und Lösung wurden übernommen/)
+    ).toBeInTheDocument();
+  });
+
   it('shows why a requested copy opened an empty form', () => {
     render(
       <QuestionPage
@@ -207,6 +265,133 @@ describe('QuestionPage', () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it('submits a complete geocaching configuration on create', async () => {
+    mockSearchParams.get.mockImplementation(() => '');
+    mockCreateQuestion.mockResolvedValue({ success: true, data: {} });
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={null}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('radio', { name: /Geocaching-Frage.*Zielort finden/ })
+    );
+    fireEvent.change(screen.getByLabelText('Frage*'), {
+      target: { value: 'Finde das Ziel' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+      target: { value: 'Eingang' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Test-Ziel setzen' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(mockCreateQuestion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47.123456,
+            target_longitude: 7.123456,
+            proximity_radius: 10,
+            input_type: 'text',
+          },
+        })
+      )
+    );
+  });
+
+  it('submits geocaching configuration on update', async () => {
+    mockSearchParams.get.mockImplementation(() => '');
+    mockUpdateQuestion.mockResolvedValue({ success: true, data: {} });
+
+    render(
+      <QuestionPage
+        id="8"
+        initialData={{
+          id: 8,
+          content: 'Finde das Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 15,
+            input_type: 'text',
+          },
+          solutionOptions: [{ id: 3, correct: true, text: 'Eingang' }],
+        }}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    await waitFor(() =>
+      expect(mockUpdateQuestion).toHaveBeenCalledWith(
+        8,
+        expect.objectContaining({
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 15,
+            input_type: 'text',
+          },
+        })
+      )
+    );
+  });
+
+  it('forwards server issues and clears them before retrying', async () => {
+    mockSearchParams.get.mockImplementation(() => '');
+    mockCreateQuestion
+      .mockResolvedValueOnce({
+        success: false,
+        error: 'Ungültige Eingabe',
+        issues: {
+          'geocaching.target_latitude': 'Server-Breitengradfehler',
+        },
+      })
+      .mockResolvedValueOnce({ success: true, data: {} });
+
+    render(
+      <QuestionPage
+        id="new"
+        initialData={{
+          content: 'Finde das Ziel',
+          type: 'geocaching',
+          geocaching: {
+            target_latitude: 47,
+            target_longitude: 7,
+            proximity_radius: 10,
+            input_type: 'text',
+          },
+          solutionOptions: [{ correct: true, text: 'Eingang' }],
+        }}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+    expect(
+      await screen.findByText('Server-Breitengradfehler')
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+    await waitFor(() => expect(mockCreateQuestion).toHaveBeenCalledTimes(2));
+    expect(
+      screen.queryByText('Server-Breitengradfehler')
+    ).not.toBeInTheDocument();
+  });
+
   it('shows assigned rallyes with a global impact hint', () => {
     mockSearchParams.get.mockImplementation(() => '');
 
@@ -272,7 +457,7 @@ describe('QuestionPage', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText(/Frage/i), {
+    fireEvent.change(screen.getByLabelText('Frage*'), {
       target: { value: 'Neue Frage' },
     });
     fireEvent.click(screen.getByRole('link', { name: 'Rallye A' }));
@@ -300,7 +485,7 @@ describe('QuestionPage', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText(/Frage/i), {
+    fireEvent.change(screen.getByLabelText('Frage*'), {
       target: { value: 'Neue Frage' },
     });
     fireEvent.click(screen.getByRole('link', { name: 'Rallye A' }));
@@ -331,7 +516,7 @@ describe('QuestionPage', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText(/Frage/i), {
+    fireEvent.change(screen.getByLabelText('Frage*'), {
       target: { value: 'Geänderte Frage' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));

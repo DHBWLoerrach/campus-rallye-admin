@@ -13,7 +13,10 @@ const QuestionSummary = ({ question }: QuestionSummaryProps) => {
     ?.find((answer) => answer.correct && answer.text?.trim())
     ?.text?.trim();
   const solutionPreviewLabel =
-    question.type === 'qr_code' ? 'QR-Code-Inhalt' : 'Lösung';
+    question.type === 'qr_code' ||
+    (question.type === 'geocaching' && question.geocaching?.input_type === 'qr')
+      ? 'QR-Code-Inhalt'
+      : 'Lösung';
   const showMeta = hasImage || hasHint || Boolean(category);
 
   return (
