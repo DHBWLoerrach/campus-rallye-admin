@@ -809,17 +809,25 @@ describe('getQuestions', () => {
     expect(result.data?.map((question) => question.type)).toEqual(validTypes);
   });
 
-  it('rejects a catalog row with an unknown database question type', async () => {
+  it('skips an invalid catalog row and keeps valid questions', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const invalidRow = {
+      id: 1,
+      content: 'Unknown question',
+      type: 'future_type',
+      solutionOptions: [],
+      geocaching: null,
+    };
     const questionsQuery = makeQuery({
       data: [
         {
-          id: 1,
-          content: 'Unknown question',
-          type: 'future_type',
+          id: 2,
+          content: 'Valid question',
+          type: 'knowledge',
           solutionOptions: [],
           geocaching: null,
         },
+        invalidRow,
       ],
       error: null,
     });
@@ -834,10 +842,21 @@ describe('getQuestions', () => {
     const result = await getQuestions({});
 
     expect(result).toEqual({
-      success: false,
-      error: 'Fragen konnten nicht geladen werden',
+      success: true,
+      data: [
+        {
+          id: 2,
+          content: 'Valid question',
+          type: 'knowledge',
+          solutionOptions: [],
+          geocaching: null,
+        },
+      ],
     });
-    expect(errorSpy).toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Invalid question returned by database:',
+      invalidRow
+    );
     errorSpy.mockRestore();
   });
 });
