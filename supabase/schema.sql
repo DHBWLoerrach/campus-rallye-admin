@@ -175,7 +175,7 @@ BEGIN
     END IF;
 
     UPDATE "public"."team_answers"
-    SET "correct" = true, "team_points" = question_points
+    SET "team_points" = question_points
     WHERE "team_id" = winner_team_id AND "question_id" = "question_id_param";
 END;
 $$;
@@ -211,7 +211,6 @@ CREATE TABLE IF NOT EXISTS "public"."team_answers" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "question_id" bigint NOT NULL,
     "team_id" bigint NOT NULL,
-    "correct" boolean NOT NULL,
     "team_points" bigint NOT NULL,
     "answer" "text"
 );
