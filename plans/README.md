@@ -9,7 +9,7 @@ operator's explicit `OK` before committing or continuing.
 
 | Plan                                             | Title                                                  | Priority | Effort | Depends on | Status |
 | ------------------------------------------------ | ------------------------------------------------------ | -------: | -----: | ---------- | ------ |
-| [001](./001-add-geocaching-question-admin-ui.md) | Add geocaching question create and edit administration |       P1 |      L | —          | TODO   |
+| [001](./001-add-geocaching-question-admin-ui.md) | Add geocaching question create and edit administration |       P1 |      L | —          | DONE   |
 
 Status values: `TODO`, `IN PROGRESS`, `DONE`, `BLOCKED` (with a one-line
 reason), `REJECTED` (with a one-line rationale).
