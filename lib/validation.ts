@@ -64,24 +64,24 @@ const solutionOptionSchema = z.object({
 
 export const geocachingConfigSchema = z.object({
   target_latitude: z
-    .number({ error: 'Bitte geben Sie einen gültigen Breitengrad ein' })
+    .number({ error: 'Bitte einen gültigen Breitengrad eingeben' })
     .finite('Der Breitengrad muss eine endliche Zahl sein')
     .min(-90, 'Der Breitengrad muss mindestens -90 sein')
     .max(90, 'Der Breitengrad darf höchstens 90 sein'),
   target_longitude: z
-    .number({ error: 'Bitte geben Sie einen gültigen Längengrad ein' })
+    .number({ error: 'Bitte einen gültigen Längengrad eingeben' })
     .finite('Der Längengrad muss eine endliche Zahl sein')
     .min(-180, 'Der Längengrad muss mindestens -180 sein')
     .max(180, 'Der Längengrad darf höchstens 180 sein'),
   proximity_radius: z
-    .number({ error: 'Bitte geben Sie einen gültigen Näherungsradius ein' })
+    .number({ error: 'Bitte einen gültigen Näherungsradius eingeben' })
     .finite('Der Näherungsradius muss eine endliche Zahl sein')
     .int('Der Näherungsradius muss eine ganze Zahl sein')
     .positive('Der Näherungsradius muss größer als 0 sein')
     .default(10),
   input_type: z
     .enum(['text', 'qr'], {
-      error: 'Bitte wählen Sie Text oder QR-Code als Eingabeart',
+      error: 'Bitte Text oder QR-Code als Eingabeart wählen',
     })
     .default('text'),
 });
@@ -168,7 +168,7 @@ const nonGeocachingTypeSchema = z.enum([
 ]);
 
 const createQuestionCommonShape = {
-  content: z.string().trim().min(1, 'Bitte geben Sie eine Frage ein'),
+  content: z.string().trim().min(1, 'Bitte eine Frage eingeben'),
   point_value: pointValueSchema,
   hint: z.string().optional().nullable(),
   category: z.string().optional().nullable(),

@@ -175,9 +175,65 @@ describe('question write actions', () => {
       throw new Error('Expected validation to fail');
     }
     expect(result.error).toBe('Ungültige Eingaben');
-    expect(result.issues?.content).toBe('Bitte geben Sie eine Frage ein');
+    expect(result.issues?.content).toBe('Bitte eine Frage eingeben');
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
+
+  it.each([
+    {
+      field: 'target_latitude',
+      issue: 'geocaching.target_latitude',
+      message: 'Bitte einen gültigen Breitengrad eingeben',
+    },
+    {
+      field: 'target_longitude',
+      issue: 'geocaching.target_longitude',
+      message: 'Bitte einen gültigen Längengrad eingeben',
+    },
+    {
+      field: 'proximity_radius',
+      issue: 'geocaching.proximity_radius',
+      message: 'Bitte einen gültigen Näherungsradius eingeben',
+      invalidValue: Number.NaN,
+    },
+    {
+      field: 'input_type',
+      issue: 'geocaching.input_type',
+      message: 'Bitte Text oder QR-Code als Eingabeart wählen',
+      invalidValue: 'barcode',
+    },
+  ] as const)(
+    'returns a neutral validation message for $field',
+    async ({ field, issue, message, invalidValue = Number.NaN }) => {
+      mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+      const { createQuestion } = await import('./question');
+      const geocaching = {
+        target_latitude: 47.615123,
+        target_longitude: 7.664321,
+        proximity_radius: 10,
+        input_type: 'text' as const,
+        [field]: invalidValue,
+      };
+
+      // Exercise the runtime boundary with invalid external input.
+      const result = await createQuestion({
+        content: 'Finde den Eingang',
+        type: 'geocaching',
+        geocaching: geocaching as Parameters<
+          typeof createQuestion
+        >[0]['geocaching'],
+        solutionOptions: [{ correct: true, text: 'Eingang' }],
+      });
+
+      expect(result.success).toBe(false);
+      if (result.success) {
+        throw new Error('Expected validation to fail');
+      }
+      expect(result.issues?.[issue]).toBe(message);
+      expect(mockCreateClient).not.toHaveBeenCalled();
+    }
+  );
 
   it('validates points on update before touching Supabase', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
