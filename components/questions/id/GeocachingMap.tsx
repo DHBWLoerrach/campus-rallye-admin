@@ -196,13 +196,13 @@ export default function GeocachingMap({
     mapRef.current = map;
 
     const handleTileError = () => setTileError(true);
-    const handleTileLoad = () => setTileError(false);
+    const handleTileLoading = () => setTileError(false);
     const tileLayer = L.tileLayer(tileConfig.url, {
       attribution: tileConfig.attribution,
       maxZoom: MAP_MAX_ZOOM,
     });
     tileLayer.on('tileerror', handleTileError);
-    tileLayer.on('load', handleTileLoad);
+    tileLayer.on('loading', handleTileLoading);
     tileLayer.addTo(map);
 
     const handleMarkerDragEnd = () => {
@@ -234,7 +234,7 @@ export default function GeocachingMap({
       resizeObserver.disconnect();
       map.off('click', handleMapClick);
       tileLayer.off('tileerror', handleTileError);
-      tileLayer.off('load', handleTileLoad);
+      tileLayer.off('loading', handleTileLoading);
       removeCircle();
       removeMarker();
       markerDragHandlerRef.current = null;

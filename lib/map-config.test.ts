@@ -25,11 +25,14 @@ describe('getMapTileConfig', () => {
     );
   });
 
-  it('uses a complete custom provider pair unchanged', () => {
-    vi.stubEnv('NEXT_PUBLIC_MAP_TILE_URL', 'https://tiles.test/{z}/{x}/{y}');
+  it('uses a complete custom provider pair without surrounding whitespace', () => {
+    vi.stubEnv(
+      'NEXT_PUBLIC_MAP_TILE_URL',
+      '  https://tiles.test/{z}/{x}/{y}  '
+    );
     vi.stubEnv(
       'NEXT_PUBLIC_MAP_TILE_ATTRIBUTION',
-      '<a href="https://tiles.test/licence">Test Tiles</a>'
+      '  <a href="https://tiles.test/licence">Test Tiles</a>  '
     );
 
     expect(getMapTileConfig()).toEqual({

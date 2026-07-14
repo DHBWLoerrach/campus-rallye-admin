@@ -277,15 +277,14 @@ export async function getQuestions(
     return fail('Fragen konnten nicht geladen werden');
   }
 
-  const questions: Question[] = [];
-  for (const row of data || []) {
+  const questions = (data || []).flatMap((row): Question[] => {
     const question = normalizeQuestion(row);
     if (!question) {
-      console.error('Invalid question returned by database:', data);
-      return fail('Fragen konnten nicht geladen werden');
+      console.error('Invalid question returned by database:', row);
+      return [];
     }
-    questions.push(question);
-  }
+    return [question];
+  });
 
   return ok(questions);
 }

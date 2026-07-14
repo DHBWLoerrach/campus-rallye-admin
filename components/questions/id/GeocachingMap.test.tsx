@@ -366,9 +366,16 @@ describe('GeocachingMap', () => {
     };
 
     act(() => tile.handlers.tileerror());
+    expect(tile.handlers.load).toBeUndefined();
 
     expect(
       screen.getByText(/Kartenkacheln konnten nicht geladen werden/)
     ).toBeInTheDocument();
+
+    act(() => tile.handlers.loading());
+
+    expect(
+      screen.queryByText(/Kartenkacheln konnten nicht geladen werden/)
+    ).not.toBeInTheDocument();
   });
 });
