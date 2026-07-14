@@ -171,7 +171,7 @@ const QuestionPage: React.FC<Props> = ({
           </h1>
           <p className="text-sm text-muted-foreground">
             {id === 'new'
-              ? 'Frage formulieren, Antworten definieren und optional ein Bild hinterlegen.'
+              ? 'Zuerst den Fragetyp wählen, dann die passenden Angaben ergänzen.'
               : 'Inhalt, Antworten und Metadaten aktualisieren.'}
           </p>
         </div>

@@ -54,6 +54,29 @@ describe('QuestionPage', () => {
     vi.clearAllMocks();
   });
 
+  it('explains the type-first flow for a new question', () => {
+    render(
+      <QuestionPage
+        id="new"
+        initialData={null}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'Zuerst den Fragetyp wählen, dann die passenden Angaben ergänzen.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'Frage formulieren, Antworten definieren und optional ein Bild hinterlegen.'
+      )
+    ).not.toBeInTheDocument();
+  });
+
   it('returns to the provided returnTo param on cancel', () => {
     mockSearchParams.get.mockImplementation((key) => {
       if (key === 'returnTo') return '/rallyes/1/questions';
