@@ -392,7 +392,7 @@ describe('QuestionForm', () => {
     expect(screen.getByText('1 Angabe ausgefüllt')).toBeInTheDocument();
   });
 
-  it('keeps the task type locked for an existing question', () => {
+  it('shows the question type as a compact read-only row when editing', () => {
     render(
       <QuestionForm
         onSubmit={vi.fn()}
@@ -407,9 +407,12 @@ describe('QuestionForm', () => {
       />
     );
 
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+    expect(screen.getByText('Wissensfrage')).toBeInTheDocument();
     expect(
-      screen.getByRole('radio', { name: /Antwort eingeben/ })
-    ).toHaveAttribute('data-disabled');
+      screen.getByText('Teams geben eine kurze Lösung als Text ein.')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Multiple Choice')).not.toBeInTheDocument();
     expect(
       screen.getByText(
         'Der Fragetyp kann nach dem Erstellen nicht geändert werden.'
