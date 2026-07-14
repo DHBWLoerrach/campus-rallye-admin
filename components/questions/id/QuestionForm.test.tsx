@@ -986,7 +986,7 @@ describe('QuestionForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('explains how the point value affects the team ranking', () => {
+  it('explains how the point value affects the team rallye result', () => {
     render(
       <QuestionForm
         initialData={{ content: 'Frage', type: 'knowledge' }}
@@ -1004,7 +1004,7 @@ describe('QuestionForm', () => {
     );
     expect(
       screen.getByText(
-        'Zählt zur Team-Wertung. Leer bedeutet: keine Team-Punkte.'
+        'Zählt zum Ergebnis der Team-Rallye. Leer bedeutet: keine Team-Punkte.'
       )
     ).toBeInTheDocument();
   });

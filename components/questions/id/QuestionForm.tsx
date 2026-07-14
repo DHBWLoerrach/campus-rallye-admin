@@ -939,7 +939,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   id="point-value-help"
                   className="text-xs text-muted-foreground"
                 >
-                  Zählt zur Team-Wertung. Leer bedeutet: keine Team-Punkte.
+                  Zählt zum Ergebnis der Team-Rallye. Leer bedeutet: keine
+                  Team-Punkte.
                 </p>
                 {isGeocaching && (
                   <p className="text-xs text-muted-foreground">
