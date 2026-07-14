@@ -906,11 +906,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               </span>
             </summary>
             <div className="grid gap-4 border-t border-border/60 bg-card/50 p-4 sm:p-6 md:grid-cols-2">
-              <div className="max-w-28 space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="point_value">Punkte</Label>
                 <Input
                   type="number"
                   id="point_value"
+                  aria-describedby="point-value-help"
                   value={formData.point_value ?? ''}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -923,7 +924,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   min={0}
                   step={1}
                   inputMode="numeric"
-                  className={`w-full ${
+                  className={`w-full max-w-28 ${
                     displayedErrors.point_value
                       ? 'border-destructive focus-visible:ring-destructive/40'
                       : ''
@@ -934,6 +935,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     {displayedErrors.point_value}
                   </span>
                 )}
+                <p
+                  id="point-value-help"
+                  className="text-xs text-muted-foreground"
+                >
+                  Zählt zur Team-Wertung. Leer bedeutet: keine Team-Punkte.
+                </p>
                 {isGeocaching && (
                   <p className="text-xs text-muted-foreground">
                     Der Punktwert wird bei einer richtigen Antwort vergeben. In

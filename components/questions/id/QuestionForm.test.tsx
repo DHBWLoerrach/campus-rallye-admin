@@ -955,4 +955,27 @@ describe('QuestionForm', () => {
       )
     ).toBeInTheDocument();
   });
+
+  it('explains how the point value affects the team ranking', () => {
+    render(
+      <QuestionForm
+        initialData={{ content: 'Frage', type: 'knowledge' }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
+
+    expect(screen.getByLabelText('Punkte')).toHaveAttribute(
+      'aria-describedby',
+      'point-value-help'
+    );
+    expect(
+      screen.getByText(
+        'Zählt zur Team-Wertung. Leer bedeutet: keine Team-Punkte.'
+      )
+    ).toBeInTheDocument();
+  });
 });
