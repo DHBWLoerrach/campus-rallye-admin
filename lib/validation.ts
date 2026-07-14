@@ -21,7 +21,7 @@ const pointValueSchema = z.preprocess((value) => {
     return Number.isNaN(numeric) ? value : numeric;
   }
   return value;
-}, z.number().min(0, 'Punkte müssen größer oder gleich 0 sein').finite().optional());
+}, z.number().refine(Number.isSafeInteger, 'Punktwert muss eine ganze Zahl sein').min(0, 'Punkte müssen größer oder gleich 0 sein').finite().optional());
 
 export const rallyeCreateSchema = z.object({
   name: z.string().trim().min(1, 'Name ist erforderlich'),

@@ -22,6 +22,27 @@ describe('questionUpdateSchema', () => {
   });
 });
 
+describe('question point value validation', () => {
+  it.each([2.5, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects a non-safe integer point value: %s',
+    (point_value) => {
+      const result = questionCreateSchema.safeParse({
+        content: 'Wo ist die Mensa?',
+        type: 'knowledge',
+        point_value,
+        solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(formatZodError(result.error).point_value).toBe(
+          'Punktwert muss eine ganze Zahl sein'
+        );
+      }
+    }
+  );
+});
+
 describe('picture question validation', () => {
   const pictureQuestion = {
     content: 'Welches Gebäude ist zu sehen?',

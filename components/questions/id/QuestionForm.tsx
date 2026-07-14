@@ -325,7 +325,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         'Bitte eine Kategorie wählen oder eine neue eingeben';
     }
 
-    if ((data.point_value ?? 0) < 0) {
+    if (
+      data.point_value !== undefined &&
+      !Number.isSafeInteger(data.point_value)
+    ) {
+      newErrors.point_value = 'Punktwert muss eine ganze Zahl sein';
+    } else if ((data.point_value ?? 0) < 0) {
       newErrors.point_value = 'Punkte müssen größer oder gleich 0 sein';
     }
 
@@ -872,6 +877,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   }}
                   placeholder="0"
                   min={0}
+                  step={1}
+                  inputMode="numeric"
                   className={`w-full ${
                     displayedErrors.point_value
                       ? 'border-destructive focus-visible:ring-destructive/40'

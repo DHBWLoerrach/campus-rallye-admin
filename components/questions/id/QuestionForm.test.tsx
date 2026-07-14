@@ -293,6 +293,58 @@ describe('QuestionForm', () => {
     ).toBeInTheDocument();
   });
 
+  it('configures the point value input for integers', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
+
+    expect(screen.getByLabelText('Punkte')).toHaveAttribute('step', '1');
+    expect(screen.getByLabelText('Punkte')).toHaveAttribute(
+      'inputmode',
+      'numeric'
+    );
+  });
+
+  it('rejects a decimal point value with a clear message', () => {
+    const handleSubmit = vi.fn();
+    render(
+      <QuestionForm
+        onSubmit={handleSubmit}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
+    fireEvent.change(screen.getByLabelText('Punkte'), {
+      target: { value: '2.5' },
+    });
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Speichern' }).closest('form')!
+    );
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(
+      screen.getByText('Punktwert muss eine ganze Zahl sein')
+    ).toBeInTheDocument();
+  });
+
   it('allows clearing points and submits them as unset', () => {
     const handleSubmit = vi.fn();
 
