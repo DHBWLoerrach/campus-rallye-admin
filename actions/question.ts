@@ -424,7 +424,7 @@ export async function updateQuestion(
 
     const { data: existingQuestion, error: existingError } = await supabase
       .from('questions')
-      .select('id, type')
+      .select('id, type, bucket_path')
       .eq('id', idResult.data)
       .maybeSingle();
 
@@ -553,6 +553,29 @@ export async function updateQuestion(
       );
       if (!assignResult.success) {
         return fail(assignResult.error, assignResult.issues);
+      }
+    }
+
+    const previousBucketPath =
+      typeof existingQuestion.bucket_path === 'string'
+        ? existingQuestion.bucket_path.trim()
+        : '';
+    const updatedBucketPath = parsed.data.bucket_path?.trim() ?? '';
+    if (
+      previousBucketPath &&
+      updatedBucketPath &&
+      previousBucketPath !== updatedBucketPath
+    ) {
+      try {
+        const deleteResult = await deleteImage(previousBucketPath);
+        if (!deleteResult.success) {
+          console.error(
+            'Error deleting previous question image:',
+            deleteResult.error
+          );
+        }
+      } catch (error) {
+        console.error('Error deleting previous question image:', error);
       }
     }
 

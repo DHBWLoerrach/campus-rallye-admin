@@ -92,10 +92,12 @@ describe('question write actions', () => {
 
   const buildUpdateClient = ({
     existingType = 'knowledge',
+    existingBucketPath = null,
     geocachingError = null,
     order = [],
   }: {
     existingType?: string;
+    existingBucketPath?: string | null;
     geocachingError?: Error | null;
     order?: string[];
   } = {}) => {
@@ -107,7 +109,11 @@ describe('question write actions', () => {
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           maybeSingle: vi.fn().mockResolvedValue({
-            data: { id: 1, type: existingType },
+            data: {
+              id: 1,
+              type: existingType,
+              bucket_path: existingBucketPath,
+            },
             error: null,
           }),
         })),
@@ -494,10 +500,89 @@ describe('question write actions', () => {
       success: false,
       error: 'Die Aufgabenart kann nicht geändert werden',
     });
-    expect(questionsQuery.select).toHaveBeenCalledWith('id, type');
+    expect(questionsQuery.select).toHaveBeenCalledWith('id, type, bucket_path');
     expect(questionUpdate).not.toHaveBeenCalled();
     expect(answersQuery.select).not.toHaveBeenCalled();
   });
+
+  it('deletes the previous image after replacing it', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockDeleteImage.mockResolvedValue({
+      success: true,
+      data: { message: 'Bild gelöscht' },
+    });
+    buildUpdateClient({
+      existingType: 'picture',
+      existingBucketPath: 'old-image.png',
+    });
+
+    const { updateQuestion } = await import('./question');
+    const result = await updateQuestion(1, {
+      content: 'Welches Gebäude ist zu sehen?',
+      type: 'picture',
+      bucket_path: 'new-image.png',
+      solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockDeleteImage).toHaveBeenCalledWith('old-image.png');
+  });
+
+  it('keeps the stored image when its path is unchanged', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    buildUpdateClient({
+      existingType: 'picture',
+      existingBucketPath: 'question-image.png',
+    });
+
+    const { updateQuestion } = await import('./question');
+    const result = await updateQuestion(1, {
+      content: 'Welches Gebäude ist zu sehen?',
+      type: 'picture',
+      bucket_path: 'question-image.png',
+      solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockDeleteImage).not.toHaveBeenCalled();
+  });
+
+  it.each(['result', 'exception'] as const)(
+    'keeps the update successful when image deletion fails with a %s',
+    async (failureMode) => {
+      mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+      if (failureMode === 'result') {
+        mockDeleteImage.mockResolvedValue({
+          success: false,
+          error: 'Löschen fehlgeschlagen',
+        });
+      } else {
+        mockDeleteImage.mockRejectedValue(new Error('Storage unavailable'));
+      }
+      buildUpdateClient({
+        existingType: 'picture',
+        existingBucketPath: 'old-image.png',
+      });
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const { updateQuestion } = await import('./question');
+      const result = await updateQuestion(1, {
+        content: 'Welches Gebäude ist zu sehen?',
+        type: 'picture',
+        bucket_path: 'new-image.png',
+        solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+      });
+
+      expect(result.success).toBe(true);
+      expect(consoleError).toHaveBeenCalledWith(
+        'Error deleting previous question image:',
+        expect.anything()
+      );
+      consoleError.mockRestore();
+    }
+  );
 
   it('createQuestion requires a profile before touching Supabase', async () => {
     mockRequireProfile.mockRejectedValue(new Error('Denied'));
