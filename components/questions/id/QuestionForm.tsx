@@ -523,7 +523,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   <span className="block font-semibold text-foreground">
                     {selectedQuestionType.name}
                   </span>
-                  <span className="block text-sm text-muted-foreground">
+                  <span
+                    className="block min-w-0 truncate text-sm text-muted-foreground"
+                    title={selectedQuestionType.description}
+                  >
                     {selectedQuestionType.description}
                   </span>
                 </span>
