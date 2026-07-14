@@ -71,10 +71,34 @@ describe('QuestionPage', () => {
       )
     ).toBeInTheDocument();
     expect(
+      screen.getByRole('heading', { name: 'Neue Frage erstellen' })
+    ).toBeInTheDocument();
+    expect(
       screen.queryByText(
         'Frage formulieren, Antworten definieren und optional ein Bild hinterlegen.'
       )
     ).not.toBeInTheDocument();
+  });
+
+  it('keeps the edit title for an existing question', () => {
+    render(
+      <QuestionPage
+        id="1"
+        initialData={{
+          id: 1,
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Frage bearbeiten' })
+    ).toBeInTheDocument();
   });
 
   it('returns to the provided returnTo param on cancel', () => {
@@ -141,6 +165,9 @@ describe('QuestionPage', () => {
       screen.getByText(
         'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Frage aus.'
       )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Neue Frage aus Kopie' })
     ).toBeInTheDocument();
   });
 

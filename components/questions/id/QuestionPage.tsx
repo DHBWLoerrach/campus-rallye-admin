@@ -39,6 +39,11 @@ const QuestionPage: React.FC<Props> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const isNew = id === 'new';
+  const pageTitle = !isNew
+    ? 'Frage bearbeiten'
+    : isCopy
+      ? 'Neue Frage aus Kopie'
+      : 'Neue Frage erstellen';
   const returnToParam = searchParams.get('returnTo') ?? '';
   const creationContext = parseQuestionCreationContext(
     searchParams.get(QUESTION_RALLYE_ID_PARAM)
@@ -167,7 +172,7 @@ const QuestionPage: React.FC<Props> = ({
             Fragen
           </p>
           <h1 className="text-2xl font-semibold text-foreground">
-            {id === 'new' ? 'Neue Frage erstellen' : 'Frage bearbeiten'}
+            {pageTitle}
           </h1>
           <p className="text-sm text-muted-foreground">
             {id === 'new'
