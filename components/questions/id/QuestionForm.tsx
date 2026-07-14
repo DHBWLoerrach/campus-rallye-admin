@@ -486,13 +486,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 id="question-type-heading"
                 className="text-base font-semibold text-foreground"
               >
-                Aufgabenart
+                Fragetyp
               </h2>
               <p id="question-type-label" className="text-sm font-medium">
                 Was sollen die Teilnehmenden tun?*
               </p>
               <p className="text-sm text-muted-foreground">
-                Die Auswahl bestimmt, wie Teilnehmende diese Aufgabe lösen.
+                Die Auswahl bestimmt, wie Teilnehmende diese Frage lösen.
               </p>
             </div>
             <RadioGroup
@@ -558,7 +558,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             )}
             {initialData?.id !== undefined && (
               <p className="text-xs text-muted-foreground">
-                Die Aufgabenart kann nach dem Erstellen nicht geändert werden.
+                Der Fragetyp kann nach dem Erstellen nicht geändert werden.
               </p>
             )}
           </div>
@@ -573,7 +573,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               id="question-content-heading"
               className="text-base font-semibold text-foreground"
             >
-              Aufgabe formulieren
+              Frage formulieren
             </h2>
             <p className="text-sm text-muted-foreground">
               Dieser Text wird den Teilnehmenden angezeigt.
@@ -717,7 +717,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 <p className="text-xs text-muted-foreground">
                   {geocachingInputType === 'qr'
                     ? 'Ein falscher QR-Code wird abgelehnt und kann erneut gescannt werden.'
-                    : 'Groß-/Kleinschreibung sowie Leerzeichen am Anfang und Ende werden bei der Prüfung ignoriert. Eine falsche Antwort beendet die Aufgabe.'}
+                    : 'Groß-/Kleinschreibung sowie Leerzeichen am Anfang und Ende werden bei der Prüfung ignoriert. Eine falsche Antwort beendet die Frage.'}
                 </p>
               </div>
             )}

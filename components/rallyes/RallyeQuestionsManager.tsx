@@ -157,17 +157,17 @@ export default function RallyeQuestionsManager({
             <DialogHeader>
               <DialogTitle>Fragen aus dem Katalog hinzufügen</DialogTitle>
               <DialogDescription>
-                Bestehende Aufgaben auswählen oder eine neue Aufgabe für diese
+                Bestehende Fragen auswählen oder eine neue Frage für diese
                 Rallye erstellen.
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border/70 bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">
-                  Keine passende Aufgabe dabei?
+                  Keine passende Frage dabei?
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Eine neue Aufgabe wird nach dem Speichern direkt hinzugefügt.
+                  Eine neue Frage wird nach dem Speichern direkt hinzugefügt.
                 </p>
               </div>
               <Link
@@ -175,7 +175,7 @@ export default function RallyeQuestionsManager({
                 className={buttonVariants({ variant: 'outline', size: 'sm' })}
               >
                 <CirclePlus className="size-4" aria-hidden="true" />
-                Neue Aufgabe erstellen
+                Neue Frage erstellen
               </Link>
             </div>
             <SearchFilters

@@ -205,10 +205,10 @@ describe('QuestionForm', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Aufgabenart' })
+      screen.getByRole('heading', { name: 'Fragetyp' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Aufgabe formulieren' })
+      screen.getByRole('heading', { name: 'Frage formulieren' })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Lösung festlegen' })
@@ -412,7 +412,7 @@ describe('QuestionForm', () => {
     ).toHaveAttribute('data-disabled');
     expect(
       screen.getByText(
-        'Die Aufgabenart kann nach dem Erstellen nicht geändert werden.'
+        'Der Fragetyp kann nach dem Erstellen nicht geändert werden.'
       )
     ).toBeInTheDocument();
   });

@@ -46,7 +46,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead className="w-8"></TableHead>
-              <TableHead>Aufgabe</TableHead>
+              <TableHead>Frage</TableHead>
               <TableHead className="min-w-48">Was Teilnehmende tun</TableHead>
               <TableHead className="w-28">Punkte</TableHead>
               <TableHead className="min-w-40">Verwendet in</TableHead>
@@ -108,7 +108,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                                 : 'text-destructive'
                             }
                           >
-                            {questionType?.action ?? 'Aufgabenart fehlt'}
+                            {questionType?.action ?? 'Fragetyp fehlt'}
                           </span>
                         </div>
                       </TableCell>
@@ -137,18 +137,18 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={buildQuestionCopyHref(question.id)}
-                            aria-label={`„${question.content}“ als neue Aufgabe verwenden`}
+                            aria-label={`„${question.content}“ als neue Frage verwenden`}
                             className={buttonVariants({
                               variant: 'outline',
                               size: 'sm',
                             })}
                           >
                             <Copy aria-hidden="true" />
-                            Als neue Aufgabe
+                            Als neue Frage
                           </Link>
                           <Link
                             href={`/questions/${question.id}`}
-                            aria-label={`Aufgabe „${question.content}“ bearbeiten`}
+                            aria-label={`Frage „${question.content}“ bearbeiten`}
                             className={buttonVariants({
                               variant: 'ghost',
                               size: 'sm',

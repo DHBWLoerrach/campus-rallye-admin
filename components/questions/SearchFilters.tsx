@@ -95,8 +95,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           />
           <Input
             type="search"
-            aria-label="Aufgabe oder Antwort suchen"
-            placeholder="Aufgabe oder Antwort suchen …"
+            aria-label="Frage oder Lösungsoption suchen"
+            placeholder="Frage oder Lösungsoption suchen …"
             value={filters.search}
             onChange={(event) => handleChange('search', event.target.value)}
             className="pl-9"
@@ -106,18 +106,18 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           value={filters.type}
           onValueChange={(value) => handleChange('type', value ?? 'all')}
           items={[
-            { value: 'all', label: 'Alle Aufgabenarten' },
+            { value: 'all', label: 'Alle Fragetypen' },
             ...questionTypes.map((type) => ({
               value: type.id,
               label: type.action,
             })),
           ]}
         >
-          <SelectTrigger aria-label="Aufgabenart">
-            <SelectValue placeholder="Alle Aufgabenarten" />
+          <SelectTrigger aria-label="Fragetyp">
+            <SelectValue placeholder="Alle Fragetypen" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Alle Aufgabenarten</SelectItem>
+            <SelectItem value="all">Alle Fragetypen</SelectItem>
             {questionTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.action}

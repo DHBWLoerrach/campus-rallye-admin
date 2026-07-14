@@ -9,7 +9,7 @@ describe('SearchFilters', () => {
     render(<SearchFilters onFilterChange={onFilterChange} categories={[]} />);
 
     const search = screen.getByRole('searchbox', {
-      name: 'Aufgabe oder Antwort suchen',
+      name: 'Frage oder Lösungsoption suchen',
     });
     expect(screen.getAllByRole('searchbox')).toHaveLength(1);
 
@@ -29,7 +29,7 @@ describe('SearchFilters', () => {
 
     fireEvent.change(
       screen.getByRole('searchbox', {
-        name: 'Aufgabe oder Antwort suchen',
+        name: 'Frage oder Lösungsoption suchen',
       }),
       { target: { value: '   ' } }
     );
@@ -47,7 +47,7 @@ describe('SearchFilters', () => {
     );
 
     const typeTrigger = screen.getByRole('combobox', {
-      name: 'Aufgabenart',
+      name: 'Fragetyp',
     });
     fireEvent.click(typeTrigger);
 
@@ -110,7 +110,7 @@ describe('SearchFilters', () => {
   it('offers geocaching as a target-finding filter', () => {
     render(<SearchFilters onFilterChange={vi.fn()} categories={[]} />);
 
-    fireEvent.click(screen.getByRole('combobox', { name: 'Aufgabenart' }));
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fragetyp' }));
 
     expect(
       screen.getByRole('option', { name: 'Zielort finden' })

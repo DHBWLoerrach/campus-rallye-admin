@@ -131,7 +131,7 @@ describe('RallyeQuestionsManager', () => {
     );
 
     expect(
-      screen.getByRole('link', { name: 'Neue Aufgabe erstellen' })
+      screen.getByRole('link', { name: 'Neue Frage erstellen' })
     ).toHaveAttribute('href', '/questions/new?rallyeId=5');
   });
 

@@ -139,7 +139,7 @@ describe('QuestionPage', () => {
 
     expect(
       screen.getByText(
-        'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
+        'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Frage aus.'
       )
     ).toBeInTheDocument();
   });
@@ -282,7 +282,7 @@ describe('QuestionPage', () => {
     expect(mockCreateQuestion).not.toHaveBeenCalled();
     expect(
       screen.getByText(
-        'Rallye-Kontext ist ungültig. Aufgabe wurde nicht gespeichert.'
+        'Rallye-Kontext ist ungültig. Frage wurde nicht gespeichert.'
       )
     ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();

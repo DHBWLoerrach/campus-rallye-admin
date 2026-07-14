@@ -441,7 +441,7 @@ export async function updateQuestion(
       !isQuestionTypeId(existingQuestion.type) ||
       existingQuestion.type !== parsed.data.type
     ) {
-      return fail('Die Aufgabenart kann nicht geändert werden');
+      return fail('Der Fragetyp kann nicht geändert werden');
     }
 
     const { error: questionError } = await supabase

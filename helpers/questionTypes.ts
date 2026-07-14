@@ -74,7 +74,7 @@ export const questionTypes: readonly QuestionTypeDefinition[] = [
     name: 'Geocaching-Frage',
     action: 'Zielort finden',
     description:
-      'Teilnehmende navigieren zu einem Zielort und lösen dort eine Aufgabe.',
+      'Teilnehmende navigieren zu einem Zielort und lösen dort eine Frage.',
     example: 'Zum Beispiel: Finde den Haupteingang und scanne den QR-Code.',
   },
 ];

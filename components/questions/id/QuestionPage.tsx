@@ -81,7 +81,7 @@ const QuestionPage: React.FC<Props> = ({
   const handleSubmit = async (data: QuestionFormData) => {
     if (invalidRallyeCreationContext) {
       setSubmitError(
-        'Rallye-Kontext ist ungültig. Aufgabe wurde nicht gespeichert.'
+        'Rallye-Kontext ist ungültig. Frage wurde nicht gespeichert.'
       );
       return;
     }
@@ -187,10 +187,10 @@ const QuestionPage: React.FC<Props> = ({
       ) : isCopy ? (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
           {initialData?.type === 'picture'
-            ? 'Text und Antworten wurden übernommen. Das Bild muss neu hochgeladen werden. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
+            ? 'Text und Antworten wurden übernommen. Das Bild muss neu hochgeladen werden. Änderungen wirken sich nicht auf die ursprüngliche Frage aus.'
             : initialData?.type === 'geocaching'
-              ? 'Zielort und Lösung wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'
-              : 'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Aufgabe aus.'}
+              ? 'Zielort und Lösung wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Frage aus.'
+              : 'Inhalte wurden übernommen. Änderungen wirken sich nicht auf die ursprüngliche Frage aus.'}
         </div>
       ) : null}
 

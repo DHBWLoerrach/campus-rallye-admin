@@ -26,7 +26,7 @@ describe('QuestionsTable', () => {
     );
 
     expect(
-      screen.getByRole('columnheader', { name: 'Aufgabe' })
+      screen.getByRole('columnheader', { name: 'Frage' })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('columnheader', { name: 'Was Teilnehmende tun' })
@@ -52,11 +52,11 @@ describe('QuestionsTable', () => {
       'Rallye A, Rallye B'
     );
     expect(
-      screen.getByRole('link', { name: 'Aufgabe „Testfrage“ bearbeiten' })
+      screen.getByRole('link', { name: 'Frage „Testfrage“ bearbeiten' })
     ).toHaveAttribute('href', '/questions/1');
     expect(
       screen.getByRole('link', {
-        name: '„Testfrage“ als neue Aufgabe verwenden',
+        name: '„Testfrage“ als neue Frage verwenden',
       })
     ).toHaveAttribute('href', '/questions/new?copyFrom=1');
 
@@ -114,7 +114,7 @@ describe('QuestionsTable', () => {
 
     const rows = screen.getAllByRole('row');
     const questionRow = within(rows[1]);
-    expect(questionRow.getByText('Aufgabenart fehlt')).toBeInTheDocument();
+    expect(questionRow.getByText('Fragetyp fehlt')).toBeInTheDocument();
     expect(questionRow.getByText('Keine Punkte')).toBeInTheDocument();
     expect(questionRow.getByText('Noch nicht verwendet')).toBeInTheDocument();
   });

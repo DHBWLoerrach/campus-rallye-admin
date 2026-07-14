@@ -498,7 +498,7 @@ describe('question write actions', () => {
 
     expect(result).toEqual({
       success: false,
-      error: 'Die Aufgabenart kann nicht geändert werden',
+      error: 'Der Fragetyp kann nicht geändert werden',
     });
     expect(questionsQuery.select).toHaveBeenCalledWith('id, type, bucket_path');
     expect(questionUpdate).not.toHaveBeenCalled();
