@@ -49,10 +49,10 @@ interface FormErrors {
   'geocaching.input_type'?: string;
 }
 
-const canonicalizeSingleSolution = (
-  solutions: QuestionFormData['solutionOptions']
+const canonicalizeSingleSolutionOption = (
+  solutionOptions: QuestionFormData['solutionOptions']
 ) => {
-  const existing = solutions ?? [];
+  const existing = solutionOptions ?? [];
   const selected = existing.find(
     (answer) => answer.correct && answer.text?.trim()
   ) ??
@@ -62,17 +62,19 @@ const canonicalizeSingleSolution = (
   return [{ ...selected, correct: true }];
 };
 
-const createEmptyMultipleChoiceSolutions = () => [
+const createEmptyMultipleChoiceSolutionOptions = () => [
   { id: 0, correct: true, text: '' },
   { id: 0, correct: false, text: '' },
 ];
 
-const ensureMultipleChoiceSolutions = (
-  solutions: QuestionFormData['solutionOptions']
+const ensureMultipleChoiceSolutionOptions = (
+  solutionOptions: QuestionFormData['solutionOptions']
 ) => {
-  const existing = solutions ?? [];
+  const existing = solutionOptions ?? [];
   if (existing.length >= 2) return existing;
-  if (existing.length === 0) return createEmptyMultipleChoiceSolutions();
+  if (existing.length === 0) {
+    return createEmptyMultipleChoiceSolutionOptions();
+  }
 
   return [...existing, { id: 0, correct: false, text: '' }];
 };
@@ -82,7 +84,7 @@ const buildInitialFormData = (
 ): QuestionFormData => {
   const type = initialData?.type ?? '';
   const isGeocaching = type === 'geocaching';
-  const solutions = initialData?.solutionOptions?.length
+  const solutionOptions = initialData?.solutionOptions?.length
     ? initialData.solutionOptions
     : [{ id: 0, correct: true, text: '' }];
 
@@ -94,10 +96,10 @@ const buildInitialFormData = (
     category: initialData?.category ?? undefined,
     bucket_path: initialData?.bucket_path ?? undefined,
     solutionOptions: isGeocaching
-      ? canonicalizeSingleSolution(solutions)
+      ? canonicalizeSingleSolutionOption(solutionOptions)
       : type === 'multiple_choice' && initialData?.id === undefined
-        ? ensureMultipleChoiceSolutions(solutions)
-        : solutions,
+        ? ensureMultipleChoiceSolutionOptions(solutionOptions)
+        : solutionOptions,
     geocaching: isGeocaching
       ? {
           target_latitude: initialData?.geocaching?.target_latitude,
@@ -197,8 +199,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           : undefined,
       solutionOptions:
         type === 'multiple_choice'
-          ? createEmptyMultipleChoiceSolutions()
-          : canonicalizeSingleSolution(current.solutionOptions),
+          ? createEmptyMultipleChoiceSolutionOptions()
+          : canonicalizeSingleSolutionOption(current.solutionOptions),
     }));
     clearFieldError('type');
   };
