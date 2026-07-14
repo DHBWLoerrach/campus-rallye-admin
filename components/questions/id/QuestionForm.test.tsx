@@ -188,6 +188,19 @@ describe('QuestionForm', () => {
     expect(screen.getByText('Antwort*')).toBeInTheDocument();
   });
 
+  it('starts a new multiple-choice question with two empty answers', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort auswählen/ }));
+
+    const answerInputs = screen.getAllByPlaceholderText('Antwort eingeben');
+    expect(answerInputs).toHaveLength(2);
+    expect(answerInputs[0]).toHaveValue('');
+    expect(answerInputs[1]).toHaveValue('');
+  });
+
   it('structures the editor and keeps further details collapsed', () => {
     render(
       <QuestionForm
@@ -439,10 +452,11 @@ describe('QuestionForm', () => {
     expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
 
-  it('keeps a correct answer when removing the last answer', () => {
+  it('disables removing the only answer', () => {
     render(
       <QuestionForm
         initialData={{
+          id: 1,
           content: 'Beispielfrage',
           type: 'multiple_choice',
           solutionOptions: [{ id: 1, correct: true, text: 'Antwort A' }],
@@ -453,13 +467,9 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Antwort entfernen' }));
-
-    const radios = within(
-      screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
-    ).getAllByRole('radio');
-    expect(radios).toHaveLength(1);
-    expect(radios[0]).toHaveAttribute('data-checked');
+    expect(
+      screen.getByRole('button', { name: 'Antwort entfernen' })
+    ).toBeDisabled();
   });
 
   it('reassigns the correct answer when removing the selected one', () => {

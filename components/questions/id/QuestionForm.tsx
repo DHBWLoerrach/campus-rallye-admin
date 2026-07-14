@@ -62,6 +62,22 @@ const canonicalizeGeocachingSolution = (
   return [{ ...selected, correct: true }];
 };
 
+const ensureMultipleChoiceSolutions = (
+  solutions: QuestionFormData['solutionOptions']
+) => {
+  const existing = solutions ?? [];
+  if (existing.length >= 2) return existing;
+
+  return [
+    ...existing,
+    ...Array.from({ length: 2 - existing.length }, (_, index) => ({
+      id: 0,
+      correct: existing.length === 0 && index === 0,
+      text: '',
+    })),
+  ];
+};
+
 const buildInitialFormData = (
   initialData: Partial<Question> | null | undefined
 ): QuestionFormData => {
@@ -80,7 +96,9 @@ const buildInitialFormData = (
     bucket_path: initialData?.bucket_path ?? undefined,
     solutionOptions: isGeocaching
       ? canonicalizeGeocachingSolution(solutions)
-      : solutions,
+      : type === 'multiple_choice' && initialData?.id === undefined
+        ? ensureMultipleChoiceSolutions(solutions)
+        : solutions,
     geocaching: isGeocaching
       ? {
           target_latitude: initialData?.geocaching?.target_latitude,
@@ -181,7 +199,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       solutionOptions:
         type === 'geocaching'
           ? canonicalizeGeocachingSolution(current.solutionOptions)
-          : current.solutionOptions,
+          : type === 'multiple_choice'
+            ? ensureMultipleChoiceSolutions(current.solutionOptions)
+            : current.solutionOptions,
     }));
     clearFieldError('type');
   };
@@ -781,6 +801,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                       variant="outline"
                       size="icon"
                       onClick={() => removeAnswer(index)}
+                      disabled={(formData.solutionOptions?.length ?? 0) <= 1}
                       aria-label="Antwort entfernen"
                       className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
