@@ -188,17 +188,47 @@ describe('QuestionForm', () => {
     expect(screen.getByText('Antwort*')).toBeInTheDocument();
   });
 
-  it('starts a new multiple-choice question with two empty answers', () => {
+  it('starts a new multiple-choice question with two empty solution options', () => {
     render(
       <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
     );
 
     fireEvent.click(screen.getByRole('radio', { name: /Antwort auswählen/ }));
 
-    const answerInputs = screen.getAllByPlaceholderText('Antwort eingeben');
-    expect(answerInputs).toHaveLength(2);
-    expect(answerInputs[0]).toHaveValue('');
-    expect(answerInputs[1]).toHaveValue('');
+    const solutionOptionInputs =
+      screen.getAllByPlaceholderText('Antwort eingeben');
+    expect(solutionOptionInputs).toHaveLength(2);
+    expect(solutionOptionInputs[0]).toHaveValue('');
+    expect(solutionOptionInputs[1]).toHaveValue('');
+  });
+
+  it('resets solution options when changing to multiple choice', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
+    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+      target: { value: 'Bestehende Lösung' },
+    });
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort auswählen/ }));
+
+    const solutionOptionInputs =
+      screen.getAllByPlaceholderText('Antwort eingeben');
+    expect(solutionOptionInputs).toHaveLength(2);
+    expect(solutionOptionInputs[0]).toHaveValue('');
+    expect(solutionOptionInputs[1]).toHaveValue('');
+  });
+
+  it('keeps one solution option when changing from multiple choice', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort auswählen/ }));
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
+
+    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
   });
 
   it('structures the editor and keeps further details collapsed', () => {
@@ -452,7 +482,7 @@ describe('QuestionForm', () => {
     expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
 
-  it('disables removing the only answer', () => {
+  it('disables removing the only solution option', () => {
     render(
       <QuestionForm
         initialData={{

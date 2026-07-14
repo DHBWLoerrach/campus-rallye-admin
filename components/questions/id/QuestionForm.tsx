@@ -49,7 +49,7 @@ interface FormErrors {
   'geocaching.input_type'?: string;
 }
 
-const canonicalizeGeocachingSolution = (
+const canonicalizeSingleSolution = (
   solutions: QuestionFormData['solutionOptions']
 ) => {
   const existing = solutions ?? [];
@@ -62,20 +62,19 @@ const canonicalizeGeocachingSolution = (
   return [{ ...selected, correct: true }];
 };
 
+const createEmptyMultipleChoiceSolutions = () => [
+  { id: 0, correct: true, text: '' },
+  { id: 0, correct: false, text: '' },
+];
+
 const ensureMultipleChoiceSolutions = (
   solutions: QuestionFormData['solutionOptions']
 ) => {
   const existing = solutions ?? [];
   if (existing.length >= 2) return existing;
+  if (existing.length === 0) return createEmptyMultipleChoiceSolutions();
 
-  return [
-    ...existing,
-    ...Array.from({ length: 2 - existing.length }, (_, index) => ({
-      id: 0,
-      correct: existing.length === 0 && index === 0,
-      text: '',
-    })),
-  ];
+  return [...existing, { id: 0, correct: false, text: '' }];
 };
 
 const buildInitialFormData = (
@@ -95,7 +94,7 @@ const buildInitialFormData = (
     category: initialData?.category ?? undefined,
     bucket_path: initialData?.bucket_path ?? undefined,
     solutionOptions: isGeocaching
-      ? canonicalizeGeocachingSolution(solutions)
+      ? canonicalizeSingleSolution(solutions)
       : type === 'multiple_choice' && initialData?.id === undefined
         ? ensureMultipleChoiceSolutions(solutions)
         : solutions,
@@ -197,11 +196,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             }
           : undefined,
       solutionOptions:
-        type === 'geocaching'
-          ? canonicalizeGeocachingSolution(current.solutionOptions)
-          : type === 'multiple_choice'
-            ? ensureMultipleChoiceSolutions(current.solutionOptions)
-            : current.solutionOptions,
+        type === 'multiple_choice'
+          ? createEmptyMultipleChoiceSolutions()
+          : canonicalizeSingleSolution(current.solutionOptions),
     }));
     clearFieldError('type');
   };
