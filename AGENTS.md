@@ -76,3 +76,13 @@ Automated tests use Vitest + React Testing Library with jsdom and `vitest.setup.
 
 - Commits are typically short, imperative summaries (English or German) and often reference issues (e.g., `Fix #17`). Keep the subject concise (≈72 chars) and include `#<issue>` when relevant.
 - PRs should explain what/why, include screenshots for UI changes, and call out schema/env changes (update the newest `supabase/schema_v*.sql` and `env.example` when applicable).
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked as local Markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+This is a single-context repository with `CONTEXT.md` and `docs/adr/` at the root. See `docs/agents/domain.md`.
