@@ -36,6 +36,13 @@ export default function UsersClient({
 }: UsersClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const departmentSelectOptions = [
+    { value: NO_DEPARTMENT, label: 'Kein Bereich' },
+    ...departmentOptions.map((department) => ({
+      value: department.id.toString(),
+      label: department.name,
+    })),
+  ];
 
   const handleChange = (userId: string, value: string) => {
     setError(null);
@@ -122,27 +129,15 @@ export default function UsersClient({
                         handleChange(user.user_id, value ?? NO_DEPARTMENT)
                       }
                       disabled={isPending}
-                      items={[
-                        { value: NO_DEPARTMENT, label: 'Kein Bereich' },
-                        ...departmentOptions.map((department) => ({
-                          value: department.id.toString(),
-                          label: department.name,
-                        })),
-                      ]}
+                      items={departmentSelectOptions}
                     >
                       <SelectTrigger className="w-56">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={NO_DEPARTMENT}>
-                          Kein Bereich
-                        </SelectItem>
-                        {departmentOptions.map((department) => (
-                          <SelectItem
-                            key={department.id}
-                            value={department.id.toString()}
-                          >
-                            {department.name}
+                        {departmentSelectOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -459,6 +459,14 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     formData.geocaching.proximity_radius !== undefined &&
     Number.isInteger(formData.geocaching.proximity_radius) &&
     formData.geocaching.proximity_radius > 0;
+  const categoryOptions = [
+    { value: 'none', label: 'Bitte auswählen' },
+    ...categories.map((category) => ({
+      value: category,
+      label: category,
+    })),
+    { value: 'new', label: '+ Neue Kategorie' },
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -896,14 +904,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 <Select
                   value={isNewCategory ? 'new' : formData.category || ''}
                   onValueChange={(value) => handleCategoryChange(value ?? '')}
-                  items={[
-                    { value: 'none', label: 'Bitte auswählen' },
-                    ...categories.map((category) => ({
-                      value: category,
-                      label: category,
-                    })),
-                    { value: 'new', label: '+ Neue Kategorie' },
-                  ]}
+                  items={categoryOptions}
                 >
                   <SelectTrigger
                     className={
@@ -915,13 +916,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     <SelectValue placeholder="Kategorie wählen" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Bitte auswählen</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                    {categoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
-                    <SelectItem value="new">+ Neue Kategorie</SelectItem>
                   </SelectContent>
                 </Select>
                 {isNewCategory && (
