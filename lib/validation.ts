@@ -161,6 +161,16 @@ const validateQuestionDetails = (
         message: 'Lösungsoptionen müssen unterschiedlich sein',
       });
     }
+    const correctCount = nonEmptyAnswers.filter(
+      (answer) => answer.correct
+    ).length;
+    if (correctCount !== 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['solutionOptions'],
+        message: 'Genau eine Lösungsoption muss als richtig markiert sein',
+      });
+    }
   } else if (data.type !== 'upload' && normalizedAnswers.length < 1) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

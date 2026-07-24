@@ -90,6 +90,54 @@ describe('question solution option validation', () => {
       );
     }
   });
+
+  it.each([
+    {
+      label: 'no correct option',
+      solutionOptions: [
+        { correct: false, text: 'Gebäude A' },
+        { correct: false, text: 'Gebäude B' },
+      ],
+    },
+    {
+      label: 'more than one correct option',
+      solutionOptions: [
+        { correct: true, text: 'Gebäude A' },
+        { correct: true, text: 'Gebäude B' },
+      ],
+    },
+  ])(
+    'rejects a multiple choice question with $label',
+    ({ solutionOptions }) => {
+      const result = questionCreateSchema.safeParse({
+        content: 'Wo ist die Mensa?',
+        type: 'multiple_choice',
+        point_value: 3,
+        solutionOptions,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(formatZodError(result.error).solutionOptions).toBe(
+          'Genau eine Lösungsoption muss als richtig markiert sein'
+        );
+      }
+    }
+  );
+
+  it('accepts a multiple choice question with exactly one correct option', () => {
+    const result = questionCreateSchema.safeParse({
+      content: 'Wo ist die Mensa?',
+      type: 'multiple_choice',
+      point_value: 3,
+      solutionOptions: [
+        { correct: true, text: 'Gebäude A' },
+        { correct: false, text: 'Gebäude B' },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+  });
 });
 
 describe('picture question validation', () => {
