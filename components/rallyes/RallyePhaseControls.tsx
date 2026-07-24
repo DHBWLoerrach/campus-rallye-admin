@@ -23,12 +23,16 @@ interface RallyePhaseControlsProps {
   rallyeId: number;
   status: RallyeStatus;
   hasVotingQuestions: boolean;
+  // Assigned upload questions with a point value that are not voting questions.
+  // Their points can never be awarded, so we warn before leaving "running".
+  unmarkedUploadWithPoints?: number;
 }
 
 export default function RallyePhaseControls({
   rallyeId,
   status,
   hasVotingQuestions,
+  unmarkedUploadWithPoints = 0,
 }: RallyePhaseControlsProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -39,6 +43,10 @@ export default function RallyePhaseControls({
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
   // Only the start step offers a "geplant bis" time; other transitions don't.
   const showEndTime = status === 'ready';
+  // Leaving "running" freezes team answers, so unmarked upload questions with
+  // points can no longer be scored. Warn, but let the organizer proceed.
+  const showUnmarkedUploadWarning =
+    status === 'running' && unmarkedUploadWithPoints > 0;
   const plannedEnd = showEndTime
     ? parsePlannedEnd(endTime)
     : ({ kind: 'none' } as const);
@@ -143,6 +151,16 @@ export default function RallyePhaseControls({
                 Nur zur Orientierung. Die Rallye endet erst, wenn du sie im
                 Ablauf beendest.
               </p>
+            </div>
+          )}
+          {showUnmarkedUploadWarning && (
+            <div
+              role="status"
+              className="rounded-md border border-amber-500/50 bg-amber-50/60 px-3 py-2 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-200"
+            >
+              {unmarkedUploadWithPoints === 1
+                ? 'Für 1 Upload-Frage mit Punktwert ist keine Abstimmung vorgesehen — diese Punkte kann kein Team erhalten.'
+                : `Für ${unmarkedUploadWithPoints} Upload-Fragen mit Punktwert ist keine Abstimmung vorgesehen — diese Punkte kann kein Team erhalten.`}
             </div>
           )}
           {error && (

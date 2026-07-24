@@ -114,6 +114,43 @@ describe('RallyePhaseControls', () => {
     });
   });
 
+  it('warns about unmarked upload questions but still allows confirming', async () => {
+    mockAdvance.mockResolvedValue({ success: true, data: { message: 'ok' } });
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="running"
+        hasVotingQuestions={false}
+        unmarkedUploadWithPoints={2}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ergebnisse anzeigen' })
+    );
+    expect(
+      screen.getByText(/2 Upload-Fragen mit Punktwert/)
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
+    await waitFor(() =>
+      expect(mockAdvance).toHaveBeenCalledWith(5, 'results', undefined)
+    );
+  });
+
+  it('shows no upload warning when every scored upload votes', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="running"
+        hasVotingQuestions
+        unmarkedUploadWithPoints={0}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Abstimmung starten' }));
+    expect(
+      screen.queryByText(/keine Abstimmung vorgesehen/)
+    ).not.toBeInTheDocument();
+  });
+
   it('offers no planned-end field for later transitions', () => {
     render(
       <RallyePhaseControls

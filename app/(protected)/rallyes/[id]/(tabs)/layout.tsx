@@ -54,6 +54,23 @@ export default async function RallyeDetailLayout({
     .eq('rallye_id', rallyeId)
     .eq('is_voting', true);
 
+  // Only relevant when leaving "running": upload questions with a point value
+  // that are not voting questions can never score, so the phase control warns.
+  let unmarkedUploadWithPoints = 0;
+  if (status === 'running') {
+    const { count } = await supabase
+      .from('rallye_questions')
+      .select('question_id, questions!inner(type, point_value)', {
+        count: 'exact',
+        head: true,
+      })
+      .eq('rallye_id', rallyeId)
+      .eq('is_voting', false)
+      .eq('questions.type', 'upload')
+      .gt('questions.point_value', 0);
+    unmarkedUploadWithPoints = count ?? 0;
+  }
+
   const currentIndex = RALLYE_STATUSES.indexOf(status);
 
   return (
@@ -89,6 +106,7 @@ export default async function RallyeDetailLayout({
               rallyeId={rallyeId}
               status={status}
               hasVotingQuestions={(votingCount ?? 0) > 0}
+              unmarkedUploadWithPoints={unmarkedUploadWithPoints}
             />
           </div>
         </div>
