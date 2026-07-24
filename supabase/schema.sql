@@ -258,7 +258,7 @@ CREATE TABLE IF NOT EXISTS "public"."questions" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "content" "text" NOT NULL,
     "type" "public"."question_type" NOT NULL,
-    "point_value" bigint,
+    "point_value" bigint DEFAULT 0 NOT NULL,
     "hint" "text",
     "category" "text",
     "bucket_path" "text"
