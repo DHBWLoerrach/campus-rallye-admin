@@ -10,7 +10,7 @@ import {
   setQuestionVoting,
 } from '@/actions/assign_questions_to_rallye';
 import SearchFilters from '@/components/questions/SearchFilters';
-import { questionTypes } from '@/helpers/questionTypes';
+import { defaultIsVoting, questionTypes } from '@/helpers/questionTypes';
 import type { Question } from '@/helpers/questions';
 import { buildRallyeQuestionCreationHref } from '@/lib/question-creation-context';
 import {
@@ -88,8 +88,8 @@ export default function RallyeQuestionsManager({
         return;
       }
       setAssigned((prev) =>
-        [...prev, { question, isVoting: false }].sort((a, b) =>
-          byContent(a.question, b.question)
+        [...prev, { question, isVoting: defaultIsVoting(question.type) }].sort(
+          (a, b) => byContent(a.question, b.question)
         )
       );
       setAvailable((prev) => prev.filter((q) => q.id !== question.id));

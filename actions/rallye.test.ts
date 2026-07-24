@@ -524,7 +524,10 @@ describe('createRallyeWithQuestions', () => {
     vi.resetModules();
   });
 
-  const makeSupabase = (opts: { departmentExists?: boolean }) => {
+  const makeSupabase = (opts: {
+    departmentExists?: boolean;
+    questionTypes?: Array<{ id: number; type: string }>;
+  }) => {
     const insertSelectSingle = vi
       .fn()
       .mockResolvedValue({ data: { id: 42 }, error: null });
@@ -547,6 +550,16 @@ describe('createRallyeWithQuestions', () => {
       if (table === 'rallyes') {
         return { insert: rallyeInsert };
       }
+      if (table === 'questions') {
+        return {
+          select: vi.fn(() => ({
+            in: vi.fn().mockResolvedValue({
+              data: opts.questionTypes ?? [],
+              error: null,
+            }),
+          })),
+        };
+      }
       return { insert: joinInsert };
     });
     return { from, rallyeInsert, joinInsert };
@@ -554,7 +567,12 @@ describe('createRallyeWithQuestions', () => {
 
   it('creates a draft rallye with question assignments', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    const supabase = makeSupabase({});
+    const supabase = makeSupabase({
+      questionTypes: [
+        { id: 1, type: 'knowledge' },
+        { id: 2, type: 'multiple_choice' },
+      ],
+    });
     mockCreateClient.mockResolvedValue(supabase);
 
     const { createRallyeWithQuestions } = await import('./rallye');
@@ -580,6 +598,32 @@ describe('createRallyeWithQuestions', () => {
     expect(supabase.joinInsert).toHaveBeenCalledWith([
       { rallye_id: 42, question_id: 1, is_voting: false },
       { rallye_id: 42, question_id: 2, is_voting: false },
+    ]);
+  });
+
+  it('defaults upload questions to voting when assigning', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      questionTypes: [
+        { id: 1, type: 'knowledge' },
+        { id: 2, type: 'upload' },
+      ],
+    });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { createRallyeWithQuestions } = await import('./rallye');
+    const result = await createRallyeWithQuestions({
+      name: 'Foto-Rallye',
+      departmentId: 7,
+      endTime: null,
+      rallyeCode: 'code',
+      questionIds: [1, 2],
+    });
+
+    expect(result.success).toBe(true);
+    expect(supabase.joinInsert).toHaveBeenCalledWith([
+      { rallye_id: 42, question_id: 1, is_voting: false },
+      { rallye_id: 42, question_id: 2, is_voting: true },
     ]);
   });
 

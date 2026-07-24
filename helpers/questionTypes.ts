@@ -18,6 +18,16 @@ export const QUESTION_TYPE_IDS = [
 export type QuestionTypeId = (typeof QUESTION_TYPE_IDS)[number];
 export type GeocachingInputType = 'text' | 'qr';
 
+/**
+ * Whether a question defaults to voting when assigned to a rallye. Upload
+ * answers are photos that can only score through the voting phase, so opting
+ * in by default closes the trap of an unmarked upload question silently
+ * awarding no points. Editors can still deselect voting per rallye question.
+ * Only upload questions can ever be voting questions.
+ */
+export const defaultIsVoting = (type: string | null | undefined): boolean =>
+  type === 'upload';
+
 export interface QuestionTypeDefinition {
   id: QuestionTypeId;
   name: string;

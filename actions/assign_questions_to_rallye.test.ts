@@ -309,7 +309,7 @@ describe('addQuestionToRallye', () => {
     return { from, insert };
   };
 
-  it('inserts a new assignment with voting disabled', async () => {
+  it('inserts a non-upload assignment with voting disabled', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const supabase = makeSupabase({});
     mockCreateClient.mockResolvedValue(supabase);
@@ -323,6 +323,23 @@ describe('addQuestionToRallye', () => {
       rallye_id: 5,
       question_id: 7,
       is_voting: false,
+    });
+  });
+
+  it('defaults an upload assignment to voting enabled', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ questionType: 'upload' });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { addQuestionToRallye } =
+      await import('./assign_questions_to_rallye');
+    const result = await addQuestionToRallye(5, 7);
+
+    expect(result.success).toBe(true);
+    expect(supabase.insert).toHaveBeenCalledWith({
+      rallye_id: 5,
+      question_id: 7,
+      is_voting: true,
     });
   });
 
@@ -475,5 +492,80 @@ describe('setQuestionVoting', () => {
 
     expect(result.success).toBe(true);
     expect(supabase.update).toHaveBeenCalledWith({ is_voting: false });
+  });
+});
+
+describe('assignRallyesToQuestion', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const makeSupabase = (opts: { questionType?: string }) => {
+    const insert = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn((table: string) => {
+      if (table === 'questions') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: { id: 7, type: opts.questionType ?? 'knowledge' },
+                error: null,
+              }),
+            })),
+          })),
+        };
+      }
+      if (table === 'rallyes') {
+        return {
+          select: vi.fn(() => ({
+            in: vi.fn().mockResolvedValue({
+              data: [{ id: 1 }, { id: 2 }],
+              error: null,
+            }),
+          })),
+        };
+      }
+      // rallye_questions: no existing assignments, so both rallyes are added.
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+        })),
+        insert,
+      };
+    });
+    return { from, insert };
+  };
+
+  it('defaults upload questions to voting when assigning to rallyes', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ questionType: 'upload' });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { assignRallyesToQuestion } =
+      await import('./assign_questions_to_rallye');
+    const result = await assignRallyesToQuestion(7, [1, 2]);
+
+    expect(result.success).toBe(true);
+    expect(supabase.insert).toHaveBeenCalledWith([
+      { rallye_id: 1, question_id: 7, is_voting: true },
+      { rallye_id: 2, question_id: 7, is_voting: true },
+    ]);
+  });
+
+  it('leaves non-upload questions out of voting when assigning', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ questionType: 'knowledge' });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { assignRallyesToQuestion } =
+      await import('./assign_questions_to_rallye');
+    const result = await assignRallyesToQuestion(7, [1, 2]);
+
+    expect(result.success).toBe(true);
+    expect(supabase.insert).toHaveBeenCalledWith([
+      { rallye_id: 1, question_id: 7, is_voting: false },
+      { rallye_id: 2, question_id: 7, is_voting: false },
+    ]);
   });
 });

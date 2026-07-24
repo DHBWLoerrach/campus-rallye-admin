@@ -205,7 +205,7 @@ Ein Team-Rallye-Status kurz vor Abschluss, in dem Teams nach Freigabe durch den 
 _Vermeiden_: Voting
 
 **Abstimmungsfrage**:
-Eine Rallye-Frage, deren Team-Antworten in der Abstimmung bewertet werden.
+Eine Upload-Frage in einer Team-Rallye, deren Upload-Fotos in der Abstimmung bewertet werden. Nur Upload-Fragen können Abstimmungsfragen sein.
 _Vermeiden_: Voting question
 
 **Ergebnisse**:
@@ -424,6 +424,9 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - **Abgeschlossen** ist für eine konkrete **Team-Rallye** final.
 - Eine beendete **Team-Rallye** wird nicht wieder geöffnet; Wiederverwendung erfolgt über eine neue **Team-Rallye** aus einer **Rallye-Vorlage**.
 - Eine **Abstimmungsfrage** ist eine **Rallye-Frage** und gehört nur in eine **Team-Rallye**.
+- Nur **Upload-Fragen** können **Abstimmungsfragen** sein.
+- Eine **Upload-Frage** wird beim Zuordnen zu einer **Team-Rallye** standardmäßig eine **Abstimmungsfrage**; die Abstimmung kann pro **Rallye-Frage** abgewählt werden.
+- Eine **Upload-Frage** mit **Punktwert**, die keine **Abstimmungsfrage** ist, kann ihre **Team-Punkte** an kein **Team** vergeben.
 - Eine **Campus-Tour** hat keine **Abstimmungsfragen**, keinen **Rallye-Code** und kein **Rallye-Ende**.
 
 ### Bearbeitung und Berechtigung
@@ -473,6 +476,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - **Kategorie** ist aktuell ein loser Ordnungsbegriff. Ob Kategorien ein gepflegtes Vokabular werden und ob sie standort- oder bereichsspezifisch sind, ist offen.
 - "Event-Rallye" und **Event-Bereich** wurden als eigene Konzepte erwogen. Geklärt: Eine Team-Rallye ist eine **Bereichs-Rallye**; ein Event-Kontext sollte erst modelliert werden, wenn er ein echtes Konzept wird.
 - Eine eigene Organisator-Bewertung gibt es aktuell nicht; nicht automatisch bewertete **Team-Antworten** werden über **Abstimmung** bewertet.
+- Ob **Abstimmungsfragen** auch andere Fragetypen umfassen könnten, war offen. Geklärt: **Abstimmungsfragen** sind fachlich auf **Upload-Fragen** beschränkt; Code-Pfade für Text-Antworten in der Abstimmung sind Altlast.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
 - Die **Geocaching-Frage** wurde im Datenmodell (Fragetyp `geocaching`, Tabelle `questions_geocaching`) eingeführt, bevor sie in dieser Fachsprache stand. Geklärt: Sie ist ein eigener Fragetyp, wird automatisch bewertet, braucht kein **Team** und ist in **Campus-Touren** erlaubt. Sie wird aktuell noch nicht in der **Admin-App** gepflegt.

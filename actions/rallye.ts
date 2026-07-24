@@ -17,6 +17,7 @@ import {
   rallyeUpdateSchema,
 } from '@/lib/validation';
 import { parsePlannedEnd } from '@/lib/planned-end';
+import { defaultIsVoting } from '@/helpers/questionTypes';
 
 type FormState = ActionResult<{ message: string; rallyeId?: number }> | null;
 
@@ -404,11 +405,27 @@ export async function createRallyeWithQuestions(input: {
 
   const uniqueQuestionIds = Array.from(new Set(questionIdsResult.data));
   if (uniqueQuestionIds.length > 0) {
+    // Load the types to decide the voting flag per question (see
+    // defaultIsVoting).
+    const { data: questionRows, error: questionTypeError } = await supabase
+      .from('questions')
+      .select('id, type')
+      .in('id', uniqueQuestionIds);
+    if (questionTypeError) {
+      console.error('Error loading question types:', questionTypeError);
+      return fail('Fragen konnten nicht zugeordnet werden');
+    }
+    const votingQuestionIds = new Set(
+      (questionRows ?? [])
+        .filter((row) => defaultIsVoting(row.type))
+        .map((row) => row.id)
+    );
+
     const { error: joinError } = await supabase.from('rallye_questions').insert(
       uniqueQuestionIds.map((questionId) => ({
         rallye_id: created.id,
         question_id: questionId,
-        is_voting: false,
+        is_voting: votingQuestionIds.has(questionId),
       }))
     );
     if (joinError) {

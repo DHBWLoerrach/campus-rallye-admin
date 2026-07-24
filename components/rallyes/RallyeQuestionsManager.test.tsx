@@ -116,6 +116,30 @@ describe('RallyeQuestionsManager', () => {
     );
   });
 
+  it('marks a newly added upload question for voting', async () => {
+    mockAdd.mockResolvedValue({ success: true, data: { message: 'ok' } });
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        initialAssigned={[]}
+        initialAvailable={[uploadQuestion]}
+        categories={[]}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: '+ Fragen hinzufügen' })
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Frage hinzufügen' }));
+    await waitFor(() => expect(mockAdd).toHaveBeenCalledWith(5, 2));
+    // The add dialog stays open, so the assigned row sits in the inert
+    // background; include hidden nodes to reach its voting checkbox.
+    await waitFor(() =>
+      expect(
+        screen.getByRole('checkbox', { name: 'Abstimmung', hidden: true })
+      ).toHaveAttribute('aria-checked', 'true')
+    );
+  });
+
   it('links to creating and assigning a new question', () => {
     render(
       <RallyeQuestionsManager
@@ -150,6 +174,25 @@ describe('RallyeQuestionsManager', () => {
     );
     fireEvent.click(screen.getByRole('checkbox', { name: 'Abstimmung' }));
     await waitFor(() => expect(mockSetVoting).toHaveBeenCalledWith(5, 2, true));
+  });
+
+  it('lets an upload question be deselected from voting', async () => {
+    mockSetVoting.mockResolvedValue({
+      success: true,
+      data: { message: 'ok' },
+    });
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        initialAssigned={[{ question: uploadQuestion, isVoting: true }]}
+        initialAvailable={[]}
+        categories={[]}
+      />
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Abstimmung' }));
+    await waitFor(() =>
+      expect(mockSetVoting).toHaveBeenCalledWith(5, 2, false)
+    );
   });
 
   it('shows the action error and keeps state on failure', async () => {

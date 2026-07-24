@@ -4,6 +4,7 @@ import { requireProfile } from '@/lib/require-profile';
 import { revalidatePath } from 'next/cache';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, idArraySchema, idSchema } from '@/lib/validation';
+import { defaultIsVoting } from '@/helpers/questionTypes';
 
 export async function assignQuestionsToRallye(
   rallyeId: number,
@@ -288,7 +289,7 @@ export async function addQuestionToRallye(
     .insert({
       rallye_id: ids.rallyeId,
       question_id: ids.questionId,
-      is_voting: false,
+      is_voting: defaultIsVoting(question.type),
     });
   if (insertError) {
     console.error('Error adding question to rallye:', insertError);
@@ -461,7 +462,7 @@ export async function assignRallyesToQuestion(
 
   const { data: existingQuestion, error: questionError } = await supabase
     .from('questions')
-    .select('id')
+    .select('id, type')
     .eq('id', questionIdResult.data)
     .maybeSingle();
 
@@ -531,9 +532,11 @@ export async function assignRallyesToQuestion(
   }
 
   if (rallyesToAdd.length > 0) {
+    const isVoting = defaultIsVoting(existingQuestion.type);
     const newAssignments = rallyesToAdd.map((rallyeId) => ({
       rallye_id: rallyeId,
       question_id: questionId,
+      is_voting: isVoting,
     }));
 
     const { error: insertError } = await supabase
