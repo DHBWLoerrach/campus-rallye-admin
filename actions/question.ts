@@ -561,11 +561,7 @@ export async function updateQuestion(
         ? existingQuestion.bucket_path.trim()
         : '';
     const updatedBucketPath = parsed.data.bucket_path?.trim() ?? '';
-    if (
-      previousBucketPath &&
-      updatedBucketPath &&
-      previousBucketPath !== updatedBucketPath
-    ) {
+    if (previousBucketPath && previousBucketPath !== updatedBucketPath) {
       try {
         const deleteResult = await deleteImage(previousBucketPath);
         if (!deleteResult.success) {

@@ -656,6 +656,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             <div className="space-y-2">
               <QuestionImage
                 bucketPath={formData.bucket_path}
+                persistedBucketPath={initialData?.bucket_path ?? undefined}
                 onImageChange={(newPath) => {
                   handleFormChange('bucket_path', newPath);
                   setErrors((current) => ({

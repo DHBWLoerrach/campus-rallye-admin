@@ -7,11 +7,13 @@ import { getQuestionMediaPublicUrl } from '@/lib/supabase-public';
 
 interface QuestionImageProps {
   bucketPath?: string;
+  persistedBucketPath?: string;
   onImageChange: (newPath: string | undefined) => void;
 }
 
 const QuestionImage: React.FC<QuestionImageProps> = ({
   bucketPath,
+  persistedBucketPath,
   onImageChange,
 }) => {
   const [uploading, setUploading] = useState(false);
@@ -63,6 +65,10 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
 
   const handleRemoveImage = async () => {
     if (!bucketPath) return;
+    if (bucketPath === persistedBucketPath) {
+      onImageChange(undefined);
+      return;
+    }
 
     try {
       setErrorMessage(null);

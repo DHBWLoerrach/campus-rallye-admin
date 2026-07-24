@@ -547,6 +547,29 @@ describe('question write actions', () => {
     expect(mockDeleteImage).not.toHaveBeenCalled();
   });
 
+  it('deletes a stored image when its path is cleared', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockDeleteImage.mockResolvedValue({
+      success: true,
+      data: { message: 'Bild gelöscht' },
+    });
+    buildUpdateClient({
+      existingType: 'knowledge',
+      existingBucketPath: 'stale-image.png',
+    });
+
+    const { updateQuestion } = await import('./question');
+    const result = await updateQuestion(1, {
+      content: 'Wo ist die Mensa?',
+      type: 'knowledge',
+      bucket_path: '',
+      solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockDeleteImage).toHaveBeenCalledWith('stale-image.png');
+  });
+
   it.each(['result', 'exception'] as const)(
     'keeps the update successful when image deletion fails with a %s',
     async (failureMode) => {

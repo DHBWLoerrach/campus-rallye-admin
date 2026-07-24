@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import QuestionImage from './QuestionImage';
 
@@ -71,5 +71,22 @@ describe('QuestionImage', () => {
       await screen.findByText('Bild konnte nicht entfernt werden')
     ).toBeInTheDocument();
     expect(mockDeleteImage).toHaveBeenCalledWith('foo.png');
+  });
+
+  it('defers deleting a persisted image until the question is saved', async () => {
+    const onImageChange = vi.fn();
+
+    render(
+      <QuestionImage
+        bucketPath="stored.png"
+        persistedBucketPath="stored.png"
+        onImageChange={onImageChange}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bild entfernen' }));
+
+    await waitFor(() => expect(onImageChange).toHaveBeenCalledWith(undefined));
+    expect(mockDeleteImage).not.toHaveBeenCalled();
   });
 });
