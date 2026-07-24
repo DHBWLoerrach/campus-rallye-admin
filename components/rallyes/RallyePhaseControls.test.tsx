@@ -240,6 +240,36 @@ describe('RallyePhaseControls', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('reminds about printing QR codes when finishing the draft', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="draft"
+        hasVotingQuestions={false}
+        qrPrintCount={3}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Entwurf abschließen' })
+    );
+    expect(screen.getByText(/3 Fragen mit QR-Code/)).toBeInTheDocument();
+  });
+
+  it('shows no QR print hint without QR-based questions', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="draft"
+        hasVotingQuestions={false}
+        qrPrintCount={0}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Entwurf abschließen' })
+    );
+    expect(screen.queryByText(/Frage.* mit QR-Code/)).not.toBeInTheDocument();
+  });
+
   it('offers no planned-end field for later transitions', () => {
     render(
       <RallyePhaseControls

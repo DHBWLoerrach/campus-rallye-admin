@@ -11,6 +11,10 @@ import {
   isRallyeActive,
   type RallyeStatus,
 } from '@/lib/types';
+import {
+  countQrPrintQuestions,
+  type AssignedQuestionRow,
+} from '@/lib/qr-print-questions';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -71,6 +75,19 @@ export default async function RallyeDetailLayout({
     unmarkedUploadWithPoints = count ?? 0;
   }
 
+  // Only relevant when finishing the draft: questions whose QR codes must be
+  // printed and placed on campus, so the phase control reminds the organizer.
+  let qrPrintCount = 0;
+  if (status === 'draft') {
+    const { data: qrRows } = await supabase
+      .from('rallye_questions')
+      .select('questions!inner(type, geocaching_questions(input_type))')
+      .eq('rallye_id', rallyeId);
+    qrPrintCount = countQrPrintQuestions(
+      qrRows as AssignedQuestionRow[] | null
+    );
+  }
+
   const currentIndex = RALLYE_STATUSES.indexOf(status);
 
   return (
@@ -108,6 +125,7 @@ export default async function RallyeDetailLayout({
               hasVotingQuestions={(votingCount ?? 0) > 0}
               unmarkedUploadWithPoints={unmarkedUploadWithPoints}
               rallyeCode={rallye.rallye_code ?? ''}
+              qrPrintCount={qrPrintCount}
             />
           </div>
         </div>

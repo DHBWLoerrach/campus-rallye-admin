@@ -30,6 +30,9 @@ interface RallyePhaseControlsProps {
   // The stored rallye code. When empty, the start dialog asks for one because a
   // running team rallye needs a code for teams to join.
   rallyeCode?: string;
+  // Assigned questions whose QR codes must be printed and placed on campus.
+  // Shown as a reminder when finishing the draft.
+  qrPrintCount?: number;
 }
 
 export default function RallyePhaseControls({
@@ -38,6 +41,7 @@ export default function RallyePhaseControls({
   hasVotingQuestions,
   unmarkedUploadWithPoints = 0,
   rallyeCode = '',
+  qrPrintCount = 0,
 }: RallyePhaseControlsProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -59,6 +63,9 @@ export default function RallyePhaseControls({
   // points can no longer be scored. Warn, but let the organizer proceed.
   const showUnmarkedUploadWarning =
     status === 'running' && unmarkedUploadWithPoints > 0;
+  // Finishing the draft is the last step before the code can be shared, so it
+  // is the natural moment to remind about printing and placing QR codes.
+  const showQrPrintHint = status === 'draft' && qrPrintCount > 0;
   const plannedEnd = showEndTime
     ? parsePlannedEnd(endTime)
     : ({ kind: 'none' } as const);
@@ -204,6 +211,16 @@ export default function RallyePhaseControls({
             <p className="text-xs text-muted-foreground">
               Jedes Team spielt auf genau einem Gerät.
             </p>
+          )}
+          {showQrPrintHint && (
+            <div
+              role="status"
+              className="rounded-md border border-amber-500/50 bg-amber-50/60 px-3 py-2 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-200"
+            >
+              {qrPrintCount === 1
+                ? 'Diese Rallye enthält 1 Frage mit QR-Code. Drucke den QR-Code vor dem Start und hänge ihn am Campus aus.'
+                : `Diese Rallye enthält ${qrPrintCount} Fragen mit QR-Code. Drucke die QR-Codes vor dem Start und hänge sie am Campus aus.`}
+            </div>
           )}
           {showUnmarkedUploadWarning && (
             <div
