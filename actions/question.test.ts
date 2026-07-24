@@ -259,7 +259,7 @@ describe('question write actions', () => {
     }
     expect(result.error).toBe('Ungültige Eingaben');
     expect(result.issues?.point_value).toBe(
-      'Punkte müssen größer oder gleich 0 sein'
+      'Punktwert muss größer oder gleich 0 sein'
     );
     expect(mockCreateClient).not.toHaveBeenCalled();
   });

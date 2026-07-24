@@ -53,7 +53,7 @@ describe('QuestionPreview', () => {
         name: 'Fragebild: Welches Gebäude ist abgebildet?',
       })
     ).toBeInTheDocument();
-    expect(screen.getByText('Antwort eingeben')).toBeInTheDocument();
+    expect(screen.getByText('Team-Antwort eingeben')).toBeInTheDocument();
   });
 
   it('shows a scanner prompt without revealing the QR solution', () => {

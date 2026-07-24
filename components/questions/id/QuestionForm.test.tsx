@@ -91,7 +91,7 @@ describe('QuestionForm', () => {
     );
 
     expect(screen.getByLabelText('Hinweis')).toHaveValue('');
-    expect(screen.getByPlaceholderText(/Antwort/i)).toHaveValue('');
+    expect(screen.getByPlaceholderText(/Lösungsoption/i)).toHaveValue('');
 
     const hasNullValueWarning = consoleErrorSpy.mock.calls.some((call) =>
       call.some(
@@ -167,7 +167,7 @@ describe('QuestionForm', () => {
       expect(screen.getByText(title)).toBeInTheDocument();
     }
     expect(screen.getByLabelText('Frage*')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Punkte')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Punktwert')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Hinweis')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Kategorie')).not.toBeInTheDocument();
     expect(screen.queryByText('Fragetyp wählen')).not.toBeInTheDocument();
@@ -184,8 +184,8 @@ describe('QuestionForm', () => {
     fireEvent.click(knowledgeType);
 
     expect(knowledgeType).toBeChecked();
-    expect(screen.getByLabelText('Punkte')).toBeInTheDocument();
-    expect(screen.getByText('Antwort*')).toBeInTheDocument();
+    expect(screen.getByLabelText('Punktwert')).toBeInTheDocument();
+    expect(screen.getByText('Lösungsoption*')).toBeInTheDocument();
   });
 
   it('starts a new multiple-choice question with two empty solution options', () => {
@@ -195,8 +195,9 @@ describe('QuestionForm', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: /Antwort auswählen/ }));
 
-    const solutionOptionInputs =
-      screen.getAllByPlaceholderText('Antwort eingeben');
+    const solutionOptionInputs = screen.getAllByPlaceholderText(
+      'Lösungsoption eingeben'
+    );
     expect(solutionOptionInputs).toHaveLength(2);
     expect(solutionOptionInputs[0]).toHaveValue('');
     expect(solutionOptionInputs[1]).toHaveValue('');
@@ -208,13 +209,14 @@ describe('QuestionForm', () => {
     );
 
     fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
-    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+    fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Bestehende Lösung' },
     });
     fireEvent.click(screen.getByRole('radio', { name: /Antwort auswählen/ }));
 
-    const solutionOptionInputs =
-      screen.getAllByPlaceholderText('Antwort eingeben');
+    const solutionOptionInputs = screen.getAllByPlaceholderText(
+      'Lösungsoption eingeben'
+    );
     expect(solutionOptionInputs).toHaveLength(2);
     expect(solutionOptionInputs[0]).toHaveValue('');
     expect(solutionOptionInputs[1]).toHaveValue('');
@@ -228,7 +230,9 @@ describe('QuestionForm', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Antwort auswählen/ }));
     fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
 
-    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
+    expect(
+      screen.getAllByPlaceholderText('Lösungsoption eingeben')
+    ).toHaveLength(1);
   });
 
   it('structures the editor and keeps further details collapsed', () => {
@@ -363,7 +367,7 @@ describe('QuestionForm', () => {
 
     expect(details).toHaveAttribute('open');
     expect(
-      screen.getByText('Punkte müssen größer oder gleich 0 sein')
+      screen.getByText('Punktwert muss größer oder gleich 0 sein')
     ).toBeInTheDocument();
   });
 
@@ -383,8 +387,8 @@ describe('QuestionForm', () => {
 
     fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
 
-    expect(screen.getByLabelText('Punkte')).toHaveAttribute('step', '1');
-    expect(screen.getByLabelText('Punkte')).toHaveAttribute(
+    expect(screen.getByLabelText('Punktwert')).toHaveAttribute('step', '1');
+    expect(screen.getByLabelText('Punktwert')).toHaveAttribute(
       'inputmode',
       'numeric'
     );
@@ -406,7 +410,7 @@ describe('QuestionForm', () => {
     );
 
     fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
-    fireEvent.change(screen.getByLabelText('Punkte'), {
+    fireEvent.change(screen.getByLabelText('Punktwert'), {
       target: { value: '2.5' },
     });
     fireEvent.submit(
@@ -437,7 +441,7 @@ describe('QuestionForm', () => {
     );
 
     fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
-    const pointsInput = screen.getByLabelText('Punkte');
+    const pointsInput = screen.getByLabelText('Punktwert');
     fireEvent.change(pointsInput, { target: { value: '' } });
 
     expect(pointsInput).toHaveDisplayValue('');
@@ -508,7 +512,7 @@ describe('QuestionForm', () => {
         }}
       />
     );
-    expect(screen.getByLabelText('Punkte')).toBeInTheDocument();
+    expect(screen.getByLabelText('Punktwert')).toBeInTheDocument();
     expect(screen.getByLabelText('Hinweis')).toBeInTheDocument();
     expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
@@ -529,7 +533,7 @@ describe('QuestionForm', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Antwort entfernen' })
+      screen.getByRole('button', { name: 'Lösungsoption entfernen' })
     ).toBeDisabled();
   });
 
@@ -552,12 +556,12 @@ describe('QuestionForm', () => {
     );
 
     const removeButtons = screen.getAllByRole('button', {
-      name: 'Antwort entfernen',
+      name: 'Lösungsoption entfernen',
     });
     fireEvent.click(removeButtons[1]);
 
     const radios = within(
-      screen.getByRole('radiogroup', { name: 'Richtige Antwort' })
+      screen.getByRole('radiogroup', { name: 'Richtige Lösungsoption' })
     ).getAllByRole('radio');
     expect(radios).toHaveLength(2);
     expect(radios[1]).toHaveAttribute('data-checked');
@@ -583,7 +587,9 @@ describe('QuestionForm', () => {
 
     expect(handleSubmit).not.toHaveBeenCalled();
     expect(
-      screen.getByText('Mindestens zwei Antworten müssen eingegeben werden')
+      screen.getByText(
+        'Mindestens zwei Lösungsoptionen müssen eingegeben werden'
+      )
     ).toBeInTheDocument();
   });
 
@@ -610,7 +616,7 @@ describe('QuestionForm', () => {
 
     expect(handleSubmit).not.toHaveBeenCalled();
     expect(
-      screen.getByText('Antworten müssen unterschiedlich sein')
+      screen.getByText('Lösungsoptionen müssen unterschiedlich sein')
     ).toBeInTheDocument();
   });
 
@@ -630,8 +636,10 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Antwort hinzufügen' }));
-    const answerInputs = screen.getAllByPlaceholderText(/Antwort/i);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Lösungsoption hinzufügen' })
+    );
+    const answerInputs = screen.getAllByPlaceholderText(/Lösungsoption/i);
     fireEvent.change(answerInputs[1], { target: { value: 'Antwort B' } });
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
@@ -696,7 +704,7 @@ describe('QuestionForm', () => {
     fireEvent.change(screen.getByLabelText('Frage*'), {
       target: { value: 'Finde den Eingang' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+    fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Gebäude A' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
@@ -754,13 +762,15 @@ describe('QuestionForm', () => {
     fireEvent.click(
       screen.getByRole('radio', { name: /Geocaching-Frage.*Zielort finden/ })
     );
-    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
-    expect(screen.getByPlaceholderText('Antwort eingeben')).toHaveValue(
+    expect(
+      screen.getAllByPlaceholderText('Lösungsoption eingeben')
+    ).toHaveLength(1);
+    expect(screen.getByPlaceholderText('Lösungsoption eingeben')).toHaveValue(
       'Zweite Lösung'
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'QR-Code scannen' }));
-    expect(screen.getByPlaceholderText('Antwort eingeben')).toHaveValue(
+    expect(screen.getByPlaceholderText('Lösungsoption eingeben')).toHaveValue(
       'Zweite Lösung'
     );
     expect(
@@ -799,8 +809,10 @@ describe('QuestionForm', () => {
     );
 
     expect(screen.getByLabelText('Test-Radius')).toHaveValue('25');
-    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
-    expect(screen.getByPlaceholderText('Antwort eingeben')).toHaveValue(
+    expect(
+      screen.getAllByPlaceholderText('Lösungsoption eingeben')
+    ).toHaveLength(1);
+    expect(screen.getByPlaceholderText('Lösungsoption eingeben')).toHaveValue(
       'Bevorzugt'
     );
   });
@@ -881,7 +893,9 @@ describe('QuestionForm', () => {
     expect(screen.getByTestId('geocaching-location-field')).toBeInTheDocument();
     expect(screen.getByLabelText('Test-Breitengrad')).toHaveValue('');
     expect(screen.getByLabelText('Test-Radius')).toHaveValue('10');
-    expect(screen.getAllByPlaceholderText('Antwort eingeben')).toHaveLength(1);
+    expect(
+      screen.getAllByPlaceholderText('Lösungsoption eingeben')
+    ).toHaveLength(1);
   });
 
   it('removes stale geocaching configuration after switching away', () => {
@@ -989,7 +1003,7 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+    fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'neuer-code' },
     });
     expect(
@@ -1012,7 +1026,7 @@ describe('QuestionForm', () => {
     fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
     expect(
       screen.getByText(
-        'Der Punktwert wird bei einer richtigen Antwort vergeben. In Campus-Touren wird er lokal gezählt und am Ende angezeigt.'
+        'Der Punktwert wird bei einer richtigen Team-Antwort vergeben. In Campus-Touren wird er lokal gezählt und am Ende angezeigt.'
       )
     ).toBeInTheDocument();
   });
@@ -1029,7 +1043,7 @@ describe('QuestionForm', () => {
 
     fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
 
-    expect(screen.getByLabelText('Punkte')).toHaveAttribute(
+    expect(screen.getByLabelText('Punktwert')).toHaveAttribute(
       'aria-describedby',
       'point-value-help'
     );

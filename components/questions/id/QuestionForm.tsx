@@ -358,7 +358,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     ) {
       newErrors.point_value = 'Punktwert muss eine ganze Zahl sein';
     } else if ((data.point_value ?? 0) < 0) {
-      newErrors.point_value = 'Punkte müssen größer oder gleich 0 sein';
+      newErrors.point_value = 'Punktwert muss größer oder gleich 0 sein';
     }
 
     if (data.type === 'picture' && !data.bucket_path?.trim()) {
@@ -414,18 +414,19 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     } else if (data.type === 'multiple_choice') {
       if (validAnswers.length < 2) {
         newErrors.solutionOptions =
-          'Mindestens zwei Antworten müssen eingegeben werden';
+          'Mindestens zwei Lösungsoptionen müssen eingegeben werden';
       } else {
         const normalizedAnswers = validAnswers.map(
           (answer) => answer.text?.trim().toLowerCase() ?? ''
         );
         if (new Set(normalizedAnswers).size !== normalizedAnswers.length) {
-          newErrors.solutionOptions = 'Antworten müssen unterschiedlich sein';
+          newErrors.solutionOptions =
+            'Lösungsoptionen müssen unterschiedlich sein';
         }
       }
     } else if (data.type !== 'upload' && validAnswers.length === 0) {
       newErrors.solutionOptions =
-        'Mindestens eine Antwort muss eingegeben werden';
+        'Mindestens eine Lösungsoption muss eingegeben werden';
     }
     return newErrors;
   };
@@ -737,7 +738,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               </h2>
               <p className="text-sm text-muted-foreground">
                 {isMultipleChoice
-                  ? 'Antwortmöglichkeiten eingeben und die richtige Antwort markieren.'
+                  ? 'Lösungsoptionen eingeben und die richtige Lösungsoption markieren.'
                   : 'Die erwartete Lösung eingeben.'}
               </p>
             </div>
@@ -770,16 +771,18 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 <p className="text-xs text-muted-foreground">
                   {geocachingInputType === 'qr'
                     ? 'Ein falscher QR-Code wird abgelehnt und kann erneut gescannt werden.'
-                    : 'Groß-/Kleinschreibung sowie Leerzeichen am Anfang und Ende werden bei der Prüfung ignoriert. Eine falsche Antwort beendet die Frage.'}
+                    : 'Groß-/Kleinschreibung sowie Leerzeichen am Anfang und Ende werden bei der Prüfung ignoriert. Eine falsche Team-Antwort beendet die Frage.'}
                 </p>
               </div>
             )}
-            <Label>{isMultipleChoice ? 'Antworten*' : 'Antwort*'}</Label>
+            <Label>
+              {isMultipleChoice ? 'Lösungsoptionen*' : 'Lösungsoption*'}
+            </Label>
             {isMultipleChoice ? (
               <RadioGroup
                 value={getCorrectAnswerIndex().toString()}
                 onValueChange={handleCorrectAnswerSelect}
-                aria-label="Richtige Antwort"
+                aria-label="Richtige Lösungsoption"
                 className="space-y-3"
               >
                 {formData.solutionOptions?.map((answer, index) => (
@@ -798,7 +801,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                         onChange={(e) =>
                           handleAnswerChange(index, 'text', e.target.value)
                         }
-                        placeholder="Antwort eingeben"
+                        placeholder="Lösungsoption eingeben"
                         className={
                           displayedErrors.solutionOptions
                             ? 'border-destructive focus-visible:ring-destructive/40'
@@ -812,7 +815,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                       size="icon"
                       onClick={() => removeAnswer(index)}
                       disabled={(formData.solutionOptions?.length ?? 0) <= 1}
-                      aria-label="Antwort entfernen"
+                      aria-label="Lösungsoption entfernen"
                       className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Minus className="h-4 w-4" aria-hidden="true" />
@@ -829,7 +832,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                     onChange={(e) =>
                       handleAnswerChange(index, 'text', e.target.value)
                     }
-                    placeholder="Antwort eingeben"
+                    placeholder="Lösungsoption eingeben"
                     className={
                       displayedErrors.solutionOptions
                         ? 'border-destructive focus-visible:ring-destructive/40'
@@ -843,7 +846,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             {isMultipleChoice && (
               <Button type="button" variant="secondary" onClick={addAnswer}>
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                Antwort hinzufügen
+                Lösungsoption hinzufügen
               </Button>
             )}
             {displayedErrors.solutionOptions && (
@@ -924,7 +927,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   Weitere Angaben
                 </span>
                 <span className="block text-sm font-normal text-muted-foreground">
-                  Punkte, Hinweis und Kategorie
+                  Punktwert, Hinweis und Kategorie
                 </span>
               </span>
               <span className="flex items-center gap-3">
@@ -944,7 +947,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             </summary>
             <div className="grid gap-4 border-t border-border/60 bg-card/50 p-4 sm:p-6 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="point_value">Punkte</Label>
+                <Label htmlFor="point_value">Punktwert</Label>
                 <Input
                   type="number"
                   id="point_value"
@@ -981,8 +984,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 </p>
                 {isGeocaching && (
                   <p className="text-xs text-muted-foreground">
-                    Der Punktwert wird bei einer richtigen Antwort vergeben. In
-                    Campus-Touren wird er lokal gezählt und am Ende angezeigt.
+                    Der Punktwert wird bei einer richtigen Team-Antwort
+                    vergeben. In Campus-Touren wird er lokal gezählt und am Ende
+                    angezeigt.
                   </p>
                 )}
               </div>
@@ -1043,8 +1047,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           <p className="text-sm text-muted-foreground">
             Ziel bei {formData.geocaching.target_latitude?.toFixed(6)},{' '}
             {formData.geocaching.target_longitude?.toFixed(6)} · freigeschaltet
-            innerhalb von {formData.geocaching.proximity_radius} m · Antwort per{' '}
-            {geocachingInputType === 'qr' ? 'QR-Code' : 'Text'}
+            innerhalb von {formData.geocaching.proximity_radius} m ·
+            Team-Antwort per {geocachingInputType === 'qr' ? 'QR-Code' : 'Text'}
           </p>
         )}
 

@@ -21,7 +21,7 @@ const pointValueSchema = z.preprocess((value) => {
     return Number.isNaN(numeric) ? value : numeric;
   }
   return value;
-}, z.number().refine(Number.isSafeInteger, 'Punktwert muss eine ganze Zahl sein').min(0, 'Punkte müssen größer oder gleich 0 sein').finite().optional());
+}, z.number().refine(Number.isSafeInteger, 'Punktwert muss eine ganze Zahl sein').min(0, 'Punktwert muss größer oder gleich 0 sein').finite().optional());
 
 export const rallyeCreateSchema = z.object({
   name: z.string().trim().min(1, 'Name ist erforderlich'),
@@ -136,7 +136,7 @@ const validateQuestionDetails = (
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['solutionOptions'],
-        message: 'Mindestens zwei Antworten müssen eingegeben werden',
+        message: 'Mindestens zwei Lösungsoptionen müssen eingegeben werden',
       });
       return;
     }
@@ -147,14 +147,14 @@ const validateQuestionDetails = (
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['solutionOptions'],
-        message: 'Antworten müssen unterschiedlich sein',
+        message: 'Lösungsoptionen müssen unterschiedlich sein',
       });
     }
   } else if (data.type !== 'upload' && normalizedAnswers.length < 1) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['solutionOptions'],
-      message: 'Mindestens eine Antwort muss eingegeben werden',
+      message: 'Mindestens eine Lösungsoption muss eingegeben werden',
     });
   }
 };

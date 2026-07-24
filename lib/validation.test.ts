@@ -41,6 +41,39 @@ describe('question point value validation', () => {
       }
     }
   );
+
+  it('uses the canonical point value term for negative values', () => {
+    const result = questionCreateSchema.safeParse({
+      content: 'Wo ist die Mensa?',
+      type: 'knowledge',
+      point_value: -1,
+      solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(formatZodError(result.error).point_value).toBe(
+        'Punktwert muss größer oder gleich 0 sein'
+      );
+    }
+  });
+});
+
+describe('question solution option validation', () => {
+  it('uses the canonical solution option term for multiple choice', () => {
+    const result = questionCreateSchema.safeParse({
+      content: 'Wo ist die Mensa?',
+      type: 'multiple_choice',
+      solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(formatZodError(result.error).solutionOptions).toBe(
+        'Mindestens zwei Lösungsoptionen müssen eingegeben werden'
+      );
+    }
+  });
 });
 
 describe('picture question validation', () => {

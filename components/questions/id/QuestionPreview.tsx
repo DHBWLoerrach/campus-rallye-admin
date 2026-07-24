@@ -78,7 +78,7 @@ export default function QuestionPreview({ data }: QuestionPreviewProps) {
 
         {showsTextInput && (
           <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-3 text-sm text-muted-foreground shadow-inner">
-            Antwort eingeben
+            Team-Antwort eingeben
           </div>
         )}
 

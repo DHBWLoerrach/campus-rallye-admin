@@ -264,7 +264,7 @@ describe('QuestionPage', () => {
     fireEvent.change(screen.getByLabelText('Frage*'), {
       target: { value: 'Wo ist die Mensa?' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+    fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Gebäude A' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
@@ -301,7 +301,7 @@ describe('QuestionPage', () => {
     fireEvent.change(screen.getByLabelText('Frage*'), {
       target: { value: 'Wo ist die Mensa?' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+    fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Gebäude A' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
@@ -335,7 +335,7 @@ describe('QuestionPage', () => {
     fireEvent.change(screen.getByLabelText('Frage*'), {
       target: { value: 'Finde das Ziel' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Antwort eingeben'), {
+    fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Eingang' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Test-Ziel setzen' }));
