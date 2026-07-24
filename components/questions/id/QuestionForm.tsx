@@ -88,6 +88,20 @@ const ensureMultipleChoiceSolutionOptions = (
   return [...existing, { id: 0, correct: false, text: '' }];
 };
 
+const resolveInitialSolutionOptions = (
+  type: QuestionFormData['type'],
+  isNewQuestion: boolean,
+  solutionOptions: QuestionFormData['solutionOptions']
+) => {
+  if (type === 'geocaching') {
+    return canonicalizeSingleSolutionOption(solutionOptions);
+  }
+  if (type === 'multiple_choice' && isNewQuestion) {
+    return ensureMultipleChoiceSolutionOptions(solutionOptions);
+  }
+  return solutionOptions;
+};
+
 const buildInitialFormData = (
   initialData: Partial<Question> | null | undefined
 ): QuestionFormData => {
@@ -104,11 +118,11 @@ const buildInitialFormData = (
     hint: initialData?.hint ?? undefined,
     category: initialData?.category ?? undefined,
     bucket_path: initialData?.bucket_path ?? undefined,
-    solutionOptions: isGeocaching
-      ? canonicalizeSingleSolutionOption(solutionOptions)
-      : type === 'multiple_choice' && initialData?.id === undefined
-        ? ensureMultipleChoiceSolutionOptions(solutionOptions)
-        : solutionOptions,
+    solutionOptions: resolveInitialSolutionOptions(
+      type,
+      initialData?.id === undefined,
+      solutionOptions
+    ),
     geocaching: isGeocaching
       ? {
           target_latitude: initialData?.geocaching?.target_latitude,
