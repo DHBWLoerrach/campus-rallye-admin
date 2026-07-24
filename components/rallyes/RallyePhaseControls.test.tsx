@@ -139,6 +139,22 @@ describe('RallyePhaseControls', () => {
     expect(screen.queryByLabelText('Rallye-Code')).not.toBeInTheDocument();
   });
 
+  it('shows the stored code and the one-device hint when starting', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="ready"
+        hasVotingQuestions={false}
+        rallyeCode="join42"
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
+    expect(screen.getByText('join42')).toBeInTheDocument();
+    expect(
+      screen.getByText('Jedes Team spielt auf genau einem Gerät.')
+    ).toBeInTheDocument();
+  });
+
   it('asks for a code and passes it when none is stored', async () => {
     mockAdvance.mockResolvedValue({ success: true, data: { message: 'ok' } });
     render(
@@ -152,6 +168,9 @@ describe('RallyePhaseControls', () => {
     const codeInput = screen.getByLabelText('Rallye-Code');
     // A suggestion is prefilled so the organizer can start with one click.
     expect((codeInput as HTMLInputElement).value.length).toBeGreaterThan(0);
+    expect(
+      screen.getByText('Jedes Team spielt auf genau einem Gerät.')
+    ).toBeInTheDocument();
     fireEvent.change(codeInput, { target: { value: 'meincode' } });
     fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
     await waitFor(() =>

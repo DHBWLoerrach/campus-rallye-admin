@@ -186,6 +186,25 @@ export default function RallyePhaseControls({
               </p>
             </div>
           )}
+          {showEndTime && !needsCode && (
+            <div className="grid gap-1">
+              <span className="text-sm font-medium text-foreground">
+                Rallye-Code
+              </span>
+              <span className="font-mono text-lg font-semibold tracking-wide text-foreground">
+                {rallyeCode}
+              </span>
+              <p className="text-xs text-muted-foreground">
+                Teams benötigen diesen Code, um beizutreten. Mach ihn beim Start
+                sichtbar (z. B. an Tafel oder Beamer).
+              </p>
+            </div>
+          )}
+          {showEndTime && (
+            <p className="text-xs text-muted-foreground">
+              Jedes Team spielt auf genau einem Gerät.
+            </p>
+          )}
           {showUnmarkedUploadWarning && (
             <div
               role="status"
