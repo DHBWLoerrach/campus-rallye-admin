@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import createClient from '@/lib/supabase';
 import RallyePhaseControls from '@/components/rallyes/RallyePhaseControls';
+import RallyeHeaderCode from '@/components/rallyes/RallyeHeaderCode';
 import RallyeTabsNav from '@/components/rallyes/RallyeTabsNav';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
@@ -114,6 +115,10 @@ export default async function RallyeDetailLayout({
                 Bereich: {departmentName}
               </p>
             )}
+            <RallyeHeaderCode
+              status={status}
+              rallyeCode={rallye.rallye_code ?? ''}
+            />
           </div>
           <div className="flex items-center gap-3">
             <Badge variant={isRallyeActive(status) ? 'default' : 'secondary'}>
