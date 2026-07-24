@@ -30,7 +30,7 @@ export default async function RallyeDetailLayout({
   const supabase = await createClient();
   const { data: rallye, error } = await supabase
     .from('rallyes')
-    .select('id, name, status, department_id')
+    .select('id, name, status, department_id, rallye_code')
     .eq('id', rallyeId)
     .maybeSingle();
   if (error || !rallye) {
@@ -107,6 +107,7 @@ export default async function RallyeDetailLayout({
               status={status}
               hasVotingQuestions={(votingCount ?? 0) > 0}
               unmarkedUploadWithPoints={unmarkedUploadWithPoints}
+              rallyeCode={rallye.rallye_code ?? ''}
             />
           </div>
         </div>

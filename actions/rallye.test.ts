@@ -273,7 +273,8 @@ describe('advanceRallyeStatus', () => {
   const makeSupabase = (
     status: string | null,
     votingCount: number,
-    updateError: unknown = null
+    updateError: unknown = null,
+    rallyeCode: string = 'code123'
   ) => {
     const updateEq = vi.fn().mockResolvedValue({ error: updateError });
     const update = vi.fn(() => ({ eq: updateEq }));
@@ -283,7 +284,10 @@ describe('advanceRallyeStatus', () => {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
               maybeSingle: vi.fn().mockResolvedValue({
-                data: status === null ? null : { id: 5, status },
+                data:
+                  status === null
+                    ? null
+                    : { id: 5, status, rallye_code: rallyeCode },
                 error: null,
               }),
             })),
@@ -326,6 +330,64 @@ describe('advanceRallyeStatus', () => {
       status: 'running',
       rallye_end: '16:00',
     });
+  });
+
+  it('refuses to start without any rallye code', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('ready', 0, null, '');
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'running');
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe('Für den Start wird ein Rallye-Code benötigt');
+    expect(supabase.update).not.toHaveBeenCalled();
+  });
+
+  it('accepts a code supplied at start and stores it', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('ready', 0, null, '');
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(
+      5,
+      'running',
+      undefined,
+      '  campus-427  '
+    );
+
+    expect(result.success).toBe(true);
+    expect(supabase.update).toHaveBeenCalledWith({
+      status: 'running',
+      rallye_code: 'campus-427',
+    });
+  });
+
+  it('keeps the stored code when starting without a new one', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('ready', 0, null, 'stored-code');
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'running');
+
+    expect(result.success).toBe(true);
+    // The stored code is untouched, so no rallye_code is written.
+    expect(supabase.update).toHaveBeenCalledWith({ status: 'running' });
+  });
+
+  it('does not require a code for non-start transitions', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('running', 0, null, '');
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'results');
+
+    expect(result.success).toBe(true);
   });
 
   it('rejects an invalid planned end time', async () => {

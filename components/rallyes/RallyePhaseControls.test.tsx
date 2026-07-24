@@ -85,13 +85,19 @@ describe('RallyePhaseControls', () => {
         rallyeId={5}
         status="ready"
         hasVotingQuestions={false}
+        rallyeCode="join42"
       />
     );
     fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
     expect(screen.getByText('Endet um (optional)')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
     await waitFor(() => {
-      expect(mockAdvance).toHaveBeenCalledWith(5, 'running', undefined);
+      expect(mockAdvance).toHaveBeenCalledWith(
+        5,
+        'running',
+        undefined,
+        undefined
+      );
     });
   });
 
@@ -102,6 +108,7 @@ describe('RallyePhaseControls', () => {
         rallyeId={5}
         status="ready"
         hasVotingQuestions={false}
+        rallyeCode="join42"
       />
     );
     fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
@@ -110,8 +117,66 @@ describe('RallyePhaseControls', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
     await waitFor(() => {
-      expect(mockAdvance).toHaveBeenCalledWith(5, 'running', '18:30');
+      expect(mockAdvance).toHaveBeenCalledWith(
+        5,
+        'running',
+        '18:30',
+        undefined
+      );
     });
+  });
+
+  it('does not ask for a code when one is already stored', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="ready"
+        hasVotingQuestions={false}
+        rallyeCode="join42"
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
+    expect(screen.queryByLabelText('Rallye-Code')).not.toBeInTheDocument();
+  });
+
+  it('asks for a code and passes it when none is stored', async () => {
+    mockAdvance.mockResolvedValue({ success: true, data: { message: 'ok' } });
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="ready"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
+    const codeInput = screen.getByLabelText('Rallye-Code');
+    // A suggestion is prefilled so the organizer can start with one click.
+    expect((codeInput as HTMLInputElement).value.length).toBeGreaterThan(0);
+    fireEvent.change(codeInput, { target: { value: 'meincode' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
+    await waitFor(() =>
+      expect(mockAdvance).toHaveBeenCalledWith(
+        5,
+        'running',
+        undefined,
+        'meincode'
+      )
+    );
+  });
+
+  it('blocks starting while the code field is empty', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="ready"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Rallye starten' }));
+    fireEvent.change(screen.getByLabelText('Rallye-Code'), {
+      target: { value: '   ' },
+    });
+    expect(screen.getByRole('button', { name: 'Bestätigen' })).toBeDisabled();
   });
 
   it('warns about unmarked upload questions but still allows confirming', async () => {
@@ -132,7 +197,12 @@ describe('RallyePhaseControls', () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
     await waitFor(() =>
-      expect(mockAdvance).toHaveBeenCalledWith(5, 'results', undefined)
+      expect(mockAdvance).toHaveBeenCalledWith(
+        5,
+        'results',
+        undefined,
+        undefined
+      )
     );
   });
 

@@ -105,7 +105,7 @@ describe('RallyeCreateWizard', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
-    expect(screen.getByLabelText('Rallye-Code (optional)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Rallye-Code')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Rallye erstellen' }));
     await waitFor(() =>
       expect(mockCreate).toHaveBeenCalledWith(

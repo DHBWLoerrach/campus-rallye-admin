@@ -199,7 +199,11 @@ export default function RallyeCreateWizard({
       {step === 2 && (
         <div className="flex max-w-xl flex-col gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="wizard-rallye-code">Rallye-Code (optional)</Label>
+            <Label htmlFor="wizard-rallye-code">Rallye-Code</Label>
+            <p className="text-sm text-muted-foreground">
+              Teams benötigen diesen Code, um beizutreten. Er kann jetzt oder
+              spätestens beim Start der Rallye vergeben werden.
+            </p>
             <Input
               id="wizard-rallye-code"
               value={rallyeCode}

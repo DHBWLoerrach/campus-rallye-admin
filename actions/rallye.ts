@@ -190,7 +190,8 @@ export async function deleteRallye(
 export async function advanceRallyeStatus(
   rallyeId: number,
   target: RallyeStatus,
-  endTime?: string
+  endTime?: string,
+  rallyeCode?: string
 ): Promise<ActionResult<{ message: string }>> {
   await requireProfile();
 
@@ -208,11 +209,15 @@ export async function advanceRallyeStatus(
     parsedEndTime = plannedEnd.value;
   }
 
+  // A code may be supplied alongside the start transition (see below); only a
+  // non-empty value overrides the stored code.
+  const providedCode = rallyeCode?.trim() ?? '';
+
   const supabase = await createClient();
 
   const { data: rallye, error: rallyeError } = await supabase
     .from('rallyes')
-    .select('id, status')
+    .select('id, status, rallye_code')
     .eq('id', idResult.data)
     .maybeSingle();
 
@@ -247,11 +252,31 @@ export async function advanceRallyeStatus(
     return fail('Ungültiger Statuswechsel');
   }
 
-  const updatePayload: { status: RallyeStatus; rallye_end?: string } = {
+  const updatePayload: {
+    status: RallyeStatus;
+    rallye_end?: string;
+    rallye_code?: string;
+  } = {
     status: target,
   };
   if (parsedEndTime !== undefined) {
     updatePayload.rallye_end = parsedEndTime;
+  }
+
+  // A running team rallye needs a code so teams can join. Use a freshly
+  // provided code, otherwise the stored one; refuse the start if neither
+  // exists. Only the start transition is affected.
+  if (target === 'running') {
+    const effectiveCode =
+      providedCode.length > 0
+        ? providedCode
+        : (rallye.rallye_code ?? '').trim();
+    if (effectiveCode.length === 0) {
+      return fail('Für den Start wird ein Rallye-Code benötigt');
+    }
+    if (providedCode.length > 0) {
+      updatePayload.rallye_code = providedCode;
+    }
   }
 
   const { error } = await supabase

@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parsePlannedEnd } from '@/lib/planned-end';
+import { suggestRallyeCode } from '@/lib/rallye-code';
 import { getNextRallyeTransition, type RallyeStatus } from '@/lib/types';
 
 interface RallyePhaseControlsProps {
@@ -26,6 +27,9 @@ interface RallyePhaseControlsProps {
   // Assigned upload questions with a point value that are not voting questions.
   // Their points can never be awarded, so we warn before leaving "running".
   unmarkedUploadWithPoints?: number;
+  // The stored rallye code. When empty, the start dialog asks for one because a
+  // running team rallye needs a code for teams to join.
+  rallyeCode?: string;
 }
 
 export default function RallyePhaseControls({
@@ -33,16 +37,24 @@ export default function RallyePhaseControls({
   status,
   hasVotingQuestions,
   unmarkedUploadWithPoints = 0,
+  rallyeCode = '',
 }: RallyePhaseControlsProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [endTime, setEndTime] = useState('');
+  // Prefill a suggestion only when the start dialog needs a code; done in a
+  // lazy initializer so it stays stable across re-renders.
+  const needsCode = status === 'ready' && rallyeCode.trim().length === 0;
+  const [code, setCode] = useState(() =>
+    needsCode ? suggestRallyeCode() : ''
+  );
   const [isPending, startTransition] = useTransition();
 
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
   // Only the start step offers a "geplant bis" time; other transitions don't.
   const showEndTime = status === 'ready';
+  const codeIsMissing = needsCode && code.trim().length === 0;
   // Leaving "running" freezes team answers, so unmarked upload questions with
   // points can no longer be scored. Warn, but let the organizer proceed.
   const showUnmarkedUploadWarning =
@@ -94,13 +106,14 @@ export default function RallyePhaseControls({
   }
 
   const handleConfirm = () => {
-    if (endIsInvalid) return;
+    if (endIsInvalid || codeIsMissing) return;
     setError(null);
     startTransition(async () => {
       const result = await advanceRallyeStatus(
         rallyeId,
         transition.target,
-        plannedEndTime
+        plannedEndTime,
+        needsCode ? code.trim() : undefined
       );
       if (!result.success) {
         setError(result.error);
@@ -153,6 +166,26 @@ export default function RallyePhaseControls({
               </p>
             </div>
           )}
+          {needsCode && (
+            <div className="grid gap-2">
+              <Label htmlFor="phase-rallye-code">Rallye-Code</Label>
+              <Input
+                id="phase-rallye-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="max-w-sm"
+              />
+              {codeIsMissing && (
+                <p className="text-xs text-destructive">
+                  Für den Start wird ein Rallye-Code benötigt.
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Teams benötigen diesen Code, um beizutreten. Mach ihn beim Start
+                sichtbar (z. B. an Tafel oder Beamer).
+              </p>
+            </div>
+          )}
           {showUnmarkedUploadWarning && (
             <div
               role="status"
@@ -180,7 +213,7 @@ export default function RallyePhaseControls({
               variant="dhbwStyle"
               className="cursor-pointer"
               onClick={handleConfirm}
-              disabled={isPending || endIsInvalid}
+              disabled={isPending || endIsInvalid || codeIsMissing}
             >
               {isPending ? 'Wird geändert…' : 'Bestätigen'}
             </Button>
