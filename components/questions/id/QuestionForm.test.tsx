@@ -113,6 +113,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Was ist die Antwort?',
           type: 'knowledge',
+          point_value: 3,
           solutionOptions: [{ id: 1, correct: true, text: '42' }],
         }}
         onSubmit={handleSubmit}
@@ -167,7 +168,7 @@ describe('QuestionForm', () => {
       expect(screen.getByText(title)).toBeInTheDocument();
     }
     expect(screen.getByLabelText('Frage*')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Punktwert')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Punktwert*')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Hinweis')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Kategorie')).not.toBeInTheDocument();
     expect(screen.queryByText('Fragetyp wählen')).not.toBeInTheDocument();
@@ -184,7 +185,7 @@ describe('QuestionForm', () => {
     fireEvent.click(knowledgeType);
 
     expect(knowledgeType).toBeChecked();
-    expect(screen.getByLabelText('Punktwert')).toBeInTheDocument();
+    expect(screen.getByLabelText('Punktwert*')).toBeInTheDocument();
     expect(screen.getByText('Lösungsoption*')).toBeInTheDocument();
   });
 
@@ -264,7 +265,7 @@ describe('QuestionForm', () => {
     const summary = screen.getByText('Weitere Angaben');
     const details = summary.closest('details');
     expect(details).not.toHaveAttribute('open');
-    expect(screen.getByText('2 Angaben ausgefüllt')).toBeInTheDocument();
+    expect(screen.getByText('1 Angabe ausgefüllt')).toBeInTheDocument();
 
     fireEvent.click(summary.closest('summary')!);
     expect(details).toHaveAttribute('open');
@@ -343,7 +344,7 @@ describe('QuestionForm', () => {
     expect(screen.getByText('Bitte ein Bild hochladen')).toBeInTheDocument();
   });
 
-  it('opens further details when an optional field is invalid', () => {
+  it('shows an invalid point value without opening further details', () => {
     render(
       <QuestionForm
         onSubmit={vi.fn()}
@@ -365,7 +366,7 @@ describe('QuestionForm', () => {
       screen.getByRole('button', { name: 'Speichern' }).closest('form')!
     );
 
-    expect(details).toHaveAttribute('open');
+    expect(details).not.toHaveAttribute('open');
     expect(
       screen.getByText('Punktwert muss größer oder gleich 0 sein')
     ).toBeInTheDocument();
@@ -385,10 +386,8 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
-
-    expect(screen.getByLabelText('Punktwert')).toHaveAttribute('step', '1');
-    expect(screen.getByLabelText('Punktwert')).toHaveAttribute(
+    expect(screen.getByLabelText('Punktwert*')).toHaveAttribute('step', '1');
+    expect(screen.getByLabelText('Punktwert*')).toHaveAttribute(
       'inputmode',
       'numeric'
     );
@@ -409,8 +408,7 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
-    fireEvent.change(screen.getByLabelText('Punktwert'), {
+    fireEvent.change(screen.getByLabelText('Punktwert*'), {
       target: { value: '2.5' },
     });
     fireEvent.submit(
@@ -423,7 +421,7 @@ describe('QuestionForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('allows clearing points and submits them as unset', () => {
+  it('requires a point value and blocks submitting when cleared', () => {
     const handleSubmit = vi.fn();
 
     render(
@@ -440,34 +438,41 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
-    const pointsInput = screen.getByLabelText('Punktwert');
+    const pointsInput = screen.getByLabelText('Punktwert*');
     fireEvent.change(pointsInput, { target: { value: '' } });
 
     expect(pointsInput).toHaveDisplayValue('');
 
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
-    expect(handleSubmit).toHaveBeenCalledTimes(1);
-    expect(handleSubmit.mock.calls[0][0].point_value).toBeUndefined();
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Punktwert ist erforderlich')).toBeInTheDocument();
   });
 
-  it('counts explicitly set zero points as a filled detail', () => {
+  it('accepts zero as a valid point value', () => {
+    const handleSubmit = vi.fn();
+
     render(
       <QuestionForm
-        onSubmit={vi.fn()}
+        onSubmit={handleSubmit}
         onCancel={vi.fn()}
         categories={[]}
         initialData={{
           content: 'Wo ist die Mensa?',
           type: 'knowledge',
-          point_value: 0,
+          point_value: 5,
           solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
         }}
       />
     );
 
-    expect(screen.getByText('1 Angabe ausgefüllt')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Punktwert*'), {
+      target: { value: '0' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+    expect(handleSubmit.mock.calls[0][0].point_value).toBe(0);
   });
 
   it('shows the question type as a compact read-only row when editing', () => {
@@ -512,7 +517,7 @@ describe('QuestionForm', () => {
         }}
       />
     );
-    expect(screen.getByLabelText('Punktwert')).toBeInTheDocument();
+    expect(screen.getByLabelText('Punktwert*')).toBeInTheDocument();
     expect(screen.getByLabelText('Hinweis')).toBeInTheDocument();
     expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
@@ -575,6 +580,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Mehrfachauswahl',
           type: 'multiple_choice',
+          point_value: 3,
           solutionOptions: [{ id: 1, correct: true, text: 'Antwort A' }],
         }}
         onSubmit={handleSubmit}
@@ -628,6 +634,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Mehrfachauswahl',
           type: 'multiple_choice',
+          point_value: 3,
           solutionOptions: [{ id: 1, correct: true, text: 'Antwort A' }],
         }}
         onSubmit={handleSubmit}
@@ -706,6 +713,9 @@ describe('QuestionForm', () => {
     });
     fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Gebäude A' },
+    });
+    fireEvent.change(screen.getByLabelText('Punktwert*'), {
+      target: { value: '3' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
@@ -905,6 +915,7 @@ describe('QuestionForm', () => {
         initialData={{
           content: 'Neues Ziel',
           type: 'geocaching',
+          point_value: 3,
           geocaching: {
             target_latitude: 47,
             target_longitude: 7,
@@ -1023,7 +1034,6 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
     expect(
       screen.getByText(
         'Der Punktwert wird bei einer richtigen Team-Antwort vergeben. In Campus-Touren wird er lokal gezählt und am Ende angezeigt.'
@@ -1041,16 +1051,12 @@ describe('QuestionForm', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Weitere Angaben').closest('summary')!);
-
-    expect(screen.getByLabelText('Punktwert')).toHaveAttribute(
+    expect(screen.getByLabelText('Punktwert*')).toHaveAttribute(
       'aria-describedby',
       'point-value-help'
     );
     expect(
-      screen.getByText(
-        'Zählt zum Ergebnis der Team-Rallye. Leer bedeutet: keine Team-Punkte.'
-      )
+      screen.getByText('0 bedeutet: keine Team-Punkte.')
     ).toBeInTheDocument();
   });
 });

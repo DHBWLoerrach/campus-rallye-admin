@@ -267,6 +267,9 @@ describe('QuestionPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Gebäude A' },
     });
+    fireEvent.change(screen.getByLabelText('Punktwert*'), {
+      target: { value: '3' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
     await waitFor(() =>
@@ -304,6 +307,9 @@ describe('QuestionPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Gebäude A' },
     });
+    fireEvent.change(screen.getByLabelText('Punktwert*'), {
+      target: { value: '3' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
     expect(mockCreateQuestion).not.toHaveBeenCalled();
@@ -338,6 +344,9 @@ describe('QuestionPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Lösungsoption eingeben'), {
       target: { value: 'Eingang' },
     });
+    fireEvent.change(screen.getByLabelText('Punktwert*'), {
+      target: { value: '3' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Test-Ziel setzen' }));
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
@@ -367,6 +376,7 @@ describe('QuestionPage', () => {
           id: 8,
           content: 'Finde das Ziel',
           type: 'geocaching',
+          point_value: 3,
           geocaching: {
             target_latitude: 47,
             target_longitude: 7,
@@ -416,6 +426,7 @@ describe('QuestionPage', () => {
         initialData={{
           content: 'Finde das Ziel',
           type: 'geocaching',
+          point_value: 3,
           geocaching: {
             target_latitude: 47,
             target_longitude: 7,

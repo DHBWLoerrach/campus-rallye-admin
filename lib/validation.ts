@@ -25,14 +25,13 @@ const pointValueSchema = z.preprocess(
     return value;
   },
   z
-    .number()
+    .number({ error: 'Punktwert ist erforderlich' })
     .superRefine((value, context) => {
       const message = getPointValueValidationError(value);
       if (message) {
         context.addIssue({ code: 'custom', message });
       }
     })
-    .optional()
 );
 
 export const rallyeCreateSchema = z.object({

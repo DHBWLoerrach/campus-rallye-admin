@@ -23,6 +23,21 @@ describe('questionUpdateSchema', () => {
 });
 
 describe('question point value validation', () => {
+  it('requires a point value', () => {
+    const result = questionCreateSchema.safeParse({
+      content: 'Wo ist die Mensa?',
+      type: 'knowledge',
+      solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(formatZodError(result.error).point_value).toBe(
+        'Punktwert ist erforderlich'
+      );
+    }
+  });
+
   it.each([2.5, Number.MAX_SAFE_INTEGER + 1])(
     'rejects a non-safe integer point value: %s',
     (point_value) => {
@@ -64,6 +79,7 @@ describe('question solution option validation', () => {
     const result = questionCreateSchema.safeParse({
       content: 'Wo ist die Mensa?',
       type: 'multiple_choice',
+      point_value: 3,
       solutionOptions: [{ correct: true, text: 'Gebäude A' }],
     });
 
@@ -80,6 +96,7 @@ describe('picture question validation', () => {
   const pictureQuestion = {
     content: 'Welches Gebäude ist zu sehen?',
     type: 'picture',
+    point_value: 2,
     solutionOptions: [{ correct: true, text: 'Gebäude A' }],
   };
 

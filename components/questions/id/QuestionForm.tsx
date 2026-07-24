@@ -460,7 +460,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
     const nextErrors = getFormErrors(cleanedData);
     setErrors(nextErrors);
-    if (nextErrors.category || nextErrors.point_value) {
+    if (nextErrors.category) {
       setOptionalDetailsOpen(true);
     }
     if (Object.keys(nextErrors).length > 0) {
@@ -485,7 +485,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const geocachingInputType = formData.geocaching?.input_type ?? 'text';
   const showAnswers = hasType && !isUpload;
   const filledOptionalDetailsCount = [
-    formData.point_value !== undefined,
     Boolean(formData.hint?.trim()),
     Boolean(formData.category?.trim()),
   ].filter(Boolean).length;
@@ -684,6 +683,67 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             </div>
           )}
         </section>
+
+        {hasType && (
+          <section
+            aria-labelledby="question-points-heading"
+            className="space-y-4 rounded-xl border border-border/60 bg-card/80 p-4 sm:p-6"
+          >
+            <div className="space-y-1">
+              <h2
+                id="question-points-heading"
+                className="text-base font-semibold text-foreground"
+              >
+                Punkte vergeben
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Zählt zum Ergebnis der Team-Rallye.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="point_value">Punktwert*</Label>
+              <Input
+                type="number"
+                id="point_value"
+                aria-describedby="point-value-help"
+                value={formData.point_value ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  handleFormChange(
+                    'point_value',
+                    value === '' ? undefined : Number(value)
+                  );
+                }}
+                placeholder="0"
+                min={0}
+                step={1}
+                inputMode="numeric"
+                className={`w-full max-w-28 ${
+                  displayedErrors.point_value
+                    ? 'border-destructive focus-visible:ring-destructive/40'
+                    : ''
+                }`}
+              />
+              {displayedErrors.point_value && (
+                <span className="text-sm text-destructive">
+                  {displayedErrors.point_value}
+                </span>
+              )}
+              <p
+                id="point-value-help"
+                className="text-xs text-muted-foreground"
+              >
+                0 bedeutet: keine Team-Punkte.
+              </p>
+              {isGeocaching && (
+                <p className="text-xs text-muted-foreground">
+                  Der Punktwert wird bei einer richtigen Team-Antwort vergeben.
+                  In Campus-Touren wird er lokal gezählt und am Ende angezeigt.
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         {isGeocaching && formData.geocaching && (
           <section
@@ -939,7 +999,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   Weitere Angaben
                 </span>
                 <span className="block text-sm font-normal text-muted-foreground">
-                  Punktwert, Hinweis und Kategorie
+                  Hinweis und Kategorie
                 </span>
               </span>
               <span className="flex items-center gap-3">
@@ -958,50 +1018,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               </span>
             </summary>
             <div className="grid gap-4 border-t border-border/60 bg-card/50 p-4 sm:p-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="point_value">Punktwert</Label>
-                <Input
-                  type="number"
-                  id="point_value"
-                  aria-describedby="point-value-help"
-                  value={formData.point_value ?? ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    handleFormChange(
-                      'point_value',
-                      value === '' ? undefined : Number(value)
-                    );
-                  }}
-                  placeholder="0"
-                  min={0}
-                  step={1}
-                  inputMode="numeric"
-                  className={`w-full max-w-28 ${
-                    displayedErrors.point_value
-                      ? 'border-destructive focus-visible:ring-destructive/40'
-                      : ''
-                  }`}
-                />
-                {displayedErrors.point_value && (
-                  <span className="text-sm text-destructive">
-                    {displayedErrors.point_value}
-                  </span>
-                )}
-                <p
-                  id="point-value-help"
-                  className="text-xs text-muted-foreground"
-                >
-                  Zählt zum Ergebnis der Team-Rallye. Leer bedeutet: keine
-                  Team-Punkte.
-                </p>
-                {isGeocaching && (
-                  <p className="text-xs text-muted-foreground">
-                    Der Punktwert wird bei einer richtigen Team-Antwort
-                    vergeben. In Campus-Touren wird er lokal gezählt und am Ende
-                    angezeigt.
-                  </p>
-                )}
-              </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="hint">Hinweis</Label>
                 <Input

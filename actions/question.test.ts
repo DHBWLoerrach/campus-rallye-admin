@@ -264,9 +264,8 @@ describe('question write actions', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
-  it('clears stored points when update omits point_value', async () => {
+  it('rejects an update that omits the point value', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
-    const { from, questionUpdate } = buildUpdateClient();
 
     const { updateQuestion } = await import('./question');
     const result = await updateQuestion(1, {
@@ -275,11 +274,12 @@ describe('question write actions', () => {
       solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
     });
 
-    expect(result.success).toBe(true);
-    expect(questionUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ point_value: null })
-    );
-    expect(from).not.toHaveBeenCalledWith('geocaching_questions');
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('Expected validation to fail');
+    }
+    expect(result.issues?.point_value).toBe('Punktwert ist erforderlich');
+    expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
   it('removes the inserted question when saving answers fails', async () => {
@@ -292,6 +292,7 @@ describe('question write actions', () => {
     const result = await createQuestion({
       content: 'Frage',
       type: 'knowledge',
+      point_value: 3,
       solutionOptions: [{ correct: true, text: 'Antwort' }],
     });
 
@@ -307,6 +308,7 @@ describe('question write actions', () => {
     const result = await createQuestion({
       content: 'Finde den Eingang',
       type: 'geocaching',
+      point_value: 3,
       geocaching: {
         target_latitude: 47.615123,
         target_longitude: 7.664321,
@@ -338,6 +340,7 @@ describe('question write actions', () => {
     const result = await createQuestion({
       content: 'Scanne den Code',
       type: 'geocaching',
+      point_value: 3,
       geocaching: {
         target_latitude: 47.615123,
         target_longitude: 7.664321,
@@ -370,6 +373,7 @@ describe('question write actions', () => {
     const result = await createQuestion({
       content: 'Finde den Eingang',
       type: 'geocaching',
+      point_value: 3,
       geocaching: {
         target_latitude: 47.615123,
         target_longitude: 7.664321,
@@ -400,6 +404,7 @@ describe('question write actions', () => {
     const result = await createQuestion({
       content: 'Frage',
       type: 'knowledge',
+      point_value: 3,
       solutionOptions: [{ correct: true, text: 'Antwort' }],
       rallyeIds: [5],
     });
@@ -426,6 +431,7 @@ describe('question write actions', () => {
     const result = await updateQuestion(1, {
       content: 'Finde den Eingang',
       type: 'geocaching',
+      point_value: 3,
       geocaching: {
         target_latitude: 47.615123,
         target_longitude: 7.664321,
@@ -466,6 +472,7 @@ describe('question write actions', () => {
     const result = await updateQuestion(1, {
       content: 'Finde den Eingang',
       type: 'geocaching',
+      point_value: 3,
       geocaching: {
         target_latitude: 47.615123,
         target_longitude: 7.664321,
@@ -493,6 +500,7 @@ describe('question write actions', () => {
     const result = await updateQuestion(1, {
       content: 'Neue Wissensfrage',
       type: 'knowledge',
+      point_value: 3,
       solutionOptions: [{ id: 1, correct: true, text: 'Antwort' }],
     });
 
@@ -520,6 +528,7 @@ describe('question write actions', () => {
     const result = await updateQuestion(1, {
       content: 'Welches Gebäude ist zu sehen?',
       type: 'picture',
+      point_value: 3,
       bucket_path: 'new-image.png',
       solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
     });
@@ -539,6 +548,7 @@ describe('question write actions', () => {
     const result = await updateQuestion(1, {
       content: 'Welches Gebäude ist zu sehen?',
       type: 'picture',
+      point_value: 3,
       bucket_path: 'question-image.png',
       solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
     });
@@ -562,6 +572,7 @@ describe('question write actions', () => {
     const result = await updateQuestion(1, {
       content: 'Wo ist die Mensa?',
       type: 'knowledge',
+      point_value: 3,
       bucket_path: '',
       solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
     });
@@ -594,6 +605,7 @@ describe('question write actions', () => {
       const result = await updateQuestion(1, {
         content: 'Welches Gebäude ist zu sehen?',
         type: 'picture',
+        point_value: 3,
         bucket_path: 'new-image.png',
         solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
       });

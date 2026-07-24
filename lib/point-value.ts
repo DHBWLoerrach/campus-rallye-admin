@@ -1,7 +1,7 @@
 export const getPointValueValidationError = (
   pointValue: number | undefined
 ) => {
-  if (pointValue === undefined) return undefined;
+  if (pointValue === undefined) return 'Punktwert ist erforderlich';
   if (!Number.isSafeInteger(pointValue)) {
     return 'Punktwert muss eine ganze Zahl sein';
   }
