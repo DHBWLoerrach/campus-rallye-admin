@@ -702,10 +702,16 @@ describe('deleteQuestion', () => {
       })),
     };
     const answersQuery = buildDeleteQuery();
+    const teamAnswersQuery = {
+      select: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      })),
+    };
 
     const from = vi.fn((table: string) => {
       if (table === 'questions') return questionsQuery;
       if (table === 'solution_options') return answersQuery;
+      if (table === 'team_answers') return teamAnswersQuery;
       throw new Error(`Unexpected table: ${table}`);
     });
 
@@ -739,10 +745,16 @@ describe('deleteQuestion', () => {
       })),
     };
     const answersQuery = buildDeleteQuery();
+    const teamAnswersQuery = {
+      select: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({ count: 0, error: null }),
+      })),
+    };
 
     const from = vi.fn((table: string) => {
       if (table === 'questions') return questionsQuery;
       if (table === 'solution_options') return answersQuery;
+      if (table === 'team_answers') return teamAnswersQuery;
       throw new Error(`Unexpected table: ${table}`);
     });
 
@@ -753,6 +765,49 @@ describe('deleteQuestion', () => {
 
     expect(result.success).toBe(true);
     expect(questionSelect).toHaveBeenCalledWith('id, bucket_path');
+    expect(mockDeleteImage).not.toHaveBeenCalled();
+  });
+
+  it('refuses to delete a question that already has team answers', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const questionSelect = vi.fn(() => ({
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { id: 20, bucket_path: null },
+          error: null,
+        }),
+      })),
+    }));
+    const questionDelete = vi.fn(() => ({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    }));
+    const questionsQuery = { select: questionSelect, delete: questionDelete };
+    const answersQuery = buildDeleteQuery();
+    const teamAnswersQuery = {
+      select: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({ count: 2, error: null }),
+      })),
+    };
+
+    const from = vi.fn((table: string) => {
+      if (table === 'questions') return questionsQuery;
+      if (table === 'solution_options') return answersQuery;
+      if (table === 'team_answers') return teamAnswersQuery;
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { deleteQuestion } = await import('./question');
+    const result = await deleteQuestion(20);
+
+    expect(result).toEqual({
+      success: false,
+      error: 'Frage hat bereits Team-Antworten und kann nicht gelöscht werden',
+    });
+    expect(answersQuery.delete).not.toHaveBeenCalled();
+    expect(questionDelete).not.toHaveBeenCalled();
     expect(mockDeleteImage).not.toHaveBeenCalled();
   });
 });

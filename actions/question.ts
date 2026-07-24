@@ -609,6 +609,27 @@ export async function deleteQuestion(
       return fail('Frage nicht gefunden');
     }
 
+    // Block deletion when the question already has team answers. The
+    // team_answers foreign key has no ON DELETE CASCADE, so the delete would
+    // fail anyway - but only after the solution options were already removed,
+    // leaving the question in a broken state. Checking up front keeps the
+    // message clear and avoids that partial delete.
+    const { count: teamAnswerCount, error: teamAnswersError } = await supabase
+      .from('team_answers')
+      .select('id', { count: 'exact', head: true })
+      .eq('question_id', idResult.data);
+
+    if (teamAnswersError) {
+      console.error('Error checking team answers:', teamAnswersError);
+      return fail('Frage konnte nicht gelöscht werden');
+    }
+
+    if ((teamAnswerCount ?? 0) > 0) {
+      return fail(
+        'Frage hat bereits Team-Antworten und kann nicht gelöscht werden'
+      );
+    }
+
     const bucketPath =
       typeof existingQuestion.bucket_path === 'string'
         ? existingQuestion.bucket_path.trim()
