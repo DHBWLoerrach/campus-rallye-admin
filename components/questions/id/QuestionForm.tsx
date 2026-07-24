@@ -25,6 +25,7 @@ import {
   type QuestionTypeId,
 } from '@/helpers/questionTypes';
 import { Question, QuestionFormData } from '@/helpers/questions';
+import { getPointValueValidationError } from '@/lib/point-value';
 import { cn } from '@/lib/utils';
 import QuestionImage from './QuestionImage';
 import QuestionPreview from './QuestionPreview';
@@ -352,13 +353,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         'Bitte eine Kategorie wählen oder eine neue eingeben';
     }
 
-    if (
-      data.point_value !== undefined &&
-      !Number.isSafeInteger(data.point_value)
-    ) {
-      newErrors.point_value = 'Punktwert muss eine ganze Zahl sein';
-    } else if ((data.point_value ?? 0) < 0) {
-      newErrors.point_value = 'Punktwert muss größer oder gleich 0 sein';
+    const pointValueError = getPointValueValidationError(data.point_value);
+    if (pointValueError) {
+      newErrors.point_value = pointValueError;
     }
 
     if (data.type === 'picture' && !data.bucket_path?.trim()) {

@@ -3,6 +3,7 @@ import {
   QUESTION_TYPE_IDS,
   type QuestionTypeId,
 } from '@/helpers/questionTypes';
+import { getPointValueValidationError } from '@/lib/point-value';
 import { RALLYE_STATUSES } from '@/lib/types';
 
 export const rallyeStatusValues = RALLYE_STATUSES;
@@ -12,16 +13,27 @@ export const questionTypeSchema = z.enum(QUESTION_TYPE_IDS);
 export const idSchema = z.coerce.number().int().positive();
 export const idArraySchema = z.array(idSchema);
 
-const pointValueSchema = z.preprocess((value) => {
-  if (typeof value === 'number' && Number.isNaN(value)) return undefined;
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (trimmed.length === 0) return undefined;
-    const numeric = Number(trimmed);
-    return Number.isNaN(numeric) ? value : numeric;
-  }
-  return value;
-}, z.number().refine(Number.isSafeInteger, 'Punktwert muss eine ganze Zahl sein').min(0, 'Punktwert muss größer oder gleich 0 sein').finite().optional());
+const pointValueSchema = z.preprocess(
+  (value) => {
+    if (typeof value === 'number' && Number.isNaN(value)) return undefined;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed.length === 0) return undefined;
+      const numeric = Number(trimmed);
+      return Number.isNaN(numeric) ? value : numeric;
+    }
+    return value;
+  },
+  z
+    .number()
+    .superRefine((value, context) => {
+      const message = getPointValueValidationError(value);
+      if (message) {
+        context.addIssue({ code: 'custom', message });
+      }
+    })
+    .optional()
+);
 
 export const rallyeCreateSchema = z.object({
   name: z.string().trim().min(1, 'Name ist erforderlich'),
