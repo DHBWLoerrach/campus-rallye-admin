@@ -266,6 +266,37 @@ describe('QuestionForm', () => {
     expect(details).toHaveAttribute('open');
   });
 
+  it('updates the team preview while editing the question', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          solutionOptions: [{ correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    const previewSummary = screen.getByText('Team-Ansicht prüfen');
+    const previewDetails = previewSummary.closest('details');
+    expect(previewDetails).not.toHaveAttribute('open');
+
+    fireEvent.click(previewSummary.closest('summary')!);
+    fireEvent.change(screen.getByLabelText('Frage*'), {
+      target: { value: 'Wo ist die Bibliothek?' },
+    });
+
+    expect(previewDetails).toHaveAttribute('open');
+    expect(
+      within(previewDetails!).getByRole('heading', {
+        name: 'Wo ist die Bibliothek?',
+      })
+    ).toBeInTheDocument();
+  });
+
   it('keeps the image field outside the optional details', () => {
     render(
       <QuestionForm
