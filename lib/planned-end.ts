@@ -1,9 +1,7 @@
 // A planned end is a local wall-clock time. Empty means no planned end, while
 // malformed values must never be silently dropped before they reach the server.
 export type PlannedEnd =
-  | { kind: 'none' }
-  | { kind: 'invalid' }
-  | { kind: 'time'; value: string };
+  { kind: 'none' } | { kind: 'invalid' } | { kind: 'time'; value: string };
 
 const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?$/;
 

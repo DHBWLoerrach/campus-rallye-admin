@@ -1,10 +1,5 @@
 export type QuestionTypeIconName =
-  | 'text-input'
-  | 'list-checks'
-  | 'image'
-  | 'qr-code'
-  | 'camera'
-  | 'map-pin';
+  'text-input' | 'list-checks' | 'image' | 'qr-code' | 'camera' | 'map-pin';
 
 export const QUESTION_TYPE_IDS = [
   'multiple_choice',

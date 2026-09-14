@@ -37,9 +37,7 @@ export default async function LocationsPage() {
       id: number;
       name: string;
       department?:
-        | { location_id: number }
-        | Array<{ location_id: number }>
-        | null;
+        { location_id: number } | Array<{ location_id: number }> | null;
     };
 
     const department = Array.isArray(rallye.department)
