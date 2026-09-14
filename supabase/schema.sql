@@ -142,41 +142,39 @@ CREATE OR REPLACE FUNCTION "public"."finalize_voting_for_question"("rallye_id_pa
         AS $$
 DECLARE
     did_finalize_count integer := 0;
-    winner_team_id bigint;
     question_points bigint := 0;
 BEGIN
-    INSERT INTO "public"."voting_finalizations" ("rallye_id", "question_id")
-    VALUES ("rallye_id_param", "question_id_param")
-    ON CONFLICT ("rallye_id", "question_id") DO NOTHING;
+    INSERT INTO public.voting_finalizations (rallye_id, question_id)
+    VALUES (rallye_id_param, question_id_param)
+    ON CONFLICT (rallye_id, question_id) DO NOTHING;
 
     GET DIAGNOSTICS did_finalize_count = ROW_COUNT;
     IF did_finalize_count = 0 THEN
         RETURN;
     END IF;
 
-    SELECT COALESCE("questions"."point_value", 0) INTO question_points
-    FROM "public"."questions" WHERE "questions"."id" = "question_id_param";
+    SELECT COALESCE(questions.point_value, 0) INTO question_points
+    FROM public.questions WHERE questions.id = question_id_param;
 
-    SELECT "voting_votes"."voted_for_team_id" INTO winner_team_id
-    FROM "public"."voting_votes"
-    INNER JOIN "public"."team_answers"
-        ON "team_answers"."team_id" = "voting_votes"."voted_for_team_id"
-     AND "team_answers"."question_id" = "voting_votes"."question_id"
-    WHERE "voting_votes"."rallye_id" = "rallye_id_param"
-        AND "voting_votes"."question_id" = "question_id_param"
-        AND "team_answers"."answer" IS NOT NULL
-        AND btrim("team_answers"."answer") <> ''
-    GROUP BY "voting_votes"."voted_for_team_id"
-    ORDER BY COUNT(*) DESC, MIN("voting_votes"."created_at") ASC, "voting_votes"."voted_for_team_id" ASC
-    LIMIT 1;
-
-    IF winner_team_id IS NULL THEN
-        RETURN;
-    END IF;
-
-    UPDATE "public"."team_answers"
-    SET "team_points" = question_points
-    WHERE "team_id" = winner_team_id AND "question_id" = "question_id_param";
+    WITH vote_counts AS (
+        SELECT voting_votes.voted_for_team_id, COUNT(*) AS vote_count
+        FROM public.voting_votes
+        INNER JOIN public.team_answers
+            ON team_answers.team_id = voting_votes.voted_for_team_id
+           AND team_answers.question_id = voting_votes.question_id
+        WHERE voting_votes.rallye_id = rallye_id_param
+          AND voting_votes.question_id = question_id_param
+          AND team_answers.answer IS NOT NULL
+          AND btrim(team_answers.answer) <> ''
+        GROUP BY voting_votes.voted_for_team_id
+    )
+    UPDATE public.team_answers
+    SET team_points = question_points
+    WHERE question_id = question_id_param
+      AND team_id IN (
+          SELECT voted_for_team_id FROM vote_counts
+          WHERE vote_count = (SELECT MAX(vote_count) FROM vote_counts)
+      );
 END;
 $$;
 

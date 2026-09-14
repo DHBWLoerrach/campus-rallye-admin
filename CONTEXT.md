@@ -405,7 +405,8 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - **Abstimmung** ist eine Form der **Bewertung** durch **Teams**.
 - Während der **Abstimmung** zeigt der **Organisator** die **Upload-Fotos** gemeinsam für alle über die **Admin-App**; in der **Rallye-App** geben **Teams** nur ihre Stimme ab.
 - Ein **Team** stimmt pro **Abstimmungsfrage** für genau ein anderes **Team**.
-- Das **Team** mit den meisten Stimmen erhält den **Punktwert** der **Abstimmungsfrage** als **Team-Punkte**; alle anderen **Teams** erhalten dafür 0 **Team-Punkte**.
+- Jedes **Team** mit den meisten Stimmen erhält den vollen **Punktwert** der **Abstimmungsfrage** als **Team-Punkte**; alle anderen **Teams** erhalten dafür 0 **Team-Punkte**.
+- Bei Stimmengleichstand an der Spitze gewinnen alle gleichauf liegenden **Teams**; der Zeitpunkt der Stimmen spielt keine Rolle.
 - Eine **Team-Antwort** hat genau einen Wert für **Team-Punkte**; erhält eine **Team-Antwort** keine Punkte, hat sie 0 **Team-Punkte**.
 - Eine **Team-Rallye** hat null oder ein **Ergebnis**.
 - Ein **Endstand** ist das finale **Ergebnis**.
