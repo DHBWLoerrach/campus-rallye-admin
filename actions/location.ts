@@ -16,6 +16,16 @@ type FormState = ActionResult<{
   locationId?: number;
 }> | null;
 
+const UNIQUE_VIOLATION = '23505';
+
+const isUniqueViolation = (error: { code?: string } | null) =>
+  error?.code === UNIQUE_VIOLATION;
+
+const duplicateNameFailure = () =>
+  fail('Ungültige Eingaben', {
+    name: 'Ein Standort mit diesem Namen existiert bereits',
+  });
+
 export async function createLocation(state: FormState, formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
@@ -41,6 +51,8 @@ export async function createLocation(state: FormState, formData: FormData) {
     .insert(data)
     .select('id')
     .single();
+
+  if (isUniqueViolation(error)) return duplicateNameFailure();
 
   if (error || !createdLocation) {
     console.error('Error creating location:', error);
@@ -96,6 +108,8 @@ export async function updateLocation(state: FormState, formData: FormData) {
     .from('locations')
     .update(updatePayload)
     .eq('id', data.id);
+
+  if (isUniqueViolation(error)) return duplicateNameFailure();
 
   if (error) {
     console.error('Error updating location:', error);

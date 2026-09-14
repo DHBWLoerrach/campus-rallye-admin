@@ -77,6 +77,36 @@ describe('createLocation', () => {
       default_rallye_id: null,
     });
   });
+
+  it('explains that the location name is already taken', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    const single = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        code: '23505',
+        message:
+          'duplicate key value violates unique constraint "location_name_key"',
+      },
+    });
+    const select = vi.fn(() => ({ single }));
+    const insert = vi.fn(() => ({ select }));
+    const from = vi.fn(() => ({ insert }));
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { createLocation } = await import('./location');
+    const result = await createLocation(
+      null,
+      makeFormData({ name: 'Lörrach' })
+    );
+
+    expect(result?.success).toBe(false);
+    if (result?.success !== false) throw new Error('Expected failure');
+    expect(result.error).toBe('Ungültige Eingaben');
+    expect(result.issues?.name).toBe(
+      'Ein Standort mit diesem Namen existiert bereits'
+    );
+    expect(mockRevalidatePath).not.toHaveBeenCalled();
+  });
 });
 
 describe('updateLocation', () => {
@@ -116,6 +146,39 @@ describe('updateLocation', () => {
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
     expect(result.error).toBe('Standort nicht gefunden');
+  });
+
+  it('explains that the location name is already taken', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
+    const selectEq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq: selectEq }));
+    const updateEq = vi.fn().mockResolvedValue({
+      error: {
+        code: '23505',
+        message:
+          'duplicate key value violates unique constraint "location_name_key"',
+      },
+    });
+    const update = vi.fn(() => ({ eq: updateEq }));
+    const from = vi.fn(() => ({ select, update }));
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateLocation } = await import('./location');
+    const result = await updateLocation(
+      null,
+      makeFormData({ id: '1', name: 'Lörrach' })
+    );
+
+    expect(result?.success).toBe(false);
+    if (result?.success !== false) throw new Error('Expected failure');
+    expect(result.error).toBe('Ungültige Eingaben');
+    expect(result.issues?.name).toBe(
+      'Ein Standort mit diesem Namen existiert bereits'
+    );
+    expect(mockRevalidatePath).not.toHaveBeenCalled();
   });
 });
 
