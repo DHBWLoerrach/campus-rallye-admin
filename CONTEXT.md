@@ -33,7 +33,7 @@ Eine Rallye, die ein Standort als freie Erkundungstour verwendet, ohne Teams, Sp
 _Vermeiden_: Erkundungsmodus, Tour-Mode
 
 **Team-Rallye**:
-Ein konkreter Rallye-Durchlauf, bei dem Teams teilnehmen, Team-Antworten erhalten bleiben und die Spielzeit in das Ergebnis eingehen kann.
+Ein konkreter Rallye-Durchlauf, bei dem Teams teilnehmen, Team-Antworten erhalten bleiben und die Spielzeit erfasst wird.
 _Vermeiden_: Team event, Rallye-Durchlauf
 
 **Bereichs-Rallye**:
@@ -405,7 +405,9 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Team-Antwort** hat null oder einen Wert für **Team-Punkte**.
 - Eine **Team-Rallye** hat null oder ein **Ergebnis**.
 - Ein **Endstand** ist das finale **Ergebnis**.
-- Ein **Ergebnis** sortiert **Teams** zuerst nach **Team-Punkten**, dann nach **Spielzeit**.
+- Ein **Ergebnis** ordnet **Teams** nach ihren summierten **Team-Punkten**.
+- **Teams** mit gleichen **Team-Punkten** teilen sich einen Platz; die folgenden Plätze werden entsprechend übersprungen (1, 1, 3).
+- Die **Spielzeit** beeinflusst das **Ergebnis** nicht.
 
 ### Status und Ablauf
 
@@ -476,6 +478,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - **Kategorie** ist aktuell ein loser Ordnungsbegriff. Ob Kategorien ein gepflegtes Vokabular werden und ob sie standort- oder bereichsspezifisch sind, ist offen.
 - "Event-Rallye" und **Event-Bereich** wurden als eigene Konzepte erwogen. Geklärt: Eine Team-Rallye ist eine **Bereichs-Rallye**; ein Event-Kontext sollte erst modelliert werden, wenn er ein echtes Konzept wird.
 - Eine eigene Organisator-Bewertung gibt es aktuell nicht; nicht automatisch bewertete **Team-Antworten** werden über **Abstimmung** bewertet.
+- Ob die **Spielzeit** bei gleichen **Team-Punkten** über die Platzierung entscheidet, war offen. Geklärt: Nein; eine **Team-Rallye** soll ohne Zeitdruck gespielt werden, deshalb teilen sich **Teams** mit gleichen **Team-Punkten** einen Platz.
 - Ob **Abstimmungsfragen** auch andere Fragetypen umfassen könnten, war offen. Geklärt: **Abstimmungsfragen** sind fachlich auf **Upload-Fragen** beschränkt; Code-Pfade für Text-Antworten in der Abstimmung sind Altlast.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
