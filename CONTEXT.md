@@ -201,7 +201,7 @@ Ein Team-Rallye-Status, in dem Teams die Team-Rallye aktiv spielen können.
 _Vermeiden_: Running
 
 **Abstimmung**:
-Ein Team-Rallye-Status kurz vor Abschluss, in dem Teams nach Freigabe durch den Organisator Antworten oder Upload-Fotos anderer Teams bewerten.
+Ein Team-Rallye-Status kurz vor Abschluss, in dem Teams nach Freigabe durch den Organisator die Upload-Fotos anderer Teams bewerten.
 _Vermeiden_: Voting
 
 **Abstimmungsfrage**:
@@ -403,6 +403,9 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Bewertung** vergibt **Team-Punkte** für eine **Team-Antwort**.
 - Eine **Bewertung** kann automatisch oder durch **Abstimmung** entstehen.
 - **Abstimmung** ist eine Form der **Bewertung** durch **Teams**.
+- Während der **Abstimmung** zeigt der **Organisator** die **Upload-Fotos** gemeinsam für alle über die **Admin-App**; in der **Rallye-App** geben **Teams** nur ihre Stimme ab.
+- Ein **Team** stimmt pro **Abstimmungsfrage** für genau ein anderes **Team**.
+- Das **Team** mit den meisten Stimmen erhält den **Punktwert** der **Abstimmungsfrage** als **Team-Punkte**; alle anderen **Teams** erhalten dafür 0 **Team-Punkte**.
 - Eine **Team-Antwort** hat genau einen Wert für **Team-Punkte**; erhält eine **Team-Antwort** keine Punkte, hat sie 0 **Team-Punkte**.
 - Eine **Team-Rallye** hat null oder ein **Ergebnis**.
 - Ein **Endstand** ist das finale **Ergebnis**.
@@ -480,6 +483,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - "Event-Rallye" und **Event-Bereich** wurden als eigene Konzepte erwogen. Geklärt: Eine Team-Rallye ist eine **Bereichs-Rallye**; ein Event-Kontext sollte erst modelliert werden, wenn er ein echtes Konzept wird.
 - Eine eigene Organisator-Bewertung gibt es aktuell nicht; nicht automatisch bewertete **Team-Antworten** werden über **Abstimmung** bewertet.
 - Ob die **Spielzeit** bei gleichen **Team-Punkten** über die Platzierung entscheidet, war offen. Geklärt: Nein; eine **Team-Rallye** soll ohne Zeitdruck gespielt werden, deshalb teilen sich **Teams** mit gleichen **Team-Punkten** einen Platz.
+- Ob **Teams** die **Upload-Fotos** während der **Abstimmung** in der **Rallye-App** sehen müssen, war offen. Geklärt: Nein; die **Teams** sind gemeinsam in einem Raum und sehen die Fotos auf einer Projektionsfläche aus der **Admin-App**.
 - Ob **Abstimmungsfragen** auch andere Fragetypen umfassen könnten, war offen. Geklärt: **Abstimmungsfragen** sind fachlich auf **Upload-Fragen** beschränkt; Code-Pfade für Text-Antworten in der Abstimmung sind Altlast.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
