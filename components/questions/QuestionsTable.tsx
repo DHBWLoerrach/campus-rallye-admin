@@ -19,7 +19,7 @@ import { questionTypeIcons } from '@/components/questions/question-type-icons';
 
 interface QuestionsTableProps {
   questions: Question[];
-  rallyeMap?: Record<number, string[]>;
+  rallyeMap?: Record<number, string[]> | null;
 }
 
 const questionTypesById = new Map(
@@ -119,7 +119,11 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                           : `${question.point_value} ${question.point_value === 1 ? 'Punkt' : 'Punkte'}`}
                       </TableCell>
                       <TableCell className="align-top">
-                        {rallyeNames.length === 0 ? (
+                        {rallyeMap === null ? (
+                          <span className="text-muted-foreground">
+                            Verwendung momentan nicht verfügbar
+                          </span>
+                        ) : rallyeNames.length === 0 ? (
                           <span className="text-muted-foreground">
                             Noch nicht verwendet
                           </span>
