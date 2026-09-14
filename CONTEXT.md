@@ -387,7 +387,8 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Campus-Tour** sollte keine **Upload-Fragen** enthalten.
 - Eine **Geocaching-Frage** ist an einen geografischen Zielort und einen Näherungsbereich gebunden und wird per Freitext oder QR-Code beantwortet.
 - Eine **Geocaching-Frage** wird automatisch bewertet, braucht kein **Team** und darf in **Campus-Touren** und **Bereichs-Rallyes** vorkommen.
-- Eine **Frage** hat null oder eine **Kategorie**, null oder einen **Hinweis** und null oder einen **Punktwert**.
+- Eine **Frage** hat null oder eine **Kategorie**, null oder einen **Hinweis** und genau einen **Punktwert**.
+- Ein **Punktwert** ist eine ganze Zahl größer oder gleich 0.
 
 ### Teams, Bewertung und Ergebnis
 
@@ -402,7 +403,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Bewertung** vergibt **Team-Punkte** für eine **Team-Antwort**.
 - Eine **Bewertung** kann automatisch oder durch **Abstimmung** entstehen.
 - **Abstimmung** ist eine Form der **Bewertung** durch **Teams**.
-- Eine **Team-Antwort** hat null oder einen Wert für **Team-Punkte**.
+- Eine **Team-Antwort** hat genau einen Wert für **Team-Punkte**; erhält eine **Team-Antwort** keine Punkte, hat sie 0 **Team-Punkte**.
 - Eine **Team-Rallye** hat null oder ein **Ergebnis**.
 - Ein **Endstand** ist das finale **Ergebnis**.
 - Ein **Ergebnis** ordnet **Teams** nach ihren summierten **Team-Punkten**.
@@ -428,7 +429,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Abstimmungsfrage** ist eine **Rallye-Frage** und gehört nur in eine **Team-Rallye**.
 - Nur **Upload-Fragen** können **Abstimmungsfragen** sein.
 - Eine **Upload-Frage** wird beim Zuordnen zu einer **Team-Rallye** standardmäßig eine **Abstimmungsfrage**; die Abstimmung kann pro **Rallye-Frage** abgewählt werden.
-- Eine **Upload-Frage** mit **Punktwert**, die keine **Abstimmungsfrage** ist, kann ihre **Team-Punkte** an kein **Team** vergeben.
+- Eine **Upload-Frage** mit einem **Punktwert** größer als 0, die keine **Abstimmungsfrage** ist, kann ihre **Team-Punkte** an kein **Team** vergeben.
 - Eine **Campus-Tour** hat keine **Abstimmungsfragen**, keinen **Rallye-Code** und kein **Rallye-Ende**.
 
 ### Bearbeitung und Berechtigung
