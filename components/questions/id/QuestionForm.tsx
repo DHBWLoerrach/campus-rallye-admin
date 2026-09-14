@@ -633,9 +633,18 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               Frage formulieren
             </h2>
             <p className="text-sm text-muted-foreground">
-              Dieser Text wird den Teilnehmenden angezeigt.
+              Erscheint in der Rallye-App immer als Erstes, darunter folgt die
+              Aufgabe.
             </p>
           </div>
+          {selectedQuestionType && (
+            <p className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">
+                Unter der Frage:
+              </span>{' '}
+              {selectedQuestionType.participantFlow}
+            </p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="question">Frage*</Label>
             <Textarea

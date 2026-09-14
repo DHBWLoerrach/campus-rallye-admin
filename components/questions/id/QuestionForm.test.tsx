@@ -290,6 +290,33 @@ describe('QuestionForm', () => {
     expect(questionField).toHaveValue('Wo ist die Mensa?');
   });
 
+  it('describes how participants solve the selected question type', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
+    );
+
+    expect(screen.queryByText('Unter der Frage:')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
+    expect(
+      screen.getByText(
+        'Teilnehmende tippen ihre Antwort ein und haben dafür einen Versuch.'
+      )
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('radio', { name: /Geocaching-Frage.*Zielort finden/ })
+    );
+    expect(
+      screen.getByText(/Die Frage ist schon unterwegs sichtbar/)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'Teilnehmende tippen ihre Antwort ein und haben dafür einen Versuch.'
+      )
+    ).not.toBeInTheDocument();
+  });
+
   it('keeps the image field outside the optional details', () => {
     render(
       <QuestionForm
