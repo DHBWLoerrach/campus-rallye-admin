@@ -1,12 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ChevronDown,
-  Eye,
-  LockKeyhole,
-  Minus,
-  Plus,
-  Trash2,
-} from 'lucide-react';
+import { ChevronDown, LockKeyhole, Minus, Plus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -28,7 +21,6 @@ import { Question, QuestionFormData } from '@/helpers/questions';
 import { getPointValueValidationError } from '@/lib/point-value';
 import { cn } from '@/lib/utils';
 import QuestionImage from './QuestionImage';
-import QuestionPreview from './QuestionPreview';
 import QuestionQRCode from './QuestionQRCode';
 import { questionTypeIcons } from '@/components/questions/question-type-icons';
 import GeocachingLocationField from './GeocachingLocationField';
@@ -956,33 +948,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               </p>
             )}
           </section>
-        )}
-
-        {hasType && (
-          <details className="group overflow-hidden rounded-xl border border-border/60 bg-card/80">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 marker:content-none sm:p-6 [&::-webkit-details-marker]:hidden">
-              <span className="flex items-center gap-3">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Eye className="size-5" aria-hidden="true" />
-                </span>
-                <span className="space-y-1">
-                  <span className="block text-base font-semibold text-foreground">
-                    Team-Ansicht prüfen
-                  </span>
-                  <span className="block text-sm font-normal text-muted-foreground">
-                    So erscheint die Frage den Teams.
-                  </span>
-                </span>
-              </span>
-              <ChevronDown
-                className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-                aria-hidden="true"
-              />
-            </summary>
-            <div className="border-t border-border/60 bg-muted/20 p-4 sm:p-6">
-              <QuestionPreview data={formData} />
-            </div>
-          </details>
         )}
 
         {hasType && (
