@@ -548,6 +548,10 @@ ALTER TABLE ONLY "public"."locations"
     ADD CONSTRAINT "locations_pkey" PRIMARY KEY ("id");
 
 
+ALTER TABLE ONLY "public"."locations"
+    ADD CONSTRAINT "location_name_key" UNIQUE ("name");
+
+
 ALTER TABLE ONLY "public"."departments"
     ADD CONSTRAINT "departments_pkey" PRIMARY KEY ("id");
 ALTER TABLE ONLY "public"."locations"
