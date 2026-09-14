@@ -3,6 +3,7 @@ import { ChevronDown, LockKeyhole, Minus, Plus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -637,11 +638,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="question">Frage*</Label>
-            <Input
+            <Textarea
               id="question"
               value={formData.content}
               onChange={(e) => handleFormChange('content', e.target.value)}
               placeholder="Frage eingeben"
+              rows={2}
               className={
                 displayedErrors.content
                   ? 'border-destructive focus-visible:ring-destructive/40'

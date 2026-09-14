@@ -271,6 +271,25 @@ describe('QuestionForm', () => {
     expect(details).toHaveAttribute('open');
   });
 
+  it('shows long questions in a multi-line question field', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        initialData={{
+          content: 'Wo ist die Mensa?',
+          type: 'knowledge',
+          solutionOptions: [{ id: 1, correct: true, text: 'Gebäude A' }],
+        }}
+      />
+    );
+
+    const questionField = screen.getByLabelText('Frage*');
+    expect(questionField.tagName).toBe('TEXTAREA');
+    expect(questionField).toHaveValue('Wo ist die Mensa?');
+  });
+
   it('keeps the image field outside the optional details', () => {
     render(
       <QuestionForm
