@@ -128,6 +128,22 @@ interface QuestionActionInput {
   rallyeIds?: number[];
 }
 
+// The form offers no correct toggle for these types, and the Rallye-App only
+// accepts solution options marked as correct.
+const EXPECTED_SOLUTION_TYPES: ReadonlySet<QuestionTypeId> = new Set([
+  'knowledge',
+  'qr_code',
+  'picture',
+]);
+
+const markExpectedSolutionsCorrect = <T extends { correct: boolean }>(
+  type: QuestionTypeId,
+  solutionOptions: T[]
+): T[] =>
+  EXPECTED_SOLUTION_TYPES.has(type)
+    ? solutionOptions.map((option) => ({ ...option, correct: true }))
+    : solutionOptions;
+
 export async function getCategories(): Promise<ActionResult<string[]>> {
   await requireProfile();
   const supabase = await createClient();
@@ -300,8 +316,11 @@ export async function createQuestion(
   let rollbackCreatedQuestion: (() => Promise<void>) | undefined;
   try {
     const supabase = await createClient();
-    const answers = parsed.data.solutionOptions.filter(
-      (answer) => (answer.text ?? '').trim().length > 0
+    const answers = markExpectedSolutionsCorrect(
+      parsed.data.type,
+      parsed.data.solutionOptions.filter(
+        (answer) => (answer.text ?? '').trim().length > 0
+      )
     );
 
     const { data: questionData, error: questionError } = await supabase
@@ -418,8 +437,11 @@ export async function updateQuestion(
   }
   try {
     const supabase = await createClient();
-    const answers = parsed.data.solutionOptions.filter(
-      (answer) => (answer.text ?? '').trim().length > 0
+    const answers = markExpectedSolutionsCorrect(
+      parsed.data.type,
+      parsed.data.solutionOptions.filter(
+        (answer) => (answer.text ?? '').trim().length > 0
+      )
     );
 
     const { data: existingQuestion, error: existingError } = await supabase

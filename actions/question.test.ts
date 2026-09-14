@@ -300,6 +300,28 @@ describe('question write actions', () => {
     expect(questionDeleteEq).toHaveBeenCalledWith('id', 42);
   });
 
+  it.each(['knowledge', 'qr_code', 'picture'] as const)(
+    'stores the expected solution option of a new %s question as correct',
+    async (type) => {
+      mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+      const { answersQuery } = buildCreateClient();
+
+      const { createQuestion } = await import('./question');
+      const result = await createQuestion({
+        content: 'Frage',
+        type,
+        point_value: 3,
+        bucket_path: type === 'picture' ? 'image.png' : undefined,
+        solutionOptions: [{ correct: false, text: 'Antwort' }],
+      });
+
+      expect(result.success).toBe(true);
+      expect(answersQuery.insert).toHaveBeenCalledWith([
+        { correct: true, text: 'Antwort', question_id: 42 },
+      ]);
+    }
+  );
+
   it('creates text geocaching data with the validated radius default', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const { geocachingInsert } = buildCreateClient();
@@ -511,6 +533,54 @@ describe('question write actions', () => {
     expect(questionsQuery.select).toHaveBeenCalledWith('id, type, bucket_path');
     expect(questionUpdate).not.toHaveBeenCalled();
     expect(answersQuery.select).not.toHaveBeenCalled();
+  });
+
+  it.each(['knowledge', 'qr_code', 'picture'] as const)(
+    'repairs the expected solution option of an existing %s question',
+    async (type) => {
+      mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+      const { answersQuery } = buildUpdateClient({
+        existingType: type,
+        existingBucketPath: type === 'picture' ? 'image.png' : null,
+      });
+
+      const { updateQuestion } = await import('./question');
+      const result = await updateQuestion(1, {
+        content: 'Frage',
+        type,
+        point_value: 3,
+        bucket_path: type === 'picture' ? 'image.png' : undefined,
+        solutionOptions: [{ id: 1, correct: false, text: 'Antwort' }],
+      });
+
+      expect(result.success).toBe(true);
+      expect(answersQuery.update).toHaveBeenCalledWith({
+        correct: true,
+        text: 'Antwort',
+      });
+    }
+  );
+
+  it('keeps the correct flags chosen for multiple choice options', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { answersQuery } = buildCreateClient();
+
+    const { createQuestion } = await import('./question');
+    const result = await createQuestion({
+      content: 'Welche Farbe?',
+      type: 'multiple_choice',
+      point_value: 3,
+      solutionOptions: [
+        { correct: false, text: 'Rot' },
+        { correct: true, text: 'Blau' },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+    expect(answersQuery.insert).toHaveBeenCalledWith([
+      { correct: false, text: 'Rot', question_id: 42 },
+      { correct: true, text: 'Blau', question_id: 42 },
+    ]);
   });
 
   it('deletes the previous image after replacing it', async () => {
