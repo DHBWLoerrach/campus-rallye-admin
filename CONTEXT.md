@@ -1,4 +1,4 @@
-# Campus Rallye Admin
+# Campus Rallye
 
 Dieser Kontext definiert die gemeinsame Sprache für Inhalte, Standorte und Rallyes der Campus-Rallye.
 
@@ -146,6 +146,10 @@ _Vermeiden_: Spieler, Teilnehmergruppe
 Personen, die eine Rallye in der Rallye-App nutzen.
 _Vermeiden_: Spieler, users
 
+**Rallye-Sitzung**:
+Die bestehende Teilnahme an einer Rallye in der Rallye-App, die erreichbar bleibt, auch wenn die Rallye nicht mehr beitretbar ist.
+_Vermeiden_: Rallye Session
+
 **Team-Antwort**:
 Die Antwort, die ein Team zu einer Rallye-Frage abgibt.
 _Vermeiden_: Antwort, submission
@@ -184,6 +188,10 @@ _Vermeiden_: Rallye-Status
 Ein Campus-Tour-Status, in dem die Campus-Tour in der Rallye-App sichtbar und spielbar ist.
 _Vermeiden_: Gestartet
 
+**Inaktiv**:
+Ein Campus-Tour-Status, in dem die Campus-Tour in der Rallye-App nicht sichtbar ist.
+_Vermeiden_: Deaktiviert
+
 **Team-Rallye-Status**:
 Die Lebenszyklusphase einer Team-Rallye.
 _Vermeiden_: Rallye-Status, State
@@ -215,6 +223,10 @@ _Vermeiden_: Results
 **Abgeschlossen**:
 Ein Team-Rallye-Status, in dem die Team-Rallye geschlossen und der Endstand final ist.
 _Vermeiden_: Ended
+
+**Beitretbare Rallye**:
+Eine Rallye, die Teilnehmende in der Rallye-App neu auswählen und betreten können.
+_Vermeiden_: Aktive Rallye, Joinable Rallye
 
 ### Bearbeitung und Apps
 
@@ -313,6 +325,8 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 | Abstimmungsfrage       | `votingQuestion`           | `voting_question`           | Rallye-Frage in der Abstimmung.                  |
 | Ergebnisse             | `results`                  | `results`                   | Team-Rallye-Statuswert.                          |
 | Abgeschlossen          | `ended`                    | `ended`                     | Finaler Team-Rallye-Statuswert.                  |
+| Beitretbare Rallye     | `joinableRallye`           | —                           | Abgeleitet aus dem Status, nicht gespeichert.    |
+| Rallye-Sitzung         | `rallyeSession`            | —                           | Nur in der Rallye-App.                           |
 | Admin-App              | `adminApp`                 | `admin_app`                 | Webanwendung für Bearbeitende.                   |
 | Rallye-App             | `rallyeApp`                | `rallye_app`                | App für Teilnehmende.                            |
 | Bearbeitende           | `editor`                   | `editor`                    | Nicht `staff user`.                              |
@@ -336,7 +350,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Andere Gruppen wie Studierendenvertretung oder Hochschulkommunikation sind **Bereiche** ohne eigenen Untertyp.
 - Ein **Standort** hat null oder eine **Campus-Tour**.
 - Eine **Campus-Tour** wird über ihren **Standort** gefunden.
-- Eine **Bereichs-Rallye** wird über ihre **Bereich** gefunden.
+- Eine **Bereichs-Rallye** wird über ihren **Bereich** gefunden.
 - Eine **Studiengangs-Rallye** wird über ihren **Studiengang** gefunden.
 - Eine **Studienzentrums-Rallye** wird über ihr **Studienzentrum** und dessen **Studiengänge** gefunden.
 
@@ -347,7 +361,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Studiengangs-Rallye** und eine **Studienzentrums-Rallye** sind jeweils eine **Bereichs-Rallye**.
 - **Studiengangs-Rallyes** und **Studienzentrums-Rallyes** unterscheiden sich von anderen **Bereichs-Rallyes** nur durch Einordnung und Auffindbarkeit, nicht durch Regeln oder Teilnehmererlebnis.
 - Eine **Rallye-Vorlage** gehört zu genau einem **Bereich**.
-- Eine **Bereich** kann null oder mehr **Rallye-Vorlagen** haben.
+- Ein **Bereich** kann null oder mehr **Rallye-Vorlagen** haben.
 - Eine **Rallye-Vorlage** ist keine **Rallye** und ist nicht spielbar.
 - Aus einer **Rallye-Vorlage** können null oder mehr **Team-Rallyes** erstellt werden.
 - Aus einer **Rallye-Vorlage** entstehen keine **Campus-Touren**.
@@ -363,10 +377,10 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Bereichsfrage** gehört zu genau einem **Bereich**.
 - Es gibt keine standortübergreifenden **Fragen**.
 - Eine **Standortfrage** darf in **Campus-Touren** und in **Bereichs-Rallyes** ihres **Standorts** verwendet werden, sofern ihr Fragetyp dort fachlich erlaubt ist.
-- Eine **Bereichsfrage** darf nur in **Bereichs-Rallyes** ihrer eigenen **Bereich** verwendet werden.
-- Eine **Bereichs-Rallye** darf **Bereichsfragen** ihrer eigenen **Bereich** und **Standortfragen** ihres **Standorts** verwenden.
+- Eine **Bereichsfrage** darf nur in **Bereichs-Rallyes** ihres eigenen **Bereichs** verwendet werden.
+- Eine **Bereichs-Rallye** darf **Bereichsfragen** ihres eigenen **Bereichs** und **Standortfragen** ihres **Standorts** verwenden.
 - Eine **Bereichs-Rallye** darf keine **Bereichsfragen** anderer **Bereiche** verwenden.
-- Eine **Rallye-Vorlage** darf **Bereichsfragen** ihrer eigenen **Bereich** und **Standortfragen** ihres **Standorts** verwenden.
+- Eine **Rallye-Vorlage** darf **Bereichsfragen** ihres eigenen **Bereichs** und **Standortfragen** ihres **Standorts** verwenden.
 - Eine **Rallye-Vorlage** darf keine **Bereichsfragen** anderer **Bereiche** verwenden.
 - Eine **Campus-Tour** darf **Standortfragen** ihres **Standorts** verwenden und keine **Bereichsfragen**.
 - **Frage**-Herkunft und Fragetyp sind getrennte Eigenschaften.
@@ -429,6 +443,8 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Im Status **Ergebnisse** ist das **Ergebnis** sichtbar, aber noch nicht der **Endstand**.
 - Im Status **Abgeschlossen** ist das **Ergebnis** der **Endstand**.
 - **Abgeschlossen** ist für eine konkrete **Team-Rallye** final.
+- Eine **Team-Rallye** ist eine **Beitretbare Rallye**, solange ihr **Team-Rallye-Status** **Bereit** oder **Läuft** ist.
+- Eine **Rallye-Sitzung** bleibt bestehen, wenn ihre **Rallye** nicht mehr beitretbar ist, zum Beispiel in **Abstimmung**, **Ergebnisse** oder **Abgeschlossen**.
 - Eine beendete **Team-Rallye** wird nicht wieder geöffnet; Wiederverwendung erfolgt über eine neue **Team-Rallye** aus einer **Rallye-Vorlage**.
 - Eine **Abstimmungsfrage** ist eine **Rallye-Frage** und gehört nur in eine **Team-Rallye**.
 - Nur **Upload-Fragen** können **Abstimmungsfragen** sein.
@@ -488,4 +504,4 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Ob **Abstimmungsfragen** auch andere Fragetypen umfassen könnten, war offen. Geklärt: **Abstimmungsfragen** sind fachlich auf **Upload-Fragen** beschränkt; Code-Pfade für Text-Antworten in der Abstimmung sind Altlast.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
-- Die **Geocaching-Frage** wurde im Datenmodell (Fragetyp `geocaching`, Tabelle `questions_geocaching`) eingeführt, bevor sie in dieser Fachsprache stand. Geklärt: Sie ist ein eigener Fragetyp, wird automatisch bewertet, braucht kein **Team** und ist in **Campus-Touren** erlaubt. Sie wird aktuell noch nicht in der **Admin-App** gepflegt.
+- Die **Geocaching-Frage** wurde im Datenmodell (Fragetyp `geocaching`, Tabelle `geocaching_questions`) eingeführt, bevor sie in dieser Fachsprache stand. Geklärt: Sie ist ein eigener Fragetyp, wird automatisch bewertet, braucht kein **Team** und ist in **Campus-Touren** erlaubt. Sie wird aktuell noch nicht in der **Admin-App** gepflegt.
