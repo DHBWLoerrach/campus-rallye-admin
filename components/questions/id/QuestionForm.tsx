@@ -14,6 +14,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
+  HINT_COST,
   questionTypes,
   type GeocachingInputType,
   type QuestionTypeId,
@@ -998,10 +999,17 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 <Label htmlFor="hint">Hinweis</Label>
                 <Input
                   id="hint"
+                  aria-describedby="hint-help"
                   value={formData.hint ?? ''}
                   onChange={(e) => handleFormChange('hint', e.target.value)}
                   placeholder="Hinweis eingeben (optional)"
                 />
+                <p id="hint-help" className="text-xs text-muted-foreground">
+                  Teilnehmende können den Hinweis in der Rallye-App aufdecken.{' '}
+                  {isUpload
+                    ? 'Bei Upload-Fragen kostet das keine Punkte.'
+                    : `Das kostet ${HINT_COST} Punkt, der bei richtiger Antwort abgezogen wird.`}
+                </p>
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="category">Kategorie</Label>

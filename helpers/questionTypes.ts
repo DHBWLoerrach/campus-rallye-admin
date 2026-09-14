@@ -23,6 +23,14 @@ export type GeocachingInputType = 'text' | 'qr';
 export const defaultIsVoting = (type: string | null | undefined): boolean =>
   type === 'upload';
 
+/**
+ * Points the Rallye-App deducts from a correct answer after the hint was
+ * revealed, never below 0. Upload answers score 0 on submission, so their
+ * hints are free. Mirrors HINT_COST in
+ * CampusRallyeApp/services/storage/hintStorage.ts.
+ */
+export const HINT_COST = 1;
+
 export interface QuestionTypeDefinition {
   id: QuestionTypeId;
   name: string;

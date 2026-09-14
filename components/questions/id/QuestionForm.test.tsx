@@ -537,6 +537,22 @@ describe('QuestionForm', () => {
     expect(screen.queryByText('Rallyes zuordnen')).not.toBeInTheDocument();
   });
 
+  it('explains that revealing a hint costs points', () => {
+    render(
+      <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Antwort eingeben/ }));
+    expect(screen.getByLabelText('Hinweis')).toHaveAccessibleDescription(
+      'Teilnehmende können den Hinweis in der Rallye-App aufdecken. Das kostet 1 Punkt, der bei richtiger Antwort abgezogen wird.'
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /Foto hochladen/ }));
+    expect(screen.getByLabelText('Hinweis')).toHaveAccessibleDescription(
+      'Teilnehmende können den Hinweis in der Rallye-App aufdecken. Bei Upload-Fragen kostet das keine Punkte.'
+    );
+  });
+
   it('disables removing the only solution option', () => {
     render(
       <QuestionForm
