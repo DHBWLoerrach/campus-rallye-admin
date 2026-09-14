@@ -59,6 +59,8 @@ describe('RallyeQuestionsManager', () => {
     expect(screen.getByText('Macht ein Gruppenfoto')).toBeInTheDocument();
     expect(screen.getByText('Antwort eingeben')).toBeInTheDocument();
     expect(screen.getByText('Foto hochladen')).toBeInTheDocument();
+    expect(screen.getAllByText('Bearbeiten')).toHaveLength(2);
+    expect(screen.getAllByText('Entfernen')).toHaveLength(2);
     expect(screen.queryByText('Wissensfrage')).not.toBeInTheDocument();
   });
 
@@ -92,6 +94,9 @@ describe('RallyeQuestionsManager', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Frage entfernen' }));
     await waitFor(() => expect(mockRemove).toHaveBeenCalledWith(5, 1));
     expect(screen.getByText('Keine Fragen zugeordnet')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Frage aus der Rallye entfernt. Die Frage bleibt im Katalog.'
+    );
     expect(mockRefresh).toHaveBeenCalled();
   });
 
@@ -113,6 +118,9 @@ describe('RallyeQuestionsManager', () => {
     await waitFor(() => expect(mockAdd).toHaveBeenCalledWith(5, 9));
     await waitFor(() =>
       expect(screen.getByText('1 Frage · 3 Punkte gesamt')).toBeInTheDocument()
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Frage hinzugefügt und gespeichert.'
     );
   });
 
@@ -174,6 +182,9 @@ describe('RallyeQuestionsManager', () => {
     );
     fireEvent.click(screen.getByRole('checkbox', { name: 'Abstimmung' }));
     await waitFor(() => expect(mockSetVoting).toHaveBeenCalledWith(5, 2, true));
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Abstimmung für diese Frage aktiviert und gespeichert.'
+    );
   });
 
   it('lets an upload question be deselected from voting', async () => {
@@ -192,6 +203,9 @@ describe('RallyeQuestionsManager', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'Abstimmung' }));
     await waitFor(() =>
       expect(mockSetVoting).toHaveBeenCalledWith(5, 2, false)
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Abstimmung für diese Frage deaktiviert und gespeichert.'
     );
   });
 

@@ -65,6 +65,8 @@ export default function RallyeQuestionsManager({
   const [available, setAvailable] = useState<Question[]>(initialAvailable);
   const [filters, setFilters] = useState<QuestionContentFilters>({});
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const createQuestionHref = buildRallyeQuestionCreationHref(rallyeId);
 
@@ -81,6 +83,7 @@ export default function RallyeQuestionsManager({
 
   const handleAdd = (question: Question) => {
     setError(null);
+    setFeedback(null);
     startTransition(async () => {
       const result = await addQuestionToRallye(rallyeId, question.id);
       if (!result.success) {
@@ -93,12 +96,14 @@ export default function RallyeQuestionsManager({
         )
       );
       setAvailable((prev) => prev.filter((q) => q.id !== question.id));
+      setFeedback('Frage hinzugefügt und gespeichert.');
       router.refresh();
     });
   };
 
   const handleRemove = (entry: AssignedQuestion) => {
     setError(null);
+    setFeedback(null);
     startTransition(async () => {
       const result = await removeQuestionFromRallye(
         rallyeId,
@@ -112,12 +117,16 @@ export default function RallyeQuestionsManager({
         prev.filter((e) => e.question.id !== entry.question.id)
       );
       setAvailable((prev) => [...prev, entry.question].sort(byContent));
+      setFeedback(
+        'Frage aus der Rallye entfernt. Die Frage bleibt im Katalog.'
+      );
       router.refresh();
     });
   };
 
   const handleVotingToggle = (entry: AssignedQuestion, checked: boolean) => {
     setError(null);
+    setFeedback(null);
     startTransition(async () => {
       const result = await setQuestionVoting(
         rallyeId,
@@ -133,6 +142,9 @@ export default function RallyeQuestionsManager({
           e.question.id === entry.question.id ? { ...e, isVoting: checked } : e
         )
       );
+      setFeedback(
+        `Abstimmung für diese Frage ${checked ? 'aktiviert' : 'deaktiviert'} und gespeichert.`
+      );
       router.refresh();
     });
   };
@@ -145,7 +157,16 @@ export default function RallyeQuestionsManager({
             ? 'Keine Fragen zugeordnet'
             : `${assigned.length} ${assigned.length === 1 ? 'Frage' : 'Fragen'} · ${totalPoints} Punkte gesamt`}
         </p>
-        <Dialog>
+        <Dialog
+          open={isAddDialogOpen}
+          onOpenChange={(open) => {
+            setIsAddDialogOpen(open);
+            if (open) {
+              setError(null);
+              setFeedback(null);
+            }
+          }}
+        >
           <DialogTrigger
             render={
               <Button variant="dhbwStyle" size="sm" className="cursor-pointer">
@@ -161,6 +182,24 @@ export default function RallyeQuestionsManager({
                 Rallye erstellen.
               </DialogDescription>
             </DialogHeader>
+            {error && (
+              <div
+                className="rounded-md border border-red-500/60 bg-red-50/60 px-3 py-2 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-200"
+                role="alert"
+                aria-live="polite"
+              >
+                {error}
+              </div>
+            )}
+            {feedback && (
+              <div
+                className="rounded-md border border-emerald-500/40 bg-emerald-50/70 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200"
+                role="status"
+                aria-live="polite"
+              >
+                {feedback}
+              </div>
+            )}
             <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border/70 bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">
@@ -201,16 +240,17 @@ export default function RallyeQuestionsManager({
                             : ''}
                         </span>
                       </TableCell>
-                      <TableCell className="w-12 text-right">
+                      <TableCell className="min-w-32 whitespace-nowrap text-right">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           aria-label="Frage hinzufügen"
-                          className="cursor-pointer text-primary"
+                          className="cursor-pointer whitespace-nowrap text-primary"
                           disabled={isPending}
                           onClick={() => handleAdd(question)}
                         >
                           <CirclePlus className="h-5 w-5" aria-hidden="true" />
+                          <span>Hinzufügen</span>
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -229,6 +269,16 @@ export default function RallyeQuestionsManager({
           aria-live="polite"
         >
           {error}
+        </div>
+      )}
+
+      {feedback && !isAddDialogOpen && (
+        <div
+          className="rounded-md border border-emerald-500/40 bg-emerald-50/70 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200"
+          role="status"
+          aria-live="polite"
+        >
+          {feedback}
         </div>
       )}
 
@@ -278,22 +328,24 @@ export default function RallyeQuestionsManager({
                       aria-label="Frage bearbeiten"
                       className={buttonVariants({
                         variant: 'ghost',
-                        size: 'icon',
+                        size: 'sm',
                         className:
                           'text-muted-foreground hover:text-foreground',
                       })}
                     >
                       <Pencil className="h-4 w-4" aria-hidden="true" />
+                      <span>Bearbeiten</span>
                     </Link>
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       aria-label="Frage entfernen"
                       className="cursor-pointer text-destructive"
                       disabled={isPending}
                       onClick={() => handleRemove(entry)}
                     >
                       <CircleMinus className="h-5 w-5" aria-hidden="true" />
+                      <span>Entfernen</span>
                     </Button>
                   </div>
                 </TableCell>
