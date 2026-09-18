@@ -3,6 +3,7 @@ import { IBM_Plex_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import Footer from '@/components/Footer';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const fontSans = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -29,8 +30,15 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <div className="flex flex-1 flex-col">{children}</div>
-        <Footer />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="flex flex-1 flex-col">{children}</div>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );
