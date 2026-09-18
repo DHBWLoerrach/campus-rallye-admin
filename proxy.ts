@@ -10,6 +10,7 @@ import {
   extractKeycloakRoles,
   extractKeycloakUuid,
   getKeycloakConfig,
+  getTokenVerificationErrorDetails,
   verifyKeycloakToken,
 } from '@/lib/keycloak';
 
@@ -48,8 +49,13 @@ export async function proxy(req: NextRequest) {
         uuid = extractKeycloakUuid(payload);
         email = extractKeycloakEmail(payload);
         roles = extractKeycloakRoles(payload);
-      } catch {
-        console.warn('Invalid token');
+      } catch (error) {
+        console.warn('Access token verification failed', {
+          source: 'proxy',
+          method: req.method,
+          path: req.nextUrl.pathname,
+          ...getTokenVerificationErrorDetails(error),
+        });
       }
     }
   }

@@ -52,11 +52,13 @@ async function signToken({
   aud = 'account',
   azp = AUDIENCE,
   subject = 'user-123',
+  expirationTime = '2h',
 }: {
   roles?: string[];
   aud?: string;
   azp?: string;
   subject?: string;
+  expirationTime?: string | number;
 } = {}) {
   const payload: Record<string, unknown> = {
     realm_access: { roles },
@@ -72,16 +74,19 @@ async function signToken({
     .setIssuer(ISSUER)
     .setAudience(aud)
     .setSubject(subject)
-    .setExpirationTime('2h')
+    .setExpirationTime(expirationTime)
     .sign(privateKey);
 }
 
-function buildRequest(path: string, token?: string) {
+function buildRequest(path: string, token?: string, method = 'GET') {
   const headers = new Headers();
   if (token) {
     headers.set('x-forwarded-access-token', token);
   }
-  return new NextRequest(new URL(`http://example.com${path}`), { headers });
+  return new NextRequest(new URL(`http://example.com${path}`), {
+    headers,
+    method,
+  });
 }
 
 describe('proxy', () => {
@@ -118,6 +123,7 @@ describe('proxy', () => {
   });
 
   it('redirects invalid tokens to login', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const token = await signToken({ azp: 'other' });
     const response = await proxy(buildRequest('/questions?tab=1', token));
 
@@ -128,6 +134,42 @@ describe('proxy', () => {
     expect(loginUrl.pathname).toBe('/oauth2/start');
     expect(loginUrl.searchParams.get('rd')).toBe('/questions?tab=1');
     expect(response.headers.get('set-cookie')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Access token verification failed', {
+      source: 'proxy',
+      method: 'GET',
+      path: '/questions',
+      code: 'ERR_KEYCLOAK_AZP_MISMATCH',
+    });
+    expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(token);
+    warnSpy.mockRestore();
+  });
+
+  it('logs safe diagnostics for an expired action token', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const expirationTime = Math.floor(Date.now() / 1000) - 60;
+    const token = await signToken({
+      expirationTime,
+      subject: 'sensitive-user-id',
+    });
+
+    await proxy(buildRequest('/questions/42?tab=details', token, 'POST'));
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Access token verification failed',
+      expect.objectContaining({
+        source: 'proxy',
+        method: 'POST',
+        path: '/questions/42',
+        code: 'ERR_JWT_EXPIRED',
+        claim: 'exp',
+        expiredAt: new Date(expirationTime * 1000).toISOString(),
+        expiredBySeconds: expect.any(Number),
+      })
+    );
+    const serializedLog = JSON.stringify(warnSpy.mock.calls);
+    expect(serializedLog).not.toContain(token);
+    expect(serializedLog).not.toContain('sensitive-user-id');
+    warnSpy.mockRestore();
   });
 
   it.each(['/impressum', '/datenschutz', '/nutzungshinweise'])(

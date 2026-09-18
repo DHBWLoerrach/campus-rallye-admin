@@ -5,6 +5,7 @@ import {
   extractKeycloakEmail,
   extractKeycloakRoles,
   extractKeycloakUuid,
+  getTokenVerificationErrorDetails,
   verifyKeycloakToken,
 } from '@/lib/keycloak';
 
@@ -44,7 +45,10 @@ export async function getUserContext(): Promise<UserContext> {
 
     return { uuid, email, roles };
   } catch (err) {
-    console.warn('Failed to parse user token', err);
+    console.warn('Access token verification failed', {
+      source: 'user-context',
+      ...getTokenVerificationErrorDetails(err),
+    });
     throw new Error('Invalid access token');
   }
 }

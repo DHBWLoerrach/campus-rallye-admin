@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
+import { createRemoteJWKSet, errors, jwtVerify, type JWTPayload } from 'jose';
 
 export type KeycloakTokenPayload = JWTPayload & {
   UUID?: string;
@@ -15,6 +15,74 @@ type KeycloakConfig = {
   audience: string;
   jwks: ReturnType<typeof createRemoteJWKSet>;
 };
+
+const KEYCLOAK_AZP_MISMATCH = 'ERR_KEYCLOAK_AZP_MISMATCH';
+const UNKNOWN_TOKEN_VERIFICATION_ERROR = 'ERR_TOKEN_VERIFICATION_UNKNOWN';
+
+type TokenVerificationErrorDetails = {
+  code: string;
+  claim?: string;
+  reason?: string;
+  expiredAt?: string;
+  expiredBySeconds?: number;
+  errorName?: string;
+};
+
+class KeycloakTokenValidationError extends Error {
+  readonly code: string;
+
+  constructor(code: string) {
+    super('Keycloak access token validation failed');
+    this.name = 'KeycloakTokenValidationError';
+    this.code = code;
+  }
+}
+
+export function getTokenVerificationErrorDetails(
+  error: unknown,
+  now = Date.now()
+): TokenVerificationErrorDetails {
+  if (error instanceof KeycloakTokenValidationError) {
+    return { code: error.code };
+  }
+
+  if (error instanceof errors.JWTExpired) {
+    const details: TokenVerificationErrorDetails = {
+      code: error.code,
+      claim: error.claim,
+      reason: error.reason,
+    };
+    const expirationTime = error.payload.exp;
+    if (typeof expirationTime === 'number') {
+      const expirationDate = new Date(expirationTime * 1000);
+      if (!Number.isNaN(expirationDate.getTime())) {
+        details.expiredAt = expirationDate.toISOString();
+        details.expiredBySeconds = Math.max(
+          0,
+          Math.floor(now / 1000) - expirationTime
+        );
+      }
+    }
+    return details;
+  }
+
+  if (error instanceof errors.JWTClaimValidationFailed) {
+    return {
+      code: error.code,
+      claim: error.claim,
+      reason: error.reason,
+    };
+  }
+
+  if (error instanceof errors.JOSEError) {
+    return { code: error.code };
+  }
+
+  return {
+    code: UNKNOWN_TOKEN_VERIFICATION_ERROR,
+    errorName: error instanceof Error ? error.name : typeof error,
+  };
+}
 
 const issuer = process.env.KEYCLOAK_ISSUER;
 const audience = process.env.KEYCLOAK_AUDIENCE;
@@ -54,7 +122,7 @@ export async function verifyKeycloakToken(
   // `azp` ("authorized party") is the most reliable binding to the OIDC client that obtained the token.
   // If this is not our expected client_id, treat it as a token for a different client/context.
   if (typeof payload.azp !== 'string' || payload.azp !== resolved.audience) {
-    throw new Error('Invalid azp');
+    throw new KeycloakTokenValidationError(KEYCLOAK_AZP_MISMATCH);
   }
 
   // Note: We intentionally do NOT enforce `aud` here because our Keycloak server delivers other values as audience ('account').

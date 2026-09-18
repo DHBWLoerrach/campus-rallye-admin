@@ -144,10 +144,17 @@ describe('getUserContext', () => {
   });
 
   it('rejects tokens with the wrong azp', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const token = await signToken({ azp: 'other' });
     setTokenHeader(token);
 
     await expect(getUserContext()).rejects.toThrow('Invalid access token');
+    expect(warnSpy).toHaveBeenCalledWith('Access token verification failed', {
+      source: 'user-context',
+      code: 'ERR_KEYCLOAK_AZP_MISMATCH',
+    });
+    expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(token);
+    warnSpy.mockRestore();
   });
 
   it('rejects when the token header is missing', async () => {
