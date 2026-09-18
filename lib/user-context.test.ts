@@ -19,6 +19,7 @@ const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
 const AUDIENCE = 'campusrallye';
 const KEY_ID = 'test-key';
 const SUPABASE_KEY_ID = 'supabase-key';
+const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 const { mockHeaders } = vi.hoisted(() => ({
   mockHeaders: vi.fn(),
@@ -145,15 +146,17 @@ describe('getUserContext', () => {
 
   it('rejects tokens with the wrong azp', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const token = await signToken({ azp: 'other' });
+    const token = await signToken({ azp: 'other', subject: USER_ID });
     setTokenHeader(token);
 
     await expect(getUserContext()).rejects.toThrow('Invalid access token');
     expect(warnSpy).toHaveBeenCalledWith('Access token verification failed', {
       source: 'user-context',
       code: 'ERR_KEYCLOAK_AZP_MISMATCH',
+      userRef: '550e8400',
     });
     expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(token);
+    expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(USER_ID);
     warnSpy.mockRestore();
   });
 
@@ -225,9 +228,18 @@ describe('getSupabaseJwt', () => {
   });
 
   it('rejects non-staff users', async () => {
-    const token = await signToken({ roles: ['student'], subject: 'user-456' });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const token = await signToken({ roles: ['student'], subject: USER_ID });
     setTokenHeader(token);
 
     await expect(getSupabaseJwt()).rejects.toThrow('Zugriff verweigert');
+    expect(warnSpy).toHaveBeenCalledWith('Access denied', {
+      userRef: '550e8400',
+      roles: ['student'],
+    });
+    const serializedLog = JSON.stringify(warnSpy.mock.calls);
+    expect(serializedLog).not.toContain(USER_ID);
+    expect(serializedLog).not.toContain('user@example.test');
+    warnSpy.mockRestore();
   });
 });

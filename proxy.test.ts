@@ -10,6 +10,7 @@ import {
 const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
 const AUDIENCE = 'campusrallye';
 const KEY_ID = 'test-key';
+const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 let config: { matcher: string[] };
 let proxy: (req: NextRequest) => Promise<Response>;
@@ -113,18 +114,27 @@ describe('proxy', () => {
   });
 
   it('redirects non-staff to access denied', async () => {
-    const token = await signToken();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const token = await signToken({ subject: USER_ID });
     const response = await proxy(buildRequest('/questions', token));
 
     const location = response.headers.get('location');
     expect(location).not.toBeNull();
     expect(new URL(location as string).pathname).toBe('/access-denied');
     expect(response.headers.get('set-cookie')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Access denied', {
+      userRef: '550e8400',
+      roles: [],
+      path: '/questions',
+    });
+    const serializedLog = JSON.stringify(warnSpy.mock.calls);
+    expect(serializedLog).not.toContain(USER_ID);
+    warnSpy.mockRestore();
   });
 
   it('redirects invalid tokens to login', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const token = await signToken({ azp: 'other' });
+    const token = await signToken({ azp: 'other', subject: USER_ID });
     const response = await proxy(buildRequest('/questions?tab=1', token));
 
     const location = response.headers.get('location');
@@ -139,8 +149,10 @@ describe('proxy', () => {
       method: 'GET',
       path: '/questions',
       code: 'ERR_KEYCLOAK_AZP_MISMATCH',
+      userRef: '550e8400',
     });
     expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(token);
+    expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(USER_ID);
     warnSpy.mockRestore();
   });
 
@@ -149,7 +161,7 @@ describe('proxy', () => {
     const expirationTime = Math.floor(Date.now() / 1000) - 60;
     const token = await signToken({
       expirationTime,
-      subject: 'sensitive-user-id',
+      subject: USER_ID,
     });
 
     await proxy(buildRequest('/questions/42?tab=details', token, 'POST'));
@@ -164,11 +176,12 @@ describe('proxy', () => {
         claim: 'exp',
         expiredAt: new Date(expirationTime * 1000).toISOString(),
         expiredBySeconds: expect.any(Number),
+        userRef: '550e8400',
       })
     );
     const serializedLog = JSON.stringify(warnSpy.mock.calls);
     expect(serializedLog).not.toContain(token);
-    expect(serializedLog).not.toContain('sensitive-user-id');
+    expect(serializedLog).not.toContain(USER_ID);
     warnSpy.mockRestore();
   });
 

@@ -5,6 +5,7 @@ import {
   AUTH_SESSION_COOKIE_VALUE,
 } from '@/lib/auth-session-cookie';
 import { getDevBypassContext } from '@/lib/user-context';
+import { getUserRef } from '@/lib/user-ref';
 import {
   extractKeycloakEmail,
   extractKeycloakRoles,
@@ -76,9 +77,9 @@ export async function proxy(req: NextRequest) {
 
   // 🚫 Logged in but not authorized → Redirect to access denied page
   if (!isAuthorized) {
+    const userRef = getUserRef(uuid);
     console.warn('Access denied', {
-      uuid,
-      email,
+      ...(userRef ? { userRef } : {}),
       roles,
       path: req.nextUrl.pathname,
     });

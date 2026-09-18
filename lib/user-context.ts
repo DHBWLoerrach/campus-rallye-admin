@@ -8,6 +8,7 @@ import {
   getTokenVerificationErrorDetails,
   verifyKeycloakToken,
 } from '@/lib/keycloak';
+import { getUserRef } from '@/lib/user-ref';
 
 type UserContext = {
   uuid: string;
@@ -56,9 +57,9 @@ export async function getUserContext(): Promise<UserContext> {
 export async function getSupabaseJwt(): Promise<string> {
   const { uuid, email, roles } = await getUserContext();
   if (!isAuthorizedUser(roles, email)) {
+    const userRef = getUserRef(uuid);
     console.warn('Access denied', {
-      uuid,
-      email,
+      ...(userRef ? { userRef } : {}),
       roles,
     });
     throw new Error('Zugriff verweigert');

@@ -1,4 +1,5 @@
 import { getDb } from './sqlite';
+import { getUserRef } from '../user-ref';
 
 export type LocalUser = {
   user_id: string;
@@ -46,7 +47,10 @@ export function upsertLocalUser(uuid: string, email: string | null): LocalUser {
     .run(uuid, email, registeredAt);
 
   if (result.changes > 0) {
-    console.log('✔️ Neuer lokaler Benutzer registriert:', uuid, email);
+    const userRef = getUserRef(uuid);
+    console.log('New local user registered', {
+      ...(userRef ? { userRef } : {}),
+    });
 
     return {
       user_id: uuid,

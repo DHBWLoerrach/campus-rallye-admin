@@ -43,11 +43,20 @@ describe('local-user', () => {
   });
 
   it('inserts and reads back a user with admin=false by default', () => {
-    const user = upsertLocalUser('uuid-1', 'a@b.de');
-    expect(user.user_id).toBe('uuid-1');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const userId = '550e8400-e29b-41d4-a716-446655440000';
+    const user = upsertLocalUser(userId, 'a@b.de');
+    expect(user.user_id).toBe(userId);
     expect(user.email).toBe('a@b.de');
     expect(user.admin).toBe(false);
-    expect(getLocalUser('uuid-1')).toEqual(user);
+    expect(getLocalUser(userId)).toEqual(user);
+    expect(logSpy).toHaveBeenCalledWith('New local user registered', {
+      userRef: '550e8400',
+    });
+    const serializedLog = JSON.stringify(logSpy.mock.calls);
+    expect(serializedLog).not.toContain(userId);
+    expect(serializedLog).not.toContain('a@b.de');
+    logSpy.mockRestore();
   });
 
   it('returns existing user on second upsert without overwriting', () => {

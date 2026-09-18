@@ -1,6 +1,7 @@
 import { isAuthorizedUser } from './auth';
 import { getUserContext } from './user-context';
 import { getLocalUser, upsertLocalUser, type LocalUser } from './db/local-user';
+import { getUserRef } from './user-ref';
 
 type Profile = {
   user_id: string;
@@ -20,9 +21,9 @@ export async function requireProfile(createProfile = false): Promise<Profile> {
   const { uuid, email, roles } = await getUserContext();
 
   if (!isAuthorizedUser(roles, email)) {
+    const userRef = getUserRef(uuid);
     console.warn('Access denied', {
-      uuid,
-      email,
+      ...(userRef ? { userRef } : {}),
       roles,
     });
     throw new Error('Zugriff verweigert');

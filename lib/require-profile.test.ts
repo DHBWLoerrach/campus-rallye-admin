@@ -30,9 +30,11 @@ describe('requireProfile', () => {
   });
 
   it('rejects non-staff users before reading the local DB', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const userId = '550e8400-e29b-41d4-a716-446655440000';
     mockGetUserContext.mockResolvedValue({
-      uuid: 'user-1',
-      email: null,
+      uuid: userId,
+      email: 'student@example.test',
       roles: ['student'],
     });
 
@@ -41,6 +43,14 @@ describe('requireProfile', () => {
     await expect(requireProfile()).rejects.toThrow('Zugriff verweigert');
     expect(mockGetLocalUser).not.toHaveBeenCalled();
     expect(mockUpsertLocalUser).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith('Access denied', {
+      userRef: '550e8400',
+      roles: ['student'],
+    });
+    const serializedLog = JSON.stringify(warnSpy.mock.calls);
+    expect(serializedLog).not.toContain(userId);
+    expect(serializedLog).not.toContain('student@example.test');
+    warnSpy.mockRestore();
   });
 
   it('returns existing profile for staff users', async () => {

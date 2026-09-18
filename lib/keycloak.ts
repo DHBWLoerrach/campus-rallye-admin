@@ -1,4 +1,5 @@
 import { createRemoteJWKSet, errors, jwtVerify, type JWTPayload } from 'jose';
+import { getUserRef } from './user-ref';
 
 export type KeycloakTokenPayload = JWTPayload & {
   UUID?: string;
@@ -26,16 +27,27 @@ type TokenVerificationErrorDetails = {
   expiredAt?: string;
   expiredBySeconds?: number;
   errorName?: string;
+  userRef?: string;
 };
 
 class KeycloakTokenValidationError extends Error {
   readonly code: string;
+  readonly userRef: string | null;
 
-  constructor(code: string) {
+  constructor(code: string, userId?: string | null) {
     super('Keycloak access token validation failed');
     this.name = 'KeycloakTokenValidationError';
     this.code = code;
+    this.userRef = getUserRef(userId);
   }
+}
+
+function addUserRef(
+  details: TokenVerificationErrorDetails,
+  payload: JWTPayload
+): TokenVerificationErrorDetails {
+  const userRef = getUserRef(extractKeycloakUuid(payload));
+  return userRef ? { ...details, userRef } : details;
 }
 
 export function getTokenVerificationErrorDetails(
@@ -43,7 +55,9 @@ export function getTokenVerificationErrorDetails(
   now = Date.now()
 ): TokenVerificationErrorDetails {
   if (error instanceof KeycloakTokenValidationError) {
-    return { code: error.code };
+    return error.userRef
+      ? { code: error.code, userRef: error.userRef }
+      : { code: error.code };
   }
 
   if (error instanceof errors.JWTExpired) {
@@ -63,15 +77,18 @@ export function getTokenVerificationErrorDetails(
         );
       }
     }
-    return details;
+    return addUserRef(details, error.payload);
   }
 
   if (error instanceof errors.JWTClaimValidationFailed) {
-    return {
-      code: error.code,
-      claim: error.claim,
-      reason: error.reason,
-    };
+    return addUserRef(
+      {
+        code: error.code,
+        claim: error.claim,
+        reason: error.reason,
+      },
+      error.payload
+    );
   }
 
   if (error instanceof errors.JOSEError) {
@@ -122,7 +139,10 @@ export async function verifyKeycloakToken(
   // `azp` ("authorized party") is the most reliable binding to the OIDC client that obtained the token.
   // If this is not our expected client_id, treat it as a token for a different client/context.
   if (typeof payload.azp !== 'string' || payload.azp !== resolved.audience) {
-    throw new KeycloakTokenValidationError(KEYCLOAK_AZP_MISMATCH);
+    throw new KeycloakTokenValidationError(
+      KEYCLOAK_AZP_MISMATCH,
+      extractKeycloakUuid(payload)
+    );
   }
 
   // Note: We intentionally do NOT enforce `aud` here because our Keycloak server delivers other values as audience ('account').
