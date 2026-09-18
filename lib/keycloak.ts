@@ -24,8 +24,10 @@ type TokenVerificationErrorDetails = {
   code: string;
   claim?: string;
   reason?: string;
+  issuedAt?: string;
   expiredAt?: string;
   expiredBySeconds?: number;
+  tokenLifetimeSeconds?: number;
   errorName?: string;
   userRef?: string;
 };
@@ -50,6 +52,12 @@ function addUserRef(
   return userRef ? { ...details, userRef } : details;
 }
 
+function numericDateToIso(value: unknown): string | null {
+  if (typeof value !== 'number') return null;
+  const date = new Date(value * 1000);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 export function getTokenVerificationErrorDetails(
   error: unknown,
   now = Date.now()
@@ -67,15 +75,25 @@ export function getTokenVerificationErrorDetails(
       reason: error.reason,
     };
     const expirationTime = error.payload.exp;
-    if (typeof expirationTime === 'number') {
-      const expirationDate = new Date(expirationTime * 1000);
-      if (!Number.isNaN(expirationDate.getTime())) {
-        details.expiredAt = expirationDate.toISOString();
-        details.expiredBySeconds = Math.max(
-          0,
-          Math.floor(now / 1000) - expirationTime
-        );
-      }
+    const issuedAt = error.payload.iat;
+    const expirationDate = numericDateToIso(expirationTime);
+    const issuedAtDate = numericDateToIso(issuedAt);
+    if (expirationDate && typeof expirationTime === 'number') {
+      details.expiredAt = expirationDate;
+      details.expiredBySeconds = Math.max(
+        0,
+        Math.floor(now / 1000) - expirationTime
+      );
+    }
+    if (issuedAtDate) {
+      details.issuedAt = issuedAtDate;
+    }
+    if (
+      typeof expirationTime === 'number' &&
+      typeof issuedAt === 'number' &&
+      expirationTime >= issuedAt
+    ) {
+      details.tokenLifetimeSeconds = expirationTime - issuedAt;
     }
     return addUserRef(details, error.payload);
   }

@@ -53,12 +53,14 @@ async function signToken({
   aud = 'account',
   azp = AUDIENCE,
   subject = 'user-123',
+  issuedAt = Math.floor(Date.now() / 1000),
   expirationTime = '2h',
 }: {
   roles?: string[];
   aud?: string;
   azp?: string;
   subject?: string;
+  issuedAt?: number;
   expirationTime?: string | number;
 } = {}) {
   const payload: Record<string, unknown> = {
@@ -71,7 +73,7 @@ async function signToken({
 
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'RS256', kid: KEY_ID })
-    .setIssuedAt()
+    .setIssuedAt(issuedAt)
     .setIssuer(ISSUER)
     .setAudience(aud)
     .setSubject(subject)
@@ -159,7 +161,9 @@ describe('proxy', () => {
   it('logs safe diagnostics for an expired action token', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const expirationTime = Math.floor(Date.now() / 1000) - 60;
+    const issuedAt = expirationTime - 5 * 60;
     const token = await signToken({
+      issuedAt,
       expirationTime,
       subject: USER_ID,
     });
@@ -174,8 +178,10 @@ describe('proxy', () => {
         path: '/questions/42',
         code: 'ERR_JWT_EXPIRED',
         claim: 'exp',
+        issuedAt: new Date(issuedAt * 1000).toISOString(),
         expiredAt: new Date(expirationTime * 1000).toISOString(),
         expiredBySeconds: expect.any(Number),
+        tokenLifetimeSeconds: 300,
         userRef: '550e8400',
       })
     );
