@@ -17,26 +17,12 @@ vi.mock('next/image', () => ({
   default: () => null,
 }));
 
-class MockFileReader {
-  result: string | null = null;
-  onload: ((ev: ProgressEvent<FileReader>) => void) | null = null;
-  onerror: ((ev: ProgressEvent<FileReader>) => void) | null = null;
-
-  readAsDataURL() {
-    this.result = 'data:image/png;base64,AAAA';
-    if (this.onload) {
-      this.onload({} as ProgressEvent<FileReader>);
-    }
-  }
-}
-
 describe('QuestionImage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    globalThis.FileReader = MockFileReader as unknown as typeof FileReader;
   });
 
-  it('shows an error when the upload fails', async () => {
+  it('shows the server error when the upload fails', async () => {
     mockUploadImage.mockResolvedValue({
       success: false,
       error: 'Upload fehlgeschlagen',
@@ -49,12 +35,48 @@ describe('QuestionImage', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(
-      await screen.findByText('Bild konnte nicht hochgeladen werden')
+      await screen.findByText('Upload fehlgeschlagen')
     ).toBeInTheDocument();
-    expect(mockUploadImage).toHaveBeenCalledWith(
-      'data:image/png;base64,AAAA',
-      'photo.png'
+    expect(mockUploadImage).toHaveBeenCalledOnce();
+    const formData = mockUploadImage.mock.calls[0][0] as FormData;
+    expect(formData.get('file')).toBe(file);
+  });
+
+  it('rejects unsupported image types before uploading', () => {
+    render(<QuestionImage onImageChange={vi.fn()} />);
+
+    const input = screen.getByLabelText('Bild hochladen');
+    const file = new File(['data'], 'photo.svg', { type: 'image/svg+xml' });
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Dateityp nicht unterstützt. Erlaubt sind PNG, JPG, GIF und WebP.'
     );
+    expect(mockUploadImage).not.toHaveBeenCalled();
+  });
+
+  it('rejects images larger than 5 MB before uploading', () => {
+    render(<QuestionImage onImageChange={vi.fn()} />);
+
+    const input = screen.getByLabelText('Bild hochladen');
+    const file = new File(['data'], 'photo.png', { type: 'image/png' });
+    Object.defineProperty(file, 'size', { value: 5 * 1024 * 1024 + 1 });
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Das Bild darf maximal 5 MB groß sein.'
+    );
+    expect(mockUploadImage).not.toHaveBeenCalled();
+  });
+
+  it('shows the supported formats and file size limit', () => {
+    render(<QuestionImage onImageChange={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        'PNG, JPG, GIF oder WebP · maximal 5 MB. Bilder werden sofort hochgeladen.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows an error when the delete fails', async () => {

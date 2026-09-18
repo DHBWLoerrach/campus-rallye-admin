@@ -11,6 +11,16 @@ interface QuestionImageProps {
   onImageChange: (newPath: string | undefined) => void;
 }
 
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/gif',
+  'image/webp',
+]);
+const ACCEPTED_IMAGE_TYPES = Array.from(ALLOWED_IMAGE_TYPES).join(',');
+
 const QuestionImage: React.FC<QuestionImageProps> = ({
   bucketPath,
   persistedBucketPath,
@@ -25,40 +35,39 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
     try {
       const file = event.target.files?.[0];
       if (!file) return;
-      setUploading(true);
       setErrorMessage(null);
 
-      // Convert file to base64
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          const base64String = reader.result as string;
-          const result = await uploadImage(base64String, file.name);
-          if (!result.success) {
-            throw new Error(result.error);
-          }
-          if (result.data?.fileName) {
-            onImageChange(result.data.fileName);
-            setErrorMessage(null);
-            return;
-          }
-          throw new Error('Missing file name');
-        } catch (error) {
-          console.error('Error uploading image:', error);
-          setErrorMessage('Bild konnte nicht hochgeladen werden');
-        } finally {
-          setUploading(false);
-        }
-      };
-      reader.onerror = () => {
-        console.error('Error reading image file');
-        setErrorMessage('Bild konnte nicht gelesen werden');
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
+      if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+        setErrorMessage(
+          'Dateityp nicht unterstützt. Erlaubt sind PNG, JPG, GIF und WebP.'
+        );
+        return;
+      }
+
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        setErrorMessage('Das Bild darf maximal 5 MB groß sein.');
+        return;
+      }
+
+      setUploading(true);
+
+      const formData = new FormData();
+      formData.set('file', file);
+      const result = await uploadImage(formData);
+      if (!result.success) {
+        setErrorMessage(result.error);
+        return;
+      }
+      if (result.data?.fileName) {
+        onImageChange(result.data.fileName);
+        setErrorMessage(null);
+        return;
+      }
+      throw new Error('Missing file name');
     } catch (error) {
       console.error('Error handling image:', error);
       setErrorMessage('Bild konnte nicht hochgeladen werden');
+    } finally {
       setUploading(false);
     }
   };
@@ -87,10 +96,13 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
     <div className="space-y-3">
       <Label>Bild</Label>
       <p className="text-xs text-muted-foreground">
-        Bilder werden sofort hochgeladen.
+        PNG, JPG, GIF oder WebP · maximal 5 MB. Bilder werden sofort
+        hochgeladen.
       </p>
       {errorMessage && (
-        <p className="text-xs text-destructive">{errorMessage}</p>
+        <p className="text-xs text-destructive" role="alert">
+          {errorMessage}
+        </p>
       )}
 
       {bucketPath ? (
@@ -119,7 +131,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
         <div>
           <input
             type="file"
-            accept="image/*"
+            accept={ACCEPTED_IMAGE_TYPES}
             onChange={handleImageUpload}
             disabled={uploading}
             className="hidden"

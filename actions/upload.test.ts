@@ -19,11 +19,11 @@ describe('uploadImage', () => {
     vi.resetModules();
   });
 
-  it('rejects invalid base64 without touching Supabase', async () => {
+  it('rejects a missing file without touching Supabase', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
 
     const { uploadImage } = await import('./upload');
-    const result = await uploadImage('not-base64', 'file.png');
+    const result = await uploadImage(new FormData());
 
     expect(result.success).toBe(false);
     if (result.success) {
@@ -41,7 +41,12 @@ describe('uploadImage', () => {
     mockCreateClient.mockResolvedValue({ storage: { from } });
 
     const { uploadImage } = await import('./upload');
-    const result = await uploadImage('data:image/png;base64,AAAA', 'photo.jpg');
+    const formData = new FormData();
+    formData.set(
+      'file',
+      new File(['data'], 'photo.jpg', { type: 'image/png' })
+    );
+    const result = await uploadImage(formData);
 
     expect(result.success).toBe(true);
     if (!result.success) {

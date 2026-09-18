@@ -4,13 +4,12 @@ import { requireProfile } from '@/lib/require-profile';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 
 export async function uploadImage(
-  base64File: string,
-  fileName: string
+  formData: FormData
 ): Promise<ActionResult<{ fileName: string }>> {
   await requireProfile();
 
-  const [meta, base64Data] = base64File.split(',');
-  if (!base64Data) {
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) {
     return fail('Ungültige Datei');
   }
   // MIME-Type Whitelist (nur Bilder erlaubt)
@@ -21,16 +20,16 @@ export async function uploadImage(
     'image/gif',
     'image/webp',
   ];
-  const contentType = meta?.match(/^data:(.+);base64$/)?.[1] ?? '';
+  const contentType = file.type;
   if (!allowedTypes.includes(contentType)) {
     return fail('Dateityp nicht unterstützt');
   }
   // Größenlimit (z.B. 5 MB)
   const MAX_SIZE = 5 * 1024 * 1024;
-  const buffer = Buffer.from(base64Data, 'base64');
-  if (buffer.length > MAX_SIZE) {
+  if (file.size > MAX_SIZE) {
     return fail('Datei ist zu groß');
   }
+  const buffer = Buffer.from(await file.arrayBuffer());
   const supabase = await createClient();
   // Generate unique filename
   const extMap: Record<string, string> = {
@@ -49,7 +48,11 @@ export async function uploadImage(
       contentType,
     });
   if (error) {
-    console.error('Supabase upload error:', { fileName, contentType }, error);
+    console.error(
+      'Supabase upload error:',
+      { fileName: file.name, contentType },
+      error
+    );
     return fail('Upload fehlgeschlagen');
   }
   return ok({ fileName: uniqueFileName });
