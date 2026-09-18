@@ -44,10 +44,14 @@ For each step:
 1. List the files changed.
 2. Propose a clear, compact commit message (imperative mood, precisely describing the change).
 3. Provide a brief summary: what/why.
-4. Tests: Evaluate whether unit/component/e2e tests are needed.
-   - If behavior changes / bugfix: implement tests in the same step (ideally write the test first, then the fix).
-   - If it’s a pure refactor: no new tests required, but all existing tests must pass.
-   - If test setup is needed: do a separate setup-only step first, then a following step for tests + code.
+4. Tests: Evaluate the risk and choose the most meaningful verification.
+   - Add or update automated tests when they can reliably verify observable behavior, a business rule, a security boundary, data integrity, or the concrete regression.
+   - Prefer the lowest test level that reproduces the relevant behavior without coupling the test to implementation details.
+   - Do not add tests that merely assert component placement, internal structure, framework wiring, or other implementation details unless those details are themselves a required invariant.
+   - For bug fixes, add a regression test when the original failure can be reproduced meaningfully and deterministically in the existing test setup.
+   - If the existing test setup cannot reproduce the failure meaningfully, use the most relevant available verification, such as a browser test, integration check, build check, or documented manual reproduction. Briefly state why no automated regression test was added.
+   - Pure refactors do not require new tests, but all existing tests must pass.
+   - Introduce new test infrastructure only when its long-term value is proportional to the risk being covered; do this as a separate setup-only step.
 5. After each step, run `npm run lint`, `npm run check:format`, `npx tsc --noEmit`, and `npm test`.
 
 Hard rule: If `npm run lint`, `npm run check:format`, `npx tsc --noEmit`, or `npm test` FAIL, do not commit and do not proceed to the next step until they pass.
