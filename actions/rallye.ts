@@ -18,6 +18,7 @@ import {
 } from '@/lib/validation';
 import { parsePlannedEnd } from '@/lib/planned-end';
 import { defaultIsVoting } from '@/helpers/questionTypes';
+import { isCampusTourRallye } from '@/lib/campus-tour';
 
 type FormState = ActionResult<{ message: string; rallyeId?: number }> | null;
 
@@ -145,6 +146,31 @@ export async function getRallyeOptions(): Promise<
     a.name.localeCompare(b.name, 'de', { sensitivity: 'base' })
   );
   return ok(rallyes);
+}
+
+export async function getRallyeCampusTourStatus(
+  rallyeId: number
+): Promise<ActionResult<boolean>> {
+  await requireProfile();
+
+  const idResult = idSchema.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('locations')
+    .select('default_rallye_id')
+    .eq('default_rallye_id', idResult.data)
+    .limit(1);
+
+  if (error) {
+    console.error('Error checking campus tour:', error);
+    return fail('Rallye konnte nicht geladen werden');
+  }
+
+  return ok(isCampusTourRallye(idResult.data, data ?? []));
 }
 
 export async function deleteRallye(

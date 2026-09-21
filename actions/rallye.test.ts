@@ -756,3 +756,29 @@ describe('createRallyeWithQuestions', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 });
+
+describe('getRallyeCampusTourStatus', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  it('treats a rallye referenced by multiple locations as a campus tour', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const limit = vi.fn().mockResolvedValue({
+      data: [{ default_rallye_id: 7 }],
+      error: null,
+    });
+    const eq = vi.fn(() => ({ limit }));
+    const select = vi.fn(() => ({ eq }));
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn(() => ({ select })),
+    });
+
+    const { getRallyeCampusTourStatus } = await import('./rallye');
+    const result = await getRallyeCampusTourStatus(7);
+
+    expect(result).toEqual({ success: true, data: true });
+    expect(limit).toHaveBeenCalledWith(1);
+  });
+});

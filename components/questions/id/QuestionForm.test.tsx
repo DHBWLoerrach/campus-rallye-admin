@@ -174,6 +174,24 @@ describe('QuestionForm', () => {
     expect(screen.queryByText('Fragetyp wählen')).not.toBeInTheDocument();
   });
 
+  it('does not offer upload questions for a campus tour', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        isCampusTour
+      />
+    );
+
+    expect(
+      screen.queryByRole('radio', { name: /Foto hochladen/ })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Upload-Fragen sind in Campus-Touren nicht verfügbar.')
+    ).toBeInTheDocument();
+  });
+
   it('shows the matching fields after selecting a task', () => {
     render(
       <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />

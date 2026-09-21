@@ -37,6 +37,7 @@ interface QuestionFormProps {
   isSubmitting?: boolean;
   serverErrors?: Record<string, string>;
   onServerErrorClear?: (field: string) => void;
+  isCampusTour?: boolean;
 }
 
 interface FormErrors {
@@ -160,6 +161,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   isSubmitting = false,
   serverErrors = {},
   onServerErrorClear,
+  isCampusTour = false,
 }) => {
   const initialSerializedRef = useRef<string | null>(null);
   const dirtyStateRef = useRef(false);
@@ -356,6 +358,10 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.type = 'Bitte einen Fragetyp wählen';
     }
 
+    if (isCampusTour && data.type === 'upload') {
+      newErrors.type = 'Upload-Fragen sind in Campus-Touren nicht verfügbar';
+    }
+
     if (!data.category?.trim() && isNewCategory) {
       newErrors.category =
         'Bitte eine Kategorie wählen oder eine neue eingeben';
@@ -465,6 +471,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const hasType = Boolean(formData.type);
   const isEditing = initialData?.id !== undefined;
+  const selectableQuestionTypes = isCampusTour
+    ? questionTypes.filter((type) => type.id !== 'upload')
+    : questionTypes;
   const selectedQuestionType = questionTypes.find(
     (type) => type.id === formData.type
   );
@@ -567,7 +576,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   aria-invalid={Boolean(displayedErrors.type)}
                   className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
                 >
-                  {questionTypes.map((type) => {
+                  {selectableQuestionTypes.map((type) => {
                     const Icon = questionTypeIcons[type.icon];
                     const selected = formData.type === type.id;
                     const optionId = `question-type-${type.id}`;
@@ -613,6 +622,11 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   })}
                 </RadioGroup>
               </>
+            )}
+            {isCampusTour && (
+              <p className="text-sm text-muted-foreground">
+                Upload-Fragen sind in Campus-Touren nicht verfügbar.
+              </p>
             )}
             {displayedErrors.type && (
               <span className="text-sm text-destructive">
