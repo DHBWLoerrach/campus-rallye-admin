@@ -78,6 +78,30 @@ describe('createLocation', () => {
     });
   });
 
+  it('rejects a rallye with upload questions as a campus tour', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    const secondEq = vi.fn().mockResolvedValue({ count: 1, error: null });
+    const firstEq = vi.fn(() => ({ eq: secondEq }));
+    const select = vi.fn(() => ({ eq: firstEq }));
+    const from = vi.fn((table: string) => {
+      if (table === 'rallye_questions') return { select };
+      throw new Error(`Unexpected table: ${table}`);
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { createLocation } = await import('./location');
+    const result = await createLocation(
+      null,
+      makeFormData({ name: 'Campus', default_rallye_id: '7' })
+    );
+
+    expect(result?.success).toBe(false);
+    if (result?.success !== false) throw new Error('Expected failure');
+    expect(result.error).toBe(
+      'Eine Rallye mit Upload-Fragen kann nicht als Campus-Tour verwendet werden'
+    );
+  });
+
   it('explains that the location name is already taken', async () => {
     mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
     const single = vi.fn().mockResolvedValue({
@@ -106,6 +130,40 @@ describe('createLocation', () => {
       'Ein Standort mit diesem Namen existiert bereits'
     );
     expect(mockRevalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('rejects assigning a rallye with upload questions as a campus tour', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    const locationMaybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
+    const locationSelectEq = vi.fn(() => ({
+      maybeSingle: locationMaybeSingle,
+    }));
+    const locationSelect = vi.fn(() => ({ eq: locationSelectEq }));
+    const questionSecondEq = vi
+      .fn()
+      .mockResolvedValue({ count: 1, error: null });
+    const questionFirstEq = vi.fn(() => ({ eq: questionSecondEq }));
+    const questionSelect = vi.fn(() => ({ eq: questionFirstEq }));
+    const from = vi.fn((table: string) => {
+      if (table === 'locations') return { select: locationSelect };
+      if (table === 'rallye_questions') return { select: questionSelect };
+      throw new Error(`Unexpected table: ${table}`);
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateLocation } = await import('./location');
+    const result = await updateLocation(
+      null,
+      makeFormData({ id: '1', name: 'Campus', default_rallye_id: '7' })
+    );
+
+    expect(result?.success).toBe(false);
+    if (result?.success !== false) throw new Error('Expected failure');
+    expect(result.error).toBe(
+      'Eine Rallye mit Upload-Fragen kann nicht als Campus-Tour verwendet werden'
+    );
   });
 });
 
@@ -146,6 +204,35 @@ describe('updateLocation', () => {
     expect(result?.success).toBe(false);
     if (result?.success !== false) throw new Error('Expected failure');
     expect(result.error).toBe('Standort nicht gefunden');
+  });
+
+  it('renames a location whose unchanged campus tour has upload questions', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { id: 1, default_rallye_id: 7 },
+      error: null,
+    });
+    const selectEq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq: selectEq }));
+    const updateEq = vi.fn().mockResolvedValue({ error: null });
+    const update = vi.fn(() => ({ eq: updateEq }));
+    const from = vi.fn((table: string) => {
+      if (table === 'locations') return { select, update };
+      throw new Error(`Unexpected table: ${table}`);
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { updateLocation } = await import('./location');
+    const result = await updateLocation(
+      null,
+      makeFormData({ id: '1', name: 'Neuer Name', default_rallye_id: '7' })
+    );
+
+    expect(result?.success).toBe(true);
+    expect(update).toHaveBeenCalledWith({
+      name: 'Neuer Name',
+      default_rallye_id: 7,
+    });
   });
 
   it('explains that the location name is already taken', async () => {

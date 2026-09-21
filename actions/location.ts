@@ -17,6 +17,35 @@ type FormState = ActionResult<{
 }> | null;
 
 const UNIQUE_VIOLATION = '23505';
+const UPLOAD_CAMPUS_TOUR_ERROR =
+  'Eine Rallye mit Upload-Fragen kann nicht als Campus-Tour verwendet werden';
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+const rejectRallyeWithUploadQuestions = async (
+  supabase: SupabaseClient,
+  rallyeId: number | null
+) => {
+  if (rallyeId === null) return null;
+
+  const { count, error } = await supabase
+    .from('rallye_questions')
+    .select('question_id, questions!inner(type)', {
+      count: 'exact',
+      head: true,
+    })
+    .eq('rallye_id', rallyeId)
+    .eq('questions.type', 'upload');
+
+  if (error) {
+    console.error('Error checking rallye questions:', error);
+    return fail('Campus-Tour konnte nicht gespeichert werden');
+  }
+  if ((count ?? 0) > 0) {
+    return fail(UPLOAD_CAMPUS_TOUR_ERROR);
+  }
+  return null;
+};
 
 const isUniqueViolation = (error: { code?: string } | null) =>
   error?.code === UNIQUE_VIOLATION;
@@ -45,6 +74,12 @@ export async function createLocation(state: FormState, formData: FormData) {
     name: parsed.data.name,
     default_rallye_id: parsed.data.default_rallye_id || null,
   };
+
+  const uploadRestriction = await rejectRallyeWithUploadQuestions(
+    supabase,
+    data.default_rallye_id
+  );
+  if (uploadRestriction) return uploadRestriction;
 
   const { data: createdLocation, error } = await supabase
     .from('locations')
@@ -86,7 +121,7 @@ export async function updateLocation(state: FormState, formData: FormData) {
 
   const { data: existingLocation, error: existingError } = await supabase
     .from('locations')
-    .select('id')
+    .select('id, default_rallye_id')
     .eq('id', data.id)
     .maybeSingle();
 
@@ -103,6 +138,16 @@ export async function updateLocation(state: FormState, formData: FormData) {
     name: data.name,
     default_rallye_id: data.default_rallye_id || null,
   };
+
+  // Only a newly assigned campus tour is checked, so renaming a location
+  // stays possible while its campus tour still has legacy upload questions.
+  if (updatePayload.default_rallye_id !== existingLocation.default_rallye_id) {
+    const uploadRestriction = await rejectRallyeWithUploadQuestions(
+      supabase,
+      updatePayload.default_rallye_id
+    );
+    if (uploadRestriction) return uploadRestriction;
+  }
 
   const { error } = await supabase
     .from('locations')
