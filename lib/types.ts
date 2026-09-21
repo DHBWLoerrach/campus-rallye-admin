@@ -49,8 +49,14 @@ export const getRallyeStatusLabel = (status: RallyeStatus): string => {
 export const isRallyeActive = (status: RallyeStatus): boolean =>
   status === 'running';
 
+// Only a draft has no run data to discard; every other status can be reset
+// back to a draft (see ADR-0005).
+export const canResetRallye = (status: RallyeStatus): boolean =>
+  status !== 'draft';
+
 // Guided phase transitions for the rallye lifecycle. The next action is
-// derived from the current status; 'ended' is final (see ADR-0002).
+// derived from the current status; 'ended' has no further transition and can
+// only be reset (see ADR-0005).
 export interface RallyeTransition {
   target: RallyeStatus;
   actionLabel: string;

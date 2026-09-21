@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import createClient from '@/lib/supabase';
 import { requireProfile } from '@/lib/require-profile';
 import {
+  canResetRallye,
   getNextRallyeTransition,
   Rallye,
   RallyeOption,
@@ -368,6 +369,77 @@ export async function advanceRallyeStatus(
   revalidatePath('/rallyes');
   revalidatePath(`/rallyes/${idResult.data}`, 'layout');
   return ok({ message: 'Status erfolgreich geändert' });
+}
+
+export async function resetRallye(
+  rallyeId: number
+): Promise<ActionResult<{ message: string }>> {
+  await requireProfile();
+
+  const idResult = idSchema.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  const supabase = await createClient();
+
+  const { data: rallye, error: rallyeError } = await supabase
+    .from('rallyes')
+    .select('id, status')
+    .eq('id', idResult.data)
+    .maybeSingle();
+
+  if (rallyeError) {
+    console.error('Error loading rallye:', rallyeError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  if (!rallye) {
+    return fail('Rallye nicht gefunden');
+  }
+
+  if (!canResetRallye(rallye.status as RallyeStatus)) {
+    return fail('Eine Rallye im Entwurf kann nicht zurückgesetzt werden');
+  }
+
+  const { data: campusTourLocations, error: campusTourError } = await supabase
+    .from('locations')
+    .select('default_rallye_id')
+    .eq('default_rallye_id', idResult.data)
+    .limit(1);
+
+  if (campusTourError) {
+    console.error('Error checking campus tour:', campusTourError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  if (isCampusTourRallye(idResult.data, campusTourLocations ?? [])) {
+    return fail('Eine Campus-Tour kann nicht zurückgesetzt werden');
+  }
+
+  // Collect photo paths before the reset removes the team answers that
+  // reference them.
+  const photoPaths = await getUploadPhotoPaths(supabase, idResult.data);
+  if (photoPaths === null) {
+    return fail('Fehler beim Zurücksetzen der Rallye');
+  }
+
+  // The database function deletes the run data in one transaction; the
+  // admin app has no direct delete rights on teams or voting data.
+  const { error } = await supabase.rpc('reset_rallye', {
+    rallye_id_param: idResult.data,
+  });
+
+  if (error) {
+    console.error('Error resetting rallye:', error);
+    return fail('Fehler beim Zurücksetzen der Rallye');
+  }
+
+  await removeUploadPhotos(supabase, photoPaths);
+
+  revalidatePath('/rallyes');
+  revalidatePath(`/rallyes/${idResult.data}`, 'layout');
+  return ok({ message: 'Rallye erfolgreich zurückgesetzt' });
 }
 
 export async function duplicateRallye(

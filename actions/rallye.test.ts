@@ -923,3 +923,176 @@ describe('deleteRallye', () => {
     );
   });
 });
+
+describe('resetRallye', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const makeSupabase = (opts: {
+    rallye?: { id: number; status: string } | null;
+    campusTourLocations?: Array<{ default_rallye_id: number }>;
+    uploadRows?: Array<{ answer: string | null }>;
+    uploadError?: unknown;
+    rpcError?: unknown;
+  }) => {
+    const calls: string[] = [];
+    const rpc = vi.fn(async () => {
+      calls.push('reset rallye');
+      return { data: null, error: opts.rpcError ?? null };
+    });
+    const remove = vi.fn(async () => {
+      calls.push('remove photos');
+      return { data: [], error: null };
+    });
+    const from = vi.fn((table: string) => {
+      if (table === 'team_answers') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn().mockResolvedValue({
+                data: opts.uploadRows ?? [],
+                error: opts.uploadError ?? null,
+              }),
+            })),
+          })),
+        };
+      }
+      if (table === 'locations') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              limit: vi.fn().mockResolvedValue({
+                data: opts.campusTourLocations ?? [],
+                error: null,
+              }),
+            })),
+          })),
+        };
+      }
+      // rallyes
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data:
+                opts.rallye === undefined
+                  ? { id: 5, status: 'ended' }
+                  : opts.rallye,
+              error: null,
+            }),
+          })),
+        })),
+      };
+    });
+    return {
+      client: { from, rpc, storage: { from: vi.fn(() => ({ remove })) } },
+      calls,
+      rpc,
+      remove,
+    };
+  };
+
+  it('resets the rallye and removes its upload photos afterwards', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      uploadRows: [{ answer: 'team-1/photo.jpg' }],
+    });
+    mockCreateClient.mockResolvedValue(supabase.client);
+
+    const { resetRallye } = await import('./rallye');
+    const result = await resetRallye(5);
+
+    expect(result.success).toBe(true);
+    expect(supabase.rpc).toHaveBeenCalledWith('reset_rallye', {
+      rallye_id_param: 5,
+    });
+    expect(supabase.remove).toHaveBeenCalledWith(['team-1/photo.jpg']);
+    expect(supabase.calls).toEqual(['reset rallye', 'remove photos']);
+  });
+
+  it.each(['ready', 'running', 'voting', 'results', 'ended'])(
+    'allows resetting a rallye in status %s',
+    async (status) => {
+      mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+      const supabase = makeSupabase({ rallye: { id: 5, status } });
+      mockCreateClient.mockResolvedValue(supabase.client);
+
+      const { resetRallye } = await import('./rallye');
+      expect((await resetRallye(5)).success).toBe(true);
+    }
+  );
+
+  it('rejects a draft', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ rallye: { id: 5, status: 'draft' } });
+    mockCreateClient.mockResolvedValue(supabase.client);
+
+    const { resetRallye } = await import('./rallye');
+    const result = await resetRallye(5);
+
+    expect(result.success).toBe(false);
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('rejects a campus tour', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      campusTourLocations: [{ default_rallye_id: 5 }],
+    });
+    mockCreateClient.mockResolvedValue(supabase.client);
+
+    const { resetRallye } = await import('./rallye');
+    const result = await resetRallye(5);
+
+    expect(result.success).toBe(false);
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('keeps the run data when the upload photos cannot be loaded', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ uploadError: { message: 'boom' } });
+    mockCreateClient.mockResolvedValue(supabase.client);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { resetRallye } = await import('./rallye');
+    const result = await resetRallye(5);
+
+    expect(result.success).toBe(false);
+    expect(supabase.calls).toEqual([]);
+  });
+
+  it('keeps the photos when the reset fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      uploadRows: [{ answer: 'team-1/photo.jpg' }],
+      rpcError: { message: 'boom' },
+    });
+    mockCreateClient.mockResolvedValue(supabase.client);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { resetRallye } = await import('./rallye');
+    const result = await resetRallye(5);
+
+    expect(result.success).toBe(false);
+    expect(supabase.remove).not.toHaveBeenCalled();
+  });
+
+  it('fails for unknown rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ rallye: null });
+    mockCreateClient.mockResolvedValue(supabase.client);
+
+    const { resetRallye } = await import('./rallye');
+    expect((await resetRallye(999)).success).toBe(false);
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid id without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { resetRallye } = await import('./rallye');
+    expect((await resetRallye(0)).success).toBe(false);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+});

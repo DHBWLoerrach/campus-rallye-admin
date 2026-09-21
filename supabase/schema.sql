@@ -199,6 +199,46 @@ $$;
 ALTER FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_param" bigint, "voting_team_id_param" bigint) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."reset_rallye"("rallye_id_param" bigint) RETURNS void
+        LANGUAGE "plpgsql" SECURITY DEFINER
+        SET search_path TO 'public'
+        AS $$
+DECLARE
+    rallye_status "public"."rallye_status";
+BEGIN
+    SELECT "status" INTO rallye_status
+    FROM "public"."rallyes" WHERE "id" = "rallye_id_param"
+    FOR UPDATE;
+
+    IF rallye_status IS NULL THEN
+        RAISE EXCEPTION 'Rallye % does not exist.', "rallye_id_param";
+    END IF;
+    IF rallye_status = 'draft' THEN
+        RAISE EXCEPTION 'Rallye % is a draft and cannot be reset.', "rallye_id_param";
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM "public"."locations"
+        WHERE "default_rallye_id" = "rallye_id_param"
+    ) THEN
+        RAISE EXCEPTION 'Rallye % is a campus tour and cannot be reset.', "rallye_id_param";
+    END IF;
+
+    DELETE FROM "public"."voting_finalizations" WHERE "rallye_id" = "rallye_id_param";
+    DELETE FROM "public"."voting_votes" WHERE "rallye_id" = "rallye_id_param";
+    -- Cascades to the team answers of these teams.
+    DELETE FROM "public"."teams" WHERE "rallye_id" = "rallye_id_param";
+
+    UPDATE "public"."rallyes"
+    SET "status" = 'draft', "rallye_code" = '', "rallye_end" = NULL
+    WHERE "id" = "rallye_id_param";
+END;
+$$;
+
+
+ALTER FUNCTION "public"."reset_rallye"("rallye_id_param" bigint) OWNER TO "postgres";
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
@@ -702,6 +742,11 @@ GRANT ALL ON FUNCTION "public"."finalize_voting_for_question"("rallye_id_param" 
 GRANT ALL ON FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_param" bigint, "voting_team_id_param" bigint) TO "anon";
 GRANT ALL ON FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_param" bigint, "voting_team_id_param" bigint) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_voted_voting_question_ids"("rallye_id_param" bigint, "voting_team_id_param" bigint) TO "service_role";
+
+
+REVOKE ALL ON FUNCTION "public"."reset_rallye"("rallye_id_param" bigint) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."reset_rallye"("rallye_id_param" bigint) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."reset_rallye"("rallye_id_param" bigint) TO "service_role";
 
 
 GRANT ALL ON TABLE "public"."team_answers" TO "anon";
