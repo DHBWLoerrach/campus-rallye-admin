@@ -782,3 +782,144 @@ describe('getRallyeCampusTourStatus', () => {
     expect(limit).toHaveBeenCalledWith(1);
   });
 });
+
+describe('deleteRallye', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const makeSupabase = (opts: {
+    uploadRows?: Array<{ answer: string | null }>;
+    uploadError?: unknown;
+    deleteError?: unknown;
+    removeError?: unknown;
+  }) => {
+    const calls: string[] = [];
+    const rallyeDeleteEq = vi.fn(async () => {
+      calls.push('delete rallye');
+      return { error: opts.deleteError ?? null };
+    });
+    const remove = vi.fn(async () => {
+      calls.push('remove photos');
+      return { data: [], error: opts.removeError ?? null };
+    });
+    const storageFrom = vi.fn(() => ({ remove }));
+    const uploadTypeEq = vi.fn().mockResolvedValue({
+      data: opts.uploadRows ?? [],
+      error: opts.uploadError ?? null,
+    });
+    const from = vi.fn((table: string) => {
+      if (table === 'team_answers') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({ eq: uploadTypeEq })),
+          })),
+        };
+      }
+      // rallyes
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            maybeSingle: vi
+              .fn()
+              .mockResolvedValue({ data: { id: 5 }, error: null }),
+          })),
+        })),
+        delete: vi.fn(() => ({ eq: rallyeDeleteEq })),
+      };
+    });
+    return {
+      client: { from, storage: { from: storageFrom } },
+      calls,
+      remove,
+      storageFrom,
+    };
+  };
+
+  it('removes the upload photos of the rallye after deleting it', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      uploadRows: [
+        { answer: 'team-1/photo.jpg' },
+        { answer: ' ' },
+        { answer: null },
+        { answer: 'team-2/photo.jpg' },
+      ],
+    });
+    mockCreateClient.mockResolvedValue(supabase.client);
+
+    const { deleteRallye } = await import('./rallye');
+    const result = await deleteRallye('5');
+
+    expect(result.success).toBe(true);
+    expect(supabase.storageFrom).toHaveBeenCalledWith('upload-photos');
+    expect(supabase.remove).toHaveBeenCalledWith([
+      'team-1/photo.jpg',
+      'team-2/photo.jpg',
+    ]);
+    expect(supabase.calls).toEqual(['delete rallye', 'remove photos']);
+  });
+
+  it('does not touch storage when the rallye has no upload photos', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ uploadRows: [] });
+    mockCreateClient.mockResolvedValue(supabase.client);
+
+    const { deleteRallye } = await import('./rallye');
+    const result = await deleteRallye('5');
+
+    expect(result.success).toBe(true);
+    expect(supabase.remove).not.toHaveBeenCalled();
+  });
+
+  it('keeps the rallye when the upload photos cannot be loaded', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({ uploadError: { message: 'boom' } });
+    mockCreateClient.mockResolvedValue(supabase.client);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { deleteRallye } = await import('./rallye');
+    const result = await deleteRallye('5');
+
+    expect(result.success).toBe(false);
+    expect(supabase.calls).toEqual([]);
+  });
+
+  it('keeps the photos when deleting the rallye fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      uploadRows: [{ answer: 'team-1/photo.jpg' }],
+      deleteError: { message: 'boom' },
+    });
+    mockCreateClient.mockResolvedValue(supabase.client);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const { deleteRallye } = await import('./rallye');
+    const result = await deleteRallye('5');
+
+    expect(result.success).toBe(false);
+    expect(supabase.remove).not.toHaveBeenCalled();
+  });
+
+  it('still reports success when removing the photos fails', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      uploadRows: [{ answer: 'team-1/photo.jpg' }],
+      removeError: { message: 'boom' },
+    });
+    mockCreateClient.mockResolvedValue(supabase.client);
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const { deleteRallye } = await import('./rallye');
+    const result = await deleteRallye('5');
+
+    expect(result.success).toBe(true);
+    expect(consoleError).toHaveBeenCalledWith(
+      'Error removing upload photos:',
+      expect.anything()
+    );
+  });
+});

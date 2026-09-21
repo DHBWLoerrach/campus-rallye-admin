@@ -22,6 +22,47 @@ import { isCampusTourRallye } from '@/lib/campus-tour';
 
 type FormState = ActionResult<{ message: string; rallyeId?: number }> | null;
 
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+const UPLOAD_PHOTOS_BUCKET = 'upload-photos';
+
+// Returns the storage paths of all upload photos submitted by teams of the
+// rallye, or null if they could not be loaded.
+async function getUploadPhotoPaths(
+  supabase: SupabaseClient,
+  rallyeId: number
+): Promise<string[] | null> {
+  const { data, error } = await supabase
+    .from('team_answers')
+    .select('answer, teams!inner(rallye_id), questions!inner(type)')
+    .eq('teams.rallye_id', rallyeId)
+    .eq('questions.type', 'upload');
+
+  if (error) {
+    console.error('Error fetching upload photos:', error);
+    return null;
+  }
+
+  return (data ?? [])
+    .map((row) => (row.answer ?? '').trim())
+    .filter((path) => path.length > 0);
+}
+
+// Best effort: the database rows are already gone, so a storage failure only
+// leaves orphaned files behind and is logged instead of failing the action.
+async function removeUploadPhotos(
+  supabase: SupabaseClient,
+  paths: string[]
+): Promise<void> {
+  if (paths.length === 0) return;
+  const { error } = await supabase.storage
+    .from(UPLOAD_PHOTOS_BUCKET)
+    .remove(paths);
+  if (error) {
+    console.error('Error removing upload photos:', { paths, error });
+  }
+}
+
 export async function updateRallye(state: FormState, formData: FormData) {
   await requireProfile();
   const supabase = await createClient();
@@ -199,6 +240,13 @@ export async function deleteRallye(
     return fail('Rallye nicht gefunden');
   }
 
+  // Collect photo paths before the cascade removes the team answers that
+  // reference them; afterwards they could no longer be found.
+  const photoPaths = await getUploadPhotoPaths(supabase, idResult.data);
+  if (photoPaths === null) {
+    return fail('Fehler beim Löschen der Rallye');
+  }
+
   const { error } = await supabase
     .from('rallyes')
     .delete()
@@ -208,6 +256,8 @@ export async function deleteRallye(
     console.error('Error deleting rallye:', error);
     return fail('Fehler beim Löschen der Rallye');
   }
+
+  await removeUploadPhotos(supabase, photoPaths);
 
   revalidatePath('/');
   return ok({ message: 'Rallye erfolgreich gelöscht' });
