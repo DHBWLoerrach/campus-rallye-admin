@@ -178,6 +178,10 @@ _Vermeiden_: Final ranking
 Die Dauer, die ein Team für eine Team-Rallye benötigt.
 _Vermeiden_: Time played, duration
 
+**Durchlaufdaten**:
+Alle Daten, die beim Spielen einer Team-Rallye entstehen: Teams, Spielzeiten, Team-Antworten, Upload-Fotos, Stimmen der Abstimmung sowie Ergebnis und Endstand.
+_Vermeiden_: Spieldaten, Laufzeitdaten
+
 ### Status
 
 **Campus-Tour-Status**:
@@ -223,6 +227,10 @@ _Vermeiden_: Results
 **Abgeschlossen**:
 Ein Team-Rallye-Status, in dem die Team-Rallye geschlossen und der Endstand final ist.
 _Vermeiden_: Ended
+
+**Zurücksetzen**:
+Das endgültige Entfernen aller Durchlaufdaten einer Team-Rallye, wodurch sie mit ihren Rallye-Fragen wieder in den Status Entwurf gelangt.
+_Vermeiden_: Reset, Wiederöffnen, Neustart
 
 **Beitretbare Rallye**:
 Eine Rallye, die Teilnehmende in der Rallye-App neu auswählen und betreten können.
@@ -314,6 +322,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 | Ergebnis               | `result`                   | `result`                    | Rangliste einer Team-Rallye.                     |
 | Endstand               | `finalResult`              | `final_result`              | Finales Ergebnis.                                |
 | Spielzeit              | `playTime`                 | `play_time`                 | Dauer eines Teams in der Team-Rallye.            |
+| Durchlaufdaten         | `runData`                  | —                           | Sammelbegriff, keine eigene Tabelle.             |
 | Campus-Tour-Status     | `campusTourStatus`         | `campus_tour_status`        | Statuskonzept nur für Campus-Touren.             |
 | Team-Rallye-Status     | `teamRallyeStatus`         | `team_rallye_status`        | Statuskonzept nur für Team-Rallyes.              |
 | Aktiv                  | —                          | —                           | Fachlicher Campus-Tour-Status; noch nicht separat im Schema modelliert. |
@@ -325,6 +334,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 | Abstimmungsfrage       | `votingQuestion`           | `voting_question`           | Rallye-Frage in der Abstimmung.                  |
 | Ergebnisse             | `results`                  | `results`                   | Team-Rallye-Statuswert.                          |
 | Abgeschlossen          | `ended`                    | `ended`                     | Finaler Team-Rallye-Statuswert.                  |
+| Zurücksetzen           | `resetRallye`              | —                           | Nicht `reopen` oder `restart`.                   |
 | Beitretbare Rallye     | `joinableRallye`           | —                           | Abgeleitet aus dem Status, nicht gespeichert.    |
 | Rallye-Sitzung         | `rallyeSession`            | —                           | Nur in der Rallye-App.                           |
 | Admin-App              | `adminApp`                 | `admin_app`                 | Webanwendung für Bearbeitende.                   |
@@ -366,7 +376,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Aus einer **Rallye-Vorlage** können null oder mehr **Team-Rallyes** erstellt werden.
 - Aus einer **Rallye-Vorlage** entstehen keine **Campus-Touren**.
 - Eine **Campus-Tour** wird direkt am **Standort** gepflegt.
-- Eine **Rallye-Vorlage** enthält wiederverwendbare **Vorlagen-Fragen**, aber keine **Teams**, **Team-Antworten**, **Spielzeiten** oder **Ergebnisse**.
+- Eine **Rallye-Vorlage** enthält wiederverwendbare **Vorlagen-Fragen**, aber keine **Durchlaufdaten**.
 - Eine **Rallye-Vorlage** definiert keine fachliche Reihenfolge ihrer **Vorlagen-Fragen**.
 
 ### Fragen und Verwendung
@@ -437,15 +447,17 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Team-Rallye** startet fachlich durch den Statuswechsel zu **Läuft**, nicht durch einen eigenen Startzeitpunkt.
 - Eine **Team-Rallye** im **Entwurf** kann keinen **Rallye-Code** haben.
 - Eine **Team-Rallye** im Status **Läuft** braucht genau einen **Rallye-Code**.
-- Eine **Team-Rallye** hat genau ein **Rallye-Ende**.
+- Eine **Team-Rallye** hat null oder ein **Rallye-Ende**.
 - Das **Rallye-Ende** markiert den regulären Spielschluss, löst aber keinen automatischen Statuswechsel aus.
 - Nach dem **Rallye-Ende** steuert der **Organisator** die Übergänge in **Abstimmung**, **Ergebnisse** und **Abgeschlossen**.
 - Im Status **Ergebnisse** ist das **Ergebnis** sichtbar, aber noch nicht der **Endstand**.
 - Im Status **Abgeschlossen** ist das **Ergebnis** der **Endstand**.
-- **Abgeschlossen** ist für eine konkrete **Team-Rallye** final.
+- **Abgeschlossen** ist für eine konkrete **Team-Rallye** final, bis sie zurückgesetzt wird.
 - Eine **Team-Rallye** ist eine **Beitretbare Rallye**, solange ihr **Team-Rallye-Status** **Bereit** oder **Läuft** ist.
 - Eine **Rallye-Sitzung** bleibt bestehen, wenn ihre **Rallye** nicht mehr beitretbar ist, zum Beispiel in **Abstimmung**, **Ergebnisse** oder **Abgeschlossen**.
-- Eine beendete **Team-Rallye** wird nicht wieder geöffnet; Wiederverwendung erfolgt über eine neue **Team-Rallye** aus einer **Rallye-Vorlage**.
+- Eine **Team-Rallye** kann in jedem **Team-Rallye-Status** außer **Entwurf** zurückgesetzt werden; danach ist sie im **Entwurf** und hat keine **Durchlaufdaten**, keinen **Rallye-Code** und kein **Rallye-Ende**.
+- Beim **Zurücksetzen** bleiben Name, **Bereich**, **Rallye-Fragen** und **Abstimmungsfragen** erhalten.
+- Eine **Campus-Tour** hat keine **Durchlaufdaten** und kann nicht zurückgesetzt werden.
 - Eine **Abstimmungsfrage** ist eine **Rallye-Frage** und gehört nur in eine **Team-Rallye**.
 - Nur **Upload-Fragen** können **Abstimmungsfragen** sein.
 - Eine **Upload-Frage** wird beim Zuordnen zu einer **Team-Rallye** standardmäßig eine **Abstimmungsfrage**; die Abstimmung kann pro **Rallye-Frage** abgewählt werden.
@@ -503,5 +515,6 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Ob **Teams** die **Upload-Fotos** während der **Abstimmung** in der **Rallye-App** sehen müssen, war offen. Geklärt: Nein; die **Teams** sind gemeinsam in einem Raum und sehen die Fotos auf einer Projektionsfläche aus der **Admin-App**.
 - Ob **Abstimmungsfragen** auch andere Fragetypen umfassen könnten, war offen. Geklärt: **Abstimmungsfragen** sind fachlich auf **Upload-Fragen** beschränkt; Code-Pfade für Text-Antworten in der Abstimmung sind Altlast.
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
+- Ob eine beendete **Team-Rallye** wieder geöffnet werden darf, war offen. Geklärt: Sie wird nicht wieder geöffnet, sondern zurückgesetzt; dabei gehen alle **Durchlaufdaten** verloren.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
 - Die **Geocaching-Frage** wurde im Datenmodell (Fragetyp `geocaching`, Tabelle `geocaching_questions`) eingeführt, bevor sie in dieser Fachsprache stand. Geklärt: Sie ist ein eigener Fragetyp, wird automatisch bewertet, braucht kein **Team** und ist in **Campus-Touren** erlaubt. Sie wird aktuell noch nicht in der **Admin-App** gepflegt.
