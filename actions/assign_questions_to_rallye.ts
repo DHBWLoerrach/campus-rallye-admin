@@ -5,6 +5,48 @@ import { revalidatePath } from 'next/cache';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, idArraySchema, idSchema } from '@/lib/validation';
 import { defaultIsVoting } from '@/helpers/questionTypes';
+import { getCampusTourRallyeIds } from '@/lib/campus-tour';
+
+const CAMPUS_TOUR_UPLOAD_ERROR =
+  'Upload-Fragen können keiner Campus-Tour zugeordnet werden';
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+const findCampusTourRallyeIds = async (
+  supabase: SupabaseClient,
+  rallyeIds: number[]
+) => {
+  if (rallyeIds.length === 0) return { ids: new Set<number>(), error: null };
+
+  const { data, error } = await supabase
+    .from('locations')
+    .select('default_rallye_id')
+    .in('default_rallye_id', rallyeIds);
+
+  return {
+    ids: getCampusTourRallyeIds(data ?? []),
+    error,
+  };
+};
+
+const rejectUploadQuestionsForCampusTours = async (
+  supabase: SupabaseClient,
+  rallyeIds: number[],
+  hasUploadQuestions: boolean,
+  failureMessage: string
+): Promise<ActionResult<never> | null> => {
+  if (!hasUploadQuestions || rallyeIds.length === 0) return null;
+
+  const campusTourResult = await findCampusTourRallyeIds(supabase, rallyeIds);
+  if (campusTourResult.error) {
+    console.error('Error checking campus tours:', campusTourResult.error);
+    return fail(failureMessage);
+  }
+  if (rallyeIds.some((id) => campusTourResult.ids.has(id))) {
+    return fail(CAMPUS_TOUR_UPLOAD_ERROR);
+  }
+  return null;
+};
 
 export async function assignQuestionsToRallye(
   rallyeId: number,
@@ -89,6 +131,14 @@ export async function assignQuestionsToRallye(
     if (invalidVotingQuestion) {
       return fail('Abstimmung nur für Upload-Fragen möglich');
     }
+
+    const restrictionResult = await rejectUploadQuestionsForCampusTours(
+      supabase,
+      [rallyeIdResult.data],
+      (questionRows || []).some((row) => row.type === 'upload'),
+      'Rallye konnte nicht aktualisiert werden'
+    );
+    if (restrictionResult) return restrictionResult;
   }
 
   const { data: existingAssignments, error: existingError } = await supabase
@@ -269,6 +319,14 @@ export async function addQuestionToRallye(
   if (!question) {
     return fail('Frage nicht gefunden');
   }
+
+  const restrictionResult = await rejectUploadQuestionsForCampusTours(
+    supabase,
+    [ids.rallyeId],
+    question.type === 'upload',
+    'Rallye konnte nicht aktualisiert werden'
+  );
+  if (restrictionResult) return restrictionResult;
 
   const { data: existingJoin, error: joinError } = await supabase
     .from('rallye_questions')
@@ -497,6 +555,14 @@ export async function assignRallyesToQuestion(
     if (missing.length > 0) {
       return fail('Rallye nicht gefunden');
     }
+
+    const restrictionResult = await rejectUploadQuestionsForCampusTours(
+      supabase,
+      normalizedRallyeIds,
+      existingQuestion.type === 'upload',
+      'Frage konnte nicht aktualisiert werden'
+    );
+    if (restrictionResult) return restrictionResult;
   }
 
   const { data: existingAssignments, error: existingError } = await supabase

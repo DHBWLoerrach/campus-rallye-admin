@@ -46,6 +46,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[
           { question: makeQuestion({}), isVoting: false },
           { question: uploadQuestion, isVoting: true },
@@ -68,6 +69,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[
           { question: makeQuestion({}), isVoting: false },
           { question: uploadQuestion, isVoting: false },
@@ -86,6 +88,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[{ question: makeQuestion({}), isVoting: false }]}
         initialAvailable={[]}
         categories={[]}
@@ -105,6 +108,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[]}
         initialAvailable={[makeQuestion({ id: 9, content: 'Neue Frage' })]}
         categories={['Campus']}
@@ -124,11 +128,50 @@ describe('RallyeQuestionsManager', () => {
     );
   });
 
+  it('does not offer upload questions for a campus tour', () => {
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        isCampusTour
+        initialAssigned={[]}
+        initialAvailable={[
+          makeQuestion({ id: 9, content: 'Normale Frage' }),
+          uploadQuestion,
+        ]}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '+ Fragen hinzufügen' })
+    );
+
+    expect(screen.getByText('Normale Frage')).toBeInTheDocument();
+    expect(screen.queryByText('Macht ein Gruppenfoto')).not.toBeInTheDocument();
+  });
+
+  it('warns about existing upload assignments on a campus tour', () => {
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        isCampusTour
+        initialAssigned={[{ question: uploadQuestion, isVoting: false }]}
+        initialAvailable={[]}
+        categories={[]}
+      />
+    );
+
+    expect(
+      screen.getByText(/Diese Campus-Tour enthält noch Upload-Fragen/)
+    ).toBeInTheDocument();
+  });
+
   it('marks a newly added upload question for voting', async () => {
     mockAdd.mockResolvedValue({ success: true, data: { message: 'ok' } });
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[]}
         initialAvailable={[uploadQuestion]}
         categories={[]}
@@ -152,6 +195,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[]}
         initialAvailable={[]}
         categories={[]}
@@ -175,6 +219,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[{ question: uploadQuestion, isVoting: false }]}
         initialAvailable={[]}
         categories={[]}
@@ -195,6 +240,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[{ question: uploadQuestion, isVoting: true }]}
         initialAvailable={[]}
         categories={[]}
@@ -214,6 +260,7 @@ describe('RallyeQuestionsManager', () => {
     render(
       <RallyeQuestionsManager
         rallyeId={5}
+        isCampusTour={false}
         initialAssigned={[{ question: makeQuestion({}), isVoting: false }]}
         initialAvailable={[]}
         categories={[]}

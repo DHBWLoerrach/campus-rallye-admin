@@ -4,6 +4,7 @@ import RallyeQuestionsManager, {
   type AssignedQuestion,
 } from '@/components/rallyes/RallyeQuestionsManager';
 import type { Question } from '@/helpers/questions';
+import { isCampusTourRallye } from '@/lib/campus-tour';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -29,7 +30,7 @@ export default async function RallyeQuestionsTab(props: PageProps) {
     notFound();
   }
 
-  const [assignmentsRes, questionsRes] = await Promise.all([
+  const [assignmentsRes, questionsRes, campusTourRes] = await Promise.all([
     supabase
       .from('rallye_questions')
       .select('question_id, is_voting')
@@ -39,7 +40,19 @@ export default async function RallyeQuestionsTab(props: PageProps) {
       .select(
         'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text)'
       ),
+    supabase
+      .from('locations')
+      .select('default_rallye_id')
+      .eq('default_rallye_id', rallyeId)
+      .limit(1),
   ]);
+
+  // On lookup errors the tab falls back to a team rallye view; the
+  // assignment actions still reject upload questions for campus tours.
+  if (campusTourRes.error) {
+    console.error('Error checking campus tour:', campusTourRes.error);
+  }
+  const isCampusTour = isCampusTourRallye(rallyeId, campusTourRes.data ?? []);
 
   const assignments = (assignmentsRes.data ?? []) as AssignmentRow[];
   const questions = (questionsRes.data ?? []) as Question[];
@@ -75,6 +88,7 @@ export default async function RallyeQuestionsTab(props: PageProps) {
   return (
     <RallyeQuestionsManager
       rallyeId={rallyeId}
+      isCampusTour={isCampusTour}
       initialAssigned={assigned}
       initialAvailable={available}
       categories={categories}

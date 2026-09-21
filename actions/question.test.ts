@@ -535,6 +535,25 @@ describe('question write actions', () => {
     expect(answersQuery.select).not.toHaveBeenCalled();
   });
 
+  it('rejects changing an existing question to upload before mutation', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { questionUpdate } = buildUpdateClient({ existingType: 'knowledge' });
+
+    const { updateQuestion } = await import('./question');
+    const result = await updateQuestion(1, {
+      content: 'Foto machen',
+      type: 'upload',
+      point_value: 3,
+      solutionOptions: [],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: 'Der Fragetyp kann nicht geändert werden',
+    });
+    expect(questionUpdate).not.toHaveBeenCalled();
+  });
+
   it.each(['knowledge', 'qr_code', 'picture'] as const)(
     'repairs the expected solution option of an existing %s question',
     async (type) => {

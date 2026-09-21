@@ -41,6 +41,7 @@ export type AssignedQuestion = { question: Question; isVoting: boolean };
 
 interface RallyeQuestionsManagerProps {
   rallyeId: number;
+  isCampusTour: boolean;
   initialAssigned: AssignedQuestion[];
   initialAvailable: Question[];
   categories: string[];
@@ -56,6 +57,7 @@ const byContent = (a: Question, b: Question) =>
 
 export default function RallyeQuestionsManager({
   rallyeId,
+  isCampusTour,
   initialAssigned,
   initialAvailable,
   categories,
@@ -77,8 +79,16 @@ export default function RallyeQuestionsManager({
 
   const filteredAvailable = useMemo(
     () =>
-      available.filter((question) => matchesQuestionFilters(question, filters)),
-    [available, filters]
+      available.filter(
+        (question) =>
+          (!isCampusTour || question.type !== 'upload') &&
+          matchesQuestionFilters(question, filters)
+      ),
+    [available, filters, isCampusTour]
+  );
+
+  const hasAssignedUploadQuestions = assigned.some(
+    (entry) => entry.question.type === 'upload'
   );
 
   const handleAdd = (question: Question) => {
@@ -279,6 +289,14 @@ export default function RallyeQuestionsManager({
           aria-live="polite"
         >
           {feedback}
+        </div>
+      )}
+
+      {isCampusTour && hasAssignedUploadQuestions && (
+        <div className="rounded-md border border-amber-500/50 bg-amber-50/70 px-3 py-2 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-100">
+          Diese Campus-Tour enthält noch Upload-Fragen. Bitte entfernen Sie
+          diese Zuordnungen; neue Upload-Fragen können hier nicht zugeordnet
+          werden.
         </div>
       )}
 
