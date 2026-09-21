@@ -12,6 +12,7 @@ import {
   type RallyePhaseGroup,
 } from '@/lib/types';
 import type { Rallye } from '@/lib/types';
+import { getCampusTourRallyeIds } from '@/lib/campus-tour';
 
 type RallyeRow = Rallye & { department_id: number | null };
 
@@ -99,11 +100,7 @@ export default async function Home() {
     });
   }
 
-  const explorationRallyeIds = new Set(
-    typedLocations
-      .map((location) => location.default_rallye_id)
-      .filter((id): id is number => id !== null)
-  );
+  const explorationRallyeIds = getCampusTourRallyeIds(typedLocations);
 
   const explorationRallyes = typedRallyes.filter((rallye) =>
     explorationRallyeIds.has(rallye.id)
