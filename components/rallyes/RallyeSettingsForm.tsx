@@ -4,7 +4,12 @@ import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
-import { updateRallye, deleteRallye } from '@/actions/rallye';
+import {
+  updateRallye,
+  deleteRallye,
+  type RallyeRunDataSummary,
+} from '@/actions/rallye';
+import RallyeResetSection from '@/components/rallyes/RallyeResetSection';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,6 +37,8 @@ interface RallyeSettingsFormProps {
   rallye: Rallye;
   departmentOptions: DepartmentOption[];
   assignedDepartmentIds: number[];
+  canReset?: boolean;
+  runDataSummary?: RallyeRunDataSummary | null;
 }
 
 function SaveButton({ disabled }: { disabled: boolean }) {
@@ -54,6 +61,8 @@ export default function RallyeSettingsForm({
   rallye,
   departmentOptions,
   assignedDepartmentIds,
+  canReset = false,
+  runDataSummary = null,
 }: RallyeSettingsFormProps) {
   const router = useRouter();
   const [formState, formAction] = useActionState(updateRallye, null);
@@ -269,6 +278,15 @@ export default function RallyeSettingsForm({
           </div>
         </form>
       </section>
+
+      {canReset && (
+        <RallyeResetSection
+          rallyeId={rallye.id}
+          rallyeName={rallye.name}
+          status={rallye.status}
+          runDataSummary={runDataSummary}
+        />
+      )}
 
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-destructive/40 bg-destructive/5 p-6">
         <div className="space-y-1">

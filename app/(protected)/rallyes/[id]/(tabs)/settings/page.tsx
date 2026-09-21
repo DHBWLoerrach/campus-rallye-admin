@@ -1,7 +1,12 @@
 import { notFound } from 'next/navigation';
 import createClient from '@/lib/supabase';
 import RallyeSettingsForm from '@/components/rallyes/RallyeSettingsForm';
-import type { DepartmentOption, Rallye } from '@/lib/types';
+import {
+  getRallyeCampusTourStatus,
+  getRallyeRunDataSummary,
+} from '@/actions/rallye';
+import { canResetRallye } from '@/lib/types';
+import type { DepartmentOption, Rallye, RallyeStatus } from '@/lib/types';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,10 +32,23 @@ export default async function RallyeSettingsPage(props: PageProps) {
     notFound();
   }
 
-  const { data: departments } = await supabase
-    .from('departments')
-    .select('id, name')
-    .order('name');
+  const [{ data: departments }, campusTourResult] = await Promise.all([
+    supabase.from('departments').select('id, name').order('name'),
+    getRallyeCampusTourStatus(rallyeId),
+  ]);
+
+  // Campus tours have no run data; if the check fails, hide the reset rather
+  // than offer it for a rallye that might be a campus tour.
+  const canReset =
+    canResetRallye(rallye.status as RallyeStatus) &&
+    campusTourResult.success &&
+    !campusTourResult.data;
+
+  let runDataSummary = null;
+  if (canReset) {
+    const summaryResult = await getRallyeRunDataSummary(rallyeId);
+    runDataSummary = summaryResult.success ? summaryResult.data : null;
+  }
 
   return (
     <RallyeSettingsForm
@@ -39,6 +57,8 @@ export default async function RallyeSettingsPage(props: PageProps) {
       assignedDepartmentIds={
         rallye.department_id ? [rallye.department_id as number] : []
       }
+      canReset={canReset}
+      runDataSummary={runDataSummary}
     />
   );
 }

@@ -371,6 +371,52 @@ export async function advanceRallyeStatus(
   return ok({ message: 'Status erfolgreich geändert' });
 }
 
+export type RallyeRunDataSummary = {
+  teamCount: number;
+  teamAnswerCount: number;
+  uploadPhotoCount: number;
+};
+
+// Counts the run data a reset would delete, so editors can see what is lost.
+export async function getRallyeRunDataSummary(
+  rallyeId: number
+): Promise<ActionResult<RallyeRunDataSummary>> {
+  await requireProfile();
+
+  const idResult = idSchema.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  const supabase = await createClient();
+
+  const [teams, teamAnswers, photoPaths] = await Promise.all([
+    supabase
+      .from('teams')
+      .select('id', { count: 'exact', head: true })
+      .eq('rallye_id', idResult.data),
+    supabase
+      .from('team_answers')
+      .select('id, teams!inner(rallye_id)', { count: 'exact', head: true })
+      .eq('teams.rallye_id', idResult.data),
+    getUploadPhotoPaths(supabase, idResult.data),
+  ]);
+
+  if (teams.error || teamAnswers.error || photoPaths === null) {
+    console.error('Error counting run data:', {
+      teamsError: teams.error,
+      teamAnswersError: teamAnswers.error,
+    });
+    return fail('Durchlaufdaten konnten nicht geladen werden');
+  }
+
+  return ok({
+    teamCount: teams.count ?? 0,
+    teamAnswerCount: teamAnswers.count ?? 0,
+    uploadPhotoCount: photoPaths.length,
+  });
+}
+
 export async function resetRallye(
   rallyeId: number
 ): Promise<ActionResult<{ message: string }>> {

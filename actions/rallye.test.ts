@@ -1096,3 +1096,52 @@ describe('resetRallye', () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 });
+
+describe('getRallyeRunDataSummary', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  it('counts teams, team answers and upload photos of the rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const from = vi.fn((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn().mockResolvedValue({ count: 3, error: null }),
+          })),
+        };
+      }
+      // team_answers: the count query filters once, the photo query twice
+      return {
+        select: vi.fn((columns: string) => ({
+          eq: columns.includes('questions')
+            ? vi.fn(() => ({
+                eq: vi.fn().mockResolvedValue({
+                  data: [{ answer: 'a.jpg' }, { answer: '' }],
+                  error: null,
+                }),
+              }))
+            : vi.fn().mockResolvedValue({ count: 7, error: null }),
+        })),
+      };
+    });
+    mockCreateClient.mockResolvedValue({ from });
+
+    const { getRallyeRunDataSummary } = await import('./rallye');
+    const result = await getRallyeRunDataSummary(5);
+
+    expect(result).toEqual({
+      success: true,
+      data: { teamCount: 3, teamAnswerCount: 7, uploadPhotoCount: 1 },
+    });
+  });
+
+  it('rejects an invalid id without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { getRallyeRunDataSummary } = await import('./rallye');
+    expect((await getRallyeRunDataSummary(0)).success).toBe(false);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+});
