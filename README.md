@@ -165,14 +165,6 @@ ALTER TABLE local_users ADD COLUMN approved INTEGER NOT NULL DEFAULT 0;
 UPDATE local_users SET approved = 1;
 ```
 
-Nach einem ersten Login kann man dem User Admin-Rechte geben:
-
-```
-UPDATE local_users SET admin=1 WHERE email="<hier email eintragen>";
-```
-
-Admins gelten immer als freigeschaltet. So kommt der erste Admin nach diesem `UPDATE` direkt in die Anwendung.
-
 SQLite-Shell mit `.exit` verlassen.
 
 ## Webanwendung starten
@@ -186,6 +178,18 @@ npm run dev
 Campus Rallye Admin Webapp im Browser öffnen: http://localhost:3000
 
 Bei aktiviertem `DEV_AUTH_BYPASS` ist man direkt als Mock-User eingeloggt. Andernfalls mit einem in KeyCloak erstellten User anmelden.
+
+## Ersten Admin einrichten
+
+Beim ersten Aufruf wird der eigene Nutzer in der SQLite-DB angelegt, ist aber noch nicht freigeschaltet. Man landet deshalb zunächst auf der Seite `/pending` (siehe [Freischaltung neuer Nutzer](#freischaltung-neuer-nutzer)).
+
+Jetzt den eigenen Nutzer zum Admin machen. Bei aktiviertem `DEV_AUTH_BYPASS` ist die E-Mail `dev@example.test` (bzw. der Wert von `DEV_AUTH_EMAIL`), sonst die E-Mail des KeyCloak-Users:
+
+```sh
+sqlite3 local-users.db "UPDATE local_users SET admin = 1 WHERE email = 'dev@example.test';"
+```
+
+Admins gelten immer als freigeschaltet. Nach einem Klick auf „Erneut versuchen“ auf der Seite `/pending` ist man in der Anwendung und kann weitere Nutzer unter _Verwaltung_ → _Nutzer_ freischalten.
 
 ## Freischaltung neuer Nutzer
 
