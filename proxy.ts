@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PENDING_APPROVAL_PATH, isApprovedUser } from '@/lib/approval';
 import { isAuthorizedUser } from '@/lib/auth';
 import {
   AUTH_SESSION_COOKIE,
   AUTH_SESSION_COOKIE_VALUE,
 } from '@/lib/auth-session-cookie';
+import { getLocalUser, upsertLocalUser } from '@/lib/db/local-user';
 import { getDevBypassContext } from '@/lib/user-context';
 import { getUserRef } from '@/lib/user-ref';
 import {
@@ -86,7 +88,17 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/access-denied', req.url));
   }
 
-  // ✅ Logged in and authorized → Allow request to proceed
+  // 🕓 Authorized but not approved yet → Redirect to pending page.
+  // Checked here and not only in the protected layout, because a layout
+  // redirect does not stop pages from rendering data into the response.
+  if (req.nextUrl.pathname !== PENDING_APPROVAL_PATH) {
+    const user = getLocalUser(uuid) ?? upsertLocalUser(uuid, email);
+    if (!isApprovedUser(user)) {
+      return NextResponse.redirect(new URL(PENDING_APPROVAL_PATH, req.url));
+    }
+  }
+
+  // ✅ Logged in, authorized and approved → Allow request to proceed
   const response = NextResponse.next();
   if (
     req.cookies.get(AUTH_SESSION_COOKIE)?.value !== AUTH_SESSION_COOKIE_VALUE

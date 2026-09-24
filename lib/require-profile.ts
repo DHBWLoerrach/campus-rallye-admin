@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { PENDING_APPROVAL_PATH, isApprovedUser } from './approval';
 import { isAuthorizedUser } from './auth';
 import { getUserContext } from './user-context';
 import { getLocalUser, upsertLocalUser, type LocalUser } from './db/local-user';
@@ -17,6 +19,13 @@ function toProfile(user: LocalUser): Profile {
   };
 }
 
+function toApprovedProfile(user: LocalUser): Profile {
+  if (!isApprovedUser(user)) {
+    redirect(PENDING_APPROVAL_PATH);
+  }
+  return toProfile(user);
+}
+
 export async function requireProfile(createProfile = false): Promise<Profile> {
   const { uuid, email, roles } = await getUserContext();
 
@@ -31,7 +40,7 @@ export async function requireProfile(createProfile = false): Promise<Profile> {
 
   const existing = getLocalUser(uuid);
   if (existing) {
-    return toProfile(existing);
+    return toApprovedProfile(existing);
   }
 
   if (!createProfile) {
@@ -39,7 +48,7 @@ export async function requireProfile(createProfile = false): Promise<Profile> {
   }
 
   const created = upsertLocalUser(uuid, email);
-  return toProfile(created);
+  return toApprovedProfile(created);
 }
 
 export async function requireAdmin(): Promise<Profile> {

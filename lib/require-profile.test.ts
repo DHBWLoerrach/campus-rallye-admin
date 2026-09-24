@@ -1,11 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockGetUserContext, mockGetLocalUser, mockUpsertLocalUser } =
-  vi.hoisted(() => ({
-    mockGetUserContext: vi.fn(),
-    mockGetLocalUser: vi.fn(),
-    mockUpsertLocalUser: vi.fn(),
-  }));
+const {
+  mockGetUserContext,
+  mockGetLocalUser,
+  mockUpsertLocalUser,
+  mockRedirect,
+} = vi.hoisted(() => ({
+  mockGetUserContext: vi.fn(),
+  mockGetLocalUser: vi.fn(),
+  mockUpsertLocalUser: vi.fn(),
+  mockRedirect: vi.fn((path: string) => {
+    throw new Error(`NEXT_REDIRECT ${path}`);
+  }),
+}));
+
+vi.mock('next/navigation', () => ({
+  redirect: mockRedirect,
+}));
 
 vi.mock('./user-context', () => ({
   getUserContext: mockGetUserContext,
@@ -94,7 +105,7 @@ describe('requireProfile', () => {
     expect(mockUpsertLocalUser).not.toHaveBeenCalled();
   });
 
-  it('creates a profile when createProfile is true and none exists', async () => {
+  it('creates a pending profile on first login and redirects to the pending page', async () => {
     mockGetUserContext.mockResolvedValue({
       uuid: 'new-user',
       email: 'new@example.test',
@@ -107,19 +118,64 @@ describe('requireProfile', () => {
       email: 'new@example.test',
       registered_at: '2026-05-15T00:00:00.000Z',
       admin: false,
+      approved: false,
     });
 
     const { requireProfile } = await import('./require-profile');
 
-    await expect(requireProfile(true)).resolves.toEqual({
-      user_id: 'new-user',
-      admin: false,
-      created_at: '2026-05-15T00:00:00.000Z',
-    });
+    await expect(requireProfile(true)).rejects.toThrow(
+      'NEXT_REDIRECT /pending'
+    );
     expect(mockUpsertLocalUser).toHaveBeenCalledWith(
       'new-user',
       'new@example.test'
     );
+  });
+
+  it('redirects existing users that are not approved yet', async () => {
+    mockGetUserContext.mockResolvedValue({
+      uuid: 'pending-user',
+      email: 'pending@example.test',
+      roles: ['staff'],
+    });
+
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'pending-user',
+      email: 'pending@example.test',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: false,
+      approved: false,
+    });
+
+    const { requireProfile } = await import('./require-profile');
+
+    await expect(requireProfile()).rejects.toThrow('NEXT_REDIRECT /pending');
+    expect(mockRedirect).toHaveBeenCalledWith('/pending');
+  });
+
+  it('treats admins as approved', async () => {
+    mockGetUserContext.mockResolvedValue({
+      uuid: 'admin-unapproved',
+      email: 'admin@example.test',
+      roles: ['staff'],
+    });
+
+    mockGetLocalUser.mockReturnValue({
+      user_id: 'admin-unapproved',
+      email: 'admin@example.test',
+      registered_at: '2026-05-15T00:00:00.000Z',
+      admin: true,
+      approved: false,
+    });
+
+    const { requireProfile } = await import('./require-profile');
+
+    await expect(requireProfile()).resolves.toEqual({
+      user_id: 'admin-unapproved',
+      admin: true,
+      created_at: '2026-05-15T00:00:00.000Z',
+    });
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it('accepts non-staff users whose email is in ALLOWED_EMAILS', async () => {
@@ -136,6 +192,7 @@ describe('requireProfile', () => {
       email: 'allowed@example.test',
       registered_at: '2026-05-15T00:00:00.000Z',
       admin: false,
+      approved: true,
     });
 
     const { requireProfile } = await import('./require-profile');
@@ -196,6 +253,7 @@ describe('requireAdmin', () => {
       email: 'staff@example.test',
       registered_at: '2026-05-15T00:00:00.000Z',
       admin: false,
+      approved: true,
     });
 
     const { requireAdmin } = await import('./require-profile');

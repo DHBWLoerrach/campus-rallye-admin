@@ -1,7 +1,15 @@
 // @vitest-environment node
 import { NextRequest } from 'next/server';
 import { SignJWT, exportJWK, generateKeyPair } from 'jose';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import {
   AUTH_SESSION_COOKIE,
   AUTH_SESSION_COOKIE_VALUE,
@@ -11,6 +19,28 @@ const ISSUER = 'https://auth.dhbw-loerrach.de/realms/dhbw';
 const AUDIENCE = 'campusrallye';
 const KEY_ID = 'test-key';
 const USER_ID = '550e8400-e29b-41d4-a716-446655440000';
+
+const { mockGetLocalUser, mockUpsertLocalUser } = vi.hoisted(() => ({
+  mockGetLocalUser: vi.fn(),
+  mockUpsertLocalUser: vi.fn(),
+}));
+
+vi.mock('@/lib/db/local-user', () => ({
+  getLocalUser: mockGetLocalUser,
+  upsertLocalUser: mockUpsertLocalUser,
+}));
+
+function localUser(overrides: { admin?: boolean; approved?: boolean } = {}) {
+  return {
+    user_id: 'user-123',
+    email: null,
+    registered_at: '2026-05-15T00:00:00.000Z',
+    admin: false,
+    approved: true,
+    department_id: null,
+    ...overrides,
+  };
+}
 
 let config: { matcher: string[] };
 let proxy: (req: NextRequest) => Promise<Response>;
@@ -93,6 +123,11 @@ function buildRequest(path: string, token?: string, method = 'GET') {
 }
 
 describe('proxy', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetLocalUser.mockReturnValue(localUser());
+  });
+
   it('allows staff with a valid token and sets the auth marker', async () => {
     const token = await signToken({ roles: ['staff'] });
     const response = await proxy(buildRequest('/questions', token));
@@ -113,6 +148,51 @@ describe('proxy', () => {
 
     expect(response.headers.get('x-middleware-next')).toBe('1');
     expect(response.headers.get('set-cookie')).toBeNull();
+  });
+
+  it('registers unknown staff users and redirects them to the pending page', async () => {
+    mockGetLocalUser.mockReturnValue(null);
+    mockUpsertLocalUser.mockReturnValue(localUser({ approved: false }));
+    const token = await signToken({ roles: ['staff'] });
+
+    const response = await proxy(buildRequest('/rallyes', token));
+
+    expect(mockUpsertLocalUser).toHaveBeenCalledWith('user-123', null);
+    const location = response.headers.get('location');
+    expect(new URL(location as string).pathname).toBe('/pending');
+    expect(response.headers.get('x-middleware-next')).toBeNull();
+  });
+
+  it('redirects staff users that are not approved yet to the pending page', async () => {
+    mockGetLocalUser.mockReturnValue(localUser({ approved: false }));
+    const token = await signToken({ roles: ['staff'] });
+
+    const response = await proxy(buildRequest('/rallyes', token));
+
+    const location = response.headers.get('location');
+    expect(new URL(location as string).pathname).toBe('/pending');
+    expect(mockUpsertLocalUser).not.toHaveBeenCalled();
+  });
+
+  it('lets staff users that are not approved yet open the pending page', async () => {
+    mockGetLocalUser.mockReturnValue(localUser({ approved: false }));
+    const token = await signToken({ roles: ['staff'] });
+
+    const response = await proxy(buildRequest('/pending', token));
+
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+    expect(response.headers.get('location')).toBeNull();
+  });
+
+  it('lets admins through even without approval', async () => {
+    mockGetLocalUser.mockReturnValue(
+      localUser({ admin: true, approved: false })
+    );
+    const token = await signToken({ roles: ['staff'] });
+
+    const response = await proxy(buildRequest('/rallyes', token));
+
+    expect(response.headers.get('x-middleware-next')).toBe('1');
   });
 
   it('redirects non-staff to access denied', async () => {
