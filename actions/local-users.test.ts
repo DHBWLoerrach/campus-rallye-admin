@@ -66,6 +66,7 @@ describe('getLocalUsers', () => {
         email: 'a@b.de',
         registered_at: '2026-01-01',
         admin: false,
+        approved: true,
         department_id: null,
       },
     ];

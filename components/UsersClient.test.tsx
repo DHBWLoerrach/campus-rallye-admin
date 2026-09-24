@@ -21,6 +21,7 @@ describe('UsersClient', () => {
             email: 'a@b.de',
             registered_at: '2026-01-01T00:00:00.000Z',
             admin: false,
+            approved: true,
             department_id: 7,
           },
           {
@@ -28,6 +29,7 @@ describe('UsersClient', () => {
             email: 'b@b.de',
             registered_at: '2026-01-02T00:00:00.000Z',
             admin: true,
+            approved: true,
             department_id: null,
           },
         ]}
@@ -48,6 +50,7 @@ describe('UsersClient', () => {
             email: 'a@b.de',
             registered_at: '2026-01-01T00:00:00.000Z',
             admin: false,
+            approved: true,
             department_id: 999,
           },
         ]}

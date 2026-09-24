@@ -6,6 +6,7 @@ export type LocalUser = {
   email: string | null;
   registered_at: string;
   admin: boolean;
+  approved: boolean;
   department_id: number | null;
 };
 
@@ -14,6 +15,7 @@ type Row = {
   email: string | null;
   registered_at: string;
   admin: number;
+  approved: number;
   department_id: number | null;
 };
 
@@ -23,6 +25,7 @@ function rowToUser(row: Row): LocalUser {
     email: row.email,
     registered_at: row.registered_at,
     admin: row.admin === 1,
+    approved: row.approved === 1,
     department_id: row.department_id,
   };
 }
@@ -31,7 +34,7 @@ export function getLocalUser(uuid: string): LocalUser | null {
   const db = getDb();
   const row = db
     .prepare(
-      'SELECT user_id, email, registered_at, admin, department_id FROM local_users WHERE user_id = ?'
+      'SELECT user_id, email, registered_at, admin, approved, department_id FROM local_users WHERE user_id = ?'
     )
     .get(uuid) as Row | undefined;
   return row ? rowToUser(row) : null;
@@ -40,9 +43,11 @@ export function getLocalUser(uuid: string): LocalUser | null {
 export function upsertLocalUser(uuid: string, email: string | null): LocalUser {
   const db = getDb();
   const registeredAt = new Date().toISOString();
+  // New users stay pending until an admin approves them; set explicitly so
+  // this does not depend on the column default of an existing database.
   const result = db
     .prepare(
-      'INSERT OR IGNORE INTO local_users (user_id, email, registered_at) VALUES (?, ?, ?)'
+      'INSERT OR IGNORE INTO local_users (user_id, email, registered_at, approved) VALUES (?, ?, ?, 0)'
     )
     .run(uuid, email, registeredAt);
 
@@ -57,6 +62,7 @@ export function upsertLocalUser(uuid: string, email: string | null): LocalUser {
       email,
       registered_at: registeredAt,
       admin: false,
+      approved: false,
       department_id: null,
     };
   }
@@ -74,7 +80,7 @@ export function listLocalUsers(): LocalUser[] {
   const db = getDb();
   const rows = db
     .prepare(
-      'SELECT user_id, email, registered_at, admin, department_id FROM local_users ORDER BY email'
+      'SELECT user_id, email, registered_at, admin, approved, department_id FROM local_users ORDER BY email'
     )
     .all() as Row[];
   return rows.map(rowToUser);

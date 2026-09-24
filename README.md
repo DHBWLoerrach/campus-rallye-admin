@@ -147,7 +147,8 @@ CREATE TABLE IF NOT EXISTS local_users (
     email TEXT,
     registered_at TEXT,
     admin INTEGER NOT NULL DEFAULT 0,
-    department_id INTEGER
+    department_id INTEGER,
+    approved INTEGER NOT NULL DEFAULT 0
 );
 ```
 
@@ -155,6 +156,13 @@ Bei einer bestehenden Datenbank (ohne die Spalte `department_id`) stattdessen ei
 
 ```
 ALTER TABLE local_users ADD COLUMN department_id INTEGER;
+```
+
+Bei einer bestehenden Datenbank (ohne die Spalte `approved`) einmalig ausführen. Das `UPDATE` schaltet alle bisherigen Nutzer frei, damit sie nach dem Update weiterarbeiten können:
+
+```
+ALTER TABLE local_users ADD COLUMN approved INTEGER NOT NULL DEFAULT 0;
+UPDATE local_users SET approved = 1;
 ```
 
 Nach einem ersten Login kann man dem User Admin-Rechte geben:

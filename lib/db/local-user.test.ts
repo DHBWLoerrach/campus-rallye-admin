@@ -27,7 +27,8 @@ describe('local-user', () => {
         email TEXT,
         registered_at TEXT,
         admin INTEGER NOT NULL DEFAULT 0,
-        department_id INTEGER
+        department_id INTEGER,
+        approved INTEGER NOT NULL DEFAULT 0
       );
     `);
     dbHolder.current = db;
@@ -87,6 +88,7 @@ describe('local-user', () => {
       email: 'winner@example.de',
       registered_at: '2026-05-15T00:00:00.000Z',
       admin: true,
+      approved: false,
       department_id: null,
     });
   });
@@ -98,6 +100,38 @@ describe('local-user', () => {
       )
       .run('admin-uuid', 'admin@x.de', new Date().toISOString());
     expect(getLocalUser('admin-uuid')?.admin).toBe(true);
+  });
+
+  it('registers new users as not approved', () => {
+    const user = upsertLocalUser('uuid-1', 'a@b.de');
+    expect(user.approved).toBe(false);
+    expect(getLocalUser('uuid-1')?.approved).toBe(false);
+  });
+
+  it('registers new users as not approved even if the column defaults to 1', () => {
+    dbHolder.current?.exec(`
+      DROP TABLE local_users;
+      CREATE TABLE local_users (
+        user_id TEXT PRIMARY KEY,
+        email TEXT,
+        registered_at TEXT,
+        admin INTEGER NOT NULL DEFAULT 0,
+        department_id INTEGER,
+        approved INTEGER NOT NULL DEFAULT 1
+      );
+    `);
+    upsertLocalUser('uuid-1', 'a@b.de');
+    expect(getLocalUser('uuid-1')?.approved).toBe(false);
+  });
+
+  it('reads approved=true when stored as 1', () => {
+    dbHolder.current
+      ?.prepare(
+        'INSERT INTO local_users (user_id, email, registered_at, approved) VALUES (?, ?, ?, 1)'
+      )
+      .run('approved-uuid', 'ok@x.de', new Date().toISOString());
+    expect(getLocalUser('approved-uuid')?.approved).toBe(true);
+    expect(upsertLocalUser('approved-uuid', 'ok@x.de').approved).toBe(true);
   });
 
   it('persists null email', () => {
