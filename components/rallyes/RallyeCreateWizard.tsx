@@ -61,6 +61,16 @@ export default function RallyeCreateWizard({
 
   const canLeaveStep1 = name.trim().length > 0 && departmentId.length > 0;
 
+  // A team rallye takes at most one upload question (ADR-0006); while one is
+  // selected, the other upload questions stay visible but locked.
+  const selectedUploadQuestionId = questions.find(
+    (question) => question.type === 'upload' && selectedIds.has(question.id)
+  )?.id;
+  const isLockedUploadQuestion = (question: Question) =>
+    question.type === 'upload' &&
+    selectedUploadQuestionId !== undefined &&
+    question.id !== selectedUploadQuestionId;
+
   const toggleQuestion = (questionId: number, checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -157,6 +167,12 @@ export default function RallyeCreateWizard({
               ? 'Fragen aus dem Katalog wählen — dieser Schritt kann übersprungen werden.'
               : `${selectedIds.size} ${selectedIds.size === 1 ? 'Frage' : 'Fragen'} ausgewählt.`}
           </p>
+          {selectedUploadQuestionId !== undefined && (
+            <p className="text-sm text-muted-foreground">
+              Eine Rallye kann höchstens eine Upload-Frage enthalten. Weitere
+              Upload-Fragen sind gesperrt, solange eine ausgewählt ist.
+            </p>
+          )}
           <SearchFilters
             onFilterChange={setFilters}
             categories={categories}
@@ -173,6 +189,7 @@ export default function RallyeCreateWizard({
                   <Checkbox
                     id={`wizard-question-${question.id}`}
                     checked={selectedIds.has(question.id)}
+                    disabled={isLockedUploadQuestion(question)}
                     onCheckedChange={(checked) =>
                       toggleQuestion(question.id, checked === true)
                     }

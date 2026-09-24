@@ -75,6 +75,58 @@ describe('RallyeCreateWizard', () => {
     expect(mockPush).toHaveBeenCalledWith('/rallyes/42');
   });
 
+  it('locks further upload questions while one is selected', () => {
+    render(
+      <RallyeCreateWizard
+        departmentOptions={departmentOptions}
+        defaultDepartmentId={7}
+        questions={[
+          ...questions,
+          {
+            id: 2,
+            content: 'Macht ein Gruppenfoto',
+            type: 'upload',
+            point_value: 8,
+            solutionOptions: [],
+          },
+          {
+            id: 3,
+            content: 'Selfie am Hörsaal',
+            type: 'upload',
+            point_value: 5,
+            solutionOptions: [],
+          },
+        ]}
+        categories={[]}
+      />
+    );
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Foto-Rallye' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
+
+    const groupPhoto = screen.getByRole('checkbox', {
+      name: /Macht ein Gruppenfoto/,
+    });
+    const selfie = screen.getByRole('checkbox', { name: /Selfie am Hörsaal/ });
+
+    fireEvent.click(groupPhoto);
+    expect(selfie).toHaveAttribute('aria-disabled', 'true');
+    expect(
+      screen.getByText(/höchstens eine Upload-Frage enthalten/)
+    ).toBeInTheDocument();
+    fireEvent.click(selfie);
+    expect(selfie).not.toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: /Wo ist die Mensa/ })
+    ).not.toHaveAttribute('aria-disabled');
+
+    fireEvent.click(groupPhoto);
+    expect(selfie).not.toHaveAttribute('aria-disabled');
+    fireEvent.click(selfie);
+    expect(selfie).toBeChecked();
+  });
+
   it('disables Weiter until a name is entered', () => {
     render(
       <RallyeCreateWizard
