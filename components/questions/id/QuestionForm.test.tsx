@@ -192,6 +192,24 @@ describe('QuestionForm', () => {
     ).toBeInTheDocument();
   });
 
+  it('does not offer upload questions when the rallye already has one', () => {
+    render(
+      <QuestionForm
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        categories={[]}
+        rallyeHasUploadQuestion
+      />
+    );
+
+    expect(
+      screen.queryByRole('radio', { name: /Foto hochladen/ })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Diese Rallye enthält bereits eine Upload-Frage.')
+    ).toBeInTheDocument();
+  });
+
   it('shows the matching fields after selecting a task', () => {
     render(
       <QuestionForm onSubmit={vi.fn()} onCancel={vi.fn()} categories={[]} />

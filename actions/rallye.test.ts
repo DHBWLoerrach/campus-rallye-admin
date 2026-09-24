@@ -811,6 +811,55 @@ describe('getRallyeCampusTourStatus', () => {
   });
 });
 
+describe('getRallyeHasUploadQuestion', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  const mockUploadRows = (rows: Array<{ question_id: number }>) => {
+    const limit = vi.fn().mockResolvedValue({ data: rows, error: null });
+    const typeEq = vi.fn(() => ({ limit }));
+    const rallyeEq = vi.fn(() => ({ eq: typeEq }));
+    mockCreateClient.mockResolvedValue({
+      from: vi.fn(() => ({ select: vi.fn(() => ({ eq: rallyeEq })) })),
+    });
+    return { rallyeEq, typeEq };
+  };
+
+  it('reports an assigned upload question', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { rallyeEq, typeEq } = mockUploadRows([{ question_id: 3 }]);
+
+    const { getRallyeHasUploadQuestion } = await import('./rallye');
+    const result = await getRallyeHasUploadQuestion(7);
+
+    expect(result).toEqual({ success: true, data: true });
+    expect(rallyeEq).toHaveBeenCalledWith('rallye_id', 7);
+    expect(typeEq).toHaveBeenCalledWith('questions.type', 'upload');
+  });
+
+  it('reports a rallye without upload question', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    mockUploadRows([]);
+
+    const { getRallyeHasUploadQuestion } = await import('./rallye');
+    const result = await getRallyeHasUploadQuestion(7);
+
+    expect(result).toEqual({ success: true, data: false });
+  });
+
+  it('rejects an invalid id without touching Supabase', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+
+    const { getRallyeHasUploadQuestion } = await import('./rallye');
+    const result = await getRallyeHasUploadQuestion(0);
+
+    expect(result.success).toBe(false);
+    expect(mockCreateClient).not.toHaveBeenCalled();
+  });
+});
+
 describe('deleteRallye', () => {
   beforeEach(() => {
     vi.clearAllMocks();

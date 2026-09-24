@@ -218,6 +218,34 @@ export async function getRallyeCampusTourStatus(
   return ok(isCampusTourRallye(idResult.data, data ?? []));
 }
 
+// Whether the rallye already contains its one allowed upload question
+// (ADR-0006).
+export async function getRallyeHasUploadQuestion(
+  rallyeId: number
+): Promise<ActionResult<boolean>> {
+  await requireProfile();
+
+  const idResult = idSchema.safeParse(rallyeId);
+  if (!idResult.success) {
+    return fail('Ungültige Rallye-ID', formatZodError(idResult.error));
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('rallye_questions')
+    .select('question_id, questions!inner(type)')
+    .eq('rallye_id', idResult.data)
+    .eq('questions.type', 'upload')
+    .limit(1);
+
+  if (error) {
+    console.error('Error checking upload questions:', error);
+    return fail('Rallye konnte nicht geladen werden');
+  }
+
+  return ok((data ?? []).length > 0);
+}
+
 export async function deleteRallye(
   rallyeId: string
 ): Promise<ActionResult<{ message: string }>> {

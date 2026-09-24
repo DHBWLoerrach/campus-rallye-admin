@@ -26,6 +26,7 @@ interface Props {
   rallyes: RallyeOption[];
   initialRallyeIds: number[];
   isCampusTour?: boolean;
+  rallyeHasUploadQuestion?: boolean;
 }
 
 const QuestionPage: React.FC<Props> = ({
@@ -37,6 +38,7 @@ const QuestionPage: React.FC<Props> = ({
   rallyes,
   initialRallyeIds,
   isCampusTour = false,
+  rallyeHasUploadQuestion = false,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -259,6 +261,7 @@ const QuestionPage: React.FC<Props> = ({
           isSubmitting={isSubmitting}
           onDirtyChange={setIsDirty}
           isCampusTour={isCampusTour}
+          rallyeHasUploadQuestion={rallyeHasUploadQuestion}
           serverErrors={serverErrors}
           onServerErrorClear={(field) =>
             setServerErrors((current) => {

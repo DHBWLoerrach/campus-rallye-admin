@@ -38,6 +38,7 @@ interface QuestionFormProps {
   serverErrors?: Record<string, string>;
   onServerErrorClear?: (field: string) => void;
   isCampusTour?: boolean;
+  rallyeHasUploadQuestion?: boolean;
 }
 
 interface FormErrors {
@@ -162,7 +163,15 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   serverErrors = {},
   onServerErrorClear,
   isCampusTour = false,
+  rallyeHasUploadQuestion = false,
 }) => {
+  // Campus tours take no upload questions, and a team rallye takes at most one
+  // (ADR-0006).
+  const uploadUnavailableReason = isCampusTour
+    ? 'Upload-Fragen sind in Campus-Touren nicht verfügbar'
+    : rallyeHasUploadQuestion
+      ? 'Diese Rallye enthält bereits eine Upload-Frage'
+      : null;
   const initialSerializedRef = useRef<string | null>(null);
   const dirtyStateRef = useRef(false);
   const [formData, setFormData] = useState<QuestionFormData>(() =>
@@ -358,8 +367,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       newErrors.type = 'Bitte einen Fragetyp wählen';
     }
 
-    if (isCampusTour && data.type === 'upload') {
-      newErrors.type = 'Upload-Fragen sind in Campus-Touren nicht verfügbar';
+    if (uploadUnavailableReason && data.type === 'upload') {
+      newErrors.type = uploadUnavailableReason;
     }
 
     if (!data.category?.trim() && isNewCategory) {
@@ -471,7 +480,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const hasType = Boolean(formData.type);
   const isEditing = initialData?.id !== undefined;
-  const selectableQuestionTypes = isCampusTour
+  const selectableQuestionTypes = uploadUnavailableReason
     ? questionTypes.filter((type) => type.id !== 'upload')
     : questionTypes;
   const selectedQuestionType = questionTypes.find(
@@ -623,9 +632,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 </RadioGroup>
               </>
             )}
-            {isCampusTour && (
+            {uploadUnavailableReason && (
               <p className="text-sm text-muted-foreground">
-                Upload-Fragen sind in Campus-Touren nicht verfügbar.
+                {uploadUnavailableReason}.
               </p>
             )}
             {displayedErrors.type && (

@@ -1,6 +1,10 @@
 import QuestionPage from '@/components/questions/id/QuestionPage';
 import { getQuestionById, getCategories } from '@/actions/question';
-import { getRallyeCampusTourStatus, getRallyeOptions } from '@/actions/rallye';
+import {
+  getRallyeCampusTourStatus,
+  getRallyeHasUploadQuestion,
+  getRallyeOptions,
+} from '@/actions/rallye';
 import { getQuestionRallyes } from '@/actions/assign_questions_to_rallye';
 import { copyQuestionForCreation } from '@/helpers/questions';
 import {
@@ -36,6 +40,10 @@ export default async function Question({ params, searchParams }: Props) {
     creationContext.kind === 'rallye'
       ? getRallyeCampusTourStatus(creationContext.rallyeId)
       : Promise.resolve({ success: true as const, data: false });
+  const uploadQuestionStatusPromise =
+    creationContext.kind === 'rallye'
+      ? getRallyeHasUploadQuestion(creationContext.rallyeId)
+      : Promise.resolve({ success: true as const, data: false });
 
   const [
     questionResult,
@@ -43,6 +51,7 @@ export default async function Question({ params, searchParams }: Props) {
     rallyesResult,
     assignedRallyesResult,
     campusTourStatusResult,
+    uploadQuestionStatusResult,
   ] = await Promise.all([
     requestedQuestionId
       ? getQuestionById(requestedQuestionId)
@@ -51,6 +60,7 @@ export default async function Question({ params, searchParams }: Props) {
     getRallyeOptions(),
     isNew ? Promise.resolve(null) : getQuestionRallyes(Number(id)),
     campusTourStatusPromise,
+    uploadQuestionStatusPromise,
   ]);
 
   if (questionResult && !questionResult.success) {
@@ -67,6 +77,9 @@ export default async function Question({ params, searchParams }: Props) {
   }
   if (!campusTourStatusResult.success) {
     console.error(campusTourStatusResult.error);
+  }
+  if (!uploadQuestionStatusResult.success) {
+    console.error(uploadQuestionStatusResult.error);
   }
 
   const loadedQuestion =
@@ -95,6 +108,11 @@ export default async function Question({ params, searchParams }: Props) {
   const isCampusTour = campusTourStatusResult.success
     ? campusTourStatusResult.data === true
     : true;
+  // Like the campus tour check, fail closed: the server rejects a second upload
+  // question anyway, so hiding the type only saves a failed submit.
+  const rallyeHasUploadQuestion = uploadQuestionStatusResult.success
+    ? uploadQuestionStatusResult.data === true
+    : true;
 
   return (
     <main className="mx-auto flex w-full max-w-350 flex-col gap-6 px-4 py-6">
@@ -107,6 +125,7 @@ export default async function Question({ params, searchParams }: Props) {
         rallyes={rallyes}
         initialRallyeIds={assignedRallyes}
         isCampusTour={isCampusTour}
+        rallyeHasUploadQuestion={rallyeHasUploadQuestion}
       />
     </main>
   );
