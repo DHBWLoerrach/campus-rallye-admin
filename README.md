@@ -152,19 +152,6 @@ CREATE TABLE IF NOT EXISTS local_users (
 );
 ```
 
-Bei einer bestehenden Datenbank (ohne die Spalte `department_id`) stattdessen einmalig ausführen:
-
-```
-ALTER TABLE local_users ADD COLUMN department_id INTEGER;
-```
-
-Bei einer bestehenden Datenbank (ohne die Spalte `approved`) einmalig ausführen. Das `UPDATE` schaltet alle bisherigen Nutzer frei, damit sie nach dem Update weiterarbeiten können:
-
-```
-ALTER TABLE local_users ADD COLUMN approved INTEGER NOT NULL DEFAULT 0;
-UPDATE local_users SET approved = 1;
-```
-
 SQLite-Shell mit `.exit` verlassen.
 
 ## Webanwendung starten
