@@ -171,6 +171,8 @@ Nach einem ersten Login kann man dem User Admin-Rechte geben:
 UPDATE local_users SET admin=1 WHERE email="<hier email eintragen>";
 ```
 
+Admins gelten immer als freigeschaltet. So kommt der erste Admin nach diesem `UPDATE` direkt in die Anwendung.
+
 SQLite-Shell mit `.exit` verlassen.
 
 ## Webanwendung starten
@@ -184,3 +186,17 @@ npm run dev
 Campus Rallye Admin Webapp im Browser öffnen: http://localhost:3000
 
 Bei aktiviertem `DEV_AUTH_BYPASS` ist man direkt als Mock-User eingeloggt. Andernfalls mit einem in KeyCloak erstellten User anmelden.
+
+## Freischaltung neuer Nutzer
+
+Wer sich zum ersten Mal anmeldet, wird in der lokalen SQLite-DB angelegt, ist aber noch nicht freigeschaltet. Bis zur Freischaltung sieht die Person nur die Seite `/pending` mit der Bitte, sich per E-Mail zu melden.
+
+Die angezeigten Kontaktadressen werden in `.env.local` bzw. in der Umgebung des Containers kommagetrennt gesetzt:
+
+```
+ACCESS_REQUEST_EMAILS=admin1@example.com,admin2@example.com
+```
+
+Ohne diese Variable verweist die Seite allgemein an das Admin-Team.
+
+Admins schalten neue Nutzer unter _Verwaltung_ → _Nutzer_ frei (Spalte _Zugang_). Wartende Nutzer stehen dort oben. Über dieselbe Checkbox lässt sich der Zugang wieder sperren. Die Zuordnung eines Bereichs ist davon unabhängig.

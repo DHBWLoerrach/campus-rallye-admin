@@ -11,7 +11,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Project Structure & Module Organization
 
 - `app/`: Next.js App Router pages/layouts (protected routes live under `app/(protected)/`).
-- `proxy.ts`: Next.js **Proxy** (replaces the old root `middleware.ts` in this stack); auth/authorization gate. Expects `x-forwarded-access-token` (Traefik/oauth2-proxy), verifies Keycloak (or dev bypass), and applies `lib/auth.ts` (`staff` role or `ALLOWED_EMAILS`). Matcher covers essentially all routes except `/`, `/sign-out`, legal pages, `/access-denied`, static assets, and `assets` — see `config.matcher` in that file.
+- `proxy.ts`: Next.js **Proxy** (replaces the old root `middleware.ts` in this stack); auth/authorization gate. Expects `x-forwarded-access-token` (Traefik/oauth2-proxy), verifies Keycloak (or dev bypass), and applies `lib/auth.ts` (`staff` role or `ALLOWED_EMAILS`). It then registers the user in the local SQLite DB on first login and redirects users that are not approved yet (`lib/approval.ts`, admins always count as approved) to `/pending`; `requireProfile` enforces the same rule for server actions. Matcher covers essentially all routes except `/`, `/sign-out`, legal pages, `/access-denied`, static assets, and `assets` — see `config.matcher` in that file.
 - `actions/`: Server actions for data mutations/queries (Supabase + app logic).
 - `components/`: Shared React components; `components/ui/` contains shadcn/ui primitives.
 - `lib/`: Shared utilities (Supabase client in `lib/supabase.ts`, SQLite helpers in `lib/db/`).

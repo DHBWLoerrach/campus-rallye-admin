@@ -254,6 +254,10 @@ _Vermeiden_: Mitarbeitende, User, staff user
 Ein Bearbeitender mit Vollzugriff auf Standorte, Bereiche, Rallyes und Fragen.
 _Vermeiden_: Superuser
 
+**Freischaltung**:
+Die Bestätigung durch einen Admin, dass eine neu angemeldete Person als Bearbeitender die Admin-App nutzen darf.
+_Vermeiden_: Aktivierung, Approval
+
 **Organisator**:
 Ein Bearbeitender, der eine konkrete Team-Rallye durchführt und Status sowie Abstimmung steuert.
 _Vermeiden_: Admin
@@ -341,6 +345,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 | Rallye-App             | `rallyeApp`                | `rallye_app`                | App für Teilnehmende.                            |
 | Bearbeitende           | `editor`                   | `editor`                    | Nicht `staff user`.                              |
 | Admin                  | `admin`                    | `admin`                     | Bearbeitender mit Vollzugriff.                   |
+| Freischaltung          | `approval`                 | `approved`                  | Kennzeichen am lokalen Nutzer.                   |
 | Organisator            | `organizer`                | `organizer`                 | Führt eine konkrete Team-Rallye durch.           |
 | Zuständigkeit          | `responsibility`           | `responsibility`            | Nicht `role` oder `permission`.                  |
 | Standort-Zuständigkeit | `locationResponsibility`   | `location_responsibility`   | Zuständigkeit für einen Standort.                |
@@ -471,6 +476,9 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - **Bearbeitende** nutzen die **Admin-App**.
 - **Teilnehmende** nutzen die **Rallye-App**.
 - Ein **Admin** ist ein **Bearbeitender** und kann alle **Standorte**, **Bereiche**, **Rallyes** und **Fragen** bearbeiten.
+- Eine neu angemeldete Person nutzt die **Admin-App** erst nach ihrer **Freischaltung** durch einen **Admin**.
+- Ein **Admin** gilt immer als freigeschaltet.
+- Die **Freischaltung** ist unabhängig vom **Bereich** eines **Bearbeitenden**.
 - Ein **Organisator** ist ein **Bearbeitender**.
 - Ein **Bearbeitender** kann null oder mehr **Zuständigkeiten** haben.
 - Eine **Zuständigkeit** bezieht sich auf einen **Standort** oder einen **Bereich**.
