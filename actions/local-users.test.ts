@@ -6,12 +6,14 @@ const {
   mockRevalidatePath,
   mockListLocalUsers,
   mockSetLocalUserDepartment,
+  mockSetLocalUserApproved,
 } = vi.hoisted(() => ({
   mockRequireAdmin: vi.fn(),
   mockCreateClient: vi.fn(),
   mockRevalidatePath: vi.fn(),
   mockListLocalUsers: vi.fn(),
   mockSetLocalUserDepartment: vi.fn(),
+  mockSetLocalUserApproved: vi.fn(),
 }));
 
 vi.mock('@/lib/require-profile', () => ({
@@ -29,6 +31,7 @@ vi.mock('next/cache', () => ({
 vi.mock('@/lib/db/local-user', () => ({
   listLocalUsers: mockListLocalUsers,
   setLocalUserDepartment: mockSetLocalUserDepartment,
+  setLocalUserApproved: mockSetLocalUserApproved,
 }));
 
 // Supabase mock: department lookup via .from().select().eq().maybeSingle()
@@ -131,5 +134,60 @@ describe('assignUserDepartment', () => {
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
     expect(result.error).toBe('Nutzer nicht gefunden');
+  });
+});
+
+describe('setUserApproval', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  it('requires admin', async () => {
+    mockRequireAdmin.mockRejectedValue(new Error('Denied'));
+    const { setUserApproval } = await import('./local-users');
+    await expect(setUserApproval('u1', true)).rejects.toThrow('Denied');
+    expect(mockSetLocalUserApproved).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty user id', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    const { setUserApproval } = await import('./local-users');
+    const result = await setUserApproval('', true);
+    expect(result.success).toBe(false);
+    expect(mockSetLocalUserApproved).not.toHaveBeenCalled();
+  });
+
+  it('approves a user and revalidates', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    mockSetLocalUserApproved.mockReturnValue(true);
+    const { setUserApproval } = await import('./local-users');
+    const result = await setUserApproval('u1', true);
+    expect(result).toEqual({
+      success: true,
+      data: { message: 'Zugang freigeschaltet' },
+    });
+    expect(mockSetLocalUserApproved).toHaveBeenCalledWith('u1', true);
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/users');
+  });
+
+  it('revokes the approval of a user', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    mockSetLocalUserApproved.mockReturnValue(true);
+    const { setUserApproval } = await import('./local-users');
+    const result = await setUserApproval('u1', false);
+    expect(result.success).toBe(true);
+    expect(mockSetLocalUserApproved).toHaveBeenCalledWith('u1', false);
+  });
+
+  it('fails when the user does not exist locally', async () => {
+    mockRequireAdmin.mockResolvedValue({ user_id: 'staff' });
+    mockSetLocalUserApproved.mockReturnValue(false);
+    const { setUserApproval } = await import('./local-users');
+    const result = await setUserApproval('missing', true);
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe('Nutzer nicht gefunden');
+    expect(mockRevalidatePath).not.toHaveBeenCalled();
   });
 });

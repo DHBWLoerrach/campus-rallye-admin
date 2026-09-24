@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
-import { assignUserDepartment } from '@/actions/local-users';
+import { assignUserDepartment, setUserApproval } from '@/actions/local-users';
+import { isApprovedUser } from '@/lib/approval';
 import type { LocalUser } from '@/lib/db/local-user';
 import type { DepartmentOption } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -44,6 +46,22 @@ export default function UsersClient({
     })),
   ];
 
+  // Users waiting for approval first, otherwise keep the email order.
+  const sortedUsers = [...users].sort(
+    (a, b) => Number(isApprovedUser(a)) - Number(isApprovedUser(b))
+  );
+  const pendingCount = users.filter((user) => !isApprovedUser(user)).length;
+
+  const handleApprovalChange = (userId: string, approved: boolean) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await setUserApproval(userId, approved);
+      if (!result.success) {
+        setError(result.error);
+      }
+    });
+  };
+
   const handleChange = (userId: string, value: string) => {
     setError(null);
     startTransition(async () => {
@@ -72,9 +90,16 @@ export default function UsersClient({
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">Nutzer</h1>
         <p className="text-muted-foreground">
-          Nutzern einen Bereich zuordnen. Der Bereich bestimmt, welche Rallyes
-          im Fokus stehen.
+          Neue Nutzer freischalten und Nutzern einen Bereich zuordnen. Der
+          Bereich bestimmt, welche Rallyes im Fokus stehen.
         </p>
+        {pendingCount > 0 && (
+          <p className="text-sm font-medium text-foreground">
+            {pendingCount === 1
+              ? '1 Nutzer wartet auf Freischaltung'
+              : `${pendingCount} Nutzer warten auf Freischaltung`}
+          </p>
+        )}
       </div>
 
       {error && (
@@ -100,12 +125,13 @@ export default function UsersClient({
             <TableRow>
               <TableHead>E-Mail</TableHead>
               <TableHead>Registriert</TableHead>
+              <TableHead>Zugang</TableHead>
               <TableHead>Rolle</TableHead>
               <TableHead>Bereich</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => {
+            {sortedUsers.map((user) => {
               const isOrphaned =
                 user.department_id !== null &&
                 !departmentOptions.some((d) => d.id === user.department_id);
@@ -114,6 +140,29 @@ export default function UsersClient({
                   <TableCell>{user.email ?? '—'}</TableCell>
                   <TableCell>
                     {new Date(user.registered_at).toLocaleDateString('de-DE')}
+                  </TableCell>
+                  <TableCell>
+                    {user.admin ? (
+                      <span className="whitespace-nowrap text-sm text-muted-foreground">
+                        Immer (Admin)
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={user.approved}
+                          onCheckedChange={(checked) =>
+                            handleApprovalChange(user.user_id, checked === true)
+                          }
+                          disabled={isPending}
+                          aria-label={`Zugang für ${user.email ?? 'Nutzer'} freischalten`}
+                        />
+                        {user.approved ? (
+                          <span className="text-sm">Freigeschaltet</span>
+                        ) : (
+                          <Badge>Wartet</Badge>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     {user.admin && <Badge variant="outline">Admin</Badge>}

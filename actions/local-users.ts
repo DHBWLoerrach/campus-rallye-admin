@@ -4,6 +4,7 @@ import createClient from '@/lib/supabase';
 import { requireAdmin } from '@/lib/require-profile';
 import {
   listLocalUsers,
+  setLocalUserApproved,
   setLocalUserDepartment,
   type LocalUser,
 } from '@/lib/db/local-user';
@@ -51,4 +52,25 @@ export async function assignUserDepartment(
 
   revalidatePath('/admin/users');
   return ok({ message: 'Bereich erfolgreich zugeordnet' });
+}
+
+export async function setUserApproval(
+  userId: string,
+  approved: boolean
+): Promise<ActionResult<{ message: string }>> {
+  await requireAdmin();
+
+  if (!userId) {
+    return fail('Ungültige Nutzer-ID');
+  }
+
+  const updated = setLocalUserApproved(userId, approved);
+  if (!updated) {
+    return fail('Nutzer nicht gefunden');
+  }
+
+  revalidatePath('/admin/users');
+  return ok({
+    message: approved ? 'Zugang freigeschaltet' : 'Zugang gesperrt',
+  });
 }

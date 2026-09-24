@@ -97,6 +97,14 @@ export function setLocalUserDepartment(
   return result.changes > 0;
 }
 
+export function setLocalUserApproved(uuid: string, approved: boolean): boolean {
+  const db = getDb();
+  const result = db
+    .prepare('UPDATE local_users SET approved = ? WHERE user_id = ?')
+    .run(approved ? 1 : 0, uuid);
+  return result.changes > 0;
+}
+
 export function clearDepartmentAssignments(departmentId: number): number {
   const db = getDb();
   const result = db

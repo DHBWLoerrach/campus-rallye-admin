@@ -14,6 +14,7 @@ import {
   clearDepartmentAssignments,
   getLocalUser,
   listLocalUsers,
+  setLocalUserApproved,
   setLocalUserDepartment,
   upsertLocalUser,
 } from './local-user';
@@ -132,6 +133,18 @@ describe('local-user', () => {
       .run('approved-uuid', 'ok@x.de', new Date().toISOString());
     expect(getLocalUser('approved-uuid')?.approved).toBe(true);
     expect(upsertLocalUser('approved-uuid', 'ok@x.de').approved).toBe(true);
+  });
+
+  it('approves and revokes a user', () => {
+    upsertLocalUser('uuid-1', 'a@b.de');
+    expect(setLocalUserApproved('uuid-1', true)).toBe(true);
+    expect(getLocalUser('uuid-1')?.approved).toBe(true);
+    expect(setLocalUserApproved('uuid-1', false)).toBe(true);
+    expect(getLocalUser('uuid-1')?.approved).toBe(false);
+  });
+
+  it('returns false when approving an unknown user', () => {
+    expect(setLocalUserApproved('missing', true)).toBe(false);
   });
 
   it('persists null email', () => {
