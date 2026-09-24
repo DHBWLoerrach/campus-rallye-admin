@@ -689,6 +689,34 @@ describe('createRallyeWithQuestions', () => {
     ]);
   });
 
+  it('rejects more than one upload question before creating the rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      questionTypes: [
+        { id: 1, type: 'upload' },
+        { id: 2, type: 'upload' },
+      ],
+    });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { createRallyeWithQuestions } = await import('./rallye');
+    const result = await createRallyeWithQuestions({
+      name: 'Foto-Rallye',
+      departmentId: 7,
+      endTime: null,
+      rallyeCode: 'code',
+      questionIds: [1, 2],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe(
+      'Eine Rallye kann höchstens eine Upload-Frage enthalten'
+    );
+    expect(supabase.rallyeInsert).not.toHaveBeenCalled();
+    expect(supabase.joinInsert).not.toHaveBeenCalled();
+  });
+
   it('stores a null end time when none is planned', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const supabase = makeSupabase({});

@@ -23,6 +23,10 @@ export type GeocachingInputType = 'text' | 'qr';
 export const defaultIsVoting = (type: string | null | undefined): boolean =>
   type === 'upload';
 
+/** A team rallye holds at most one upload question (ADR-0006). */
+export const MULTIPLE_UPLOAD_QUESTIONS_ERROR =
+  'Eine Rallye kann höchstens eine Upload-Frage enthalten';
+
 /**
  * Points the Rallye-App deducts from a correct answer after the hint was
  * revealed, never below 0. Upload answers score 0 on submission, so their

@@ -4,13 +4,14 @@ import { requireProfile } from '@/lib/require-profile';
 import { revalidatePath } from 'next/cache';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, idArraySchema, idSchema } from '@/lib/validation';
-import { defaultIsVoting } from '@/helpers/questionTypes';
+import {
+  defaultIsVoting,
+  MULTIPLE_UPLOAD_QUESTIONS_ERROR,
+} from '@/helpers/questionTypes';
 import { getCampusTourRallyeIds } from '@/lib/campus-tour';
 
 const CAMPUS_TOUR_UPLOAD_ERROR =
   'Upload-Fragen können keiner Campus-Tour zugeordnet werden';
-const MULTIPLE_UPLOAD_QUESTIONS_ERROR =
-  'Eine Rallye kann höchstens eine Upload-Frage enthalten';
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
