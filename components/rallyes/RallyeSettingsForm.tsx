@@ -41,6 +41,12 @@ interface RallyeSettingsFormProps {
   runDataSummary?: RallyeRunDataSummary | null;
 }
 
+// The stored planned end (HH:MM:SS or null) as a value for the time input.
+function toEndTimeInput(rallyeEnd: string | null): string {
+  const plannedEnd = parsePlannedEnd(rallyeEnd ?? '');
+  return plannedEnd.kind === 'time' ? plannedEnd.value : '';
+}
+
 function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
@@ -68,11 +74,26 @@ export default function RallyeSettingsForm({
   const [formState, formAction] = useActionState(updateRallye, null);
   const [name, setName] = useState<string>(rallye.name);
   const [status, setStatus] = useState<RallyeStatus>(rallye.status);
-  const initialEnd = parsePlannedEnd(rallye.rallye_end ?? '');
-  const [endTime, setEndTime] = useState(
-    initialEnd.kind === 'time' ? initialEnd.value : ''
+  const [endTime, setEndTime] = useState(toEndTimeInput(rallye.rallye_end));
+  const [rallyeCode, setRallyeCode] = useState<string>(
+    rallye.rallye_code ?? ''
   );
-  const [rallyeCode, setRallyeCode] = useState<string>(rallye.rallye_code);
+  // The phase controls and the reset change status, code and planned end on
+  // the server while this form stays mounted. Take over every value that
+  // changed there, so saving afterwards does not write stale values back;
+  // unsaved edits of unchanged fields are kept.
+  const [syncedRallye, setSyncedRallye] = useState(rallye);
+  if (rallye !== syncedRallye) {
+    setSyncedRallye(rallye);
+    if (rallye.name !== syncedRallye.name) setName(rallye.name);
+    if (rallye.status !== syncedRallye.status) setStatus(rallye.status);
+    if (rallye.rallye_end !== syncedRallye.rallye_end) {
+      setEndTime(toEndTimeInput(rallye.rallye_end));
+    }
+    if (rallye.rallye_code !== syncedRallye.rallye_code) {
+      setRallyeCode(rallye.rallye_code ?? '');
+    }
+  }
   const normalizedAssignedDepartmentIds = Array.from(
     new Set(assignedDepartmentIds)
   );

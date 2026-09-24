@@ -113,6 +113,67 @@ describe('RallyeSettingsForm', () => {
     expect(screen.getByLabelText('Geplantes Ende')).toHaveDisplayValue('18:30');
   });
 
+  // Finishing the draft in the header dialog refreshes the page while this form
+  // stays mounted; saving afterwards must not write the old values back.
+  it('takes over status, code and end changed outside the form', () => {
+    const draft = {
+      ...baseRallye,
+      status: 'draft' as const,
+      rallye_code: '',
+      rallye_end: null,
+    };
+    const { container, rerender } = render(
+      <RallyeSettingsForm
+        rallye={draft}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+
+    rerender(
+      <RallyeSettingsForm
+        rallye={{
+          ...draft,
+          status: 'ready',
+          rallye_code: 'campus-427',
+          rallye_end: '18:30:00',
+        }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+
+    expect(screen.getByLabelText('Rallye-Code')).toHaveValue('campus-427');
+    expect(screen.getByLabelText('Geplantes Ende')).toHaveDisplayValue('18:30');
+    expect(
+      container.querySelector('input[name="status"][value="ready"]')
+    ).not.toBeNull();
+  });
+
+  it('keeps unsaved edits of fields that did not change outside the form', () => {
+    const { rerender } = render(
+      <RallyeSettingsForm
+        rallye={{ ...baseRallye, status: 'draft' }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Neuer Name' },
+    });
+
+    rerender(
+      <RallyeSettingsForm
+        rallye={{ ...baseRallye, status: 'ready', rallye_code: 'campus-427' }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+      />
+    );
+
+    expect(screen.getByLabelText('Name')).toHaveValue('Neuer Name');
+    expect(screen.getByLabelText('Rallye-Code')).toHaveValue('campus-427');
+  });
+
   it('omits department sync and allows saving when no departments exist', () => {
     const { container } = render(
       <RallyeSettingsForm
