@@ -451,8 +451,9 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Team-Rallye** hat genau einen **Team-Rallye-Status**.
 - **Entwurf**, **Bereit**, **Läuft**, **Abstimmung**, **Ergebnisse** und **Abgeschlossen** sind **Team-Rallye-Status**-Werte.
 - Eine **Team-Rallye** startet fachlich durch den Statuswechsel zu **Läuft**, nicht durch einen eigenen Startzeitpunkt.
-- Eine **Team-Rallye** im **Entwurf** kann keinen **Rallye-Code** haben.
-- Eine **Team-Rallye** im Status **Läuft** braucht genau einen **Rallye-Code**.
+- Eine **Team-Rallye** im **Entwurf** kann einen **Rallye-Code** haben, muss aber nicht.
+- Eine **Team-Rallye** braucht genau einen **Rallye-Code**, solange sie eine **Beitretbare Rallye** ist, also im Status **Bereit** oder **Läuft**.
+- Nach **Läuft** bleibt der **Rallye-Code** erhalten, bis die **Team-Rallye** zurückgesetzt wird.
 - Eine **Team-Rallye** hat null oder ein **Rallye-Ende**.
 - Das **Rallye-Ende** markiert den regulären Spielschluss, löst aber keinen automatischen Statuswechsel aus.
 - Nach dem **Rallye-Ende** steuert der **Organisator** die Übergänge in **Abstimmung**, **Ergebnisse** und **Abgeschlossen**.
