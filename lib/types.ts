@@ -49,6 +49,11 @@ export const getRallyeStatusLabel = (status: RallyeStatus): string => {
 export const isRallyeActive = (status: RallyeStatus): boolean =>
   status === 'running';
 
+// Teams can join a team rallye in the Rallye-App while it is ready (lobby) or
+// running, so a rallye code is required in these statuses.
+export const isRallyeJoinable = (status: RallyeStatus): boolean =>
+  status === 'ready' || status === 'running';
+
 // Only a draft has no run data to discard; every other status can be reset
 // back to a draft (see ADR-0005).
 export const canResetRallye = (status: RallyeStatus): boolean =>
@@ -73,14 +78,14 @@ export const getNextRallyeTransition = (
         target: 'ready',
         actionLabel: 'Entwurf abschließen',
         confirmText:
-          'Die Rallye ist danach bereit zum Start. Teams können noch nicht beitreten.',
+          'Die Rallye ist danach in der Rallye-App sichtbar. Teams können mit dem Rallye-Code beitreten, aber noch nicht spielen.',
       };
     case 'ready':
       return {
         target: 'running',
         actionLabel: 'Rallye starten',
         confirmText:
-          'Teams können ab jetzt beitreten und die Fragen beantworten.',
+          'Teams können ab jetzt die Fragen beantworten. Weitere Teams können weiterhin beitreten.',
       };
     case 'running':
       return hasVotingQuestions

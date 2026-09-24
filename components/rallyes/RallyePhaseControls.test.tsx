@@ -198,6 +198,97 @@ describe('RallyePhaseControls', () => {
     expect(screen.getByRole('button', { name: 'Bestätigen' })).toBeDisabled();
   });
 
+  // Teams can already join a ready rallye, so the code is required when
+  // finishing the draft, not only when starting.
+  it('asks for a code when finishing a draft without one', async () => {
+    mockAdvance.mockResolvedValue({ success: true, data: { message: 'ok' } });
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="draft"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Entwurf abschließen' })
+    );
+    const codeInput = screen.getByLabelText('Rallye-Code');
+    expect((codeInput as HTMLInputElement).value.length).toBeGreaterThan(0);
+    fireEvent.change(codeInput, { target: { value: 'meincode' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
+    await waitFor(() =>
+      expect(mockAdvance).toHaveBeenCalledWith(
+        5,
+        'ready',
+        undefined,
+        'meincode'
+      )
+    );
+  });
+
+  it('blocks finishing the draft while the code field is empty', () => {
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="draft"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Entwurf abschließen' })
+    );
+    fireEvent.change(screen.getByLabelText('Rallye-Code'), {
+      target: { value: '' },
+    });
+    expect(screen.getByRole('button', { name: 'Bestätigen' })).toBeDisabled();
+  });
+
+  it('shows the stored code when finishing a draft that has one', async () => {
+    mockAdvance.mockResolvedValue({ success: true, data: { message: 'ok' } });
+    render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="draft"
+        hasVotingQuestions={false}
+        rallyeCode="join42"
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Entwurf abschließen' })
+    );
+    expect(screen.queryByLabelText('Rallye-Code')).not.toBeInTheDocument();
+    expect(screen.getByText('join42')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Bestätigen' }));
+    await waitFor(() =>
+      expect(mockAdvance).toHaveBeenCalledWith(5, 'ready', undefined, undefined)
+    );
+  });
+
+  // The page keeps this component mounted while the status changes (e.g. a
+  // reset back to draft), so the suggestion must not depend on the initial
+  // status.
+  it('suggests a code after the status changed without remounting', () => {
+    const { rerender } = render(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="ended"
+        hasVotingQuestions={false}
+      />
+    );
+    rerender(
+      <RallyePhaseControls
+        rallyeId={5}
+        status="draft"
+        hasVotingQuestions={false}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Entwurf abschließen' })
+    );
+    const codeInput = screen.getByLabelText('Rallye-Code') as HTMLInputElement;
+    expect(codeInput.value.length).toBeGreaterThan(0);
+  });
+
   it('warns about unmarked upload questions but still allows confirming', async () => {
     mockAdvance.mockResolvedValue({ success: true, data: { message: 'ok' } });
     render(

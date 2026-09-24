@@ -3,6 +3,7 @@ import {
   getNextRallyeTransition,
   getRallyePhaseGroup,
   getRallyeStatusLabel,
+  isRallyeJoinable,
   RALLYE_PHASE_GROUPS,
   RALLYE_STATUSES,
 } from './types';
@@ -70,6 +71,19 @@ describe('getNextRallyeTransition', () => {
       const t = getNextRallyeTransition(status, true);
       if (t) expect(t.confirmText.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('isRallyeJoinable', () => {
+  it.each([
+    ['draft', false],
+    ['ready', true],
+    ['running', true],
+    ['voting', false],
+    ['results', false],
+    ['ended', false],
+  ] as const)('%s is joinable: %s', (status, joinable) => {
+    expect(isRallyeJoinable(status)).toBe(joinable);
   });
 });
 

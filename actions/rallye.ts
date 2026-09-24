@@ -5,6 +5,7 @@ import { requireProfile } from '@/lib/require-profile';
 import {
   canResetRallye,
   getNextRallyeTransition,
+  isRallyeJoinable,
   Rallye,
   RallyeOption,
   RallyeStatus,
@@ -317,8 +318,8 @@ export async function advanceRallyeStatus(
     parsedEndTime = plannedEnd.value;
   }
 
-  // A code may be supplied alongside the start transition (see below); only a
-  // non-empty value overrides the stored code.
+  // A code may be supplied alongside a transition into a joinable status (see
+  // below); only a non-empty value overrides the stored code.
   const providedCode = rallyeCode?.trim() ?? '';
 
   const supabase = await createClient();
@@ -371,16 +372,16 @@ export async function advanceRallyeStatus(
     updatePayload.rallye_end = parsedEndTime;
   }
 
-  // A running team rallye needs a code so teams can join. Use a freshly
-  // provided code, otherwise the stored one; refuse the start if neither
-  // exists. Only the start transition is affected.
-  if (target === 'running') {
+  // Teams can join a ready or running team rallye, so it needs a code. Use a
+  // freshly provided code, otherwise the stored one; refuse the transition if
+  // neither exists. Later transitions leave the code untouched.
+  if (isRallyeJoinable(target)) {
     const effectiveCode =
       providedCode.length > 0
         ? providedCode
         : (rallye.rallye_code ?? '').trim();
     if (effectiveCode.length === 0) {
-      return fail('Für den Start wird ein Rallye-Code benötigt');
+      return fail('Teams brauchen einen Rallye-Code, um beizutreten');
     }
     if (providedCode.length > 0) {
       updatePayload.rallye_code = providedCode;

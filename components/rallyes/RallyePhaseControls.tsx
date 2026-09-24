@@ -18,7 +18,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { parsePlannedEnd } from '@/lib/planned-end';
 import { suggestRallyeCode } from '@/lib/rallye-code';
-import { getNextRallyeTransition, type RallyeStatus } from '@/lib/types';
+import {
+  getNextRallyeTransition,
+  isRallyeJoinable,
+  type RallyeStatus,
+} from '@/lib/types';
 
 interface RallyePhaseControlsProps {
   rallyeId: number;
@@ -27,8 +31,8 @@ interface RallyePhaseControlsProps {
   // Assigned upload questions with a point value that are not voting questions.
   // Their points can never be awarded, so we warn before leaving "running".
   unmarkedUploadWithPoints?: number;
-  // The stored rallye code. When empty, the start dialog asks for one because a
-  // running team rallye needs a code for teams to join.
+  // The stored rallye code. When empty, the dialog for entering a joinable
+  // status (ready or running) asks for one because teams need it to join.
   rallyeCode?: string;
   // Assigned questions whose QR codes must be printed and placed on campus.
   // Shown as a reminder when finishing the draft.
@@ -47,15 +51,15 @@ export default function RallyePhaseControls({
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [endTime, setEndTime] = useState('');
-  // Prefill a suggestion only when the start dialog needs a code; done in a
-  // lazy initializer so it stays stable across re-renders.
-  const needsCode = status === 'ready' && rallyeCode.trim().length === 0;
-  const [code, setCode] = useState(() =>
-    needsCode ? suggestRallyeCode() : ''
-  );
+  const [code, setCode] = useState('');
   const [isPending, startTransition] = useTransition();
 
   const transition = getNextRallyeTransition(status, hasVotingQuestions);
+  // Teams can join as soon as the rallye is ready, so the transition into a
+  // joinable status needs a code (usually when finishing the draft).
+  const entersJoinable =
+    transition !== null && isRallyeJoinable(transition.target);
+  const needsCode = entersJoinable && rallyeCode.trim().length === 0;
   // Only the start step offers a "geplant bis" time; other transitions don't.
   const showEndTime = status === 'ready';
   const codeIsMissing = needsCode && code.trim().length === 0;
@@ -112,6 +116,15 @@ export default function RallyePhaseControls({
     );
   }
 
+  // The status can change without remounting this component (e.g. after a
+  // reset), so the code suggestion is prefilled when the dialog opens.
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && needsCode && code.trim().length === 0) {
+      setCode(suggestRallyeCode());
+    }
+    setOpen(nextOpen);
+  };
+
   const handleConfirm = () => {
     if (endIsInvalid || codeIsMissing) return;
     setError(null);
@@ -132,7 +145,7 @@ export default function RallyePhaseControls({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger
           render={
             <Button variant="dhbwStyle" className="cursor-pointer">
@@ -184,16 +197,16 @@ export default function RallyePhaseControls({
               />
               {codeIsMissing && (
                 <p className="text-xs text-destructive">
-                  Für den Start wird ein Rallye-Code benötigt.
+                  Teams brauchen einen Rallye-Code, um beizutreten.
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Teams benötigen diesen Code, um beizutreten. Mach ihn beim Start
-                sichtbar (z. B. an Tafel oder Beamer).
+                Teams benötigen diesen Code, um beizutreten. Mach ihn sichtbar,
+                sobald die Teams beitreten sollen (z. B. an Tafel oder Beamer).
               </p>
             </div>
           )}
-          {showEndTime && !needsCode && (
+          {entersJoinable && !needsCode && (
             <div className="grid gap-1">
               <span className="text-sm font-medium text-foreground">
                 Rallye-Code
@@ -202,8 +215,8 @@ export default function RallyePhaseControls({
                 {rallyeCode}
               </span>
               <p className="text-xs text-muted-foreground">
-                Teams benötigen diesen Code, um beizutreten. Mach ihn beim Start
-                sichtbar (z. B. an Tafel oder Beamer).
+                Teams benötigen diesen Code, um beizutreten. Mach ihn sichtbar,
+                sobald die Teams beitreten sollen (z. B. an Tafel oder Beamer).
               </p>
             </div>
           )}

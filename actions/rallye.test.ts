@@ -342,8 +342,60 @@ describe('advanceRallyeStatus', () => {
 
     expect(result.success).toBe(false);
     if (result.success) throw new Error('Expected failure');
-    expect(result.error).toBe('Für den Start wird ein Rallye-Code benötigt');
+    expect(result.error).toBe(
+      'Teams brauchen einen Rallye-Code, um beizutreten'
+    );
     expect(supabase.update).not.toHaveBeenCalled();
+  });
+
+  // Teams can already join a ready rallye, so finishing the draft is the
+  // point where a code becomes mandatory.
+  it('refuses to finish the draft without any rallye code', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('draft', 0, null, '');
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'ready');
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe(
+      'Teams brauchen einen Rallye-Code, um beizutreten'
+    );
+    expect(supabase.update).not.toHaveBeenCalled();
+  });
+
+  it('stores a code supplied when finishing the draft', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('draft', 0, null, '');
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(
+      5,
+      'ready',
+      undefined,
+      ' campus-427 '
+    );
+
+    expect(result.success).toBe(true);
+    expect(supabase.update).toHaveBeenCalledWith({
+      status: 'ready',
+      rallye_code: 'campus-427',
+    });
+  });
+
+  it('finishes the draft with the stored code', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase('draft', 0, null, 'stored-code');
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { advanceRallyeStatus } = await import('./rallye');
+    const result = await advanceRallyeStatus(5, 'ready');
+
+    expect(result.success).toBe(true);
+    expect(supabase.update).toHaveBeenCalledWith({ status: 'ready' });
   });
 
   it('accepts a code supplied at start and stores it', async () => {
