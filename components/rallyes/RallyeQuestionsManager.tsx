@@ -351,7 +351,9 @@ export default function RallyeQuestionsManager({
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Link
-                      href={`/questions/${entry.question.id}`}
+                      href={`/questions/${entry.question.id}?returnTo=${encodeURIComponent(
+                        `/rallyes/${rallyeId}`
+                      )}`}
                       aria-label="Frage bearbeiten"
                       className={buttonVariants({
                         variant: 'ghost',

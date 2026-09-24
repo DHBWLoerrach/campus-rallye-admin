@@ -65,6 +65,21 @@ describe('RallyeQuestionsManager', () => {
     expect(screen.queryByText('Wissensfrage')).not.toBeInTheDocument();
   });
 
+  it('links editing an assigned question back to the rallye', () => {
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        isCampusTour={false}
+        initialAssigned={[{ question: makeQuestion({}), isVoting: false }]}
+        initialAvailable={[]}
+        categories={[]}
+      />
+    );
+    expect(
+      screen.getByRole('link', { name: 'Frage bearbeiten' })
+    ).toHaveAttribute('href', '/questions/1?returnTo=%2Frallyes%2F5');
+  });
+
   it('shows the voting checkbox only for upload questions', () => {
     render(
       <RallyeQuestionsManager
