@@ -408,6 +408,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Bildfrage** hat genau ein **Fragebild**; ihre Antwortform bleibt offen.
 - Eine **QR-Code-Frage** hat genau eine **Lösungsoption** und kann daraus einen **QR-Code** erzeugen.
 - Eine **Upload-Frage** hat keine **Lösungsoption** und gehört nur in eine **Team-Rallye**.
+- Eine **Team-Rallye** enthält höchstens eine **Upload-Frage**.
 - Eine **Campus-Tour** sollte keine **Upload-Fragen** enthalten.
 - Eine **Geocaching-Frage** ist an einen geografischen Zielort und einen Näherungsbereich gebunden und wird per Freitext oder QR-Code beantwortet.
 - Eine **Geocaching-Frage** wird automatisch bewertet, braucht kein **Team** und darf in **Campus-Touren** und **Bereichs-Rallyes** vorkommen.
@@ -460,6 +461,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Campus-Tour** hat keine **Durchlaufdaten** und kann nicht zurückgesetzt werden.
 - Eine **Abstimmungsfrage** ist eine **Rallye-Frage** und gehört nur in eine **Team-Rallye**.
 - Nur **Upload-Fragen** können **Abstimmungsfragen** sein.
+- Eine **Team-Rallye** hat höchstens eine **Abstimmungsfrage**, weil sie höchstens eine **Upload-Frage** enthält.
 - Eine **Upload-Frage** wird beim Zuordnen zu einer **Team-Rallye** standardmäßig eine **Abstimmungsfrage**; die Abstimmung kann pro **Rallye-Frage** abgewählt werden.
 - Eine **Upload-Frage** mit einem **Punktwert** größer als 0, die keine **Abstimmungsfrage** ist, kann ihre **Team-Punkte** an kein **Team** vergeben.
 - Eine **Campus-Tour** hat keine **Abstimmungsfragen**, keinen **Rallye-Code** und kein **Rallye-Ende**.
@@ -514,6 +516,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Ob die **Spielzeit** bei gleichen **Team-Punkten** über die Platzierung entscheidet, war offen. Geklärt: Nein; eine **Team-Rallye** soll ohne Zeitdruck gespielt werden, deshalb teilen sich **Teams** mit gleichen **Team-Punkten** einen Platz.
 - Ob **Teams** die **Upload-Fotos** während der **Abstimmung** in der **Rallye-App** sehen müssen, war offen. Geklärt: Nein; die **Teams** sind gemeinsam in einem Raum und sehen die Fotos auf einer Projektionsfläche aus der **Admin-App**.
 - Ob **Abstimmungsfragen** auch andere Fragetypen umfassen könnten, war offen. Geklärt: **Abstimmungsfragen** sind fachlich auf **Upload-Fragen** beschränkt; Code-Pfade für Text-Antworten in der Abstimmung sind Altlast.
+- Ob eine **Team-Rallye** mehrere **Upload-Fragen** enthalten darf, war offen. Geklärt: Nein; die **Abstimmung** ist eine gemeinsame Foto-Runde am Ende, und das **Ergebnis** zeigt ein **Upload-Foto** pro **Team** (siehe ADR-0006).
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
 - Ob eine beendete **Team-Rallye** wieder geöffnet werden darf, war offen. Geklärt: Sie wird nicht wieder geöffnet, sondern zurückgesetzt; dabei gehen alle **Durchlaufdaten** verloren.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
