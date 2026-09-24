@@ -77,18 +77,21 @@ export default function RallyeQuestionsManager({
     0
   );
 
+  const hasAssignedUploadQuestions = assigned.some(
+    (entry) => entry.question.type === 'upload'
+  );
+  // Campus tours take no upload questions, and a team rallye takes at most one
+  // (ADR-0006).
+  const canAddUploadQuestion = !isCampusTour && !hasAssignedUploadQuestions;
+
   const filteredAvailable = useMemo(
     () =>
       available.filter(
         (question) =>
-          (!isCampusTour || question.type !== 'upload') &&
+          (canAddUploadQuestion || question.type !== 'upload') &&
           matchesQuestionFilters(question, filters)
       ),
-    [available, filters, isCampusTour]
-  );
-
-  const hasAssignedUploadQuestions = assigned.some(
-    (entry) => entry.question.type === 'upload'
+    [available, filters, canAddUploadQuestion]
   );
 
   const handleAdd = (question: Question) => {
@@ -227,6 +230,12 @@ export default function RallyeQuestionsManager({
                 Neue Frage erstellen
               </Link>
             </div>
+            {!isCampusTour && hasAssignedUploadQuestions && (
+              <p className="text-sm text-muted-foreground">
+                Diese Rallye enthält bereits eine Upload-Frage. Weitere
+                Upload-Fragen werden nicht angeboten.
+              </p>
+            )}
             <SearchFilters
               onFilterChange={setFilters}
               categories={categories}

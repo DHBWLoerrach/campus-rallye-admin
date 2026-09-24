@@ -166,6 +166,68 @@ describe('RallyeQuestionsManager', () => {
     ).toBeInTheDocument();
   });
 
+  it('does not offer a second upload question and explains why', () => {
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        isCampusTour={false}
+        initialAssigned={[{ question: uploadQuestion, isVoting: true }]}
+        initialAvailable={[
+          makeQuestion({ id: 9, content: 'Normale Frage' }),
+          makeQuestion({
+            id: 10,
+            content: 'Selfie am Hörsaal',
+            type: 'upload',
+          }),
+        ]}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '+ Fragen hinzufügen' })
+    );
+
+    expect(screen.getByText('Normale Frage')).toBeInTheDocument();
+    expect(screen.queryByText('Selfie am Hörsaal')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Diese Rallye enthält bereits eine Upload-Frage/)
+    ).toBeInTheDocument();
+  });
+
+  it('offers upload questions again after removing the assigned one', async () => {
+    mockRemove.mockResolvedValue({ success: true, data: { message: 'ok' } });
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        isCampusTour={false}
+        initialAssigned={[{ question: uploadQuestion, isVoting: true }]}
+        initialAvailable={[
+          makeQuestion({
+            id: 10,
+            content: 'Selfie am Hörsaal',
+            type: 'upload',
+          }),
+        ]}
+        categories={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Frage entfernen' }));
+    await waitFor(() => expect(mockRemove).toHaveBeenCalledWith(5, 2));
+    expect(screen.getByText('Keine Fragen zugeordnet')).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '+ Fragen hinzufügen' })
+    );
+
+    expect(screen.getByText('Selfie am Hörsaal')).toBeInTheDocument();
+    expect(screen.getByText('Macht ein Gruppenfoto')).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Diese Rallye enthält bereits eine Upload-Frage/)
+    ).not.toBeInTheDocument();
+  });
+
   it('marks a newly added upload question for voting', async () => {
     mockAdd.mockResolvedValue({ success: true, data: { message: 'ok' } });
     render(
