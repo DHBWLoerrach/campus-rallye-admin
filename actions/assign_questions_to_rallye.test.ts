@@ -215,6 +215,64 @@ describe('assignQuestionsToRallye', () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
+  it('rejects more than one upload question for a rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const insert = vi.fn(async () => ({ error: null }));
+
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'rallyes') {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: vi.fn(async () => ({
+                  data: { id: 1 },
+                  error: null,
+                })),
+              })),
+            })),
+          };
+        }
+        if (table === 'questions') {
+          return {
+            select: vi.fn(() => ({
+              in: vi.fn(async () => ({
+                data: [
+                  { id: 10, type: 'upload' },
+                  { id: 11, type: 'upload' },
+                ],
+                error: null,
+              })),
+            })),
+          };
+        }
+        if (table === 'locations') {
+          return {
+            select: vi.fn(() => ({
+              in: vi.fn(async () => ({ data: [], error: null })),
+            })),
+          };
+        }
+        if (table === 'rallye_questions') {
+          return { insert };
+        }
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    };
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { assignQuestionsToRallye } =
+      await import('./assign_questions_to_rallye');
+    const result = await assignQuestionsToRallye(1, [10, 11]);
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe(
+      'Eine Rallye kann höchstens eine Upload-Frage enthalten'
+    );
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it('does not update unchanged voting flags for kept assignments', async () => {
     mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
     const update = vi.fn();
@@ -325,12 +383,14 @@ describe('addQuestionToRallye', () => {
     vi.resetModules();
   });
 
-  // Supabase mock: rallye lookup, question lookup, existing-join lookup, insert
+  // Supabase mock: rallye lookup, question lookup, upload-question lookup,
+  // existing-join lookup, insert
   const makeSupabase = (opts: {
     rallyeExists?: boolean;
     questionType?: string | null;
     alreadyAssigned?: boolean;
     campusTour?: boolean;
+    hasOtherUploadQuestion?: boolean;
     insertError?: unknown;
   }) => {
     const insert = vi
@@ -377,6 +437,14 @@ describe('addQuestionToRallye', () => {
       // rallye_questions
       return {
         select: vi.fn(() => ({
+          in: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              neq: vi.fn().mockResolvedValue({
+                data: opts.hasOtherUploadQuestion ? [{ rallye_id: 5 }] : [],
+                error: null,
+              }),
+            })),
+          })),
           eq: vi.fn(() => ({
             eq: vi.fn(() => ({
               maybeSingle: vi.fn().mockResolvedValue({
@@ -439,6 +507,26 @@ describe('addQuestionToRallye', () => {
     if (result.success) throw new Error('Expected failure');
     expect(result.error).toBe(
       'Upload-Fragen können keiner Campus-Tour zugeordnet werden'
+    );
+    expect(supabase.insert).not.toHaveBeenCalled();
+  });
+
+  it('rejects a second upload question for the rallye', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      questionType: 'upload',
+      hasOtherUploadQuestion: true,
+    });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { addQuestionToRallye } =
+      await import('./assign_questions_to_rallye');
+    const result = await addQuestionToRallye(5, 7);
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe(
+      'Eine Rallye kann höchstens eine Upload-Frage enthalten'
     );
     expect(supabase.insert).not.toHaveBeenCalled();
   });
@@ -601,7 +689,10 @@ describe('assignRallyesToQuestion', () => {
     vi.resetModules();
   });
 
-  const makeSupabase = (opts: { questionType?: string }) => {
+  const makeSupabase = (opts: {
+    questionType?: string;
+    otherUploadRallyeIds?: number[];
+  }) => {
     const insert = vi.fn().mockResolvedValue({ error: null });
     const from = vi.fn((table: string) => {
       if (table === 'questions') {
@@ -636,6 +727,16 @@ describe('assignRallyesToQuestion', () => {
       // rallye_questions: no existing assignments, so both rallyes are added.
       return {
         select: vi.fn(() => ({
+          in: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              neq: vi.fn().mockResolvedValue({
+                data: (opts.otherUploadRallyeIds ?? []).map((rallyeId) => ({
+                  rallye_id: rallyeId,
+                })),
+                error: null,
+              }),
+            })),
+          })),
           eq: vi.fn().mockResolvedValue({ data: [], error: null }),
         })),
         insert,
@@ -717,6 +818,26 @@ describe('assignRallyesToQuestion', () => {
       'Upload-Fragen können keiner Campus-Tour zugeordnet werden'
     );
     expect(insert).not.toHaveBeenCalled();
+  });
+
+  it('rejects upload questions when one target already has an upload question', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      questionType: 'upload',
+      otherUploadRallyeIds: [2],
+    });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { assignRallyesToQuestion } =
+      await import('./assign_questions_to_rallye');
+    const result = await assignRallyesToQuestion(7, [1, 2]);
+
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error('Expected failure');
+    expect(result.error).toBe(
+      'Eine Rallye kann höchstens eine Upload-Frage enthalten'
+    );
+    expect(supabase.insert).not.toHaveBeenCalled();
   });
 
   it('leaves non-upload questions out of voting when assigning', async () => {

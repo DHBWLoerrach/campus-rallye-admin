@@ -9,6 +9,8 @@ import { getCampusTourRallyeIds } from '@/lib/campus-tour';
 
 const CAMPUS_TOUR_UPLOAD_ERROR =
   'Upload-Fragen können keiner Campus-Tour zugeordnet werden';
+const MULTIPLE_UPLOAD_QUESTIONS_ERROR =
+  'Eine Rallye kann höchstens eine Upload-Frage enthalten';
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -44,6 +46,33 @@ const rejectUploadQuestionsForCampusTours = async (
   }
   if (rallyeIds.some((id) => campusTourResult.ids.has(id))) {
     return fail(CAMPUS_TOUR_UPLOAD_ERROR);
+  }
+  return null;
+};
+
+// A team rallye holds at most one upload question (ADR-0006). Rejects adding
+// the upload question to rallyes that already contain another one.
+const rejectSecondUploadQuestion = async (
+  supabase: SupabaseClient,
+  rallyeIds: number[],
+  uploadQuestionId: number,
+  failureMessage: string
+): Promise<ActionResult<never> | null> => {
+  if (rallyeIds.length === 0) return null;
+
+  const { data, error } = await supabase
+    .from('rallye_questions')
+    .select('rallye_id, questions!inner(type)')
+    .in('rallye_id', rallyeIds)
+    .eq('questions.type', 'upload')
+    .neq('question_id', uploadQuestionId);
+
+  if (error) {
+    console.error('Error checking upload questions:', error);
+    return fail(failureMessage);
+  }
+  if ((data ?? []).length > 0) {
+    return fail(MULTIPLE_UPLOAD_QUESTIONS_ERROR);
   }
   return null;
 };
@@ -132,13 +161,22 @@ export async function assignQuestionsToRallye(
       return fail('Abstimmung nur für Upload-Fragen möglich');
     }
 
+    const uploadQuestionCount = (questionRows || []).filter(
+      (row) => row.type === 'upload'
+    ).length;
+
     const restrictionResult = await rejectUploadQuestionsForCampusTours(
       supabase,
       [rallyeIdResult.data],
-      (questionRows || []).some((row) => row.type === 'upload'),
+      uploadQuestionCount > 0,
       'Rallye konnte nicht aktualisiert werden'
     );
     if (restrictionResult) return restrictionResult;
+
+    // The sync replaces all assignments, so the new set alone decides.
+    if (uploadQuestionCount > 1) {
+      return fail(MULTIPLE_UPLOAD_QUESTIONS_ERROR);
+    }
   }
 
   const { data: existingAssignments, error: existingError } = await supabase
@@ -327,6 +365,16 @@ export async function addQuestionToRallye(
     'Rallye konnte nicht aktualisiert werden'
   );
   if (restrictionResult) return restrictionResult;
+
+  if (question.type === 'upload') {
+    const uploadResult = await rejectSecondUploadQuestion(
+      supabase,
+      [ids.rallyeId],
+      ids.questionId,
+      'Rallye konnte nicht aktualisiert werden'
+    );
+    if (uploadResult) return uploadResult;
+  }
 
   const { data: existingJoin, error: joinError } = await supabase
     .from('rallye_questions')
@@ -563,6 +611,16 @@ export async function assignRallyesToQuestion(
       'Frage konnte nicht aktualisiert werden'
     );
     if (restrictionResult) return restrictionResult;
+
+    if (existingQuestion.type === 'upload') {
+      const uploadResult = await rejectSecondUploadQuestion(
+        supabase,
+        normalizedRallyeIds,
+        questionIdResult.data,
+        'Frage konnte nicht aktualisiert werden'
+      );
+      if (uploadResult) return uploadResult;
+    }
   }
 
   const { data: existingAssignments, error: existingError } = await supabase
