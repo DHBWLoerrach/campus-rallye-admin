@@ -261,6 +261,100 @@ describe('updateRallye', () => {
     });
     expect(rallyeUpdate).not.toHaveBeenCalled();
   });
+
+  // Mocks the rallye lookup, the campus tour lookup and the update. The rallye
+  // with id 1 is a campus tour when isCampusTour is true.
+  const setupSupabaseWithCampusTour = (isCampusTour: boolean) => {
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id: 1 }, error: null });
+    const rallyeSelect = vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle })) }));
+    const rallyeUpdate = vi.fn(() => ({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    }));
+    const locationsLimit = vi.fn().mockResolvedValue({
+      data: isCampusTour ? [{ default_rallye_id: 1 }] : [],
+      error: null,
+    });
+    const from = vi.fn((table: string) => {
+      if (table === 'rallyes') {
+        return { select: rallyeSelect, update: rallyeUpdate };
+      }
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({ limit: locationsLimit })),
+        })),
+      };
+    });
+    mockCreateClient.mockResolvedValue({ from });
+    return { rallyeUpdate };
+  };
+
+  it.each(['ready', 'running'])(
+    'rejects saving a %s team rallye without a code',
+    async (status) => {
+      mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+      const { rallyeUpdate } = setupSupabaseWithCampusTour(false);
+
+      const { updateRallye } = await import('./rallye');
+      const result = await updateRallye(
+        null,
+        makeFormData({
+          id: '1',
+          name: 'Test',
+          status,
+          rallye_end: '',
+          rallye_code: '   ',
+        })
+      );
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Teams brauchen einen Rallye-Code, um beizutreten',
+      });
+      expect(rallyeUpdate).not.toHaveBeenCalled();
+    }
+  );
+
+  it('saves a running campus tour without a code', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { rallyeUpdate } = setupSupabaseWithCampusTour(true);
+
+    const { updateRallye } = await import('./rallye');
+    const result = await updateRallye(
+      null,
+      makeFormData({
+        id: '1',
+        name: 'Tour',
+        status: 'running',
+        rallye_end: '',
+        rallye_code: '',
+      })
+    );
+
+    expect(result?.success).toBe(true);
+    expect(rallyeUpdate).toHaveBeenCalled();
+  });
+
+  it('saves a draft without a code', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const { rallyeUpdate } = setupSupabaseWithCampusTour(false);
+
+    const { updateRallye } = await import('./rallye');
+    const result = await updateRallye(
+      null,
+      makeFormData({
+        id: '1',
+        name: 'Test',
+        status: 'draft',
+        rallye_end: '',
+        rallye_code: '',
+      })
+    );
+
+    expect(result?.success).toBe(true);
+    expect(rallyeUpdate).toHaveBeenCalled();
+  });
 });
 
 describe('advanceRallyeStatus', () => {

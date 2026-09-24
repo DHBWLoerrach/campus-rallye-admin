@@ -108,6 +108,25 @@ export async function updateRallye(state: FormState, formData: FormData) {
     return fail('Rallye nicht gefunden');
   }
 
+  // Teams can join a ready or running team rallye, so it must not be saved in
+  // such a status without a code. Campus tours never have a code (ADR-0003).
+  if (isRallyeJoinable(data.status) && data.rallye_code.trim() === '') {
+    const { data: campusTourLocations, error: campusTourError } = await supabase
+      .from('locations')
+      .select('default_rallye_id')
+      .eq('default_rallye_id', data.id)
+      .limit(1);
+
+    if (campusTourError) {
+      console.error('Error checking campus tour:', campusTourError);
+      return fail('Es ist ein Fehler aufgetreten');
+    }
+
+    if (!isCampusTourRallye(data.id, campusTourLocations ?? [])) {
+      return fail('Teams brauchen einen Rallye-Code, um beizutreten');
+    }
+  }
+
   const updatePayload: {
     name: string;
     status: RallyeStatus;
