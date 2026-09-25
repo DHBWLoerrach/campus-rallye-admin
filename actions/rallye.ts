@@ -31,6 +31,26 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 const UPLOAD_PHOTOS_BUCKET = 'upload-photos';
 
+// Returns whether the rallye is the campus tour of a location, or null if
+// this could not be checked.
+async function checkIsCampusTour(
+  supabase: SupabaseClient,
+  rallyeId: number
+): Promise<boolean | null> {
+  const { data, error } = await supabase
+    .from('locations')
+    .select('default_rallye_id')
+    .eq('default_rallye_id', rallyeId)
+    .limit(1);
+
+  if (error) {
+    console.error('Error checking campus tour:', error);
+    return null;
+  }
+
+  return isCampusTourRallye(rallyeId, data ?? []);
+}
+
 // Returns the storage paths of all upload photos submitted by teams of the
 // rallye, or null if they could not be loaded.
 async function getUploadPhotoPaths(
@@ -111,18 +131,12 @@ export async function updateRallye(state: FormState, formData: FormData) {
   // Teams can join a ready or running team rallye, so it must not be saved in
   // such a status without a code. Campus tours never have a code (ADR-0003).
   if (isRallyeJoinable(data.status) && data.rallye_code.trim() === '') {
-    const { data: campusTourLocations, error: campusTourError } = await supabase
-      .from('locations')
-      .select('default_rallye_id')
-      .eq('default_rallye_id', data.id)
-      .limit(1);
-
-    if (campusTourError) {
-      console.error('Error checking campus tour:', campusTourError);
+    const isCampusTour = await checkIsCampusTour(supabase, data.id);
+    if (isCampusTour === null) {
       return fail('Es ist ein Fehler aufgetreten');
     }
 
-    if (!isCampusTourRallye(data.id, campusTourLocations ?? [])) {
+    if (!isCampusTour) {
       return fail('Teams brauchen einen Rallye-Code, um beizutreten');
     }
   }
@@ -224,18 +238,12 @@ export async function getRallyeCampusTourStatus(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('locations')
-    .select('default_rallye_id')
-    .eq('default_rallye_id', idResult.data)
-    .limit(1);
-
-  if (error) {
-    console.error('Error checking campus tour:', error);
+  const isCampusTour = await checkIsCampusTour(supabase, idResult.data);
+  if (isCampusTour === null) {
     return fail('Rallye konnte nicht geladen werden');
   }
 
-  return ok(isCampusTourRallye(idResult.data, data ?? []));
+  return ok(isCampusTour);
 }
 
 // Whether the rallye already contains its one allowed upload question
@@ -499,18 +507,12 @@ export async function resetRallye(
     return fail('Eine Rallye im Entwurf kann nicht zurückgesetzt werden');
   }
 
-  const { data: campusTourLocations, error: campusTourError } = await supabase
-    .from('locations')
-    .select('default_rallye_id')
-    .eq('default_rallye_id', idResult.data)
-    .limit(1);
-
-  if (campusTourError) {
-    console.error('Error checking campus tour:', campusTourError);
+  const isCampusTour = await checkIsCampusTour(supabase, idResult.data);
+  if (isCampusTour === null) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  if (isCampusTourRallye(idResult.data, campusTourLocations ?? [])) {
+  if (isCampusTour) {
     return fail('Eine Campus-Tour kann nicht zurückgesetzt werden');
   }
 
@@ -566,18 +568,12 @@ export async function duplicateRallye(
 
   // A copy is always a team rallye draft, so a campus tour cannot be its
   // source.
-  const { data: campusTourLocations, error: campusTourError } = await supabase
-    .from('locations')
-    .select('default_rallye_id')
-    .eq('default_rallye_id', idResult.data)
-    .limit(1);
-
-  if (campusTourError) {
-    console.error('Error checking campus tour:', campusTourError);
+  const isCampusTour = await checkIsCampusTour(supabase, idResult.data);
+  if (isCampusTour === null) {
     return fail('Es ist ein Fehler aufgetreten');
   }
 
-  if (isCampusTourRallye(idResult.data, campusTourLocations ?? [])) {
+  if (isCampusTour) {
     return fail('Eine Campus-Tour kann nicht dupliziert werden');
   }
 
