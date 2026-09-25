@@ -221,11 +221,11 @@ Eine Upload-Frage in einer Team-Rallye, deren Upload-Fotos in der Abstimmung bew
 _Vermeiden_: Voting question
 
 **Ergebnisse**:
-Ein Team-Rallye-Status, in dem das Ergebnis sichtbar, aber noch nicht final ist.
+Ein Team-Rallye-Status, in dem alle Bewertungen abgeschlossen sind und das Ergebnis sichtbar ist, während die Veranstaltung noch läuft.
 _Vermeiden_: Results
 
 **Abgeschlossen**:
-Ein Team-Rallye-Status, in dem die Team-Rallye geschlossen und der Endstand final ist.
+Ein Team-Rallye-Status, in dem die Veranstaltung vorbei ist und die Durchlaufdaten bis zum Zurücksetzen gespeichert bleiben.
 _Vermeiden_: Ended
 
 **Zurücksetzen**:
@@ -457,8 +457,9 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Eine **Team-Rallye** hat null oder ein **Rallye-Ende**.
 - Das **Rallye-Ende** markiert den regulären Spielschluss, löst aber keinen automatischen Statuswechsel aus.
 - Nach dem **Rallye-Ende** steuert der **Organisator** die Übergänge in **Abstimmung**, **Ergebnisse** und **Abgeschlossen**.
-- Im Status **Ergebnisse** ist das **Ergebnis** sichtbar, aber noch nicht der **Endstand**.
-- Im Status **Abgeschlossen** ist das **Ergebnis** der **Endstand**.
+- Im Status **Ergebnisse** ist jede **Bewertung** abgeschlossen; das sichtbare **Ergebnis** ist bereits der **Endstand**.
+- **Ergebnisse** und **Abgeschlossen** unterscheiden sich nur darin, ob die Veranstaltung noch läuft; der **Endstand** bleibt in beiden gleich.
+- Im Status **Abgeschlossen** bleiben die **Durchlaufdaten** gespeichert, bis die **Team-Rallye** zurückgesetzt wird.
 - **Abgeschlossen** ist für eine konkrete **Team-Rallye** final, bis sie zurückgesetzt wird.
 - Eine **Team-Rallye** ist eine **Beitretbare Rallye**, solange ihr **Team-Rallye-Status** **Bereit** oder **Läuft** ist.
 - Eine **Rallye-Sitzung** bleibt bestehen, wenn ihre **Rallye** nicht mehr beitretbar ist, zum Beispiel in **Abstimmung**, **Ergebnisse** oder **Abgeschlossen**.
@@ -527,6 +528,7 @@ Für Code-Bezeichner wird die Camel-Case-Form verwendet; Typen, Klassen und Komp
 - Ob **Abstimmungsfragen** auch andere Fragetypen umfassen könnten, war offen. Geklärt: **Abstimmungsfragen** sind fachlich auf **Upload-Fragen** beschränkt; Code-Pfade für Text-Antworten in der Abstimmung sind Altlast.
 - Ob eine **Team-Rallye** mehrere **Upload-Fragen** enthalten darf, war offen. Geklärt: Nein; die **Abstimmung** ist eine gemeinsame Foto-Runde am Ende, und das **Ergebnis** zeigt ein **Upload-Foto** pro **Team** (siehe ADR-0006).
 - **Rallye-Vorlage** ist fachlich beschlossen, aber im aktuellen Datenmodell noch nicht umgesetzt.
+- Ob sich das **Ergebnis** im Status **Ergebnisse** noch ändern kann, war unklar. Geklärt: Nein; die **Abstimmung** wird beim Wechsel zu **Ergebnisse** ausgewertet, und eine eigene Organisator-Bewertung gibt es nicht. **Abgeschlossen** bleibt trotzdem ein eigener Status, weil er das Ende der Veranstaltung markiert.
 - Ob eine beendete **Team-Rallye** wieder geöffnet werden darf, war offen. Geklärt: Sie wird nicht wieder geöffnet, sondern zurückgesetzt; dabei gehen alle **Durchlaufdaten** verloren.
 - Der aktuelle Code modelliert **Campus-Touren** noch als normale Rallyes; fachlich haben Campus-Touren nur **Aktiv**/**Inaktiv**, keinen **Rallye-Code** und kein **Rallye-Ende**. Ihre Statuswerte sind noch nicht separat im Schema modelliert.
 - Die **Geocaching-Frage** wurde im Datenmodell (Fragetyp `geocaching`, Tabelle `geocaching_questions`) eingeführt, bevor sie in dieser Fachsprache stand. Geklärt: Sie ist ein eigener Fragetyp, wird automatisch bewertet, braucht kein **Team** und ist in **Campus-Touren** erlaubt. Sie wird aktuell noch nicht in der **Admin-App** gepflegt.
