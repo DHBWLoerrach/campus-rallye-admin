@@ -615,6 +615,7 @@ describe('duplicateRallye', () => {
     } | null;
     joins?: Array<{ question_id: number; is_voting: boolean }>;
     insertError?: unknown;
+    campusTourLocations?: Array<{ default_rallye_id: number }>;
   }) => {
     const insertedRallye = { id: 99 };
     const insertSelectSingle = vi.fn().mockResolvedValue({
@@ -643,6 +644,18 @@ describe('duplicateRallye', () => {
             })),
           })),
           insert: rallyeInsert,
+        };
+      }
+      if (table === 'locations') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              limit: vi.fn().mockResolvedValue({
+                data: opts.campusTourLocations ?? [],
+                error: null,
+              }),
+            })),
+          })),
         };
       }
       // rallye_questions
@@ -708,6 +721,20 @@ describe('duplicateRallye', () => {
 
     expect(result.success).toBe(true);
     expect(supabase.joinInsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects a campus tour', async () => {
+    mockRequireProfile.mockResolvedValue({ user_id: 'staff' });
+    const supabase = makeSupabase({
+      campusTourLocations: [{ default_rallye_id: 5 }],
+    });
+    mockCreateClient.mockResolvedValue(supabase);
+
+    const { duplicateRallye } = await import('./rallye');
+    const result = await duplicateRallye(5);
+
+    expect(result.success).toBe(false);
+    expect(supabase.rallyeInsert).not.toHaveBeenCalled();
   });
 
   it('fails for unknown rallye', async () => {

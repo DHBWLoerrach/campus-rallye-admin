@@ -564,6 +564,23 @@ export async function duplicateRallye(
     return fail('Rallye nicht gefunden');
   }
 
+  // A copy is always a team rallye draft, so a campus tour cannot be its
+  // source.
+  const { data: campusTourLocations, error: campusTourError } = await supabase
+    .from('locations')
+    .select('default_rallye_id')
+    .eq('default_rallye_id', idResult.data)
+    .limit(1);
+
+  if (campusTourError) {
+    console.error('Error checking campus tour:', campusTourError);
+    return fail('Es ist ein Fehler aufgetreten');
+  }
+
+  if (isCampusTourRallye(idResult.data, campusTourLocations ?? [])) {
+    return fail('Eine Campus-Tour kann nicht dupliziert werden');
+  }
+
   const { data: joins, error: joinsError } = await supabase
     .from('rallye_questions')
     .select('question_id, is_voting')
