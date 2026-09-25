@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { connection } from 'next/server';
 import { Clock } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
@@ -58,9 +57,13 @@ export default async function PendingApprovalPage() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Link href="/rallyes" className={buttonVariants()}>
+          {/* A plain anchor forces a full page load, so the proxy re-checks the
+              approval. A <Link> would reuse the client router's cached route,
+              which remembers the proxy's earlier redirect back to /pending. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- see above */}
+          <a href="/rallyes" className={buttonVariants()}>
             Erneut versuchen
-          </Link>
+          </a>
           <a
             href={signOutUrl}
             className={buttonVariants({ variant: 'outline' })}
