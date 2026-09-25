@@ -113,7 +113,7 @@ export const getNextRallyeTransition = (
         target: 'ended',
         actionLabel: 'Rallye beenden',
         confirmText:
-          'Die Rallye wird endgültig abgeschlossen und kann nicht wieder geöffnet werden.',
+          'Die Rallye wird abgeschlossen, das Ergebnis bleibt sichtbar. Für einen neuen Durchlauf kann sie in den Einstellungen zurückgesetzt werden.',
       };
     case 'ended':
       return null;
