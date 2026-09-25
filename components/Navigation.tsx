@@ -1,4 +1,5 @@
 import { LogOut, Menu } from 'lucide-react';
+import { Suspense } from 'react';
 import { Route } from '@/lib/types';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -33,7 +34,9 @@ export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-350 items-center justify-between px-4">
         <nav className="hidden flex-col sm:flex sm:flex-row sm:items-center gap-2 text-sm font-semibold">
-          <NavItems routes={routes} />
+          <Suspense fallback={null}>
+            <NavItems routes={routes} />
+          </Suspense>
         </nav>
         <Sheet>
           <SheetTrigger
@@ -50,7 +53,9 @@ export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
           />
           <SheetContent side="left">
             <nav className="grid gap-6 font-medium">
-              <NavItems routes={routes} />
+              <Suspense fallback={null}>
+                <NavItems routes={routes} />
+              </Suspense>
             </nav>
           </SheetContent>
         </Sheet>

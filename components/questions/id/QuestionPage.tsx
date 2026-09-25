@@ -11,8 +11,10 @@ import {
 import { Question, QuestionFormData } from '@/helpers/questions';
 import type { RallyeOption } from '@/lib/types';
 import {
+  isRallyeQuestionContext,
   parseQuestionCreationContext,
   QUESTION_RALLYE_ID_PARAM,
+  QUESTION_RETURN_TO_PARAM,
 } from '@/lib/question-creation-context';
 import { Button } from '@/components/ui/button';
 import QuestionForm from '@/components/questions/id/QuestionForm';
@@ -48,7 +50,7 @@ const QuestionPage: React.FC<Props> = ({
     : isCopy
       ? 'Neue Frage aus Kopie'
       : 'Neue Frage erstellen';
-  const returnToParam = searchParams.get('returnTo') ?? '';
+  const returnToParam = searchParams.get(QUESTION_RETURN_TO_PARAM) ?? '';
   const creationContext = parseQuestionCreationContext(
     searchParams.get(QUESTION_RALLYE_ID_PARAM)
   );
@@ -69,8 +71,11 @@ const QuestionPage: React.FC<Props> = ({
         returnToParam.startsWith('/rallyes/')));
   const hasReturnTarget =
     creationRallyeId !== undefined || returnToParam.startsWith('/');
-  const isRallyeContext =
-    creationRallyeId !== undefined || returnToParam.startsWith('/rallyes/');
+  const isRallyeContext = isRallyeQuestionContext(
+    isNew,
+    creationContext,
+    returnToParam
+  );
   const returnLabel = isRallyeContext ? '← Zurück zu Rallye' : '← Zurück';
   const assignedRallyeIds = new Set(initialRallyeIds);
   const assignedRallyes = rallyes.filter((rallye) =>

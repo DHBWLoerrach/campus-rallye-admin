@@ -143,6 +143,27 @@ describe('QuestionPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows a rallye return link for a rallye-like returnTo path', () => {
+    mockSearchParams.get.mockImplementation((key) => {
+      if (key === 'returnTo') return '/rallyes/new';
+      return '';
+    });
+
+    render(
+      <QuestionPage
+        id="7"
+        initialData={null}
+        categories={[]}
+        rallyes={[]}
+        initialRallyeIds={[]}
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: '← Zurück zu Rallye' })
+    ).toBeInTheDocument();
+  });
+
   it('explains that copied content creates an independent question', () => {
     mockSearchParams.get.mockImplementation(() => '');
 

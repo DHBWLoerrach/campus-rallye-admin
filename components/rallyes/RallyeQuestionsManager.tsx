@@ -12,7 +12,10 @@ import {
 import SearchFilters from '@/components/questions/SearchFilters';
 import { defaultIsVoting, questionTypes } from '@/helpers/questionTypes';
 import type { Question } from '@/helpers/questions';
-import { buildRallyeQuestionCreationHref } from '@/lib/question-creation-context';
+import {
+  buildRallyeQuestionCreationHref,
+  QUESTION_RETURN_TO_PARAM,
+} from '@/lib/question-creation-context';
 import {
   matchesQuestionFilters,
   type QuestionContentFilters,
@@ -351,7 +354,7 @@ export default function RallyeQuestionsManager({
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Link
-                      href={`/questions/${entry.question.id}?returnTo=${encodeURIComponent(
+                      href={`/questions/${entry.question.id}?${QUESTION_RETURN_TO_PARAM}=${encodeURIComponent(
                         `/rallyes/${rallyeId}`
                       )}`}
                       aria-label="Frage bearbeiten"
