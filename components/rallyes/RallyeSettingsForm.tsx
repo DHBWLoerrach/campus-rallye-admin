@@ -9,6 +9,7 @@ import {
   deleteRallye,
   type RallyeRunDataSummary,
 } from '@/actions/rallye';
+import RallyeDuplicateSection from '@/components/rallyes/RallyeDuplicateSection';
 import RallyeResetSection from '@/components/rallyes/RallyeResetSection';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +39,7 @@ interface RallyeSettingsFormProps {
   departmentOptions: DepartmentOption[];
   assignedDepartmentIds: number[];
   canReset?: boolean;
+  canDuplicate?: boolean;
   runDataSummary?: RallyeRunDataSummary | null;
 }
 
@@ -68,6 +70,7 @@ export default function RallyeSettingsForm({
   departmentOptions,
   assignedDepartmentIds,
   canReset = false,
+  canDuplicate = false,
   runDataSummary = null,
 }: RallyeSettingsFormProps) {
   const router = useRouter();
@@ -299,6 +302,8 @@ export default function RallyeSettingsForm({
           </div>
         </form>
       </section>
+
+      {canDuplicate && <RallyeDuplicateSection rallyeId={rallye.id} />}
 
       {canReset && (
         <RallyeResetSection

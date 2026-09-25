@@ -37,12 +37,12 @@ export default async function RallyeSettingsPage(props: PageProps) {
     getRallyeCampusTourStatus(rallyeId),
   ]);
 
-  // Campus tours have no run data; if the check fails, hide the reset rather
-  // than offer it for a rallye that might be a campus tour.
+  // Campus tours have no run data and are no team rallyes to copy; if the
+  // check fails, hide reset and duplication rather than offer them for a
+  // rallye that might be a campus tour.
+  const isTeamRallye = campusTourResult.success && !campusTourResult.data;
   const canReset =
-    canResetRallye(rallye.status as RallyeStatus) &&
-    campusTourResult.success &&
-    !campusTourResult.data;
+    canResetRallye(rallye.status as RallyeStatus) && isTeamRallye;
 
   let runDataSummary = null;
   if (canReset) {
@@ -58,6 +58,7 @@ export default async function RallyeSettingsPage(props: PageProps) {
         rallye.department_id ? [rallye.department_id as number] : []
       }
       canReset={canReset}
+      canDuplicate={isTeamRallye}
       runDataSummary={runDataSummary}
     />
   );

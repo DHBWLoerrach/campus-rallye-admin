@@ -2,15 +2,18 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import RallyeSettingsForm from './RallyeSettingsForm';
 
-const { mockUpdateRallye, mockDeleteRallye, mockPush } = vi.hoisted(() => ({
-  mockUpdateRallye: vi.fn(),
-  mockDeleteRallye: vi.fn(),
-  mockPush: vi.fn(),
-}));
+const { mockUpdateRallye, mockDeleteRallye, mockDuplicateRallye, mockPush } =
+  vi.hoisted(() => ({
+    mockUpdateRallye: vi.fn(),
+    mockDeleteRallye: vi.fn(),
+    mockDuplicateRallye: vi.fn(),
+    mockPush: vi.fn(),
+  }));
 
 vi.mock('@/actions/rallye', () => ({
   updateRallye: mockUpdateRallye,
   deleteRallye: mockDeleteRallye,
+  duplicateRallye: mockDuplicateRallye,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -187,6 +190,22 @@ describe('RallyeSettingsForm', () => {
     expect(
       screen.getByRole('button', { name: 'Speichern' })
     ).not.toBeDisabled();
+  });
+
+  // Duplication copies no run data, so it is not tied to the ended phase.
+  it('offers duplication while the rallye is running', () => {
+    render(
+      <RallyeSettingsForm
+        rallye={{ ...baseRallye, status: 'running' }}
+        departmentOptions={[{ id: 10, name: 'Informatik' }]}
+        assignedDepartmentIds={[10]}
+        canDuplicate
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Duplizieren' })
+    ).toBeInTheDocument();
   });
 
   it('shows the danger zone with a delete dialog trigger', () => {

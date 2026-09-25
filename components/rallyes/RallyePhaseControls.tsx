@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { Copy, Play } from 'lucide-react';
-import { advanceRallyeStatus, duplicateRallye } from '@/actions/rallye';
+import { Play } from 'lucide-react';
+import { advanceRallyeStatus } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -47,7 +46,6 @@ export default function RallyePhaseControls({
   rallyeCode = '',
   qrPrintCount = 0,
 }: RallyePhaseControlsProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [endTime, setEndTime] = useState('');
@@ -80,40 +78,10 @@ export default function RallyePhaseControls({
   const plannedEndTime =
     plannedEnd.kind === 'time' ? plannedEnd.value : undefined;
 
-  const handleDuplicate = () => {
-    setError(null);
-    startTransition(async () => {
-      const result = await duplicateRallye(rallyeId);
-      if (!result.success) {
-        setError(result.error);
-        return;
-      }
-      if (result.data) {
-        router.push(`/rallyes/${result.data.rallyeId}`);
-      }
-    });
-  };
-
+  // Ended is the final phase and has no further step; repeating the rallye is
+  // done by resetting it in the settings (ADR-0005).
   if (!transition) {
-    // Final phase: the only remaining action is creating a fresh copy (ADR-0002).
-    return (
-      <div className="flex flex-col items-start gap-2">
-        <Button
-          variant="outline"
-          className="cursor-pointer"
-          onClick={handleDuplicate}
-          disabled={isPending}
-        >
-          <Copy className="mr-2 h-4 w-4" aria-hidden="true" />
-          {isPending ? 'Wird dupliziert…' : 'Duplizieren'}
-        </Button>
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-      </div>
-    );
+    return null;
   }
 
   // The status can change without remounting this component (e.g. after a
