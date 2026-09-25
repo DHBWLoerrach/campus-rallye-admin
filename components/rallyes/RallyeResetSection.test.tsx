@@ -112,6 +112,44 @@ describe('RallyeResetSection', () => {
     }
   );
 
+  it('reminds that an ended rallye still stores its run data', () => {
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status="ended"
+        runDataSummary={summary}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        /3 Teams, 1 Team-Antwort und 2 Upload-Fotos sind noch gespeichert/
+      )
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    ['the rallye is not ended yet', 'results' as const, summary],
+    [
+      'no run data is stored',
+      'ended' as const,
+      { teamCount: 0, teamAnswerCount: 0, uploadPhotoCount: 0 },
+    ],
+    ['the counts are unknown', 'ended' as const, null],
+  ])('shows no stored run data reminder when %s', (_, status, runData) => {
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status={status}
+        runDataSummary={runData}
+      />
+    );
+
+    expect(screen.queryByText(/noch gespeichert/)).not.toBeInTheDocument();
+  });
+
   it('shows the error and keeps the dialog open when the reset fails', async () => {
     mockResetRallye.mockResolvedValue({
       success: false,

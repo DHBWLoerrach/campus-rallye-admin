@@ -74,7 +74,7 @@ export default function RallyeResetSection({
     }
   }
 
-  const lossDescription = runDataSummary
+  const runDataList = runDataSummary
     ? `${pluralize(runDataSummary.teamCount, 'Team', 'Teams')}, ${pluralize(
         runDataSummary.teamAnswerCount,
         'Team-Antwort',
@@ -83,8 +83,22 @@ export default function RallyeResetSection({
         runDataSummary.uploadPhotoCount,
         'Upload-Foto',
         'Upload-Fotos'
-      )} werden endgültig gelöscht.`
+      )}`
+    : null;
+
+  const lossDescription = runDataList
+    ? `${runDataList} werden endgültig gelöscht.`
     : 'Alle Teams, Team-Antworten und Upload-Fotos werden endgültig gelöscht.';
+
+  // An ended rallye keeps its run data, including personal photos, until it
+  // is reset (see ADR-0005), so remind editors that it is still stored.
+  const hasStoredRunData =
+    runDataSummary !== null &&
+    runDataSummary.teamCount +
+      runDataSummary.teamAnswerCount +
+      runDataSummary.uploadPhotoCount >
+      0;
+  const showStoredRunDataHint = status === 'ended' && hasStoredRunData;
 
   return (
     <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-destructive/40 bg-destructive/5 p-6">
@@ -96,6 +110,13 @@ export default function RallyeResetSection({
           Löscht alle Teams, Team-Antworten und Upload-Fotos. Die Rallye kehrt
           mit ihren Fragen in den Entwurf zurück.
         </p>
+        {showStoredRunDataHint && (
+          <p className="text-xs font-medium text-foreground">
+            Die Rallye ist abgeschlossen, aber {runDataList} sind noch
+            gespeichert. Nach der Veranstaltung zurücksetzen, damit keine Fotos
+            und Team-Daten liegen bleiben.
+          </p>
+        )}
       </div>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger
