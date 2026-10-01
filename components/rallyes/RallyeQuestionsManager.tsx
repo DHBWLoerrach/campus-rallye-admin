@@ -9,6 +9,7 @@ import {
   removeQuestionFromRallye,
   setQuestionVoting,
 } from '@/actions/assign_questions_to_rallye';
+import { isQrPrintQuestion } from '@/lib/qr-print-questions';
 import SearchFilters from '@/components/questions/SearchFilters';
 import { defaultIsVoting, questionTypes } from '@/helpers/questionTypes';
 import type { Question } from '@/helpers/questions';
@@ -173,6 +174,22 @@ export default function RallyeQuestionsManager({
             ? 'Keine Fragen zugeordnet'
             : `${assigned.length} ${assigned.length === 1 ? 'Frage' : 'Fragen'} · ${totalPoints} Punkte gesamt`}
         </p>
+        {assigned.some(({ question }) =>
+          isQrPrintQuestion({
+            type: question.type,
+            geocaching_questions: question.geocaching ?? null,
+          })
+        ) && (
+          <Link
+            href={`/rallyes/${rallyeId}/qr-codes`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            QR-Codes drucken
+            <span className="sr-only"> (öffnet einen neuen Tab)</span>
+          </Link>
+        )}
         <Dialog
           open={isAddDialogOpen}
           onOpenChange={(open) => {

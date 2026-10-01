@@ -956,7 +956,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
             {(isQRCode || (isGeocaching && geocachingInputType === 'qr')) && (
               <div className="mt-4">
                 <QuestionQRCode
-                  answerText={formData.solutionOptions?.[0]?.text ?? ''}
+                  solutionOptions={formData.solutionOptions}
                   questionContent={formData.content}
                   questionId={initialData?.id}
                   previewSize={200}

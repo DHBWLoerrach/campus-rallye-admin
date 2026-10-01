@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import QRCodeErrorBoundary from '@/components/questions/QRCodeErrorBoundary';
+import { getQrCodeValue, type QrCodeSolutionOption } from '@/lib/qr-code-value';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,29 +10,8 @@ import { slugify } from '@/lib/slug';
 
 const QR_CAPACITY_ERROR = 'Text zu lang für QR-Code';
 
-class QRCodeErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError: () => void; fallback: React.ReactNode },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('QRCodeCanvas render error:', error, errorInfo);
-    this.props.onError();
-  }
-
-  render() {
-    if (this.state.hasError) return this.props.fallback;
-    return this.props.children;
-  }
-}
-
 interface QuestionQRCodeProps {
-  answerText: string;
+  solutionOptions?: readonly QrCodeSolutionOption[] | null;
   questionContent?: string;
   questionId?: number;
   previewSize?: number;
@@ -41,7 +22,7 @@ const PREVIEW_SIZE = 200;
 const DOWNLOAD_SIZE = 400;
 
 export default function QuestionQRCode({
-  answerText,
+  solutionOptions,
   questionContent,
   questionId,
   previewSize = PREVIEW_SIZE,
@@ -50,13 +31,12 @@ export default function QuestionQRCode({
   const downloadCanvasRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [prevAnswerText, setPrevAnswerText] = useState(answerText);
-
-  const trimmed = answerText?.trim() ?? '';
+  const trimmed = getQrCodeValue(solutionOptions);
+  const [prevValue, setPrevValue] = useState(trimmed);
   const canGenerate = trimmed.length > 0;
 
-  if (prevAnswerText !== answerText) {
-    setPrevAnswerText(answerText);
+  if (prevValue !== trimmed) {
+    setPrevValue(trimmed);
     setShowPreview(false);
     setError(null);
   }

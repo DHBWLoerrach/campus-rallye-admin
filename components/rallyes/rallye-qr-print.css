@@ -1,0 +1,91 @@
+.qr-print-preview {
+  padding-bottom: 2rem;
+}
+
+.qr-print-sheets {
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.qr-print-sheet {
+  display: grid;
+  grid-template-columns: repeat(2, 95mm);
+  grid-template-rows: repeat(4, 68mm);
+  width: 190mm;
+  height: 272mm;
+  margin: 0 auto 1rem;
+  background: white;
+  color: black;
+}
+
+.qr-print-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1mm;
+  min-width: 0;
+  overflow: hidden;
+  border: 0.2mm dashed #777;
+  padding: 3mm;
+  text-align: center;
+  break-inside: avoid;
+  font-size: 9pt;
+}
+
+.qr-print-rallye,
+.qr-print-caption {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+}
+
+.qr-print-rallye {
+  -webkit-line-clamp: 1;
+  font-weight: 600;
+}
+
+.qr-print-caption {
+  -webkit-line-clamp: 2;
+}
+
+.qr-print-card svg {
+  flex: none;
+  width: 48mm;
+  height: 48mm;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body:has(.qr-print-preview) {
+    background: white;
+    color: black;
+  }
+
+  .qr-print-controls {
+    display: none;
+  }
+
+  .qr-print-preview,
+  .qr-print-sheets {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .qr-print-sheet {
+    margin: 0;
+    break-after: page;
+    break-inside: avoid;
+  }
+
+  .qr-print-sheet:last-child {
+    break-after: auto;
+  }
+}

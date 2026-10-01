@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Play } from 'lucide-react';
+import Link from 'next/link';
 import { advanceRallyeStatus } from '@/actions/rallye';
 import { Button } from '@/components/ui/button';
 import {
@@ -201,6 +202,15 @@ export default function RallyePhaseControls({
               {qrPrintCount === 1
                 ? 'Diese Rallye enthält 1 Frage mit QR-Code. Drucke den QR-Code vor dem Start und hänge ihn am Campus aus.'
                 : `Diese Rallye enthält ${qrPrintCount} Fragen mit QR-Code. Drucke die QR-Codes vor dem Start und hänge sie am Campus aus.`}
+              <Link
+                href={`/rallyes/${rallyeId}/qr-codes`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 block w-fit font-medium underline underline-offset-4"
+              >
+                QR-Codes drucken
+                <span className="sr-only"> (öffnet einen neuen Tab)</span>
+              </Link>
             </div>
           )}
           {showUnmarkedUploadWarning && (

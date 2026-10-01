@@ -31,7 +31,7 @@ export default async function Nav({ isAdmin }: { isAdmin: boolean }) {
     : allRoutes.filter((r) => !adminOnlyRoutes.has(r.href));
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur print:hidden">
       <div className="mx-auto flex h-16 w-full max-w-350 items-center justify-between px-4">
         <nav className="hidden flex-col sm:flex sm:flex-row sm:items-center gap-2 text-sm font-semibold">
           <Suspense fallback={null}>

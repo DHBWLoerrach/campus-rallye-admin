@@ -38,7 +38,7 @@ export default async function RallyeQuestionsTab(props: PageProps) {
     supabase
       .from('questions')
       .select(
-        'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text)'
+        'id, content, type, point_value, hint, category, bucket_path, solutionOptions:solution_options(id, correct, text), geocaching:geocaching_questions(target_latitude, target_longitude, proximity_radius, input_type)'
       ),
     supabase
       .from('locations')
@@ -55,7 +55,12 @@ export default async function RallyeQuestionsTab(props: PageProps) {
   const isCampusTour = isCampusTourRallye(rallyeId, campusTourRes.data ?? []);
 
   const assignments = (assignmentsRes.data ?? []) as AssignmentRow[];
-  const questions = (questionsRes.data ?? []) as Question[];
+  const questions = (questionsRes.data ?? []).map((question) => ({
+    ...question,
+    geocaching: Array.isArray(question.geocaching)
+      ? (question.geocaching[0] ?? null)
+      : question.geocaching,
+  })) as Question[];
 
   const votingByQuestionId = new Map(
     assignments.map((row) => [row.question_id, row.is_voting === true])

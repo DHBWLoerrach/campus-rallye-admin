@@ -183,6 +183,7 @@ export async function getQuestionById(
   const { data, error } = await supabase
     .from('questions')
     .select(QUESTION_SELECT)
+    .order('id', { referencedTable: 'solutionOptions', ascending: true })
     .eq('id', idResult.data)
     .maybeSingle();
 
@@ -241,7 +242,10 @@ export async function getQuestions(
   }
 
   // Build base query with nested solution options to avoid N+1
-  let query = supabase.from('questions').select(QUESTION_SELECT);
+  let query = supabase
+    .from('questions')
+    .select(QUESTION_SELECT)
+    .order('id', { referencedTable: 'solutionOptions', ascending: true });
 
   if (searchQuestionIds) {
     query = query.in('id', searchQuestionIds);

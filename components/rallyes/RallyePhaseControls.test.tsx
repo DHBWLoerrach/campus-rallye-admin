@@ -320,6 +320,9 @@ describe('RallyePhaseControls', () => {
       screen.getByRole('button', { name: 'Entwurf abschließen' })
     );
     expect(screen.getByText(/3 Fragen mit QR-Code/)).toBeInTheDocument();
+    const printLink = screen.getByRole('link', { name: /QR-Codes drucken/ });
+    expect(printLink).toHaveAttribute('href', '/rallyes/5/qr-codes');
+    expect(printLink).toHaveAttribute('target', '_blank');
   });
 
   it('shows no QR print hint without QR-based questions', () => {

@@ -910,9 +910,11 @@ describe('getQuestionById', () => {
 
   const configureQuestionResponse = (data: unknown) => {
     const maybeSingle = vi.fn().mockResolvedValue({ data, error: null });
-    const select = vi.fn(() => ({
+    const query = {
+      order: vi.fn(() => query),
       eq: vi.fn(() => ({ maybeSingle })),
-    }));
+    };
+    const select = vi.fn(() => query);
     const from = vi.fn((table: string) => {
       if (table === 'questions') return { select };
       throw new Error(`Unexpected table: ${table}`);

@@ -42,6 +42,53 @@ describe('RallyeQuestionsManager', () => {
     vi.clearAllMocks();
   });
 
+  it.each(['qr_code', 'geocaching'] as const)(
+    'offers printing for assigned %s questions',
+    (type) => {
+      render(
+        <RallyeQuestionsManager
+          rallyeId={5}
+          isCampusTour={false}
+          categories={[]}
+          initialAvailable={[]}
+          initialAssigned={[
+            {
+              question: makeQuestion({
+                type,
+                geocaching: {
+                  input_type: 'qr',
+                  target_latitude: 0,
+                  target_longitude: 0,
+                  proximity_radius: 20,
+                },
+              }),
+              isVoting: false,
+            },
+          ]}
+        />
+      );
+      const printLink = screen.getByRole('link', { name: /QR-Codes drucken/ });
+      expect(printLink).toHaveAttribute('href', '/rallyes/5/qr-codes');
+      expect(printLink).toHaveAttribute('target', '_blank');
+      expect(printLink).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  );
+
+  it('does not offer printing just because an unassigned QR question is available', () => {
+    render(
+      <RallyeQuestionsManager
+        rallyeId={5}
+        isCampusTour={false}
+        categories={[]}
+        initialAssigned={[]}
+        initialAvailable={[makeQuestion({ type: 'qr_code' })]}
+      />
+    );
+    expect(
+      screen.queryByRole('link', { name: /QR-Codes drucken/ })
+    ).not.toBeInTheDocument();
+  });
+
   it('shows assigned questions with points total', () => {
     render(
       <RallyeQuestionsManager
