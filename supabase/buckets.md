@@ -11,7 +11,8 @@ Buckets in Supabase erstellen:
 - Im Bereich `Files` auf den Button `New Bucket` klicken
   - Bei beiden Buckets konfigurieren:
     - `Restrict file size`: 10 MB
-    - `Restrict MIME types` einschalten und `image/*` eintragen
+    - `Restrict MIME types` einschalten und `image/png, image/jpeg, image/jpg, image/gif, image/webp` eintragen
+      (nicht `image/*`: das würde auch SVG-Dateien erlauben, die beim Ausliefern über die Next.js-Bildoptimierung ein Sicherheitsrisiko sind)
   - Bucket 1: `question-pictures` als Name und `Public` **aktivieren**
   - Bucket 2: `upload-photos` als Name und `Public` **ausschalten**
 
