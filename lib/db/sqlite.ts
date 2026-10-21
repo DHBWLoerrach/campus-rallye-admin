@@ -12,9 +12,11 @@ export function getDb(): SqliteDb {
     throw new Error('Umgebungsvariable SQLITE_DB_PATH ist nicht gesetzt');
   }
 
+  // The DB file is runtime data, not a build input: keep Turbopack from
+  // tracing the whole project into the standalone output.
   const resolvedPath = path.isAbsolute(dbPath)
     ? dbPath
-    : path.resolve(process.cwd(), dbPath);
+    : path.resolve(/* turbopackIgnore: true */ process.cwd(), dbPath);
 
   dbInstance = new Database(resolvedPath);
   return dbInstance;
