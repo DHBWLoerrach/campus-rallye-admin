@@ -148,8 +148,10 @@ export async function verifyKeycloakToken(
       // issuer must match exactly (prevents accepting tokens from a different realm/IdP).
       issuer: resolved.issuer,
       algorithms: ['RS256'],
-      // tolerate small clock skew; jwtVerify still enforces exp/nbf by default.
+      // tolerate small clock skew when checking exp/nbf.
       clockTolerance: '5s',
+      // jwtVerify only checks exp if present; a token without exp would never expire.
+      requiredClaims: ['exp', 'sub'],
     }
   );
 

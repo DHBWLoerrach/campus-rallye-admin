@@ -98,12 +98,16 @@ async function signToken({
   azp = AUDIENCE,
   subject = 'user-123',
   email = 'user@example.test',
+  uuid,
+  withExpiration = true,
 }: {
   roles?: string[];
   aud?: string;
   azp?: string;
-  subject?: string;
+  subject?: string | null;
   email?: string;
+  uuid?: string;
+  withExpiration?: boolean;
 } = {}) {
   const payload: Record<string, unknown> = {
     realm_access: { roles },
@@ -113,15 +117,22 @@ async function signToken({
   if (azp) {
     payload.azp = azp;
   }
+  if (uuid) {
+    payload.uuid = uuid;
+  }
 
-  return new SignJWT(payload)
+  const jwt = new SignJWT(payload)
     .setProtectedHeader({ alg: 'RS256', kid: KEY_ID })
     .setIssuedAt()
     .setIssuer(ISSUER)
-    .setAudience(aud)
-    .setSubject(subject)
-    .setExpirationTime('2h')
-    .sign(privateKey);
+    .setAudience(aud);
+  if (subject !== null) {
+    jwt.setSubject(subject);
+  }
+  if (withExpiration) {
+    jwt.setExpirationTime('2h');
+  }
+  return jwt.sign(privateKey);
 }
 
 function setTokenHeader(token?: string) {
@@ -157,6 +168,46 @@ describe('getUserContext', () => {
     });
     expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(token);
     expect(JSON.stringify(warnSpy.mock.calls)).not.toContain(USER_ID);
+    warnSpy.mockRestore();
+  });
+
+  it('rejects tokens without an exp claim', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const token = await signToken({
+      roles: ['staff'],
+      subject: USER_ID,
+      withExpiration: false,
+    });
+    setTokenHeader(token);
+
+    await expect(getUserContext()).rejects.toThrow('Invalid access token');
+    expect(warnSpy).toHaveBeenCalledWith('Access token verification failed', {
+      source: 'user-context',
+      code: 'ERR_JWT_CLAIM_VALIDATION_FAILED',
+      claim: 'exp',
+      reason: 'missing',
+      userRef: '550e8400',
+    });
+    warnSpy.mockRestore();
+  });
+
+  it('rejects tokens without a sub claim even if a uuid claim is present', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const token = await signToken({
+      roles: ['staff'],
+      subject: null,
+      uuid: USER_ID,
+    });
+    setTokenHeader(token);
+
+    await expect(getUserContext()).rejects.toThrow('Invalid access token');
+    expect(warnSpy).toHaveBeenCalledWith('Access token verification failed', {
+      source: 'user-context',
+      code: 'ERR_JWT_CLAIM_VALIDATION_FAILED',
+      claim: 'sub',
+      reason: 'missing',
+      userRef: '550e8400',
+    });
     warnSpy.mockRestore();
   });
 
