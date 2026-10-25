@@ -48,8 +48,8 @@ For each step:
 3. Provide a brief summary: what/why.
 4. Tests: Evaluate the risk and choose the most meaningful verification.
    - Add or update automated tests when they can reliably verify observable behavior, a business rule, a security boundary, data integrity, or the concrete regression.
-  - Prefer the lowest test level that can verify the relevant behavior with sufficient fidelity, without coupling the test to implementation details
-  - Do not add tests that merely assert internal component structure, DOM hierarchy, framework wiring, or implementation-specific layout details. Test placement or layout only when it represents observable user behavior, accessibility, or a required invariant
+   - Prefer the lowest test level that can verify the relevant behavior with sufficient fidelity, without coupling the test to implementation details
+   - Do not add tests that merely assert internal component structure, DOM hierarchy, framework wiring, or implementation-specific layout details. Test placement or layout only when it represents observable user behavior, accessibility, or a required invariant
    - For bug fixes, add a regression test when the original failure can be reproduced meaningfully and deterministically in the existing test setup.
    - If the existing test setup cannot reproduce the failure meaningfully, use the most relevant available verification, such as a browser test, integration check, build check, or documented manual reproduction. Briefly state why no automated regression test was added.
    - Pure refactors do not inherently require new tests. Existing tests must pass, and additional characterization tests may be added when needed to preserve behavior during a risky refactor.
