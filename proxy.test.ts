@@ -271,12 +271,33 @@ describe('proxy', () => {
     warnSpy.mockRestore();
   });
 
-  it.each(['/impressum', '/datenschutz', '/nutzungshinweise'])(
-    'keeps %s public',
-    (path) => {
-      const matcher = new RegExp(config.matcher[0]);
+  it.each([
+    '/',
+    '/impressum',
+    '/impressum/',
+    '/datenschutz',
+    '/nutzungshinweise',
+    '/sign-out',
+    '/access-denied',
+    '/favicon.ico',
+    '/_next/static/chunks/main.js',
+  ])('keeps %s public', (path) => {
+    const matcher = new RegExp(`^${config.matcher[0]}$`);
 
-      expect(matcher.test(path)).toBe(false);
-    }
-  );
+    expect(matcher.test(path)).toBe(false);
+  });
+
+  it.each([
+    '/rallyes',
+    '/_next/image',
+    '/assets',
+    '/assets-admin',
+    '/impressum-intern',
+    '/access-denied-bypass',
+    '/favicon.ico.evil',
+  ])('protects %s', (path) => {
+    const matcher = new RegExp(`^${config.matcher[0]}$`);
+
+    expect(matcher.test(path)).toBe(true);
+  });
 });
