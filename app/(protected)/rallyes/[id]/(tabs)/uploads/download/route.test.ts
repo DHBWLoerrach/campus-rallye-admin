@@ -156,6 +156,45 @@ describe('GET /rallyes/[id]/uploads/download', () => {
     expect(zipText).not.toContain('FEHLENDE_FOTOS.txt');
   });
 
+  it('lists a photo whose download breaks off and keeps adding the others', async () => {
+    mockRallye({ id: 12, name: 'Campus Rallye' });
+    mockGetRallyeUploadAnswers.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          id: 1,
+          content: 'Foto',
+          uploadAnswers: [
+            uploadAnswer(1, 'Team Alpha', 'a.jpg'),
+            uploadAnswer(2, 'Team Beta', 'b.jpg'),
+          ],
+          teamsWithoutPhoto: [],
+        },
+      ],
+    });
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url.endsWith('b.jpg')) return new Response('beta photo');
+      // Status 200, but the connection breaks off after the first chunk.
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('alpha part'));
+          controller.error(new Error('connection reset'));
+        },
+      });
+      return new Response(body);
+    });
+
+    const response = await callGet('12');
+
+    expect(response.status).toBe(200);
+    const zipText = await readZipText(response);
+    expect(zipText).toContain('beta photo');
+    expect(zipText).not.toContain('alpha part');
+    expect(zipText).toContain(
+      'Diese Fotos konnten nicht heruntergeladen werden:\n\nTeam Alpha.jpg\n'
+    );
+  });
+
   it('lists photos that cannot be fetched instead of failing the ZIP', async () => {
     mockRallye({ id: 12, name: 'Campus Rallye' });
     mockGetRallyeUploadAnswers.mockResolvedValue({

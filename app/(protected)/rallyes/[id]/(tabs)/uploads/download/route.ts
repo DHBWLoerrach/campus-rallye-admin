@@ -27,17 +27,24 @@ function textResponse(status: number, message: string) {
 }
 
 // Photos are fetched lazily while the ZIP streams, so only one photo is in
-// flight at a time. The response has already started by then, so a photo that
+// memory at a time. The response has already started by then, so a photo that
 // cannot be fetched is listed in a note inside the ZIP instead of failing it.
+// Each photo is read completely before it is added: a stream error while
+// client-zip reads it would otherwise abort the whole ZIP.
 async function* zipInputs(entries: UploadPhotoZipEntry<UploadAnswer>[]) {
   const missing: string[] = [];
   for (const { name, photo } of entries) {
+    let input: Uint8Array;
+    let lastModified: Date | undefined;
     try {
       const response = await fetch(photo.signedUrl, { cache: 'no-store' });
-      if (!response.ok || !response.body) {
+      if (!response.ok) {
         throw new Error(`Unexpected status ${response.status}`);
       }
-      yield { name, input: response };
+      input = new Uint8Array(await response.arrayBuffer());
+      const lastModifiedHeader = response.headers.get('Last-Modified');
+      const parsedDate = new Date(lastModifiedHeader ?? '');
+      lastModified = isNaN(parsedDate.getTime()) ? undefined : parsedDate;
     } catch (error) {
       console.error('Error fetching upload photo for ZIP:', {
         teamId: photo.teamId,
@@ -45,7 +52,9 @@ async function* zipInputs(entries: UploadPhotoZipEntry<UploadAnswer>[]) {
         error,
       });
       missing.push(name);
+      continue;
     }
+    yield { name, input, lastModified };
   }
   if (missing.length > 0) {
     yield {
