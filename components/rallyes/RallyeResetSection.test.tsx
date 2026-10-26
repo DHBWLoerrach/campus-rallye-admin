@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RallyeResetSection from './RallyeResetSection';
 
@@ -64,6 +70,45 @@ describe('RallyeResetSection', () => {
     expect(dialog).toHaveTextContent(
       'Alle Teams, Team-Antworten und Upload-Fotos werden endgültig gelöscht.'
     );
+  });
+
+  it('offers to download the photos before they are deleted', () => {
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status="ended"
+        runDataSummary={summary}
+      />
+    );
+
+    const dialog = openDialog();
+
+    expect(
+      within(dialog).getByRole('link', {
+        name: '2 Fotos herunterladen (ZIP)',
+      })
+    ).toHaveAttribute('href', '/rallyes/5/uploads/download');
+  });
+
+  it.each([
+    ['no photo was uploaded', { ...summary, uploadPhotoCount: 0 }],
+    ['the counts are unknown', null],
+  ])('offers no photo download when %s', (_case, runDataSummary) => {
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status="ended"
+        runDataSummary={runDataSummary}
+      />
+    );
+
+    const dialog = openDialog();
+
+    expect(
+      within(dialog).queryByRole('link', { name: /herunterladen/ })
+    ).not.toBeInTheDocument();
   });
 
   it('resets without typing the name once the rallye is over', async () => {

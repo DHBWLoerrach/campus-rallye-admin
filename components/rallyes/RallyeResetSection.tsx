@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { RotateCcw } from 'lucide-react';
+import { Download, RotateCcw } from 'lucide-react';
 import { resetRallye, type RallyeRunDataSummary } from '@/actions/rallye';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -100,6 +100,10 @@ export default function RallyeResetSection({
       0;
   const showStoredRunDataHint = status === 'ended' && hasStoredRunData;
 
+  // The reset deletes the photos for good, so offer a last chance to keep
+  // them. Hidden when the count is unknown, since the download might be empty.
+  const uploadPhotoCount = runDataSummary?.uploadPhotoCount ?? 0;
+
   return (
     <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-destructive/40 bg-destructive/5 p-6">
       <div className="space-y-1">
@@ -140,6 +144,23 @@ export default function RallyeResetSection({
               kann nicht rückgängig gemacht werden.
             </DialogDescription>
           </DialogHeader>
+          {uploadPhotoCount > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                Upload-Fotos vorher sichern?
+              </p>
+              {/* Plain anchor instead of next/link: the target is a route
+                  handler that streams a file download. */}
+              <a
+                href={`/rallyes/${rallyeId}/uploads/download`}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                <Download className="h-4 w-4" aria-hidden="true" />
+                {pluralize(uploadPhotoCount, 'Foto', 'Fotos')} herunterladen
+                (ZIP)
+              </a>
+            </div>
+          )}
           {requiresNameConfirmation && (
             <div className="grid gap-2">
               <Label htmlFor={`rallye-${rallyeId}-reset-confirmation`}>
