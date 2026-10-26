@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Download, RotateCcw } from 'lucide-react';
 import { resetRallye, type RallyeRunDataSummary } from '@/actions/rallye';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { downloadFile } from '@/lib/download-file';
 import type { RallyeStatus } from '@/lib/types';
 
 interface RallyeResetSectionProps {
@@ -40,6 +41,10 @@ export default function RallyeResetSection({
   const [confirmation, setConfirmation] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photoDownload, setPhotoDownload] = useState<
+    'idle' | 'loading' | 'done' | 'failed'
+  >('idle');
+  const isDownloadingPhotos = photoDownload === 'loading';
 
   // Resetting a rallye that teams are currently playing is destructive
   // enough to require typing its name.
@@ -52,6 +57,26 @@ export default function RallyeResetSection({
     if (!nextOpen) {
       setConfirmation('');
       setError(null);
+      // A running download keeps its state, so the reset stays blocked when
+      // the dialog is reopened before it has finished.
+      setPhotoDownload((state) => (state === 'loading' ? state : 'idle'));
+    }
+  }
+
+  // The server reads the photos one after another while the ZIP is sent, so
+  // the reset is blocked until the download is complete; otherwise it could
+  // delete photos that are not part of the backup yet.
+  async function handlePhotoDownload() {
+    setPhotoDownload('loading');
+    try {
+      await downloadFile(
+        `/rallyes/${rallyeId}/uploads/download`,
+        'upload-fotos.zip'
+      );
+      setPhotoDownload('done');
+    } catch (downloadError) {
+      console.error('Fehler beim Herunterladen der Fotos:', downloadError);
+      setPhotoDownload('failed');
     }
   }
 
@@ -146,19 +171,27 @@ export default function RallyeResetSection({
           </DialogHeader>
           {uploadPhotoCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
-              <p className="text-sm text-muted-foreground">
-                Upload-Fotos vorher sichern?
+              <p className="text-sm text-muted-foreground" role="status">
+                {photoDownload === 'loading'
+                  ? 'Fotos werden heruntergeladen. Zurücksetzen ist bis dahin gesperrt.'
+                  : photoDownload === 'done'
+                    ? 'Fotos heruntergeladen.'
+                    : photoDownload === 'failed'
+                      ? 'Download fehlgeschlagen.'
+                      : 'Upload-Fotos vorher sichern?'}
               </p>
-              {/* Plain anchor instead of next/link: the target is a route
-                  handler that streams a file download. */}
-              <a
-                href={`/rallyes/${rallyeId}/uploads/download`}
-                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="cursor-pointer"
+                onClick={handlePhotoDownload}
+                disabled={isDownloadingPhotos || isResetting}
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
                 {pluralize(uploadPhotoCount, 'Foto', 'Fotos')} herunterladen
                 (ZIP)
-              </a>
+              </Button>
             </div>
           )}
           {requiresNameConfirmation && (
@@ -188,7 +221,7 @@ export default function RallyeResetSection({
               variant="destructive"
               className="cursor-pointer"
               onClick={handleReset}
-              disabled={isResetting || !isConfirmed}
+              disabled={isResetting || isDownloadingPhotos || !isConfirmed}
             >
               {isResetting ? 'Wird zurückgesetzt...' : 'Zurücksetzen'}
             </Button>

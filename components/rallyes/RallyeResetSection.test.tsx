@@ -8,13 +8,18 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RallyeResetSection from './RallyeResetSection';
 
-const { mockResetRallye, mockRefresh } = vi.hoisted(() => ({
+const { mockResetRallye, mockRefresh, mockDownloadFile } = vi.hoisted(() => ({
   mockResetRallye: vi.fn(),
   mockRefresh: vi.fn(),
+  mockDownloadFile: vi.fn(),
 }));
 
 vi.mock('@/actions/rallye', () => ({
   resetRallye: mockResetRallye,
+}));
+
+vi.mock('@/lib/download-file', () => ({
+  downloadFile: mockDownloadFile,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -72,7 +77,13 @@ describe('RallyeResetSection', () => {
     );
   });
 
-  it('offers to download the photos before they are deleted', () => {
+  it('blocks the reset until the photo download is complete', async () => {
+    let finishDownload: () => void = () => {};
+    mockDownloadFile.mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishDownload = resolve;
+      })
+    );
     render(
       <RallyeResetSection
         rallyeId={5}
@@ -83,12 +94,70 @@ describe('RallyeResetSection', () => {
     );
 
     const dialog = openDialog();
-
-    expect(
-      within(dialog).getByRole('link', {
+    fireEvent.click(
+      within(dialog).getByRole('button', {
         name: '2 Fotos herunterladen (ZIP)',
       })
-    ).toHaveAttribute('href', '/rallyes/5/uploads/download');
+    );
+
+    expect(mockDownloadFile).toHaveBeenCalledWith(
+      '/rallyes/5/uploads/download',
+      'upload-fotos.zip'
+    );
+    expect(dialog).toHaveTextContent('Zurücksetzen ist bis dahin gesperrt.');
+    expect(confirmButton(dialog)).toBeDisabled();
+
+    finishDownload();
+
+    await waitFor(() => expect(confirmButton(dialog)).toBeEnabled());
+    expect(dialog).toHaveTextContent('Fotos heruntergeladen.');
+  });
+
+  it('keeps the reset blocked when the dialog is reopened during the download', () => {
+    mockDownloadFile.mockReturnValue(new Promise<void>(() => {}));
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status="ended"
+        runDataSummary={summary}
+      />
+    );
+
+    let dialog = openDialog();
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /herunterladen/ })
+    );
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Abbrechen' }));
+    dialog = openDialog();
+
+    expect(confirmButton(dialog)).toBeDisabled();
+  });
+
+  it('unblocks the reset and reports a failed photo download', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    mockDownloadFile.mockRejectedValue(new Error('500'));
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status="ended"
+        runDataSummary={summary}
+      />
+    );
+
+    const dialog = openDialog();
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /herunterladen/ })
+    );
+
+    await waitFor(() =>
+      expect(dialog).toHaveTextContent('Download fehlgeschlagen.')
+    );
+    expect(confirmButton(dialog)).toBeEnabled();
+    consoleError.mockRestore();
   });
 
   it.each([
@@ -107,7 +176,7 @@ describe('RallyeResetSection', () => {
     const dialog = openDialog();
 
     expect(
-      within(dialog).queryByRole('link', { name: /herunterladen/ })
+      within(dialog).queryByRole('button', { name: /herunterladen/ })
     ).not.toBeInTheDocument();
   });
 
