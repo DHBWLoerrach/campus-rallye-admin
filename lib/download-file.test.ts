@@ -39,6 +39,7 @@ describe('downloadFile', () => {
     mockFetch.mockResolvedValue(
       new Response('zip content', {
         headers: {
+          'Content-Type': 'application/zip',
           'Content-Disposition': 'attachment; filename="test-fotos.zip"',
         },
       })
@@ -46,7 +47,8 @@ describe('downloadFile', () => {
 
     const saved = await downloadFile(
       '/rallyes/5/uploads/download',
-      'fallback.zip'
+      'fallback.zip',
+      'application/zip'
     );
 
     expect(await saved.text()).toBe('zip content');
@@ -58,19 +60,39 @@ describe('downloadFile', () => {
   });
 
   it('falls back to the given name without a Content-Disposition header', async () => {
-    mockFetch.mockResolvedValue(new Response('zip content'));
+    mockFetch.mockResolvedValue(
+      new Response('zip content', {
+        headers: { 'Content-Type': 'application/zip' },
+      })
+    );
 
-    await downloadFile('/download', 'fallback.zip');
+    await downloadFile('/download', 'fallback.zip', 'application/zip');
 
     expect(savedFileName).toBe('fallback.zip');
+  });
+
+  it('rejects and saves nothing when a redirect returns an HTML page', async () => {
+    // fetch follows the proxy's redirect, e.g. to /access-denied, and
+    // resolves with the page's status 200.
+    mockFetch.mockResolvedValue(
+      new Response('<!DOCTYPE html><title>Zugriff verweigert</title>', {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      })
+    );
+
+    await expect(
+      downloadFile('/download', 'fallback.zip', 'application/zip')
+    ).rejects.toThrow('Unexpected content type "text/html"');
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+    expect(savedFileName).toBeNull();
   });
 
   it('rejects and saves nothing when the server responds with an error', async () => {
     mockFetch.mockResolvedValue(new Response('Fehler', { status: 500 }));
 
-    await expect(downloadFile('/download', 'fallback.zip')).rejects.toThrow(
-      'Download failed with status 500'
-    );
+    await expect(
+      downloadFile('/download', 'fallback.zip', 'application/zip')
+    ).rejects.toThrow('Download failed with status 500');
     expect(savedFileName).toBeNull();
   });
 });

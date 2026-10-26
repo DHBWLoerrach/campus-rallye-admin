@@ -10,13 +10,24 @@ export function getAttachmentFileName(
 // returned promise only resolves once the download is really complete. A
 // plain link would download in the background without telling the page.
 // Resolves with the saved file, so callers can inspect what was saved.
+// fetch follows redirects, so a redirect to an HTML page (e.g. access denied)
+// arrives with status 200; the content type check keeps it from being saved
+// as the expected file.
 export async function downloadFile(
   url: string,
-  fallbackFileName: string
+  fallbackFileName: string,
+  expectedContentType: string
 ): Promise<Blob> {
   const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`Download failed with status ${response.status}`);
+  }
+  const contentType = (response.headers.get('Content-Type') ?? '')
+    .split(';')[0]
+    .trim()
+    .toLowerCase();
+  if (contentType !== expectedContentType) {
+    throw new Error(`Unexpected content type "${contentType}"`);
   }
   const blob = await response.blob();
   const fileName =

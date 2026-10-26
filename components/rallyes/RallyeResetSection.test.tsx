@@ -114,7 +114,8 @@ describe('RallyeResetSection', () => {
 
     expect(mockDownloadFile).toHaveBeenCalledWith(
       '/rallyes/5/uploads/download',
-      'upload-fotos.zip'
+      'upload-fotos.zip',
+      'application/zip'
     );
     expect(dialog).toHaveTextContent('Zurücksetzen ist bis dahin gesperrt.');
     expect(confirmButton(dialog)).toBeDisabled();
@@ -172,6 +173,31 @@ describe('RallyeResetSection', () => {
       new Uint8Array(new TextEncoder().encode('zip'))
     );
     expect(confirmButton(dialog)).toBeEnabled();
+  });
+
+  it('does not report a ZIP that cannot be read as a complete backup', async () => {
+    mockDownloadFile.mockResolvedValue(new Blob(['not a zip']));
+    mockReadMissingPhotos.mockReturnValue(null);
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status="ended"
+        runDataSummary={summary}
+      />
+    );
+
+    const dialog = openDialog();
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /herunterladen/ })
+    );
+
+    await waitFor(() =>
+      expect(dialog).toHaveTextContent(
+        'ZIP konnte nicht geprüft werden. Bitte erneut herunterladen.'
+      )
+    );
+    expect(dialog).not.toHaveTextContent('Fotos heruntergeladen.');
   });
 
   it('unblocks the reset and reports a failed photo download', async () => {

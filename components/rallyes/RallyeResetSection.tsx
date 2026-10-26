@@ -46,12 +46,14 @@ export default function RallyeResetSection({
   const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoDownload, setPhotoDownload] = useState<
-    'idle' | 'loading' | 'done' | 'failed'
+    'idle' | 'loading' | 'done' | 'unverified' | 'failed'
   >('idle');
   const [missingPhotoCount, setMissingPhotoCount] = useState(0);
   const isDownloadingPhotos = photoDownload === 'loading';
   const hasIncompletePhotoDownload =
     photoDownload === 'done' && missingPhotoCount > 0;
+  const showPhotoDownloadWarning =
+    hasIncompletePhotoDownload || photoDownload === 'unverified';
 
   // Resetting a rallye that teams are currently playing is destructive
   // enough to require typing its name.
@@ -79,14 +81,20 @@ export default function RallyeResetSection({
     try {
       const zip = await downloadFile(
         `/rallyes/${rallyeId}/uploads/download`,
-        'upload-fotos.zip'
+        'upload-fotos.zip',
+        'application/zip'
       );
       // Photos that failed on the server are only listed inside the ZIP, so
-      // check it before reporting a complete backup.
+      // check it before reporting a complete backup. A ZIP that cannot be
+      // read is never reported as a complete backup.
       const missingPhotos = readMissingPhotos(
         new Uint8Array(await zip.arrayBuffer())
       );
-      setMissingPhotoCount(missingPhotos?.length ?? 0);
+      if (missingPhotos === null) {
+        setPhotoDownload('unverified');
+        return;
+      }
+      setMissingPhotoCount(missingPhotos.length);
       setPhotoDownload('done');
     } catch (downloadError) {
       console.error('Fehler beim Herunterladen der Fotos:', downloadError);
@@ -187,7 +195,7 @@ export default function RallyeResetSection({
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
               <p
                 className={
-                  hasIncompletePhotoDownload
+                  showPhotoDownloadWarning
                     ? 'text-sm font-medium text-destructive'
                     : 'text-sm text-muted-foreground'
                 }
@@ -197,11 +205,13 @@ export default function RallyeResetSection({
                   ? 'Fotos werden heruntergeladen. Zurücksetzen ist bis dahin gesperrt.'
                   : hasIncompletePhotoDownload
                     ? `Achtung: ${pluralize(missingPhotoCount, 'Foto fehlt', 'Fotos fehlen')} im ZIP (siehe ${MISSING_PHOTOS_FILE_NAME}).`
-                    : photoDownload === 'done'
-                      ? 'Fotos heruntergeladen.'
-                      : photoDownload === 'failed'
-                        ? 'Download fehlgeschlagen.'
-                        : 'Upload-Fotos vorher sichern?'}
+                    : photoDownload === 'unverified'
+                      ? 'ZIP konnte nicht geprüft werden. Bitte erneut herunterladen.'
+                      : photoDownload === 'done'
+                        ? 'Fotos heruntergeladen.'
+                        : photoDownload === 'failed'
+                          ? 'Download fehlgeschlagen.'
+                          : 'Upload-Fotos vorher sichern?'}
               </p>
               <Button
                 type="button"
