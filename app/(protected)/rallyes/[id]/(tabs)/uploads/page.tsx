@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
+import { Download } from 'lucide-react';
 import { getRallyeUploadAnswers } from '@/actions/upload-answers';
 import UploadPhotoSlideshow from '@/components/UploadPhotoSlideshow';
 import UploadPhotoTile from '@/components/UploadPhotoTile';
 import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import createClient from '@/lib/supabase';
 
 interface PageProps {
@@ -64,13 +66,29 @@ export default async function Page(props: PageProps) {
                     </h2>
                   </div>
                   {hasUploads && (
-                    <UploadPhotoSlideshow
-                      questionContent={question.content}
-                      photos={question.uploadAnswers.map((answer) => ({
-                        signedUrl: answer.signedUrl,
-                        teamName: answer.teamName,
-                      }))}
-                    />
+                    <div className="flex flex-wrap gap-2">
+                      <UploadPhotoSlideshow
+                        questionContent={question.content}
+                        photos={question.uploadAnswers.map((answer) => ({
+                          signedUrl: answer.signedUrl,
+                          teamName: answer.teamName,
+                        }))}
+                      />
+                      {/* Plain anchor instead of next/link: the target is a
+                          route handler that streams a file download. */}
+                      <a
+                        href={`/rallyes/${rallyeId}/uploads/download`}
+                        className={buttonVariants({
+                          variant: 'outline',
+                          size: 'sm',
+                        })}
+                      >
+                        <Download className="h-4 w-4" aria-hidden="true" />
+                        {question.uploadAnswers.length === 1
+                          ? '1 Foto herunterladen (ZIP)'
+                          : `${question.uploadAnswers.length} Fotos herunterladen (ZIP)`}
+                      </a>
+                    </div>
                   )}
                 </div>
 
