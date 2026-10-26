@@ -5,6 +5,7 @@ import { requireProfile } from '@/lib/require-profile';
 import { fail, ok, type ActionResult } from '@/lib/action-result';
 import { formatZodError, idSchema } from '@/lib/validation';
 import type { RallyeStatus } from '@/lib/types';
+import { UPLOAD_PHOTOS_BUCKET } from '@/lib/rallye-upload-photos';
 
 export type RallyeResultRow = {
   rank: number;
@@ -137,7 +138,7 @@ export async function getRallyeResults(
   });
 
   const photoUrlByTeam = new Map<number, string>();
-  const storage = supabase.storage.from('upload-photos');
+  const storage = supabase.storage.from(UPLOAD_PHOTOS_BUCKET);
   await Promise.all(
     Array.from(latestUploadByTeam.entries()).map(async ([teamId, upload]) => {
       const { data, error } = await storage.createSignedUrl(

@@ -24,12 +24,11 @@ import {
   MULTIPLE_UPLOAD_QUESTIONS_ERROR,
 } from '@/helpers/questionTypes';
 import { isCampusTourRallye } from '@/lib/campus-tour';
+import { UPLOAD_PHOTOS_BUCKET } from '@/lib/rallye-upload-photos';
 
 type FormState = ActionResult<{ message: string; rallyeId?: number }> | null;
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
-
-const UPLOAD_PHOTOS_BUCKET = 'upload-photos';
 
 // Returns whether the rallye is the campus tour of a location, or null if
 // this could not be checked.
