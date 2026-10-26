@@ -1,11 +1,21 @@
+// @vitest-environment node
+import { downloadZip } from 'client-zip';
 import { describe, expect, it } from 'vitest';
 import {
+  MISSING_PHOTOS_FILE_NAME,
   buildMissingPhotosNote,
   buildPhotoZipEntries,
   getPhotoExtension,
   getPhotoZipFileName,
+  parseMissingPhotosNote,
+  readMissingPhotos,
   toPhotoBaseName,
 } from './upload-photos-zip';
+
+// Builds the archive with the same library and entry types as the route.
+async function buildZip(entries: { name: string; input: string }[]) {
+  return new Uint8Array(await downloadZip(entries).arrayBuffer());
+}
 
 describe('toPhotoBaseName', () => {
   it('keeps umlauts and regular punctuation', () => {
@@ -86,5 +96,50 @@ describe('buildMissingPhotosNote', () => {
     expect(buildMissingPhotosNote(['Team Alpha.jpg', 'Team Beta.png'])).toBe(
       'Diese Fotos konnten nicht heruntergeladen werden:\n\nTeam Alpha.jpg\nTeam Beta.png\n'
     );
+  });
+});
+
+describe('parseMissingPhotosNote', () => {
+  it('reads back the names written by buildMissingPhotosNote', () => {
+    const names = ['Team Alpha.jpg', 'Die Überflieger.png'];
+
+    expect(parseMissingPhotosNote(buildMissingPhotosNote(names))).toEqual(
+      names
+    );
+  });
+});
+
+describe('readMissingPhotos', () => {
+  it('lists the photos from the missing photos note of the ZIP', async () => {
+    const zip = await buildZip([
+      { name: 'Team Alpha.jpg', input: 'alpha photo' },
+      {
+        name: MISSING_PHOTOS_FILE_NAME,
+        input: buildMissingPhotosNote(['Team Beta.jpg', 'Die Überflieger.png']),
+      },
+    ]);
+
+    expect(readMissingPhotos(zip)).toEqual([
+      'Team Beta.jpg',
+      'Die Überflieger.png',
+    ]);
+  });
+
+  it('returns an empty list for a complete ZIP', async () => {
+    const zip = await buildZip([
+      { name: 'Team Alpha.jpg', input: 'alpha photo' },
+      { name: 'Team Beta.jpg', input: 'beta photo' },
+    ]);
+
+    expect(readMissingPhotos(zip)).toEqual([]);
+  });
+
+  it('returns null for data that is not a readable ZIP', async () => {
+    const zip = await buildZip([
+      { name: MISSING_PHOTOS_FILE_NAME, input: buildMissingPhotosNote(['A']) },
+    ]);
+
+    expect(readMissingPhotos(new TextEncoder().encode('Fehler'))).toBeNull();
+    expect(readMissingPhotos(zip.subarray(0, zip.length - 1))).toBeNull();
   });
 });

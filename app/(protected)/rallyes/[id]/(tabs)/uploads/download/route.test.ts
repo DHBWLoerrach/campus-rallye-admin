@@ -26,6 +26,7 @@ vi.mock('@/lib/rallye-upload-photos', async (importOriginal) => ({
   loadRallyeUploadPhotos: mockLoadRallyeUploadPhotos,
 }));
 
+import { readMissingPhotos } from '@/lib/upload-photos-zip';
 import { GET } from './route';
 
 const mockFetch = vi.fn();
@@ -239,10 +240,9 @@ describe('GET /rallyes/[id]/uploads/download', () => {
     const response = await callGet('12');
 
     expect(response.status).toBe(200);
-    const zipText = await readZipText(response);
-    expect(zipText).toContain('alpha photo');
-    expect(zipText).toContain(
-      'Diese Fotos konnten nicht heruntergeladen werden:\n\nTeam Beta.png\nTeam Gamma.jpg\n'
-    );
+    const zip = new Uint8Array(await response.arrayBuffer());
+    expect(new TextDecoder().decode(zip)).toContain('alpha photo');
+    // The reset dialog reads this list back to warn about an incomplete ZIP.
+    expect(readMissingPhotos(zip)).toEqual(['Team Beta.png', 'Team Gamma.jpg']);
   });
 });

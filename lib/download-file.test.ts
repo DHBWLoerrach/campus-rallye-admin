@@ -44,8 +44,12 @@ describe('downloadFile', () => {
       })
     );
 
-    await downloadFile('/rallyes/5/uploads/download', 'fallback.zip');
+    const saved = await downloadFile(
+      '/rallyes/5/uploads/download',
+      'fallback.zip'
+    );
 
+    expect(await saved.text()).toBe('zip content');
     expect(mockFetch).toHaveBeenCalledWith('/rallyes/5/uploads/download', {
       cache: 'no-store',
     });

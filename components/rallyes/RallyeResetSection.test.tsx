@@ -8,10 +8,16 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RallyeResetSection from './RallyeResetSection';
 
-const { mockResetRallye, mockRefresh, mockDownloadFile } = vi.hoisted(() => ({
+const {
+  mockResetRallye,
+  mockRefresh,
+  mockDownloadFile,
+  mockReadMissingPhotos,
+} = vi.hoisted(() => ({
   mockResetRallye: vi.fn(),
   mockRefresh: vi.fn(),
   mockDownloadFile: vi.fn(),
+  mockReadMissingPhotos: vi.fn(),
 }));
 
 vi.mock('@/actions/rallye', () => ({
@@ -20,6 +26,11 @@ vi.mock('@/actions/rallye', () => ({
 
 vi.mock('@/lib/download-file', () => ({
   downloadFile: mockDownloadFile,
+}));
+
+vi.mock('@/lib/upload-photos-zip', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/upload-photos-zip')>()),
+  readMissingPhotos: mockReadMissingPhotos,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -80,10 +91,11 @@ describe('RallyeResetSection', () => {
   it('blocks the reset until the photo download is complete', async () => {
     let finishDownload: () => void = () => {};
     mockDownloadFile.mockReturnValue(
-      new Promise<void>((resolve) => {
-        finishDownload = resolve;
+      new Promise<Blob>((resolve) => {
+        finishDownload = () => resolve(new Blob(['zip']));
       })
     );
+    mockReadMissingPhotos.mockReturnValue([]);
     render(
       <RallyeResetSection
         rallyeId={5}
@@ -114,7 +126,7 @@ describe('RallyeResetSection', () => {
   });
 
   it('keeps the reset blocked when the dialog is reopened during the download', () => {
-    mockDownloadFile.mockReturnValue(new Promise<void>(() => {}));
+    mockDownloadFile.mockReturnValue(new Promise<Blob>(() => {}));
     render(
       <RallyeResetSection
         rallyeId={5}
@@ -132,6 +144,34 @@ describe('RallyeResetSection', () => {
     dialog = openDialog();
 
     expect(confirmButton(dialog)).toBeDisabled();
+  });
+
+  it('warns when photos are missing from the downloaded ZIP', async () => {
+    mockDownloadFile.mockResolvedValue(new Blob(['zip']));
+    mockReadMissingPhotos.mockReturnValue(['Team Beta.jpg']);
+    render(
+      <RallyeResetSection
+        rallyeId={5}
+        rallyeName="Studieninfotag"
+        status="ended"
+        runDataSummary={summary}
+      />
+    );
+
+    const dialog = openDialog();
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /herunterladen/ })
+    );
+
+    await waitFor(() =>
+      expect(dialog).toHaveTextContent(
+        'Achtung: 1 Foto fehlt im ZIP (siehe FEHLENDE_FOTOS.txt).'
+      )
+    );
+    expect(mockReadMissingPhotos).toHaveBeenCalledWith(
+      new Uint8Array(new TextEncoder().encode('zip'))
+    );
+    expect(confirmButton(dialog)).toBeEnabled();
   });
 
   it('unblocks the reset and reports a failed photo download', async () => {

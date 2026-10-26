@@ -9,10 +9,11 @@ export function getAttachmentFileName(
 // Fetches the whole file before handing it to the browser to save, so the
 // returned promise only resolves once the download is really complete. A
 // plain link would download in the background without telling the page.
+// Resolves with the saved file, so callers can inspect what was saved.
 export async function downloadFile(
   url: string,
   fallbackFileName: string
-): Promise<void> {
+): Promise<Blob> {
   const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`Download failed with status ${response.status}`);
@@ -34,4 +35,5 @@ export async function downloadFile(
     // Revoke after the click has been handled, so the save is not cut off.
     setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   }
+  return blob;
 }

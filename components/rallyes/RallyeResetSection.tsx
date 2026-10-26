@@ -17,6 +17,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { downloadFile } from '@/lib/download-file';
+import {
+  MISSING_PHOTOS_FILE_NAME,
+  readMissingPhotos,
+} from '@/lib/upload-photos-zip';
 import type { RallyeStatus } from '@/lib/types';
 
 interface RallyeResetSectionProps {
@@ -44,7 +48,10 @@ export default function RallyeResetSection({
   const [photoDownload, setPhotoDownload] = useState<
     'idle' | 'loading' | 'done' | 'failed'
   >('idle');
+  const [missingPhotoCount, setMissingPhotoCount] = useState(0);
   const isDownloadingPhotos = photoDownload === 'loading';
+  const hasIncompletePhotoDownload =
+    photoDownload === 'done' && missingPhotoCount > 0;
 
   // Resetting a rallye that teams are currently playing is destructive
   // enough to require typing its name.
@@ -68,11 +75,18 @@ export default function RallyeResetSection({
   // delete photos that are not part of the backup yet.
   async function handlePhotoDownload() {
     setPhotoDownload('loading');
+    setMissingPhotoCount(0);
     try {
-      await downloadFile(
+      const zip = await downloadFile(
         `/rallyes/${rallyeId}/uploads/download`,
         'upload-fotos.zip'
       );
+      // Photos that failed on the server are only listed inside the ZIP, so
+      // check it before reporting a complete backup.
+      const missingPhotos = readMissingPhotos(
+        new Uint8Array(await zip.arrayBuffer())
+      );
+      setMissingPhotoCount(missingPhotos?.length ?? 0);
       setPhotoDownload('done');
     } catch (downloadError) {
       console.error('Fehler beim Herunterladen der Fotos:', downloadError);
@@ -171,14 +185,23 @@ export default function RallyeResetSection({
           </DialogHeader>
           {uploadPhotoCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
-              <p className="text-sm text-muted-foreground" role="status">
+              <p
+                className={
+                  hasIncompletePhotoDownload
+                    ? 'text-sm font-medium text-destructive'
+                    : 'text-sm text-muted-foreground'
+                }
+                role="status"
+              >
                 {photoDownload === 'loading'
                   ? 'Fotos werden heruntergeladen. Zurücksetzen ist bis dahin gesperrt.'
-                  : photoDownload === 'done'
-                    ? 'Fotos heruntergeladen.'
-                    : photoDownload === 'failed'
-                      ? 'Download fehlgeschlagen.'
-                      : 'Upload-Fotos vorher sichern?'}
+                  : hasIncompletePhotoDownload
+                    ? `Achtung: ${pluralize(missingPhotoCount, 'Foto fehlt', 'Fotos fehlen')} im ZIP (siehe ${MISSING_PHOTOS_FILE_NAME}).`
+                    : photoDownload === 'done'
+                      ? 'Fotos heruntergeladen.'
+                      : photoDownload === 'failed'
+                        ? 'Download fehlgeschlagen.'
+                        : 'Upload-Fotos vorher sichern?'}
               </p>
               <Button
                 type="button"
